@@ -1,0 +1,74 @@
+using UnityEngine;
+
+namespace Core
+{
+    [CreateAssetMenu(menuName = "Scriptable Objects/Player Stats")]
+    public class PlayerStats : ScriptableObject
+    {
+        [Header("Movement")] [Tooltip("The base speed at which the player moves.")]
+        public float BaseSpeed = 6f;
+
+        [Tooltip("How fast can the player reach max speed.")]
+        public float Acceleration = 20f;
+
+        [Tooltip("How fast does the player lose momentum when not moving.")]
+        public float Deceleration = 25f;
+
+        [Header("Dash")] [Tooltip("The base speed at which the player dashes.")]
+        public float DashSpeed = 15f;
+
+        [Tooltip("The base duration of the dash.")]
+        public float DashDuration = 0.2f;
+
+        [Tooltip("The base cooldown of the dash.")]
+        public float DashCooldown = 1f;
+
+        [Header("Attack")] [Tooltip("The base damage the player does.")]
+        public int BaseDamage = 10;
+
+        [Tooltip("The base fire-rate the player has.")]
+        public float FireRate = 1.5f;
+
+        [Tooltip("The base projectile speed.")]
+        public float ProjectileSpeed = 3;
+
+        [Tooltip("The amount of time  it takes the player to cast this attack.")]
+        public float Windup = 0.5f;
+
+        [Header("Defense")] [Tooltip("How many seconds does the shield last.")]
+        public float ShieldDuration = 1.5f;
+
+        [Tooltip("How much cooldown does the shield have.")]
+        public float ShieldCooldown = 3f;
+
+        [Tooltip("Percentage of damage blocked")]
+        public int Blckage = 100;
+
+        [Header("Input")] [Tooltip("Which key will trigger the player dash.")]
+        public KeyCode DashKey = KeyCode.Space;
+
+        [Tooltip("Which key will trigger the player defense.")]
+        public KeyCode DefenseKey = KeyCode.E;
+
+        [Tooltip("Which key will trigger the basic attack.")]
+        public KeyCode BasicAttack = KeyCode.Mouse0;
+
+        [Header("Layers")] [Tooltip("The layer that the player is on.")]
+        public LayerMask PlayerLayerMask;
+
+        [Tooltip("The layer that the enemies are on.")]
+        public LayerMask EnemyLayerMask;
+
+        [Tooltip("The layer that the spells are on.")]
+        public LayerMask SpellLayerMask;
+
+        [Tooltip("The layer that the floor is on.")]
+        public LayerMask FloorLayerMask;
+
+        [Tooltip("The layer that the dash-able objects are on.")]
+        public LayerMask DashableLayerMask;
+
+        [Tooltip("The layer that the non-trespassable objects are on.")]
+        public LayerMask ObstaclesLayerMask;
+    }
+}
