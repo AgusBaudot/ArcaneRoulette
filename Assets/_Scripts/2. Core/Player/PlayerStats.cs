@@ -5,7 +5,8 @@ namespace Core
     [CreateAssetMenu(menuName = "Scriptable Objects/Player Stats")]
     public class PlayerStats : ScriptableObject
     {
-        [Header("Movement")] [Tooltip("The base speed at which the player moves.")]
+        [Header("Movement")] 
+        [Tooltip("The base speed at which the player moves.")]
         public float BaseSpeed = 6f;
 
         [Tooltip("How fast can the player reach max speed.")]
@@ -13,8 +14,12 @@ namespace Core
 
         [Tooltip("How fast does the player lose momentum when not moving.")]
         public float Deceleration = 25f;
+        
+        [Tooltip("How many hitpoints does the player have.")]
+        public int BaseHp = 100;
 
-        [Header("Dash")] [Tooltip("The base speed at which the player dashes.")]
+        [Header("Dash")] 
+        [Tooltip("The base speed at which the player dashes.")]
         public float DashSpeed = 15f;
 
         [Tooltip("The base duration of the dash.")]
@@ -23,7 +28,8 @@ namespace Core
         [Tooltip("The base cooldown of the dash.")]
         public float DashCooldown = 1f;
 
-        [Header("Attack")] [Tooltip("The base damage the player does.")]
+        [Header("Attack")] 
+        [Tooltip("The base damage the player does.")]
         public int BaseDamage = 10;
 
         [Tooltip("The base fire-rate the player has.")]
@@ -35,11 +41,13 @@ namespace Core
         [Tooltip("The amount of time  it takes the player to cast this attack.")]
         public float Windup = 0.5f;
 
-        [Header("Defense")] [Tooltip("How many seconds does the shield last.")]
-        public float ShieldDuration = 1.5f;
-
-        [Tooltip("How much cooldown does the shield have.")]
-        public float ShieldCooldown = 3f;
+        [Header("Defense")] 
+        [Tooltip("Max amount of energy the shield has.")]
+        public float MaxEnergy = 100f;
+        [Tooltip("The rate at which the energy decreases when shield is being used.")]
+        public float EnergyDrainRate = 20f;
+        [Tooltip("The rate at which the energy increases when shield is not being used.")]
+        public float EnergyRestoreRate = 15f;
 
         [Tooltip("Percentage of damage blocked")]
         public int Blckage = 100;
@@ -52,6 +60,13 @@ namespace Core
 
         [Tooltip("Which key will trigger the basic attack.")]
         public KeyCode BasicAttack = KeyCode.Mouse0;
+        
+        [Header("IFrames")]
+        [Tooltip("The amount of time that invincibility frames last.")]
+        public float IFrameDuration = 0.8f;
+
+        [Tooltip("The amount of time the player flashes.")]
+        public float IFrameFlashInterval = 0.08f;
 
         [Header("Layers")] [Tooltip("The layer that the player is on.")]
         public LayerMask PlayerLayerMask;

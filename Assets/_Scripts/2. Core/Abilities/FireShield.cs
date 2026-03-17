@@ -3,46 +3,41 @@ using UnityEngine;
 
 namespace Core
 {
-    public class FireShield : MonoBehaviour, IAbility
+    public class FireShield : MonoBehaviour, IHoldAbility
     {
-        private PlayerController _player;
+        [SerializeField] private GameObject _shieldVisual;
 
-        private float _shieldTimer;
-        private float _shieldCooldownTimer;
+        private bool _active;
 
-        private bool _isShielding;
-
-        private void Update()
+        public void OnPressed(PlayerController player, Vector2 direction)
         {
-            _shieldCooldownTimer -= Time.deltaTime;
-            if (_isShielding)
-                HandleShield();
+            if (!player.Energy.TryStartDrain()) return; //Broken or empty: silent reject.
+
+            _active = true;
+            if (_shieldVisual)
+                _shieldVisual.SetActive(true);
         }
 
-        public void Execute(PlayerController player, Vector2 inputDirection)
+        public void OnHeld(PlayerController player, Vector2 direction)
         {
-            if (_isShielding || _shieldCooldownTimer > 0f) return;
-
-            _player = player;
-            StartShield();
-        }
-
-        private void StartShield()
-        {
-            _isShielding = true;
-
-            _shieldTimer = _player.Stats.ShieldDuration;
-            _shieldCooldownTimer = _player.Stats.ShieldCooldown;
-        }
-
-        private void HandleShield()
-        {
-            _shieldTimer -= Time.deltaTime;
+            if (!_active) return;
             
-            if (_shieldTimer <= 0f)
-            {
-                _isShielding = false;
-            }
+            //Energy.Tick() already draining - just watch for depletion.
+            if (player.Energy.IsBroken)
+                Deactivate(player);
+        }
+
+        public void OnReleased(PlayerController player)
+        {
+            if (_active) Deactivate(player);
+        }
+
+        private void Deactivate(PlayerController player)
+        {
+            _active = false;
+            player.Energy.StopDrain();
+            if (_shieldVisual)
+                _shieldVisual.SetActive(false);
         }
     }
 }

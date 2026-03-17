@@ -3,25 +3,31 @@ using UnityEngine;
 namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(PlayerHealth))]
+    [RequireComponent(typeof(PlayerEnergy))]
     public class PlayerController : MonoBehaviour
     {
         public PlayerStats Stats => _playerStats;
         public Rigidbody Rigidbody => _rb;
+        public PlayerHealth Health => _health;
+        public PlayerEnergy Energy => _energy;
+        public GameObject Hurtbox => _hurtBox;
         
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private Transform _spriteTransform;
         [SerializeField] private FireAttack _slot1; //Basic attack
-        [SerializeField] private WindDash _slot2; //Dash
+        [SerializeField] private ElectroDash _slot2; //Dash
         [SerializeField] private FireShield _slot3; //Shield
+        [SerializeField] private GameObject _hurtBox;
 
         private Rigidbody _rb;
+        private PlayerHealth _health;
+        private PlayerEnergy _energy;
 
         private Vector2 _input;
         private Vector3 _velocity;
         private Vector2 _facingDirection = Vector2.right;
-
         private bool _canMove = true;
-
 
         private void Awake()
         {
@@ -29,6 +35,13 @@ namespace Core
             _rb.useGravity = false;
             _rb.constraints = RigidbodyConstraints.FreezePositionY
                             | RigidbodyConstraints.FreezeRotation;
+
+            _health = GetComponent<PlayerHealth>();
+            _energy = GetComponent<PlayerEnergy>();
+            _health.Initialize(_playerStats);
+            _energy.Initialize(_playerStats);
+            
+            GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
         }
 
         private void OnValidate()
@@ -37,6 +50,7 @@ namespace Core
                 Debug.LogWarning("PlayerStats SO must be assigned.", this);
         }
 
+        //UpdateManager: replace Update/FixedUpdate with Tick registrations
         private void Update()
         {
             ReadInput();
@@ -61,9 +75,13 @@ namespace Core
 
             if (Input.GetKeyDown(_playerStats.DashKey))
                 _slot2.Execute(this, dir);
-            
-            if (Input.GetKeyDown(_playerStats.DefenseKey))
-                _slot3.Execute(this, dir);
+
+            if (_slot3 is IHoldAbility hold)
+            {
+                if (Input.GetKeyDown(_playerStats.DefenseKey)) hold.OnPressed(this, dir);
+                if (Input.GetKey(_playerStats.DefenseKey)) hold.OnHeld(this, dir);
+                if (Input.GetKeyUp(_playerStats.DefenseKey)) hold.OnReleased(this);
+            }
         }
 
         private void HandleMovement()

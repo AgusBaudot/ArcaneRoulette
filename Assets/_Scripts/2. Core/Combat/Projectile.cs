@@ -9,7 +9,7 @@ namespace Core
     {
         [Header("Juice on impact")]
         [SerializeField] private float _hitStopDuration = 0.06f;
-        [SerializeField] private float _cameraTrauma = 0.18f;
+        [SerializeField] private float _cameraTrauma = 0.5f;
         [SerializeField] private float _knockbackForce = 9f;
         [SerializeField] private GameObject _impactPrefab;
         
