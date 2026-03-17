@@ -17,7 +17,7 @@ namespace Core
         [SerializeField] private Transform _spriteTransform;
         [SerializeField] private FireAttack _slot1; //Basic attack
         [SerializeField] private ElectroDash _slot2; //Dash
-        [SerializeField] private FireShield _slot3; //Shield
+        [SerializeField] private WindShield _slot3; //Shield
         [SerializeField] private GameObject _hurtBox;
 
         private Rigidbody _rb;

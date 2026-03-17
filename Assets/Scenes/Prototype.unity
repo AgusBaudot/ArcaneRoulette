@@ -940,6 +940,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shieldVisual: {fileID: 738323917}
+  _abilityThreshold: 1
+  _shockWavePrefab: {fileID: 5332579004634242693, guid: 10f2aaadbb99a7747a819198c9e9d45e,
+    type: 3}
 --- !u!1 &1279000848
 GameObject:
   m_ObjectHideFlags: 0
@@ -6202,7 +6205,7 @@ GameObject:
   - component: {fileID: 1722950268}
   m_Layer: 8
   m_Name: Hurtbox
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6353,7 +6356,7 @@ GameObject:
   - component: {fileID: 1925471331}
   m_Layer: 6
   m_Name: Non-trigger collider
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

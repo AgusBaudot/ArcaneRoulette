@@ -27,7 +27,6 @@ namespace Foundation
         public static void AddTrauma(float amount)
         {
             if (Instance == null) return;
-            Debug.Log("Called camera shake");
             Instance._trauma = Mathf.Clamp01(Instance._trauma + amount);
         }
 
