@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace Core
 
         private float _shieldLifeTime;
         private SphereCollider _collider;
+        private HashSet<IDamageable> _enemiesHit = new();
 
         private void Start()
         {
@@ -26,19 +28,33 @@ namespace Core
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.TryGetComponent<IDamageable>(out var damageable) && !other.CompareTag("Player"))
+            //Filter out the player immediately to save processing
+            if (other.CompareTag("Player"))
+                return;
+            
+            //Check if damageable
+            if (other.TryGetComponent<IDamageable>(out var damageable))
             {
-                Debug.Log("Wire it with windshield to receive damage info");
-                damageable.TakeDamage(2, ElementType.Wind);
-                if (other.TryGetComponent<DamageFlash>(out var flash))
-                    flash.Flash();
+                //Check if specific enemy was already hit
+                if (!_enemiesHit.Contains(damageable))
+                {
+                    Debug.Log("Wire it with windshield to receive damage info");
+                    
+                    _enemiesHit.Add(damageable);
+                    damageable.TakeDamage(2, ElementType.Wind);
+
+                    if (other.TryGetComponent<DamageFlash>(out var flash))
+                        flash.Flash();
+                    
+                    Debug.Log("Might want to check separately to see if knockbackable is not damageable");
+                    if (other.TryGetComponent<IKnockbackable>(out var kb))
+                    {
+                        Vector3 pushDirection = (other.transform.position - transform.position).normalized;
+                        kb.ApplyKnockback(pushDirection, _knockbackForce);
+                    }
+                }
             }
 
-            if (other.TryGetComponent<IKnockbackable>(out var kb))
-            {
-                Vector3 pushDirection = (other.transform.position - transform.position).normalized;
-                kb.ApplyKnockback(pushDirection, _knockbackForce);
-            }
         }
     }
 }

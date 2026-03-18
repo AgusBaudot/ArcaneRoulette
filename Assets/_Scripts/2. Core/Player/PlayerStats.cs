@@ -16,6 +16,7 @@ namespace Core
         public float Deceleration = 25f;
         
         [Tooltip("How many hitpoints does the player have.")]
+        [Range(0, 100)]
         public int BaseHp = 100;
 
         [Header("Dash")] 

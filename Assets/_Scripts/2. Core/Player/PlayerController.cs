@@ -107,7 +107,7 @@ namespace Core
         {
             if (_spriteTransform == null) return;
             _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? -10f : 10f, 10f, 1f);
+                _facingDirection.x < 0f ? -1f : 1f, 1f, 1f);
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;

@@ -15,6 +15,7 @@ MonoBehaviour:
   BaseSpeed: 6
   Acceleration: 20
   Deceleration: 25
+  BaseHp: 100
   DashSpeed: 15
   DashDuration: 0.2
   DashCooldown: 1
@@ -22,12 +23,15 @@ MonoBehaviour:
   FireRate: 1
   ProjectileSpeed: 12
   Windup: 0
-  ShieldDuration: 1.5
-  ShieldCooldown: 3
+  MaxEnergy: 100
+  EnergyDrainRate: 20
+  EnergyRestoreRate: 15
   Blckage: 100
   DashKey: 32
   DefenseKey: 101
   BasicAttack: 323
+  IFrameDuration: 0.8
+  IFrameFlashInterval: 0.08
   PlayerLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -45,4 +49,4 @@ MonoBehaviour:
     m_Bits: 1024
   ObstaclesLayerMask:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 32768
