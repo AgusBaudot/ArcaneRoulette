@@ -1,6 +1,4 @@
-using Foundation;
-
-namespace Core
+namespace Foundation
 {
     public interface IDamageable 
     {

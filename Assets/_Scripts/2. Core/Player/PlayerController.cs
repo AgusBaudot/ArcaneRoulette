@@ -78,9 +78,9 @@ namespace Core
 
             if (_slot3 is IHoldAbility hold)
             {
-                if (Input.GetKeyDown(_playerStats.DefenseKey)) hold.OnPressed(this, dir);
-                if (Input.GetKey(_playerStats.DefenseKey)) hold.OnHeld(this, dir);
-                if (Input.GetKeyUp(_playerStats.DefenseKey)) hold.OnReleased(this);
+                if (Input.GetKeyDown(_playerStats.DefenseKey)) hold.StartHold();
+                if (Input.GetKey(_playerStats.DefenseKey)) hold.HoldTick(Time.deltaTime);
+                if (Input.GetKeyUp(_playerStats.DefenseKey)) hold.StopHold();
             }
         }
 

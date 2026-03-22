@@ -4,7 +4,7 @@ using Foundation;
 
 namespace Core
 {
-    public class ElectroDash : MonoBehaviour, IAbility
+    public class ElectroDash : MonoBehaviour
     {
         [SerializeField] private GameObject _lightningPrefab;
         [SerializeField] private float _radius;

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Core
 {
-    public class WindShield : MonoBehaviour, IHoldAbility
+    public class WindShield : MonoBehaviour
     {
         [SerializeField] private GameObject _shieldVisual;
         [Tooltip("How much time does it take to spawn the shield's ability.")]

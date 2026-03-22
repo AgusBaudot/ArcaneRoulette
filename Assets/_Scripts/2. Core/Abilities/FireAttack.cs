@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Core
 {
-    public class FireAttack : MonoBehaviour, IAbility
+    public class FireAttack : MonoBehaviour
     {
         [SerializeField] private Projectile _fireball;
         
