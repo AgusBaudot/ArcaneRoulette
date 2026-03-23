@@ -1,0 +1,99 @@
+using System.Collections;
+using UnityEngine;
+using Foundation;
+
+namespace Core
+{
+    [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
+    public sealed class DashAbilityRune : AbilityRuneSO
+    {
+        [SerializeField] private float _dashSpeed = 20f;
+        [SerializeField] private float _baseDashDuration = 0.2f;
+        [SerializeField] private float _cooldownDuration = 0.8f;
+        [SerializeField] private float _cameraTrauma = 0.5f;
+        [SerializeField] private int _baseDamage = 8; // used when DamagesOnDash
+
+        public override AbilityType Type => AbilityType.Dash;
+        public override bool IsHoldAbility => false;
+        public override float CooldownDuration => _cooldownDuration;
+
+        public override void Activate(SpellContext ctx)
+        {
+            var player = (PlayerController)ctx.Runner;
+
+            // DurationMultiplier written by AmplifyCastRune in Phase 3
+            float duration = _baseDashDuration * ctx.Modifiers.DurationMultiplier;
+
+            ctx.Runner.StartCoroutine(DashRoutine(ctx, player, duration));
+        }
+
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration)
+        {
+            // Determine direction — last input direction, fallback to facing
+            Vector2 raw = player.LastInputDirection;
+            Vector3 dir = new Vector3(raw.x, 0f, raw.y).normalized;
+            if (dir == Vector3.zero) dir = player.transform.forward;
+
+            // Invincibility — distinct from IFrames per locked decisions
+            player.SetCanMove(false);
+            player.Hurtbox.SetActive(false);
+
+            CameraShake.AddTrauma(_cameraTrauma);
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                player.Rigidbody.velocity = dir * _dashSpeed;
+                elapsed += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
+
+            player.Rigidbody.velocity = Vector3.zero;
+            player.SetCanMove(true);
+            player.Hurtbox.SetActive(true);
+
+            // Damage at dash END — base dash has none unless DamagesOnDash is set.
+            // PiercingCastRune sets DamagesOnDash = true in Phase 3.
+            if (ctx.Modifiers.DamagesOnDash)
+                DealEndDamage(player, ctx);
+
+            // TriggerOnHit at dash end — OnHit rune effects fire here (Phase 4).
+            // Position is player position at end; target null for area effects.
+            // PROTOTYPE: AoEOnHitRune will OverlapSphere from this position.
+            // Source spell needs TriggerOnHit — routed through EventBus until
+            // a cleaner callsite exists. Placeholder for now:
+            // EventBus.Fire(new DashEndedEvent(player.transform.position, ctx));
+        }
+
+        private void DealEndDamage(PlayerController player, SpellContext ctx)
+        {
+            // PROTOTYPE: direct damage call, replace with DamageSystem in Phase 5
+            var hits = Physics.OverlapSphere(
+                player.transform.position, 2f,
+                player.Stats.EnemyLayerMask);
+
+            bool hitAny = false;
+            foreach (var hit in hits)
+            {
+                if (!hit.TryGetComponent<IDamageable>(out var dmg)) continue;
+                dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                if (hit.TryGetComponent<DamageFlash>(out var flash)) flash.Flash();
+                hitAny = true;
+            }
+
+            if (hitAny) HitStop.Apply(0.06f);
+        }
+
+        public override void StartHold(SpellContext ctx)
+        {
+        }
+
+        public override void StopHold(SpellContext ctx)
+        {
+        }
+
+        public override void HoldTick(SpellContext ctx, float delta)
+        {
+        }
+    }
+}
