@@ -7,8 +7,8 @@ namespace Core
     //so the cast is a reliable discriminator.
     public interface IHoldAbility
     {
-        void StartHold();
-        void StopHold();
-        void HoldTick(float deltaTime);
+        void StartHold(MonoBehaviour runner);
+        void StopHold(MonoBehaviour runner);
+        void HoldTick(float deltaTime, MonoBehaviour runner);
     }
 }

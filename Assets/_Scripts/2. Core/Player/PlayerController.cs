@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Foundation;
 
 namespace Core
 {
@@ -13,12 +15,16 @@ namespace Core
         public PlayerEnergy Energy => _energy;
         public GameObject Hurtbox => _hurtBox;
         
+        //Last intentional input direction - used by DashAbilityRune for dash direction.
+        //Falls back to facing direction when stick/WASD is neutral.
+        public Vector2 LastInputDirection => _input.sqrMagnitude > 0.01f ? _input : _facingDirection;
+        
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private Transform _spriteTransform;
-        [SerializeField] private FireAttack _slot1; //Basic attack
-        [SerializeField] private ElectroDash _slot2; //Dash
-        [SerializeField] private WindShield _slot3; //Shield
         [SerializeField] private GameObject _hurtBox;
+
+        //Populated by DebugSpellSeeder in Phase 1, by AttunementSystem in Phase 2.
+        private readonly SpellInstance[] _spellSlots = new SpellInstance[3];
 
         private Rigidbody _rb;
         private PlayerHealth _health;
@@ -42,6 +48,13 @@ namespace Core
             _energy.Initialize(_playerStats);
             
             GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
+            
+            EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
+        }
+
+        private void OnDestroy()
+        {
+            EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
         }
 
         private void OnValidate()
@@ -54,6 +67,7 @@ namespace Core
         private void Update()
         {
             ReadInput();
+            TickSpells();
         }
 
         private void FixedUpdate()
@@ -62,25 +76,46 @@ namespace Core
             HandleMovement();
         }
 
+        private void TickSpells()
+        {
+            foreach (var spell in _spellSlots)
+                spell?.Tick(Time.deltaTime);
+        }
+
         private void ReadInput()
         {
             _input = new Vector2(
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")).normalized;
-            
-            var dir = _input.sqrMagnitude > 0.01f ? _input : _facingDirection;
-            
-            if (Input.GetKeyDown(_playerStats.BasicAttack))
-                _slot1.Execute(this, dir);
 
-            if (Input.GetKeyDown(_playerStats.DashKey))
-                _slot2.Execute(this, dir);
+            if (_input.sqrMagnitude > 0.01f)
+                _facingDirection = _input;
 
-            if (_slot3 is IHoldAbility hold)
+            HandleSlotInput(_playerStats.Slot1, _spellSlots[0]);
+            HandleSlotInput(_playerStats.Slot2, _spellSlots[1]);
+            HandleSlotInput(_playerStats.Slot3, _spellSlots[2]);
+        }
+
+        private void HandleSlotInput(KeyCode key, ISpellSlot slot)
+        {
+            if (slot == null) 
+                return;
+
+            if (slot is IHoldAbility hold)
             {
-                if (Input.GetKeyDown(_playerStats.DefenseKey)) hold.StartHold();
-                if (Input.GetKey(_playerStats.DefenseKey)) hold.HoldTick(Time.deltaTime);
-                if (Input.GetKeyUp(_playerStats.DefenseKey)) hold.StopHold();
+                if (Input.GetKeyDown(key)) 
+                    hold.StartHold(this);
+
+                if (Input.GetKey(key))
+                    hold.HoldTick(Time.deltaTime, this);
+                
+                if (Input.GetKeyUp(key)) 
+                    hold.StopHold(this);
+            }
+            else if (slot is IAbility ability)
+            {
+                if (Input.GetKeyDown(key))
+                    ability.Activate(this);
             }
         }
 
@@ -97,10 +132,7 @@ namespace Core
             _rb.velocity = _velocity;
 
             if (_input.sqrMagnitude > 0.01f)
-            {
-                _facingDirection = _input;
                 UpdateSpriteFlip();
-            }
         }
 
         private void UpdateSpriteFlip()
@@ -108,6 +140,12 @@ namespace Core
             if (_spriteTransform == null) return;
             _spriteTransform.localScale = new Vector3(
                 _facingDirection.x < 0f ? -1f : 1f, 1f, 1f);
+        }
+
+        private void OnSpellEquipped(SpellEquippedEvent evt)
+        {
+            if ((int)evt.Slot < _spellSlots.Length)
+                _spellSlots[(int)evt.Slot] = evt.Instance;
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;

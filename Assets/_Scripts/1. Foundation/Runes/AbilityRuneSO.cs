@@ -4,6 +4,7 @@ namespace Foundation
     {
         public abstract AbilityType Type { get; }
         public abstract bool IsHoldAbility { get; }
+        public abstract float CooldownDuration { get; } //0f = no cooldown.
 
         // Called by SpellInstance.Activate() for instant abilities,
         // and by HoldSpellInstance.StartHold() for hold abilities.

@@ -3,9 +3,8 @@ using System.Collections.Generic;
 
 namespace Foundation
 {
-    //EVENT FUCKING BUS LET'S GOOOOO
     public static class EventBus
-    {
+    { 
         private static readonly Dictionary<Type, Delegate> _handlers = new();
 
         public static void Subscribe<T>(Action<T> handler)
@@ -31,6 +30,12 @@ namespace Foundation
         {
             if (_handlers.TryGetValue(typeof(T), out var handler))
                 ((Action<T>)handler).Invoke(evt);
+        }
+        
+        //Called by GameStateManager
+        public static void Clear()
+        {
+            _handlers.Clear();
         }
     }
 }

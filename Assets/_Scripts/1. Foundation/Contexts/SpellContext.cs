@@ -10,6 +10,7 @@ namespace Foundation
     public readonly struct SpellContext
     {
         public readonly AbilityType AbilityType;
+        public readonly MonoBehaviour Runner; //coroutine host, always PlayerController.
 
         // Parallel to SpellInstance's deduplicated cast/onhit rune lists (same order).
         // Lets any rune inspect the full modifier composition of the spell —
@@ -20,19 +21,24 @@ namespace Foundation
         // Populated only during TriggerOnHit; zero/null during cast-phase Apply calls.
         public readonly Vector3    HitPosition;
         public readonly GameObject HitTarget;
+        public readonly SpellCastModifiers Modifiers; //writable by cast runes; read by ability
 
         private SpellContext(
             AbilityType abilityType,
             int[]       castStackCounts,
             int[]       onHitStackCounts,
             Vector3     hitPosition,
-            GameObject  hitTarget)
+            GameObject  hitTarget,
+            MonoBehaviour runner,
+            SpellCastModifiers modifiers)
         {
             AbilityType      = abilityType;
             CastStackCounts  = castStackCounts;
             OnHitStackCounts = onHitStackCounts;
             HitPosition      = hitPosition;
             HitTarget        = hitTarget;
+            Runner = runner;
+            Modifiers = modifiers;
         }
 
         // Use these factories — never construct directly.
@@ -42,17 +48,19 @@ namespace Foundation
         public static SpellContext ForCast(
             AbilityType abilityType,
             int[]       castStackCounts,
-            int[]       onHitStackCounts)
+            int[]       onHitStackCounts,
+            MonoBehaviour runner)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                Vector3.zero, null);
+                                Vector3.zero, null, runner, new SpellCastModifiers());
 
         public static SpellContext ForHit(
             AbilityType abilityType,
             int[]       castStackCounts,
             int[]       onHitStackCounts,
             Vector3     hitPosition,
-            GameObject  hitTarget)
+            GameObject  hitTarget,
+            MonoBehaviour runner)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                hitPosition, hitTarget);
+                                hitPosition, hitTarget, runner, new SpellCastModifiers());
     }
 }

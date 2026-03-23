@@ -20,8 +20,17 @@ namespace Core
         private readonly int[] _castCounts;
         private readonly int[] _onHitCounts;
 
+        private float _cooldownRemaining;
+
         public SpellRecipe Recipe => _recipe;
         public AbilityType AbilityType => _recipe.Ability.Type;
+        public bool IsHoldAbility => false;
+        public bool IsReady => _cooldownRemaining <= 0f;
+        
+        //Expose element for Projectile's TakeDamage call until DamageSystem is wired.
+        public ElementType? Element => _recipe.HasElement
+            ? _recipe.Element.Element
+            : ElementType.Neutral;
 
         internal SpellInstance(SpellRecipe recipe)
         {
@@ -30,30 +39,49 @@ namespace Core
                 out _castRunes, out _castCounts,
                 out _onHitRunes, out _onHitCounts);
         }
+        
+        //Tick: called by PlayerController every Update
+
+        public void Tick(float dt)
+        {
+            if (_cooldownRemaining > 0f)
+                _cooldownRemaining -= dt;
+        }
 
         //IAbility
 
-        public void Activate()
+        public void Activate(MonoBehaviour runner)
         {
-            var ctx = BuildCastContext();
-            _recipe.Ability.Activate(ctx);
+            if (!IsReady) return;
+            
+            //Fresh modifiers allocated inside ForCast - cast runes write, ability reads.
+            var ctx = BuildCastContext(runner);
+            
+            //Cast runes MUST fire before Activate so Modifiers are populated.
             FireCastRunes(ctx);
+
+            if (_recipe.Ability is ProjectileAbilityRune proj)
+                proj.ActivateWithInstance(ctx, this); //needs SpellInstance for Projectile.Init
+            else
+                _recipe.Ability.Activate(ctx);
+
+            _cooldownRemaining = _recipe.Ability.CooldownDuration;
         }
 
         //OnHit trigger (called by projectile/contact on impact)
 
-        public void TriggerOnHit(Vector3 position, GameObject target)
+        public void TriggerOnHit(Vector3 position, GameObject target, MonoBehaviour runner)
         {
             var ctx = SpellContext.ForHit(
-                _recipe.Ability.Type, _castCounts, _onHitCounts, position, target);
+                _recipe.Ability.Type, _castCounts, _onHitCounts, position, target, runner);
             FireOnHitRunes(ctx);
         }
 
         //Shared helpers (used by HoldSpellInstance)
 
         //Exposes a cast-phase context without leaking the raw count arrays.
-        protected SpellContext BuildCastContext()
-            => SpellContext.ForCast(_recipe.Ability.Type, _castCounts, _onHitCounts);
+        protected SpellContext BuildCastContext(MonoBehaviour runner)
+            => SpellContext.ForCast(_recipe.Ability.Type, _castCounts, _onHitCounts, runner);
 
         protected void FireCastRunes(SpellContext ctx)
         {

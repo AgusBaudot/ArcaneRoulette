@@ -1,3 +1,6 @@
+using Foundation;
+using UnityEngine;
+
 namespace Core
 {
     //Produced by SpellCrafter when recipe.Ability.IsHoldAbility == true.
@@ -5,27 +8,25 @@ namespace Core
     //Cast runes fire on StartHold (coincides with activation for hold spells).
     //StopHold/HoldTick delegate to the ability rune only - timing of any
     //secondary effects (e.g. AoE on dash end) is owned by the ability rune impl.
-    public class HoldSpellInstance : SpellInstance, IHoldAbility
+    public sealed class HoldSpellInstance : SpellInstance, IHoldAbility, ISpellSlot
     {
+        public new bool IsHoldAbility => false;
+
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 
-        public void StartHold()
+        public void StartHold(MonoBehaviour runner)
         {
-            var ctx = BuildCastContext();
+            var ctx = BuildCastContext(runner);
+            FireCastRunes(ctx); //Cast runes apply on hold start.
             Recipe.Ability.StartHold(ctx);
-            FireCastRunes(ctx);
         }
 
-        public void StopHold()
-        {
-            Recipe.Ability.StopHold(BuildCastContext());
-        }
+        public void StopHold(MonoBehaviour runner)
+            => Recipe.Ability.StopHold(BuildCastContext(runner));
 
         //Calling BuildCastContext() every tick. It's allocation free (struct + array refs already exist)
         //If profiling ever shows it's hot, cache the cast context as a field and invalidate on recipe change.
-        public void HoldTick(float deltaTime)
-        {
-            Recipe.Ability.HoldTick(BuildCastContext(), deltaTime);
-        }
+        public void HoldTick(float deltaTime, MonoBehaviour runner)
+            => Recipe.Ability.HoldTick(BuildCastContext(runner), deltaTime);
     }
 }

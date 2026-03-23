@@ -53,14 +53,14 @@ namespace Core
         [Tooltip("Percentage of damage blocked")]
         public int Blckage = 100;
 
-        [Header("Input")] [Tooltip("Which key will trigger the player dash.")]
-        public KeyCode DashKey = KeyCode.Space;
+        [Header("Input")] [Tooltip("Which key will trigger the player's 1st slot.")]
+        public KeyCode Slot1 = KeyCode.Mouse0;
 
-        [Tooltip("Which key will trigger the player defense.")]
-        public KeyCode DefenseKey = KeyCode.E;
+        [Tooltip("Which key will trigger the player's 2nd slot.")]
+        public KeyCode Slot2 = KeyCode.E;
 
-        [Tooltip("Which key will trigger the basic attack.")]
-        public KeyCode BasicAttack = KeyCode.Mouse0;
+        [Tooltip("Which key will trigger the player's 3rd slot.")]
+        public KeyCode Slot3 = KeyCode.Space;
         
         [Header("IFrames")]
         [Tooltip("The amount of time that invincibility frames last.")]

@@ -4,6 +4,6 @@ namespace Core
 {
     public interface IAbility
     {
-        void Activate();
+        void Activate(MonoBehaviour runner);
     }
 }
