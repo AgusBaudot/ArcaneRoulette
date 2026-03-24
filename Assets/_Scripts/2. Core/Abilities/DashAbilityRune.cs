@@ -38,11 +38,34 @@ namespace Core
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
 
-            CameraShake.AddTrauma(_cameraTrauma);
-
+            int bouncesLeft = ctx.Modifiers.BounceCount;
             float elapsed = 0f;
             while (elapsed < duration)
             {
+                //Bounce check - raycast a short distance ahead each frame
+                if (bouncesLeft > 0)
+                {
+                    float checkDist = _dashSpeed * Time.fixedDeltaTime * 2f;
+                    
+                    //Bounce off anything: walls and enemies
+                    if (Physics.Raycast(player.transform.position, dir, out RaycastHit hit, checkDist))
+                    {
+                        dir = Vector3.Reflect(dir, hit.normal);
+                        dir.y = 0f; //stay on XZ plane
+                        dir = dir.normalized;
+                        bouncesLeft--;
+                        
+                        //Damage enemy on bounce contact
+                        if (ctx.Modifiers.DamagesOnDash &&
+                            hit.collider.TryGetComponent<IDamageable>(out var dmg))
+                        {
+                            dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                            if (hit.collider.TryGetComponent<DamageFlash>(out var flash))
+                                flash.Flash();
+                        }
+                    }
+                }
+                
                 player.Rigidbody.velocity = dir * _dashSpeed;
                 elapsed += Time.fixedDeltaTime;
                 yield return new WaitForFixedUpdate();

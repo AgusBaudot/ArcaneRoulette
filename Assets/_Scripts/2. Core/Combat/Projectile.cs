@@ -1,35 +1,34 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
 namespace Core
 {
-    [RequireComponent(typeof(Rigidbody))]
-    public class Projectile : MonoBehaviour
+    public sealed class Projectile : BaseProjectile
     {
+        public override bool IsEnemy => false;
+        
         private SpellInstance _source;
         private MonoBehaviour _runner;
-        private Rigidbody _rb;
 
         private int _baseDamage;
+        private int _pierceCount;
         private float _hitStopDuration;
         private float _cameraTrauma;
         private float _knockbackForce;
-        
-        //Set by PiercingCastRune in Phase 3 via vtx.Modifiers.PierceCount
-        public int PierceCount { get; set; } = 0;
 
-        private void Awake()
-        {
-            _rb = GetComponent<Rigidbody>();
-            _rb.useGravity = false;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate; // smooth at any framerate
-            _rb.constraints = RigidbodyConstraints.FreezePositionY
-                              | RigidbodyConstraints.FreezeRotation;
-        }
+        // Enemies hit this flight — prevents re-triggering while passing through
+        private readonly HashSet<GameObject> _hitTargets = new();
 
-        //Called by ProjectileAbilityRune.Fire() immediately after Instantiate
-        public void Init(SpellInstance source, Vector3 direction, float speed, int baseDamage, float hitStopDuration,
-            float cameraTrauma, float knockbackForce, MonoBehaviour runner)
+        public void Init(
+            SpellInstance source,
+            Vector3 direction,
+            float speed,
+            int baseDamage,
+            float hitStopDuration,
+            float cameraTrauma,
+            float knockbackForce,
+            MonoBehaviour runner)
         {
             _source = source;
             _runner = runner;
@@ -38,43 +37,53 @@ namespace Core
             _cameraTrauma = cameraTrauma;
             _knockbackForce = knockbackForce;
 
-            _rb.velocity = direction.normalized * speed;
-            transform.forward = direction.normalized;
+            BounceCount = 0;
+            _pierceCount = 0;
+            _hitTargets.Clear();
 
-            foreach (var ps in GetComponentsInChildren<ParticleSystem>())
-            {
-                ps.Clear();
-                ps.Play();
-            }
+            SetVelocity(direction, speed);
+            PlayParticles();
         }
 
-        private void OnTriggerEnter(Collider other)
+        public void SetPierceCount(int count) => _pierceCount = count;
+        public void SetBounceCount(int count) => BounceCount = count;
+
+        protected override void OnHitDamageable(Collider other)
         {
-            //Base damage - dealt directly until DamageSystem is wired in Phase 5.
-            //Element type passed here; resistance table activates in Phase 5.
-            //PROTOTYPE: replace with DamageSystem.Deal() call post-Phase 5.
-            if (other.TryGetComponent<IDamageable>(out var damageable))
-            {
-                var element = _source?.Element ?? ElementType.Neutral;
-                damageable.TakeDamage(_baseDamage, element);
-                
-                if (other.TryGetComponent<IKnockbackable>(out var kb))
-                    kb.ApplyKnockback(_rb.velocity.normalized, _knockbackForce);
-                
-                if (other.TryGetComponent<DamageFlash>(out var flash))
-                    flash.Flash();
-                
-                HitStop.Apply(_hitStopDuration);
-                CameraShake.AddTrauma(_cameraTrauma);
-            }
-            
-            //OnHit rune effects - empty list in Phase 1, populated in Phase 4.
+            // Already hit this target this flight — ignore
+            if (!_hitTargets.Add(other.gameObject)) return;
+
+            var element = _source?.Element ?? ElementType.Neutral;
+            other.GetComponent<IDamageable>().TakeDamage(_baseDamage, element);
+
+            if (other.TryGetComponent<IKnockbackable>(out var kb))
+                kb.ApplyKnockback(Rb.velocity.normalized, _knockbackForce);
+
+            if (other.TryGetComponent<DamageFlash>(out var flash))
+                flash.Flash();
+
+            HitStop.Apply(_hitStopDuration);
+            CameraShake.AddTrauma(_cameraTrauma);
+
             _source?.TriggerOnHit(transform.position, other.gameObject, _runner);
 
-            if (PierceCount <= 0)
+            if (_pierceCount <= 0)
+            {
                 Destroy(gameObject);
-            else
-                PierceCount--;
+                return;
+            }
+
+            _pierceCount--;
+            // Projectile continues — _hitTargets prevents re-hitting this enemy
+        }
+
+        protected override void OnHitWall(Collider other)
+        {
+            if (!TryBounce())
+                Destroy(gameObject);
+            // On bounce, _hitTargets is intentionally NOT cleared —
+            // a bounced projectile can't re-hit an enemy it already pierced through.
+            // Designers can revisit this if needed.
         }
     }
 }

@@ -49,6 +49,13 @@ namespace Core
             var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
             go.Init(source, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma, _knockbackForce,
                 ctx.Runner);
+            go.SetPierceCount(ctx.Modifiers.PierceCount);
+            go.SetBounceCount(ctx.Modifiers.BounceCount);
+            go.transform.localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
+            //Also scale the collider if it's a SphereCollider
+            var col = go.GetComponent<SphereCollider>();
+            if (col) 
+                col.radius *= ctx.Modifiers.SizeMultiplier;
         }
 
         //Called by SpellInstance for non-projectile abilities.

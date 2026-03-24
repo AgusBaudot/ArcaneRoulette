@@ -672,8 +672,9 @@ GameObject:
   - component: {fileID: 805861740}
   - component: {fileID: 805861739}
   - component: {fileID: 805861738}
+  - component: {fileID: 805861741}
   m_Layer: 0
-  m_Name: Delete
+  m_Name: Visualizer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -730,10 +731,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fada2e80a55a45f0bd1d92b20f32f2f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _player: {fileID: 1364292778}
   _projectileRune: {fileID: 11400000, guid: 0872d9446f72b494e868792c9faf5d67, type: 2}
   _dashRune: {fileID: 11400000, guid: 9309db55e70dea2459f176389de4fa8e, type: 2}
   _shieldRune: {fileID: 11400000, guid: f70c90b9e538df0429a17171e8a21769, type: 2}
+  _piercingRune: {fileID: 11400000, guid: 326d3e2eb93fe6c44b0803a2cb9e63da, type: 2}
+  _bounceRune: {fileID: 11400000, guid: d6005eb81cb6168479a295543c043a1f, type: 2}
+  _amplifyRune: {fileID: 11400000, guid: ad51a831e8d23404caa8294033d1f91e, type: 2}
+  _testSlot: 1
+  _testRecipe: 0
+  _runeInventoryCount: 9
+--- !u!114 &805861741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805861736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce4696054c5641b0a6803cb82aec2686, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _player: {fileID: 1364292778}
 --- !u!1 &862645866
 GameObject:
   m_ObjectHideFlags: 0

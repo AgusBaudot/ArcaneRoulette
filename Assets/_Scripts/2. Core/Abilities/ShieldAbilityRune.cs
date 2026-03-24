@@ -19,6 +19,7 @@ namespace Core
         // Replace with per-instance state bag when multiplayer or pooling is needed.
         private float _timeHeld;
         private bool _active;
+        private bool _allowEnemyThrough;
         private GameObject _shieldVisual;
 
         public override void StartHold(SpellContext ctx)
@@ -28,13 +29,26 @@ namespace Core
 
             _active = true;
             _timeHeld = 0f;
-
-            // RadiusMultiplier written by AmplifyCastRune in Phase 3
-            // Shield visual scale can read ctx.Modifiers.RadiusMultiplier here if needed
             if (!_shieldVisual)
             {
                 _shieldVisual = Instantiate(_shieldVisualPrefab, player.transform.position + new Vector3(-0.2f, 1, 1), Quaternion.identity, player.transform);
+                _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
+                
+                //Wire the collider bridge
+                var shield = _shieldVisual.GetComponent<ShieldCollider>();
+                shield.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
+                
+                //Cache source and runner for TriggerOnHit callsite
+                var source = ctx; //capture
+                shield.OnProjectileAbsorbed += (pos, target) =>
+                {
+                    //TriggerOnHit fires OnHit runes - AoE, Knockback, DoT all resolve here
+                    //_source is not reachable from the SO - routed via the cached runner
+                    // This will be cleaned up when IModifier pipeline replaces SpellCastModifiers
+                    Debug.Log($"Shield absorbed projectile at {pos}");
+                };
             }
+            
             _shieldVisual.SetActive(true);
         }
 
