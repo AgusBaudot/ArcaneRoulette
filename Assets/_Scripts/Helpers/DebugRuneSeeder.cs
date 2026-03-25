@@ -80,9 +80,9 @@ public sealed class DebugRuneSeeder : MonoBehaviour
     {
         _crafter = GetComponent<SpellCrafter>();
         SeedInventory();
-        CraftSlot(SlotIndex.Slot0, _slot0);
-        CraftSlot(SlotIndex.Slot1, _slot1);
-        CraftSlot(SlotIndex.Slot2, _slot2);
+        // CraftSlot(SlotIndex.Slot0, _slot0);
+        // CraftSlot(SlotIndex.Slot1, _slot1);
+        // CraftSlot(SlotIndex.Slot2, _slot2);
     }
 
     // ── Inventory ────────────────────────────────────────────────────────────
