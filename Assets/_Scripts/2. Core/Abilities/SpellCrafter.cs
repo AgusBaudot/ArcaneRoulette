@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
-using UnityEditor.TerrainTools;
 
 namespace Core
 {

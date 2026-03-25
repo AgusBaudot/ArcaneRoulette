@@ -2,137 +2,160 @@ using UnityEngine;
 using Foundation;
 using Core;
 
-public class DebugRuneSeeder : MonoBehaviour
+public sealed class DebugRuneSeeder : MonoBehaviour
 {
     [Header("Ability Runes")]
-    [SerializeField] private ProjectileAbilityRune _projectileRune;
-    [SerializeField] private DashAbilityRune       _dashRune;
-    [SerializeField] private ShieldAbilityRune     _shieldRune;
+    [SerializeField] private ProjectileAbilityRune  _projectileRune;
+    [SerializeField] private DashAbilityRune        _dashRune;
+    [SerializeField] private ShieldAbilityRune      _shieldRune;
 
     [Header("Cast Runes")]
-    [SerializeField] private PiercingCastRune      _piercingRune;
-    [SerializeField] private BounceCastRune        _bounceRune;
-    [SerializeField] private AmplifyCastRune       _amplifyRune;
+    [SerializeField] private PiercingCastRune       _piercingRune;
+    [SerializeField] private BounceCastRune         _bounceRune;
+    [SerializeField] private AmplifyCastRune        _amplifyRune;
 
-    [Header("Test Configuration")]
-    [SerializeField] private SlotIndex _testSlot      = SlotIndex.BasicAttack;
-    [SerializeField] private TestRecipe _testRecipe   = TestRecipe.Projectile_Piercing;
-    [SerializeField] private int _runeInventoryCount  = 9; // enough for any combo
+    [Header("OnHit Runes")]
+    [SerializeField] private AoEOnHitRune           _aoeRune;
+    [SerializeField] private KnockbackOnHitRune     _knockbackRune;
+    [SerializeField] private DoTOnHitRune           _dotRune;
+
+    [Header("Inventory Seed Count")]
+    [SerializeField] private int _runeInventoryCount = 9;
+
+    [Header("Slot Configuration")]
+    [SerializeField] private SlotConfig _slot0;
+    [SerializeField] private SlotConfig _slot1;
+    [SerializeField] private SlotConfig _slot2;
 
     private SpellCrafter _crafter;
 
-    public enum TestRecipe
+    // ── Slot config ──────────────────────────────────────────────────────────
+
+    [System.Serializable]
+    public sealed class SlotConfig
     {
-        Projectile_Plain,
-        Projectile_Piercing,
-        Projectile_Piercing_x2,
-        Projectile_Bounce,
-        Projectile_Amplify,
-        Projectile_Piercing_Bounce,
-        Dash_Plain,
-        Dash_Piercing,
-        Dash_Bounce,
-        Dash_Amplify,
-        Shield_Plain,
-        Shield_Bounce,
-        Shield_Amplify,
+        public AbilityRune  Ability;
+        public ElementRune  Element;
+        [Space]
+        public ModifierRune Modifier0;
+        public ModifierRune Modifier1;
+        public ModifierRune Modifier2;
+        public ModifierRune Modifier3;
+        public ModifierRune Modifier4;
     }
+
+    // Enums drive the inspector dropdowns.
+    // Adding a new rune SO means adding one entry here and one case below — nothing else.
+
+    public enum AbilityRune
+    {
+        None,
+        Projectile,
+        Dash,
+        Shield
+    }
+
+    public enum ElementRune
+    {
+        None,
+        Fire,
+        Water,
+        Lightning
+    }
+
+    public enum ModifierRune
+    {
+        None,
+        Piercing,
+        Bounce,
+        Amplify,
+        AoE,
+        Knockback,
+        DoT
+    }
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
 
     private void Start()
     {
         _crafter = GetComponent<SpellCrafter>();
-        
         SeedInventory();
-        CraftTestRecipe();
+        CraftSlot(SlotIndex.Slot0, _slot0);
+        CraftSlot(SlotIndex.Slot1, _slot1);
+        CraftSlot(SlotIndex.Slot2, _slot2);
     }
+
+    // ── Inventory ────────────────────────────────────────────────────────────
 
     private void SeedInventory()
     {
-        var state = GameStateManager.RunState;
-        
-        //Seed everything generously - we're testing combos, not scarcity
-        state.AddRune(_projectileRune, _runeInventoryCount);
-        state.AddRune(_dashRune, _runeInventoryCount);
-        state.AddRune(_shieldRune, _runeInventoryCount);
-        state.AddRune(_piercingRune, _runeInventoryCount);
-        state.AddRune(_bounceRune, _runeInventoryCount);
-        state.AddRune(_amplifyRune, _runeInventoryCount);
-        
-        //Always seed all three abilities into their correct slots regardless of test
-        _crafter.TryCreate(new SpellRecipe(_dashRune, null, null), SlotIndex.Dash, out _);
-        _crafter.TryCreate(new SpellRecipe(_shieldRune, null, null), SlotIndex.Shield, out _);
+        var s = GameStateManager.RunState;
+
+        // Ability runes
+        s.AddRune(_projectileRune, _runeInventoryCount);
+        s.AddRune(_dashRune,       _runeInventoryCount);
+        s.AddRune(_shieldRune,     _runeInventoryCount);
+
+        // Cast runes
+        s.AddRune(_piercingRune, _runeInventoryCount);
+        s.AddRune(_bounceRune,   _runeInventoryCount);
+        s.AddRune(_amplifyRune,  _runeInventoryCount);
+
+        // OnHit runes
+        s.AddRune(_aoeRune,       _runeInventoryCount);
+        s.AddRune(_knockbackRune, _runeInventoryCount);
+        s.AddRune(_dotRune,       _runeInventoryCount);
     }
 
-    private void CraftTestRecipe()
+    // ── Slot crafting ────────────────────────────────────────────────────────
+
+    private void CraftSlot(SlotIndex slot, SlotConfig config)
     {
+        var ability = ResolveAbility(config.Ability);
+        if (ability == null) return; // empty slot — leave it unequipped
+
+        var element = ResolveElement(config.Element);
+
         var modifiers = new ModifierRuneSO[SpellRecipe.MODIFIER_SLOTS];
+        modifiers[0] = ResolveModifier(config.Modifier0);
+        modifiers[1] = ResolveModifier(config.Modifier1);
+        modifiers[2] = ResolveModifier(config.Modifier2);
+        modifiers[3] = ResolveModifier(config.Modifier3);
+        modifiers[4] = ResolveModifier(config.Modifier4);
 
-        switch (_testRecipe)
-        {
-            case TestRecipe.Projectile_Plain:
-                break;
-            
-            case TestRecipe.Projectile_Piercing:
-                modifiers[0] = _piercingRune;
-                break;
+        var recipe = new SpellRecipe(ability, element, modifiers);
 
-            case TestRecipe.Projectile_Piercing_x2:
-                modifiers[0] = _piercingRune;
-                modifiers[1] = _piercingRune; // two slots, stackCount = 2
-                break;
-
-            case TestRecipe.Projectile_Bounce:
-                modifiers[0] = _bounceRune;
-                break;
-
-            case TestRecipe.Projectile_Amplify:
-                modifiers[0] = _amplifyRune;
-                break;
-
-            case TestRecipe.Projectile_Piercing_Bounce:
-                modifiers[0] = _piercingRune;
-                modifiers[1] = _bounceRune;
-                break;
-
-            case TestRecipe.Dash_Plain:
-                _crafter.TryCreate(new SpellRecipe(_dashRune, null, null), SlotIndex.Dash, out _);
-                return;
-
-            case TestRecipe.Dash_Piercing:
-                _crafter.TryCreate(
-                    new SpellRecipe(_dashRune, null, new ModifierRuneSO[] { _piercingRune }),
-                    SlotIndex.Dash, out _);
-                return;
-
-            case TestRecipe.Dash_Bounce:
-                _crafter.TryCreate(
-                    new SpellRecipe(_dashRune, null, new ModifierRuneSO[] { _bounceRune }),
-                    SlotIndex.Dash, out _);
-                return;
-
-            case TestRecipe.Dash_Amplify:
-                _crafter.TryCreate(
-                    new SpellRecipe(_dashRune, null, new ModifierRuneSO[] { _amplifyRune }),
-                    SlotIndex.Dash, out _);
-                return;
-
-            case TestRecipe.Shield_Plain:
-                return; // already seeded in SeedInventory
-
-            case TestRecipe.Shield_Bounce:
-                _crafter.TryCreate(
-                    new SpellRecipe(_shieldRune, null, new ModifierRuneSO[] { _bounceRune }),
-                    SlotIndex.Shield, out _);
-                return;
-
-            case TestRecipe.Shield_Amplify:
-                _crafter.TryCreate(
-                    new SpellRecipe(_shieldRune, null, new ModifierRuneSO[] { _amplifyRune }),
-                    SlotIndex.Shield, out _);
-                return;
-        }
-        
-        //Projectile recipes all land here
-        _crafter.TryCreate(new SpellRecipe(_projectileRune, null, modifiers), SlotIndex.BasicAttack, out _);
+        if (!_crafter.TryCreate(recipe, slot, out _))
+            Debug.LogWarning($"DebugRuneSeeder: TryCreate failed for {slot} " +
+                             $"— insufficient inventory or invalid recipe.");
     }
+
+    // ── Resolvers ────────────────────────────────────────────────────────────
+
+    private AbilityRuneSO ResolveAbility(AbilityRune rune) => rune switch
+    {
+        AbilityRune.Projectile => _projectileRune,
+        AbilityRune.Dash       => _dashRune,
+        AbilityRune.Shield     => _shieldRune,
+        _                      => null
+    };
+
+    private ElementRuneSO ResolveElement(ElementRune rune) => rune switch
+    {
+        ElementRune.Fire      => null, // assign SO refs when ElementRuneSO assets exist
+        ElementRune.Water     => null,
+        ElementRune.Lightning => null,
+        _                     => null
+    };
+
+    private ModifierRuneSO ResolveModifier(ModifierRune rune) => rune switch
+    {
+        ModifierRune.Piercing  => _piercingRune,
+        ModifierRune.Bounce    => _bounceRune,
+        ModifierRune.Amplify   => _amplifyRune,
+        ModifierRune.AoE       => _aoeRune,
+        ModifierRune.Knockback => _knockbackRune,
+        ModifierRune.DoT       => _dotRune,
+        _                      => null
+    };
 }

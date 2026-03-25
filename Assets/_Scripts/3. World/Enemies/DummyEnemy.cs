@@ -1,8 +1,6 @@
-using System;
+using Foundation;
 using UnityEngine;
 using UnityEngine.UI;
-using Core;
-using Foundation;
 
 namespace World
 {
@@ -16,7 +14,14 @@ namespace World
         [SerializeField] private Image _hpFill;
         [SerializeField] private Image _ghostFill; //sits behind _hpFill, lerps slowly
         [SerializeField] private float _ghostSpeed = 2.5f;
+        
+        [Header("Attack")]
+        [SerializeField] private EnemyProjectile _enemyProjectilePrefab;
+        [SerializeField] private bool _canAttack;
+        [SerializeField] private int _damageAmount = 10;
 
+        private float _fireInterval = 2f;
+        private const float _defaultFireInterval = 2f;
         private float _currentHp;
 
         private void Awake()
@@ -31,6 +36,13 @@ namespace World
 
         private void Update()
         {
+            if (_canAttack)
+            {
+                _fireInterval -= Time.deltaTime;
+                if (_fireInterval <= 0f)
+                    Fire();
+            }
+            
             if (_ghostFill == null) return;
             //Ghost bar trails the real bar - the gap is the "damage taken" read
             _ghostFill.fillAmount = Mathf.Lerp(
@@ -48,11 +60,20 @@ namespace World
 
             if (_currentHp <= 0f) Die();
         }
+
+        private void Fire()
+        {
+            var projectile = Instantiate(_enemyProjectilePrefab, transform.position, Quaternion.identity);
+            projectile.Init(Vector3.forward, 10f, _damageAmount, ElementType.Neutral);
+
+            _fireInterval = _defaultFireInterval;
+        }
         
         private void Die()
         {
            //EventBus.Publish(new EnemyDiedEvent()); - wirte this when EventBus is ready
            Destroy(gameObject);
         }
+        
     }
 }

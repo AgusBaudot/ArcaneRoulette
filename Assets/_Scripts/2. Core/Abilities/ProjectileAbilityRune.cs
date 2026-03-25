@@ -14,7 +14,6 @@ namespace Core
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
         [SerializeField] private float _hitStopDuration = 0.06f;
         [SerializeField] private float _cameraTrauma = 0.5f;
-        [SerializeField] private float _knockbackForce = 9f;
 
         public override AbilityType Type => AbilityType.Projectile;
         public override bool IsHoldAbility => false;
@@ -47,7 +46,7 @@ namespace Core
                 return;
 
             var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
-            go.Init(source, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma, _knockbackForce,
+            go.Init(source, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma,
                 ctx.Runner);
             go.SetPierceCount(ctx.Modifiers.PierceCount);
             go.SetBounceCount(ctx.Modifiers.BounceCount);

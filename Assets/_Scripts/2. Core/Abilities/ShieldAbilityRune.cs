@@ -22,35 +22,45 @@ namespace Core
         private bool _allowEnemyThrough;
         private GameObject _shieldVisual;
 
-        public override void StartHold(SpellContext ctx)
+        internal void StartHoldWithInstance(SpellContext ctx, SpellInstance source)
         {
             var player = (PlayerController)ctx.Runner;
-            if (!player.Energy.TryStartDrain()) return;
+            if (!player.Energy.TryStartDrain())
+                return;
 
             _active = true;
             _timeHeld = 0f;
+
             if (!_shieldVisual)
             {
-                _shieldVisual = Instantiate(_shieldVisualPrefab, player.transform.position + new Vector3(-0.2f, 1, 1), Quaternion.identity, player.transform);
+                _shieldVisual = Instantiate(_shieldVisualPrefab, player.transform.position + new Vector3(-0.2f, 1f, 1f),
+                    Quaternion.identity, player.transform);
                 _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
-                
-                //Wire the collider bridge
+
                 var shield = _shieldVisual.GetComponent<ShieldCollider>();
                 shield.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
+                shield.Bind(source, ctx.Runner);
                 
-                //Cache source and runner for TriggerOnHit callsite
-                var source = ctx; //capture
+                //Now we have source - TriggerOnHit is wired correctly
                 shield.OnProjectileAbsorbed += (pos, target) =>
-                {
-                    //TriggerOnHit fires OnHit runes - AoE, Knockback, DoT all resolve here
-                    //_source is not reachable from the SO - routed via the cached runner
-                    // This will be cleaned up when IModifier pipeline replaces SpellCastModifiers
-                    Debug.Log($"Shield absorbed projectile at {pos}");
-                };
+                    source.TriggerOnHit(pos, target, ctx.Runner);
+                shield.OnEnemyBodyContact += (pos, target) => 
+                    source.TriggerOnHit(pos, target, ctx.Runner);
+
+                //After instantiating shield visual, alongside ShieldCollder wiring:
+                var damageZone = _shieldVisual.GetComponent<ShieldDamageZone>();
+                if (damageZone != null)
+                    damageZone.Active = ctx.Modifiers.AllowEnemyThrough;
+                
+                if (ctx.Modifiers.AllowEnemyThrough)
+                    _shieldVisual.GetComponent<Collider>().isTrigger = true;
             }
             
             _shieldVisual.SetActive(true);
         }
+
+        public override void StartHold(SpellContext ctx)
+        { }
 
         public override void HoldTick(SpellContext ctx, float deltaTime)
         {

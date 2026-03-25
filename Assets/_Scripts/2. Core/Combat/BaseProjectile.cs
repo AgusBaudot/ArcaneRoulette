@@ -1,4 +1,3 @@
-using System;
 using Foundation;
 using UnityEngine;
 
@@ -43,12 +42,23 @@ namespace Core
         protected bool TryBounce()
         {
             if (BounceCount <= 0) return false;
+            
+            //Step back half a unit along velocity so the ray starts before the surface
+            Vector3 rayOrigin = transform.position - Rb.velocity.normalized * 0.5f + Vector3.up;
 
-            if (Physics.Raycast(transform.position, Rb.velocity.normalized, out RaycastHit hit, 1f))
+            if (Physics.Raycast(rayOrigin, Rb.velocity.normalized, out RaycastHit hit, 2f))
             {
                 var reflected = Vector3.Reflect(Rb.velocity.normalized, hit.normal);
-                Rb.velocity = reflected * Speed;
-                transform.forward = reflected;
+                reflected.y = 0f; //stay on XZ plane
+                Rb.velocity = reflected.normalized * Speed;
+                transform.forward = reflected.normalized;
+            }
+            else
+            {
+                //Ray missed - reverse direction as fallback rather than destroying
+                Rb.velocity = -Rb.velocity;
+                transform.forward = Rb.velocity.normalized;
+                Debug.LogWarning("TryBounce: no surface found, reversing direction.");
             }
 
             BounceCount--;
@@ -62,6 +72,9 @@ namespace Core
         //Subclasses never override this - they implement the two semantic methods above instead. 
         private void OnTriggerEnter(Collider other)
         {
+            if (other.gameObject.layer == LayerMask.NameToLayer("Shield"))
+                return;
+            
             if (other.TryGetComponent<IDamageable>(out _))
                 OnHitDamageable(other);
             else

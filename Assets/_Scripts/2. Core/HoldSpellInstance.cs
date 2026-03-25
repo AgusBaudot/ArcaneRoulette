@@ -18,7 +18,12 @@ namespace Core
         {
             var ctx = BuildCastContext(runner);
             FireCastRunes(ctx); //Cast runes apply on hold start.
-            Recipe.Ability.StartHold(ctx);
+            
+            
+            if (Recipe.Ability is ShieldAbilityRune shield)
+                shield.StartHoldWithInstance(ctx, this);
+            else
+                Recipe.Ability.StartHold(ctx);
         }
 
         public void StopHold(MonoBehaviour runner)

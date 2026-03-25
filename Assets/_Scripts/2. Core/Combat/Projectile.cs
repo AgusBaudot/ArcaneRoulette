@@ -15,7 +15,6 @@ namespace Core
         private int _pierceCount;
         private float _hitStopDuration;
         private float _cameraTrauma;
-        private float _knockbackForce;
 
         // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
@@ -27,7 +26,6 @@ namespace Core
             int baseDamage,
             float hitStopDuration,
             float cameraTrauma,
-            float knockbackForce,
             MonoBehaviour runner)
         {
             _source = source;
@@ -35,7 +33,6 @@ namespace Core
             _baseDamage = baseDamage;
             _hitStopDuration = hitStopDuration;
             _cameraTrauma = cameraTrauma;
-            _knockbackForce = knockbackForce;
 
             BounceCount = 0;
             _pierceCount = 0;
@@ -55,9 +52,6 @@ namespace Core
 
             var element = _source?.Element ?? ElementType.Neutral;
             other.GetComponent<IDamageable>().TakeDamage(_baseDamage, element);
-
-            if (other.TryGetComponent<IKnockbackable>(out var kb))
-                kb.ApplyKnockback(Rb.velocity.normalized, _knockbackForce);
 
             if (other.TryGetComponent<DamageFlash>(out var flash))
                 flash.Flash();

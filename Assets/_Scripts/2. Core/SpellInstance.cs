@@ -62,6 +62,8 @@ namespace Core
 
             if (_recipe.Ability is ProjectileAbilityRune proj)
                 proj.ActivateWithInstance(ctx, this); //needs SpellInstance for Projectile.Init
+            else if (_recipe.Ability is DashAbilityRune dash)
+                dash.ActivateWithInstance(ctx, this);
             else
                 _recipe.Ability.Activate(ctx);
 
