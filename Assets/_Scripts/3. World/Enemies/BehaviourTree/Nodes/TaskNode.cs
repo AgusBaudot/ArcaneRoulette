@@ -4,22 +4,13 @@ using UnityEngine;
 using System;
 using world;
 
-public class TaskNode : Node , ITreeNode
+public class TaskNode : Node
 {
-    private Action task;
-
-    public TaskNode(Action task)
+    readonly IStrategy strategy;
+    public TaskNode(string name, IStrategy strategy) : base(name)
     {
-        this.task = task;
+        this.strategy = strategy;
     }
-
-    public void Execute()
-    {
-        task?.Invoke();
-    }
-
-    public override NodeState Tick()
-    {
-        return NodeState.Success; //Just For EXample
-    }
+    public override NodeState Process() => strategy.Process();
+    public override void Reset() => strategy.Reset();
 }

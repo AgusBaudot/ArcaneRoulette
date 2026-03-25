@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class LineOfSight : MonoBehaviour
 {
-    public Transform reference;
+    public Transform reference; 
     public float range;
-    public float angle;
+    public float angle;//  QUITAR EL ANGULO DE ESTE SCRIPT, SIN SENTIDO
     public LayerMask obsMask;
     public bool CheckRange(Transform target)
     {

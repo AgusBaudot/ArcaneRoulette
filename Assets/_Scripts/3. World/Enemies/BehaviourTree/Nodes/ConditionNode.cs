@@ -6,7 +6,7 @@ using world;
 
 public class ConditionNode : ITreeNode
 {
-    private ITreeNode trueNode; //A true or false node is not really necessary
+    private ITreeNode trueNode;
     private ITreeNode flaseNode;
     private Func<bool> question;
 
