@@ -15,16 +15,14 @@ public class DebugRuneSeeder : MonoBehaviour
     private void Start()
     {
         _spellCrafter = GetComponent<SpellCrafter>();
-        RunState.AddRune(_projectileRune, 1);
-        RunState.AddRune(_dashRune, 1);
+
+        // Seed runes for testing inventory + crafting.
+        RunState.AddRune(_projectileRune, 3);
+        RunState.AddRune(_dashRune, 2);
         RunState.AddRune(_shieldRune, 1);
-        Debug.Log(GameStateManager.RunState.AvailableCount(_projectileRune));
-        _spellCrafter.TryCreate(new SpellRecipe(_projectileRune, null, null), SlotIndex.BasicAttack, out _);
-        _spellCrafter.TryCreate(new SpellRecipe(_dashRune, null, null), SlotIndex.Dash, out _);
-        bool second = _spellCrafter.TryCreate(new SpellRecipe(_projectileRune, null, null), SlotIndex.Shield, out _);
-        Debug.Log(second);
-        _spellCrafter.Dismantle(SlotIndex.BasicAttack);
-        bool retry = _spellCrafter.TryCreate(new SpellRecipe(_projectileRune, null, null), SlotIndex.Shield, out _);
-        Debug.Log(retry);
+
+        Debug.Log($"DebugRuneSeeder: Projectile available = {GameStateManager.RunState.AvailableCount(_projectileRune)}");
+
+        // Do not auto-craft at startup so runes remain in inventory for manual use.
     }
 }
