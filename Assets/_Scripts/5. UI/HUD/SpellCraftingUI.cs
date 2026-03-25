@@ -9,6 +9,7 @@ public class SpellCraftingUI : MonoBehaviour
     [SerializeField] private GameObject mainInventorySide;
     [SerializeField] private GameObject craftingSide;
     [SerializeField] private Transform inventoryGridParent;
+    [SerializeField] private GameObject runeSlotPrefab;
     [SerializeField] private CraftingRecipePanel[] craftingPanels = new CraftingRecipePanel[3];
     [SerializeField] private Button openButton;
     [SerializeField] private Button closeButton;
@@ -139,6 +140,7 @@ public class SpellCraftingUI : MonoBehaviour
         {
             if (panel != null)
             {
+                panel.SetRuneSlotPrefab(runeSlotPrefab);
                 panel.RefreshDisplay(_spellCrafter);
                 panel.PopulateWithAvailableRunes();
             }
@@ -214,13 +216,28 @@ public class SpellCraftingUI : MonoBehaviour
             if (available <= 0)
                 continue;
 
-            var slotGO = new GameObject(runeEntry.Key.Name);
-            slotGO.transform.SetParent(inventoryGridParent);
-            
-            var slotUI = slotGO.AddComponent<RuneSlotUI>();
+            GameObject slotGO = null;
+            if (runeSlotPrefab != null)
+            {
+                slotGO = Instantiate(runeSlotPrefab, inventoryGridParent);
+            }
+            else
+            {
+                var resourcePrefab = Resources.Load<GameObject>("RuneSlot");
+                if (resourcePrefab != null)
+                    slotGO = Instantiate(resourcePrefab, inventoryGridParent);
+            }
+
+            if (slotGO == null)
+            {
+                slotGO = new GameObject(runeEntry.Key.Name);
+                slotGO.transform.SetParent(inventoryGridParent);
+            }
+
+            var slotUI = slotGO.GetComponent<RuneSlotUI>() ?? slotGO.AddComponent<RuneSlotUI>();
             slotUI.SetAsInventorySlot();
             slotUI.Setup(runeEntry.Key, available, OnInventoryRuneClicked);
-            
+
             _inventorySlots.Add(slotUI);
         }
     }

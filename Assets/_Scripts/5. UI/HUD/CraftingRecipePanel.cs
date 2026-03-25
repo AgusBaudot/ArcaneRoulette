@@ -8,6 +8,7 @@ public class CraftingRecipePanel : MonoBehaviour
     [SerializeField] private Transform abilityRuneGridParent;
     [SerializeField] private Transform elementRuneGridParent;
     [SerializeField] private Transform modifierRuneGridParent;
+    [SerializeField] private GameObject runeSlotPrefab;
     [SerializeField] private Button craftButton;
     [SerializeField] private Text recipeStatusText;
     [SerializeField] private SlotIndex targetSlot = SlotIndex.BasicAttack;
@@ -76,20 +77,25 @@ public class CraftingRecipePanel : MonoBehaviour
 
     private RuneSlotUI CreateRuneSlot(Transform parent, RuneDefinitionSO rune, System.Action<RuneDefinitionSO> onSelected, bool isCraftSlot = false)
     {
-        var slotPrefab = Resources.Load<GameObject>("UI/RuneSlot");
-        RuneSlotUI runeSlotUI;
-
+        GameObject slotPrefab = this.runeSlotPrefab;
         if (slotPrefab == null)
+            slotPrefab = Resources.Load<GameObject>("RuneSlot");
+
+        RuneSlotUI runeSlotUI;
+        GameObject slot;
+
+        if (slotPrefab != null)
         {
-            // Create a basic slot if prefab doesn't exist
-            var slot = new GameObject("RuneSlot");
-            slot.transform.SetParent(parent);
-            runeSlotUI = slot.AddComponent<RuneSlotUI>();
+            slot = Instantiate(slotPrefab, parent);
+            runeSlotUI = slot.GetComponent<RuneSlotUI>();
+            if (runeSlotUI == null)
+                runeSlotUI = slot.AddComponent<RuneSlotUI>();
         }
         else
         {
-            var instance = Instantiate(slotPrefab, parent);
-            runeSlotUI = instance.GetComponent<RuneSlotUI>();
+            slot = new GameObject("RuneSlot");
+            slot.transform.SetParent(parent);
+            runeSlotUI = slot.AddComponent<RuneSlotUI>();
         }
 
         if (isCraftSlot)
@@ -272,6 +278,11 @@ public class CraftingRecipePanel : MonoBehaviour
     public void SetTargetSlot(SlotIndex slot)
     {
         targetSlot = slot;
+    }
+
+    public void SetRuneSlotPrefab(GameObject prefab)
+    {
+        runeSlotPrefab = prefab;
     }
 
     private void ClearSelection()

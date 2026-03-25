@@ -2,7 +2,7 @@ using UnityEngine;
 using Foundation;
 using Core;
 
-[RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(Collider))]
 public class RunePickup : MonoBehaviour
 {
     public RuneDefinitionSO runeDefinition;
@@ -13,11 +13,13 @@ public class RunePickup : MonoBehaviour
 
     private void Awake()
     {
-        if (GetComponent<Collider2D>() is Collider2D col)
+        if (GetComponent<Collider>() is Collider col)
+        {
             col.isTrigger = true;
+        }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter(Collider other)
     {
         // Assuming player has tag "Player". Adjust if needed.
         if (!other.CompareTag("Player"))
