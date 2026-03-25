@@ -16,21 +16,43 @@ namespace Core
         [SerializeField] private float _tickInterval = 0.3f;
 
         private float _tickTimer;
+        private bool _armed;
 
         //Enemies currently inside the zone
         private readonly HashSet<IDamageable> _inside = new();
 
         public bool Active { get; set; } = false;
 
+        private void OnEnable()
+        {
+            _armed = false;
+            StartCoroutine(ArmNextPhysicsTick());
+        }
+
+        private System.Collections.IEnumerator ArmNextPhysicsTick()
+        {
+            yield return new WaitForFixedUpdate();
+            _armed = true;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
-            if (!Active) return;
+            if (!Active || !_armed)
+                return;
+            // Shield zone must not damage the player owner.
+            if (other.TryGetComponent<PlayerHurtBox>(out _))
+                return;
+            
             if (other.TryGetComponent<IDamageable>(out var dmg))
                 _inside.Add(dmg);
         }
 
         private void OnTriggerExit(Collider other)
         {
+            if (!_armed)
+                return;
+            if (other.TryGetComponent<PlayerHurtBox>(out _))
+                return;
             if (other.TryGetComponent<IDamageable>(out var dmg))
                 _inside.Remove(dmg);
         }

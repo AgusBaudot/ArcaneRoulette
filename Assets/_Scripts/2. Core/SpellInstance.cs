@@ -74,9 +74,59 @@ namespace Core
 
         public void TriggerOnHit(Vector3 position, GameObject target, MonoBehaviour runner)
         {
+            TriggerOnHit(position, target, runner, _recipe.Ability.Type);
+        }
+
+        // For cases where the physical object triggering OnHit should be treated as another ability type
+        // (e.g. shield-reflected projectiles should behave like Projectile hits).
+        public void TriggerOnHit(
+            Vector3 position,
+            GameObject target,
+            MonoBehaviour runner,
+            AbilityType abilityTypeForContext)
+            => TriggerOnHit(position, target, runner, abilityTypeForContext, excludeBounceCastRune: false);
+
+        public void TriggerOnHit(
+            Vector3 position,
+            GameObject target,
+            MonoBehaviour runner,
+            AbilityType abilityTypeForContext,
+            bool excludeBounceCastRune)
+        {
+            int[] castCounts = _castCounts;
+            if (excludeBounceCastRune)
+            {
+                // On reflected projectiles we must treat BounceCastRune as "not present"
+                // for OnHit rune logic that may inspect cast stacks.
+                castCounts = (int[])_castCounts.Clone();
+                for (int i = 0; i < _castRunes.Count; i++)
+                {
+                    if (_castRunes[i] is BounceCastRune)
+                        castCounts[i] = 0;
+                }
+            }
+
             var ctx = SpellContext.ForHit(
-                _recipe.Ability.Type, _castCounts, _onHitCounts, position, target, runner);
+                abilityTypeForContext, castCounts, _onHitCounts, position, target, runner);
             FireOnHitRunes(ctx);
+        }
+
+        // Used by shield reflection: reflected projectiles should inherit all Cast+OnHit runes
+        // except the bounce cast rune, and should be interpreted as AbilityType.Projectile.
+        internal SpellCastModifiers BuildProjectileCastModifiersForReflection(MonoBehaviour runner)
+        {
+            // Cast modifiers are re-derived from equipped cast runes, but with ability type switched.
+            var ctx = SpellContext.ForCast(
+                AbilityType.Projectile, _castCounts, _onHitCounts, runner);
+
+            for (int i = 0; i < _castRunes.Count; i++)
+            {
+                // Exclude BounceCastRune from the reflected projectile.
+                if (_castRunes[i] is BounceCastRune) continue;
+                _castRunes[i].Apply(ctx, _castCounts[i]);
+            }
+
+            return ctx.Modifiers;
         }
 
         //Shared helpers (used by HoldSpellInstance)

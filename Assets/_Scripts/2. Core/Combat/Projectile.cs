@@ -15,6 +15,8 @@ namespace Core
         private int _pierceCount;
         private float _hitStopDuration;
         private float _cameraTrauma;
+        private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
+        private bool _excludeBounceCastRuneForOnHitContext;
 
         // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
@@ -26,13 +28,17 @@ namespace Core
             int baseDamage,
             float hitStopDuration,
             float cameraTrauma,
-            MonoBehaviour runner)
+            MonoBehaviour runner,
+            AbilityType abilityTypeForOnHit,
+            bool excludeBounceCastRuneForOnHitContext)
         {
             _source = source;
             _runner = runner;
             _baseDamage = baseDamage;
             _hitStopDuration = hitStopDuration;
             _cameraTrauma = cameraTrauma;
+            _abilityTypeForOnHit = abilityTypeForOnHit;
+            _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
 
             BounceCount = 0;
             _pierceCount = 0;
@@ -47,11 +53,20 @@ namespace Core
 
         protected override void OnHitDamageable(Collider other)
         {
+            // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
+            var damageable = other.GetComponentInParent<IDamageable>(true)
+                              ?? other.GetComponent<IDamageable>();
+            if (damageable == null)
+                return;
+
+            // Unity-friendly: IDamageable is an interface, so derive GameObject via Component.
+            var damageableGo = (damageable as Component)?.gameObject ?? other.gameObject;
+
             // Already hit this target this flight — ignore
-            if (!_hitTargets.Add(other.gameObject)) return;
+            if (!_hitTargets.Add(damageableGo)) return;
 
             var element = _source?.Element ?? ElementType.Neutral;
-            other.GetComponent<IDamageable>().TakeDamage(_baseDamage, element);
+            damageable.TakeDamage(_baseDamage, element);
 
             if (other.TryGetComponent<DamageFlash>(out var flash))
                 flash.Flash();
@@ -59,7 +74,12 @@ namespace Core
             HitStop.Apply(_hitStopDuration);
             CameraShake.AddTrauma(_cameraTrauma);
 
-            _source?.TriggerOnHit(transform.position, other.gameObject, _runner);
+            _source?.TriggerOnHit(
+                transform.position,
+                damageableGo,
+                _runner,
+                _abilityTypeForOnHit,
+                _excludeBounceCastRuneForOnHitContext);
 
             if (_pierceCount <= 0)
             {

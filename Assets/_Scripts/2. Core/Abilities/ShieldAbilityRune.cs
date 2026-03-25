@@ -35,6 +35,8 @@ namespace Core
             {
                 _shieldVisual = Instantiate(_shieldVisualPrefab, player.transform.position + new Vector3(-0.2f, 1f, 1f),
                     Quaternion.identity, player.transform);
+                // Prevent trigger/collision events during the setup/bind phase.
+                _shieldVisual.SetActive(false);
                 _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
 
                 var shield = _shieldVisual.GetComponent<ShieldCollider>();
@@ -44,6 +46,12 @@ namespace Core
                 //Now we have source - TriggerOnHit is wired correctly
                 shield.OnProjectileAbsorbed += (pos, target) =>
                     source.TriggerOnHit(pos, target, ctx.Runner);
+                shield.OnProjectileReflected += (pos, target) =>
+                {
+                    // Bounce reflection moment (Collision 1):
+                    // suppress full shield OnHit rune set here.
+                    // Reflected projectile hits will trigger the OnHit runes in Collision 3.
+                };
                 shield.OnEnemyBodyContact += (pos, target) => 
                     source.TriggerOnHit(pos, target, ctx.Runner);
 
@@ -79,7 +87,7 @@ namespace Core
             _timeHeld += deltaTime;
             if (_timeHeld >= _abilityThreshold)
             {
-                Instantiate(_shockwavePrefab, player.transform.position, Quaternion.identity);
+                //Fire ability here. No abilities yet.
                 _timeHeld -= _abilityThreshold;
             }
         }
