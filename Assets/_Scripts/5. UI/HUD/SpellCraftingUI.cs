@@ -48,18 +48,18 @@ public class SpellCraftingUI : MonoBehaviour
         if (craftingPanel == null && craftingSide != null)
         {
             craftingPanel = craftingSide;
-            Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned craftingSide as craftingPanel.");
+            // Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned craftingSide as craftingPanel.");
         }
 
         // Fallback 2: use this GameObject to avoid complete null fail.
         if (craftingPanel == null)
         {
             craftingPanel = gameObject;
-            Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned to component GameObject.");
+            // Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned to component GameObject.");
         }
 
         // Instant debug info on startup.
-        Debug.Log($"SpellCraftingUI Awake: craftPanel={craftingPanel?.name} craftSide={craftingSide?.name} openBtn={(openButton!=null)} closeBtn={(closeButton!=null)} inventoryGrid={(inventoryGridParent!=null)}");
+        // Debug.Log($"SpellCraftingUI Awake: craftPanel={craftingPanel?.name} craftSide={craftingSide?.name} openBtn={(openButton!=null)} closeBtn={(closeButton!=null)} inventoryGrid={(inventoryGridParent!=null)}");
     }
 
     private void EnsureUniquePanelTargetSlots()
@@ -85,7 +85,7 @@ public class SpellCraftingUI : MonoBehaviour
         if (!hasDuplicate)
             return;
 
-        Debug.LogWarning("SpellCraftingUI: CraftingRecipePanels have duplicate TargetSlot values. Auto-assigning Slot0/Slot1/Slot2 by panel index.");
+        // Debug.LogWarning("SpellCraftingUI: CraftingRecipePanels have duplicate TargetSlot values. Auto-assigning Slot0/Slot1/Slot2 by panel index.");
 
         for (int i = 0; i < craftingPanels.Length; i++)
         {
@@ -98,22 +98,22 @@ public class SpellCraftingUI : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("SpellCraftingUI: START. component active=" + enabled + ", gameObject active=" + gameObject.activeSelf);
+        // Debug.Log("SpellCraftingUI: START. component active=" + enabled + ", gameObject active=" + gameObject.activeSelf);
 
         // Ensure UI starts closed
         if (craftingPanel != null)
         {
             craftingPanel.SetActive(false);
-            Debug.Log("SpellCraftingUI: Start() set craftingPanel inactive.");
+            // Debug.Log("SpellCraftingUI: Start() set craftingPanel inactive.");
         }
         else
         {
-            Debug.LogError("SpellCraftingUI: craftingPanel is still null in Start(). UI cannot open.");
+            // Debug.LogError("SpellCraftingUI: craftingPanel is still null in Start(). UI cannot open.");
         }
 
         // Safety check: if open button is missing, log explicitly.
-        if (openButton == null)
-            Debug.LogWarning("SpellCraftingUI: openButton is not assigned. Use 'C' key or create open button in Canvas.");
+        // if (openButton == null)
+            // Debug.LogWarning("SpellCraftingUI: openButton is not assigned. Use 'C' key or create open button in Canvas.");
 
         // Safety test: show UI by direct call once at start while debugging (comment out after verification)
         // OpenCraftingUI();
@@ -124,7 +124,7 @@ public class SpellCraftingUI : MonoBehaviour
         // Extra key fail-safe (Tab can be blocked by UI/input focus or New Input System setup).
         if (Input.GetKeyDown(toggleKey))
         {
-            Debug.Log($"SpellCraftingUI: Toggle key pressed (toggleKey={toggleKey}). _uiOpen={_uiOpen}");
+            // Debug.Log($"SpellCraftingUI: Toggle key pressed (toggleKey={toggleKey}). _uiOpen={_uiOpen}");
             if (_uiOpen)
             {
                 OnCloseButtonClicked();
@@ -137,7 +137,7 @@ public class SpellCraftingUI : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log("SpellCraftingUI: Escape pressed, trying close UI.");
+            // Debug.Log("SpellCraftingUI: Escape pressed, trying close UI.");
             if (_uiOpen)
                 CloseCraftingUI();
         }
@@ -145,7 +145,7 @@ public class SpellCraftingUI : MonoBehaviour
 
     public void OpenCraftingUI()
     {
-        Debug.Log("SpellCraftingUI: OpenCraftingUI invoked (toggleKey=" + toggleKey + "). _uiOpen=" + _uiOpen);
+        // Debug.Log("SpellCraftingUI: OpenCraftingUI invoked (toggleKey=" + toggleKey + "). _uiOpen=" + _uiOpen);
 
         if (_uiOpen)
             return;
@@ -157,16 +157,16 @@ public class SpellCraftingUI : MonoBehaviour
         if (craftingPanel != null)
         {
             craftingPanel.SetActive(true);
-            Debug.Log("SpellCraftingUI: Crafting panel set active.");
+            // Debug.Log("SpellCraftingUI: Crafting panel set active.");
         }
         else
         {
-            Debug.LogError("SpellCraftingUI: craftingPanel is null in OpenCraftingUI.");
+            // Debug.LogError("SpellCraftingUI: craftingPanel is null in OpenCraftingUI.");
         }
 
         // Pause game
         Time.timeScale = 0f;
-        Debug.Log("SpellCraftingUI: game paused (timeScale=0). UI should be visible.");
+        // Debug.Log("SpellCraftingUI: game paused (timeScale=0). UI should be visible.");
 
         // Refresh inventory display
         RefreshInventoryDisplay();
@@ -182,7 +182,7 @@ public class SpellCraftingUI : MonoBehaviour
             }
         }
 
-        Debug.Log("SpellCraftingUI: OpenCraftingUI completed.");
+        // Debug.Log("SpellCraftingUI: OpenCraftingUI completed.");
     }
 
     private void OnCloseButtonClicked()
@@ -231,7 +231,9 @@ public class SpellCraftingUI : MonoBehaviour
             if (panel == null) continue;
             var ok = panel.TryApplySelectionToRunState(_spellCrafter);
             if (!ok)
-                Debug.LogWarning($"SpellCraftingUI: Failed to apply selection for slot {panel.TargetSlot}.");
+            {
+                // Debug.LogWarning($"SpellCraftingUI: Failed to apply selection for slot {panel.TargetSlot}.");
+            }
         }
 
         // Sync visuals from runtime after applying.
@@ -253,7 +255,6 @@ public class SpellCraftingUI : MonoBehaviour
                 Destroy(slot.gameObject);
         }
         _inventorySlots.Clear();
-
         if (inventoryGridParent == null)
             return;
 
