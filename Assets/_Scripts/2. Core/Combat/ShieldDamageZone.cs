@@ -73,7 +73,8 @@ namespace Core
                 if (dmg == null)
                     continue;
 
-                dmg.TakeDamage(Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
+                // dmg.TakeDamage(Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
+                DamageSystem.Deal(dmg, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
             }
         }
 

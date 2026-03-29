@@ -36,7 +36,8 @@ namespace Core
                 if (primaryDamageable != null && dmg == primaryDamageable)
                     continue;
                 
-                dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement);
+                // dmg.TakeDamage(_baseDamage, ElementType.Neutral);
                 
                 if (hit.TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();

@@ -26,11 +26,8 @@ namespace Core
         public AbilityType AbilityType => _recipe.Ability.Type;
         public bool IsHoldAbility => false;
         public bool IsReady => _cooldownRemaining <= 0f;
-        
-        //Expose element for Projectile's TakeDamage call until DamageSystem is wired.
-        public ElementType? Element => _recipe.HasElement
-            ? _recipe.Element.Element
-            : ElementType.Neutral;
+        public ElementType SpellElement
+            => _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral;
 
         internal SpellInstance(SpellRecipe recipe)
         {
@@ -107,7 +104,8 @@ namespace Core
             }
 
             var ctx = SpellContext.ForHit(
-                abilityTypeForContext, castCounts, _onHitCounts, position, target, runner);
+                abilityTypeForContext, castCounts, _onHitCounts, position, target, runner,
+                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral);
             FireOnHitRunes(ctx);
         }
 
@@ -133,7 +131,8 @@ namespace Core
 
         //Exposes a cast-phase context without leaking the raw count arrays.
         protected SpellContext BuildCastContext(MonoBehaviour runner)
-            => SpellContext.ForCast(_recipe.Ability.Type, _castCounts, _onHitCounts, runner);
+            => SpellContext.ForCast(_recipe.Ability.Type, _castCounts, _onHitCounts, runner,
+                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral);
 
         protected void FireCastRunes(SpellContext ctx)
         {

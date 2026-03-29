@@ -36,7 +36,8 @@ namespace Core
                 if (_target == null)
                     break;
                 
-                _target.TakeDamage(_damagePerTick, _element);
+                // _target.TakeDamage(_damagePerTick, _element);
+                DamageSystem.Deal(_target, _damagePerTick, _element);
                 
                 if (TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();

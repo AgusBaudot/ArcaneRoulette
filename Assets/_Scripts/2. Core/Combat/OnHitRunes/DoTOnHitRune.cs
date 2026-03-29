@@ -9,7 +9,6 @@ namespace Core
         [SerializeField] private int _damagePerTick = 3;
         [SerializeField] private float _tickInterval = 0.5f;
         [SerializeField] private float _baseDuration = 2f;
-        [SerializeField] private ElementType _element = ElementType.Neutral;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
@@ -21,7 +20,7 @@ namespace Core
             var dot = ctx.HitTarget.GetComponent<DoTComponent>()
                       ?? ctx.HitTarget.AddComponent<DoTComponent>();
 
-            dot.Apply(dmg, _damagePerTick, _tickInterval, _baseDuration * stackCount, _element);
+            dot.Apply(dmg, _damagePerTick, _tickInterval, _baseDuration * stackCount, ctx.AttackerElement);
         }
     }
 }
