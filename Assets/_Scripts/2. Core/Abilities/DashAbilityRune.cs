@@ -60,7 +60,8 @@ namespace Core
                         if (ctx.Modifiers.DamagesOnDash &&
                             hit.collider.TryGetComponent<IDamageable>(out var dmg))
                         {
-                            dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                            DamageSystem.Deal(dmg, hit.collider.gameObject, _baseDamage, source.SpellElement);
+                            // dmg.TakeDamage(_baseDamage, ElementType.Neutral);
                             if (hit.collider.TryGetComponent<DamageFlash>(out var flash))
                                 flash.Flash();
                         }
@@ -96,7 +97,8 @@ namespace Core
                 if (!hit.TryGetComponent<IDamageable>(out var dmg))
                     continue;
                 
-                dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                DamageSystem.Deal(dmg, hit.gameObject,  _baseDamage, source.SpellElement);
+                // dmg.TakeDamage(_baseDamage, ElementType.Neutral);
                 
                 if (hit.TryGetComponent<DamageFlash>(out var flash)) 
                     flash.Flash();
