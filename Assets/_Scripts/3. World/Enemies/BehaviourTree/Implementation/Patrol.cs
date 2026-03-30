@@ -13,7 +13,7 @@ namespace world
         int _currentIndex;
         bool _isPathCalculated = true; // para navmesh
 
-        public Patrol(Transform entity, List<Transform> patrolPoints, float patrolSpeed = 2f)
+        public Patrol(Transform entity, List<Transform> patrolPoints, float patrolSpeed)
         {
             _entity = entity;
             _patrolPoints = patrolPoints;

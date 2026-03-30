@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using world;
 
-public class SelectorNode : Node , ITreeNode
+public class SelectorNode //: Node , ITreeNode
 {
+    /*
     private List<Node> _children;
 
     public SelectorNode(List<Node> children)
@@ -26,4 +27,5 @@ public class SelectorNode : Node , ITreeNode
     {
 
     }
+    */
 }

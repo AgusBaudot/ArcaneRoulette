@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using world;
 
-public class ConditionNode : ITreeNode
+public class ConditionNode //: IStrategy
 {
-    private ITreeNode trueNode;
+    /*private ITreeNode trueNode;
     private ITreeNode flaseNode;
     private Func<bool> question;
 
@@ -23,4 +23,5 @@ public class ConditionNode : ITreeNode
         else
             flaseNode.Execute();
     }
+    */
 }

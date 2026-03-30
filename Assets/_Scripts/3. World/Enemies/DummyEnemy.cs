@@ -5,10 +5,10 @@ using Core;
 using Foundation;
 using TMPro;
 
-namespace World
+namespace world
 {
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(LineOfSight))]
+    
     public class DummyEnemy : MonoBehaviour, IDamageable
     {
         [Header("Stats")]
@@ -19,22 +19,16 @@ namespace World
         [SerializeField] private Image _ghostFill; //sits behind _hpFill, lerps slowly
         [SerializeField] public TextMeshProUGUI _stateText;
         [SerializeField] private float _ghostSpeed = 2.5f;
-        private LineOfSight _lineOfSight;
-
-        private AIBrain _aibrain;
 
         private float _currentHp;
 
         private void Awake()
         {
-            _lineOfSight = GetComponent<LineOfSight>();
             _currentHp = _maxHp;
             var rb =  GetComponent<Rigidbody>();
             rb.useGravity   = false;
             rb.constraints  = RigidbodyConstraints.FreezePositionY
                               | RigidbodyConstraints.FreezeRotation;
-
-            _aibrain = new AIBrain(_lineOfSight, transform);
         }
 
         private void Update()

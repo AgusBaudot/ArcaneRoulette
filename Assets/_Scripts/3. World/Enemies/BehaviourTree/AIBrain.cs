@@ -5,36 +5,37 @@ using World;
 
 namespace world 
 {
-    public class AIBrain
+    [RequireComponent(typeof(LineOfSight))]
+    public class AIBrain : MonoBehaviour
     {
         [Header("Variables")]
-        public LineOfSight _los;
-        private float _speed;
+        [SerializeField] private float _patrolspeed;
+        [SerializeField] private float _runningspeed;
         public Blackboard _blackboard;
-        public Transform _thisEnemy;
 
         [Header("BehaviourTree")]
-        private string _behaviourTreeName;
+        [SerializeField] private string _behaviourTreeName;
         BehaviourTree tree;
         private ConditionNode _root;
+        private LineOfSight _los;
 
 
         public Transform target;
-        public Transform[] wayPoints;
+        public List<Transform> wayPoints;
         private int currentWP = 0;
 
-        public AIBrain(LineOfSight los, Transform thisEnemy, string behaviourTreeName)
+        void Awake() 
         {
-            _los = los;
-            _thisEnemy = thisEnemy;
-            _behaviourTreeName = behaviourTreeName;
-            InitBT();
-        }
-        void InitBT() 
-        {
+            _los = GetComponent<LineOfSight>();
             tree = new BehaviourTree(_behaviourTreeName);
+            tree.AddChild(new TaskNode("Patrol", new Patrol(transform, wayPoints, _patrolspeed)));
         }
         private bool IsInLos() => _los.CheckRange(target) && _los.CheckAngle(target) && _los.CheckView(target);
+
+        private void Update()
+        {
+            tree.Process();
+        }
     }
 
     public class BehaviourTree : Node

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using world;
 
-public class SequenceNode : Node, ITreeNode
+public class SequenceNode //: Node, ITreeNode
 {
-    private List<Node> _children;
+    /*private List<Node> _children;
 
     public override NodeState Tick()
     {
@@ -21,4 +21,5 @@ public class SequenceNode : Node, ITreeNode
     {
 
     }
+    */
 }
