@@ -41,17 +41,19 @@ namespace Core
 
                 var shield = _shieldVisual.GetComponent<ShieldCollider>();
                 shield.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
+                shield.ReflectCount = ctx.Modifiers.ReflectCount;
+                shield.ReflectSpread = ctx.Modifiers.ReflectSpread;
                 shield.Bind(source, ctx.Runner);
                 
                 //Now we have source - TriggerOnHit is wired correctly
                 shield.OnProjectileAbsorbed += (pos, target) =>
                     source.TriggerOnHit(pos, target, ctx.Runner);
-                shield.OnProjectileReflected += (pos, target) =>
-                {
-                    // Bounce reflection moment (Collision 1):
-                    // suppress full shield OnHit rune set here.
-                    // Reflected projectile hits will trigger the OnHit runes in Collision 3.
-                };
+                // shield.OnProjectileReflected += (pos, target) =>
+                // {
+                //     // Bounce reflection moment (Collision 1):
+                //     // suppress full shield OnHit rune set here.
+                //     // Reflected projectile hits will trigger the OnHit runes in Collision 3.
+                // };
                 shield.OnEnemyBodyContact += (pos, target) => 
                     source.TriggerOnHit(pos, target, ctx.Runner);
 

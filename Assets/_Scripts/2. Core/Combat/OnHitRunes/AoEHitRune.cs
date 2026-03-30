@@ -28,18 +28,21 @@ namespace Core
 
             foreach (var hit in hits)
             {
-                var dmg = hit.GetComponentInParent<IDamageable>(true)
-                          ?? hit.GetComponent<IDamageable>();
-                if (dmg == null)
-                    continue;
-
-                if (primaryDamageable != null && dmg == primaryDamageable)
+                if (hit.gameObject == ctx.HitTarget)
                     continue;
                 
-                dmg.TakeDamage(_baseDamage, ElementType.Neutral);
+                if (!hit.TryGetComponent<IDamageable>(out var dmg))
+                    continue;
+
+                DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement);
                 
                 if (hit.TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();
+                
+                //Full OnHit chain on each secondary target.
+                //_isExpanding blocks AoEOnHitRune from firing again - all other
+                //runes (OnCast, OnHit) run normally on secondary targets.
+                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject);
             }
 
             _isExpanding = false;

@@ -9,6 +9,8 @@ namespace Foundation
     {
         public int PierceCount = 0;
         public int BounceCount = 0;
+        public int ReflectCount = 0; //Enemy projectile reflections - dash and shield only
+        public float ReflectSpread = 45f; //Total spread angle in degrees across all reflections
         public float SizeMultiplier = 1f;
         public float DurationMultiplier = 1f; //Amplify scales dash duration / shield drain window
         public float RadiusMultiplier = 1f; //Amplify scales shield radius

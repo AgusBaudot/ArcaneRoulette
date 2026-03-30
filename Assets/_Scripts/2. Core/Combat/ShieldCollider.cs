@@ -12,27 +12,14 @@ namespace Core
         [SerializeField] private float _reflectTrauma    = 0.1f;
 
         public bool ReflectsProjectiles { get; set; }
+        public int ReflectCount { get; set; } //set by BounceCastRune stack count
+        public float ReflectSpread { get; set; } = 0f; //0 = single direction
 
         public event Action<Vector3, GameObject> OnProjectileAbsorbed;
-        // Fired when shield bounce reflects an incoming enemy projectile.
-        // Designers: in bounce mode, shield should not trigger the full OnHit rune set here.
-        public event Action<Vector3, GameObject> OnProjectileReflected;
         public event Action<Vector3, GameObject> OnEnemyBodyContact;
 
         private SpellInstance  _boundInstance;
         private MonoBehaviour  _runner;
-        // NOTE: Shield should ignore player-owner contacts via IsOwnedByRunner().
-
-        private bool IsOwnedByRunner(Collider other)
-        {
-            if (_runner == null) return false;
-            var runnerTf = _runner.transform;
-            if (other == null || other.transform == null) return false;
-            // Shield spawns on/near the player; ignore any contacts with player's own colliders.
-            return other.transform == runnerTf
-                   || other.transform.IsChildOf(runnerTf)
-                   || other.transform.root == runnerTf.root;
-        }
 
         // Called once by StartHoldWithInstance after instantiation
         public void Bind(SpellInstance source, MonoBehaviour runner)
@@ -49,71 +36,45 @@ namespace Core
 
         private void HandleContact(Collider other, Vector3 contactPoint)
         {
-            if (IsOwnedByRunner(other))
-                return;
-
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
-                // Use root damageable so colliders on child objects still trigger runes.
-                var dmgResolved = other.GetComponentInParent<IDamageable>(true)
-                                  ?? other.GetComponent<IDamageable>();
-                if (dmgResolved is { } dmg)
-                {
-                    var dmgGo = (dmg as Component)?.gameObject ?? other.gameObject;
-                    OnEnemyBodyContact?.Invoke(contactPoint, dmgGo);
-                }
+                if (other.TryGetComponent<IDamageable>(out _))
+                    OnEnemyBodyContact?.Invoke(contactPoint, other.gameObject);
+                
                 return;
             }
 
             if (!projectile.IsEnemy) return;
-
-            var incomingProjectile = other.gameObject;
-            var incomingPos        = incomingProjectile.transform.position;
 
             if (ReflectsProjectiles
                 && _boundInstance != null
                 && _reflectedProjectilePrefab != null
                 && other.TryGetComponent<IEnemyProjectile>(out var enemy))
             {
-                var reflectedDir = -projectile.Rb.velocity.normalized;
-                var speed        = projectile.Rb.velocity.magnitude;
+                Vector3 incomingDir = projectile.Rb.velocity.normalized;
+                Vector3 reflectBase = Vector3.Reflect(incomingDir, Vector3.forward);
+                reflectBase.y = 0;
 
-                Destroy(incomingProjectile);
+                float speed = projectile.Rb.velocity.magnitude;
+                var dirs = ReflectionUtils.GetSpreadDirections(
+                    reflectBase, ReflectCount, ReflectSpread);
 
-                var friendly = Instantiate(
-                    _reflectedProjectilePrefab,
-                    incomingPos,
-                    Quaternion.identity);
-
-                friendly.Init(
-                    _boundInstance,
-                    reflectedDir,
-                    speed,
-                    enemy.Damage,
-                    _reflectHitStop,
-                    _reflectTrauma,
-                    _runner,
-                    AbilityType.Projectile,
-                    excludeBounceCastRuneForOnHitContext: true);
-
-                // Reflected projectile inherits all Cast+OnHit runes except the bounce cast rune.
-                // Cast modifiers are re-derived using AbilityType.Projectile and BounceCastRune excluded.
-                var mods = _boundInstance.BuildProjectileCastModifiersForReflection(_runner);
-                friendly.SetPierceCount(mods.PierceCount);
-                friendly.SetBounceCount(mods.BounceCount); // should be 0 due to bounce excluded
-                friendly.transform.localScale = Vector3.one * mods.SizeMultiplier;
-
-                var col = friendly.GetComponent<SphereCollider>();
-                if (col)
-                    col.radius *= mods.SizeMultiplier;
-
-                OnProjectileReflected?.Invoke(contactPoint, incomingProjectile);
+                foreach (var d in dirs)
+                {
+                    var go = Instantiate(_reflectedProjectilePrefab, other.transform.position, Quaternion.LookRotation(d));
+                    go.Init(_boundInstance, d, speed, enemy.Damage, _reflectHitStop, _reflectTrauma, _runner, AbilityType.Projectile, true);
+                    go.SetPierceCount(0);
+                    go.SetBounceCount(0);
+                }
+                
+                Destroy(other.gameObject);
             }
             else
             {
-                Destroy(incomingProjectile);
-                OnProjectileAbsorbed?.Invoke(contactPoint, incomingProjectile);
+                Destroy(other.gameObject);
             }
+            
+            OnProjectileAbsorbed?.Invoke(contactPoint, other.gameObject);
         }
     }
 }
