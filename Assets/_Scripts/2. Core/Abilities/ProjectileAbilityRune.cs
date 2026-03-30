@@ -50,11 +50,17 @@ namespace Core
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
             go.SetPierceCount(ctx.Modifiers.PierceCount);
             go.SetBounceCount(ctx.Modifiers.BounceCount);
-            go.transform.localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
-            //Also scale the collider if it's a SphereCollider
-            var col = go.GetComponent<SphereCollider>();
-            if (col) 
-                col.radius *= ctx.Modifiers.SizeMultiplier;
+            
+            if (ctx.Modifiers.SizeMultiplier != 1f)
+            {
+                var sprite = go.GetComponentInChildren<SpriteRenderer>();
+                if (sprite != null)
+                    sprite.transform.localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
+
+                var col = go.GetComponent<SphereCollider>();
+                if (col != null)
+                    col.radius = col.radius * ctx.Modifiers.SizeMultiplier;
+            }
         }
 
         //Called by SpellInstance for non-projectile abilities.

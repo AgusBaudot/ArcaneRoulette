@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Foundation
@@ -24,6 +25,12 @@ namespace Foundation
         public readonly SpellCastModifiers Modifiers; //writable by cast runes; read by ability
         public readonly ElementType AttackerElement;
         
+        //Optional callback - populated by SpellInstance.TriggerOnHit.
+        //OnHit runes invoke this to propagate the full OnHit chain to secondary targets.
+        //AoEOnHitRune uses this to trigger Knockback, DoT, etx. on area-hit enemies.
+        //Null during cast-phase Apply calls.
+        public readonly Action<Vector3, GameObject> TriggerSecondaryHit;
+        
         private SpellContext(
             AbilityType abilityType,
             int[]       castStackCounts,
@@ -32,7 +39,8 @@ namespace Foundation
             GameObject  hitTarget,
             MonoBehaviour runner,
             SpellCastModifiers modifiers,
-            ElementType attackerElement)
+            ElementType attackerElement,
+            Action<Vector3, GameObject> triggerSecondaryHit)
         {
             AbilityType      = abilityType;
             CastStackCounts  = castStackCounts;
@@ -42,6 +50,7 @@ namespace Foundation
             Runner = runner;
             Modifiers = modifiers;
             AttackerElement = attackerElement;
+            TriggerSecondaryHit = triggerSecondaryHit;
         }
 
         // Use these factories — never construct directly.
@@ -55,7 +64,7 @@ namespace Foundation
             MonoBehaviour runner,
             ElementType attackerElement = ElementType.Neutral)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                Vector3.zero, null, runner, new SpellCastModifiers(), attackerElement);
+                                Vector3.zero, null, runner, new SpellCastModifiers(), attackerElement, null);
 
         public static SpellContext ForHit(
             AbilityType abilityType,
@@ -64,8 +73,9 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
-            ElementType  attackerElement = ElementType.Neutral)
+            ElementType  attackerElement = ElementType.Neutral,
+            Action<Vector3, GameObject> triggerSecondaryHit = null)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                hitPosition, hitTarget, runner, new SpellCastModifiers(), attackerElement);
+                                hitPosition, hitTarget, runner, new SpellCastModifiers(), attackerElement, triggerSecondaryHit);
     }
 }
