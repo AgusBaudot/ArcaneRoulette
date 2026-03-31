@@ -1,23 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace world 
 {
     public class Patrol : IStrategy
     {
         readonly Transform _entity;
-        //readonly NavMeshAgent agent;
+        readonly NavMeshAgent _agent;
         readonly List<Transform> _patrolPoints;
         readonly float _patrolSpeed;
         int _currentIndex;
         bool _isPathCalculated = true; // para navmesh
 
-        public Patrol(Transform entity, List<Transform> patrolPoints, float patrolSpeed)
+        public Patrol(Transform entity, NavMeshAgent agent, List<Transform> patrolPoints, float patrolSpeed)
         {
-            _entity = entity;
-            _patrolPoints = patrolPoints;
-            _patrolSpeed = patrolSpeed;
+            this._entity = entity;
+            this._agent = agent;
+            this._patrolPoints = patrolPoints;
+            this._patrolSpeed = patrolSpeed;
         }
 
         public Node.NodeState Process() 
@@ -25,16 +27,19 @@ namespace world
             if (_currentIndex == _patrolPoints.Count) return Node.NodeState.Success;
 
             var target = _patrolPoints[_currentIndex];
+            _agent.SetDestination(target.position);
             _entity.LookAt(target);
 
             float distance = (_patrolPoints[_currentIndex].position - _entity.position).sqrMagnitude;
 
-            if (_isPathCalculated && distance < 0.5f) 
+            if (_isPathCalculated && distance < 0.5f) //_agent.remainingDistance alternative way to calculate distance
             {
                 _currentIndex++;
-               // _isPathCalculated = false; para nav mesh
+               _isPathCalculated = false;
             }
-            
+
+            _isPathCalculated = _agent.pathPending;
+
             return Node.NodeState.Running;
         }
 
