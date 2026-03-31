@@ -1,80 +1,104 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
 namespace Core
 {
-    [RequireComponent(typeof(Rigidbody))]
-    public class Projectile : MonoBehaviour
+    public sealed class Projectile : BaseProjectile
     {
+        public override bool IsEnemy => false;
+        
         private SpellInstance _source;
         private MonoBehaviour _runner;
-        private Rigidbody _rb;
 
         private int _baseDamage;
+        private int _pierceCount;
         private float _hitStopDuration;
         private float _cameraTrauma;
-        private float _knockbackForce;
-        
-        //Set by PiercingCastRune in Phase 3 via vtx.Modifiers.PierceCount
-        public int PierceCount { get; set; } = 0;
+        private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
+        private bool _excludeBounceCastRuneForOnHitContext;
 
-        private void Awake()
-        {
-            _rb = GetComponent<Rigidbody>();
-            _rb.useGravity = false;
-            _rb.interpolation = RigidbodyInterpolation.Interpolate; // smooth at any framerate
-            _rb.constraints = RigidbodyConstraints.FreezePositionY
-                              | RigidbodyConstraints.FreezeRotation;
-        }
+        // Enemies hit this flight — prevents re-triggering while passing through
+        private readonly HashSet<GameObject> _hitTargets = new();
 
-        //Called by ProjectileAbilityRune.Fire() immediately after Instantiate
-        public void Init(SpellInstance source, Vector3 direction, float speed, int baseDamage, float hitStopDuration,
-            float cameraTrauma, float knockbackForce, MonoBehaviour runner)
+        public void Init(
+            SpellInstance source,
+            Vector3 direction,
+            float speed,
+            int baseDamage,
+            float hitStopDuration,
+            float cameraTrauma,
+            MonoBehaviour runner,
+            AbilityType abilityTypeForOnHit,
+            bool excludeBounceCastRuneForOnHitContext)
         {
             _source = source;
             _runner = runner;
             _baseDamage = baseDamage;
             _hitStopDuration = hitStopDuration;
             _cameraTrauma = cameraTrauma;
-            _knockbackForce = knockbackForce;
+            _abilityTypeForOnHit = abilityTypeForOnHit;
+            _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
 
-            _rb.velocity = direction.normalized * speed;
-            transform.forward = direction.normalized;
+            BounceCount = 0;
+            _pierceCount = 0;
+            _hitTargets.Clear();
 
-            foreach (var ps in GetComponentsInChildren<ParticleSystem>())
-            {
-                ps.Clear();
-                ps.Play();
-            }
+            SetVelocity(direction, speed);
+            PlayParticles();
         }
 
-        private void OnTriggerEnter(Collider other)
-        {
-            //Base damage - dealt directly until DamageSystem is wired in Phase 5.
-            //Element type passed here; resistance table activates in Phase 5.
-            //PROTOTYPE: replace with DamageSystem.Deal() call post-Phase 5.
-            if (other.TryGetComponent<IDamageable>(out var damageable))
-            {
-                var element = _source?.Element ?? ElementType.Neutral;
-                damageable.TakeDamage(_baseDamage, element);
-                
-                if (other.TryGetComponent<IKnockbackable>(out var kb))
-                    kb.ApplyKnockback(_rb.velocity.normalized, _knockbackForce);
-                
-                if (other.TryGetComponent<DamageFlash>(out var flash))
-                    flash.Flash();
-                
-                HitStop.Apply(_hitStopDuration);
-                CameraShake.AddTrauma(_cameraTrauma);
-            }
-            
-            //OnHit rune effects - empty list in Phase 1, populated in Phase 4.
-            _source?.TriggerOnHit(transform.position, other.gameObject, _runner);
+        public void SetPierceCount(int count) => _pierceCount = count;
+        public void SetBounceCount(int count) => BounceCount = count;
 
-            if (PierceCount <= 0)
+        protected override void OnHitDamageable(Collider other)
+        {
+            // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
+            var damageable = other.GetComponentInParent<IDamageable>(true)
+                              ?? other.GetComponent<IDamageable>();
+            if (damageable == null)
+                return;
+
+            // Unity-friendly: IDamageable is an interface, so derive GameObject via Component.
+            var damageableGo = (damageable as Component)?.gameObject ?? other.gameObject;
+
+            // Already hit this target this flight — ignore
+            if (!_hitTargets.Add(damageableGo)) return;
+
+            // var element = _source?.Element ?? ElementType.Neutral;
+            // damageable.TakeDamage(_baseDamage, element);
+            DamageSystem.Deal(damageable, damageableGo, _baseDamage, _source?.SpellElement ?? ElementType.Neutral);
+
+            if (other.TryGetComponent<DamageFlash>(out var flash))
+                flash.Flash();
+
+            HitStop.Apply(_hitStopDuration);
+            CameraShake.AddTrauma(_cameraTrauma);
+
+            _source?.TriggerOnHit(
+                transform.position,
+                damageableGo,
+                _runner,
+                _abilityTypeForOnHit,
+                _excludeBounceCastRuneForOnHitContext);
+
+            if (_pierceCount <= 0)
+            {
                 Destroy(gameObject);
-            else
-                PierceCount--;
+                return;
+            }
+
+            _pierceCount--;
+            // Projectile continues — _hitTargets prevents re-hitting this enemy
+        }
+
+        protected override void OnHitWall(Collider other)
+        {
+            if (!TryBounce())
+                Destroy(gameObject);
+            // On bounce, _hitTargets is intentionally NOT cleared —
+            // a bounced projectile can't re-hit an enemy it already pierced through.
+            // Designers can revisit this if needed.
         }
     }
 }

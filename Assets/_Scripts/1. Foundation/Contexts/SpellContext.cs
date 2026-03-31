@@ -22,7 +22,8 @@ namespace Foundation
         public readonly Vector3    HitPosition;
         public readonly GameObject HitTarget;
         public readonly SpellCastModifiers Modifiers; //writable by cast runes; read by ability
-
+        public readonly ElementType AttackerElement;
+        
         private SpellContext(
             AbilityType abilityType,
             int[]       castStackCounts,
@@ -30,7 +31,8 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
-            SpellCastModifiers modifiers)
+            SpellCastModifiers modifiers,
+            ElementType attackerElement)
         {
             AbilityType      = abilityType;
             CastStackCounts  = castStackCounts;
@@ -39,6 +41,7 @@ namespace Foundation
             HitTarget        = hitTarget;
             Runner = runner;
             Modifiers = modifiers;
+            AttackerElement = attackerElement;
         }
 
         // Use these factories — never construct directly.
@@ -49,9 +52,10 @@ namespace Foundation
             AbilityType abilityType,
             int[]       castStackCounts,
             int[]       onHitStackCounts,
-            MonoBehaviour runner)
+            MonoBehaviour runner,
+            ElementType attackerElement = ElementType.Neutral)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                Vector3.zero, null, runner, new SpellCastModifiers());
+                                Vector3.zero, null, runner, new SpellCastModifiers(), attackerElement);
 
         public static SpellContext ForHit(
             AbilityType abilityType,
@@ -59,8 +63,9 @@ namespace Foundation
             int[]       onHitStackCounts,
             Vector3     hitPosition,
             GameObject  hitTarget,
-            MonoBehaviour runner)
+            MonoBehaviour runner,
+            ElementType  attackerElement = ElementType.Neutral)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                hitPosition, hitTarget, runner, new SpellCastModifiers());
+                                hitPosition, hitTarget, runner, new SpellCastModifiers(), attackerElement);
     }
 }

@@ -146,10 +146,10 @@ namespace Foundation
         // Called by CombatSystem / DamageSystem, never by runes directly.
 
         public void FireDamageOut(DamageContext ctx) => OnCalculateDamageOut?.Invoke(ctx);
-        public void FireDamageIn(DamageContext ctx)  => OnCalculateDamageIn?.Invoke(ctx);
-        public void FireKill(KillContext ctx)         => OnKill?.Invoke(ctx);
-        public void FireSpellCast(SpellContext ctx)   => OnSpellCast?.Invoke(ctx);
-        public void FireDash(DashContext ctx)         => OnDash?.Invoke(ctx);
+        public void FireDamageIn(DamageContext ctx) => OnCalculateDamageIn?.Invoke(ctx);
+        public void FireKill(KillContext ctx) => OnKill?.Invoke(ctx);
+        public void FireSpellCast(SpellContext ctx) => OnSpellCast?.Invoke(ctx);
+        public void FireDash(DashContext ctx) => OnDash?.Invoke(ctx);
 
         // ── Reset ────────────────────────────────────────────────────────────
         // Called by GameStateManager on run end. Nulls all events so no
