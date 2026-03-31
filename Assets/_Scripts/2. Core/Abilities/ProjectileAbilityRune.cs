@@ -46,6 +46,7 @@ namespace Core
                 return;
 
             var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
+            go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
             go.Init(source, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma,
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
             go.SetPierceCount(ctx.Modifiers.PierceCount);
@@ -53,13 +54,11 @@ namespace Core
             
             if (ctx.Modifiers.SizeMultiplier != 1f)
             {
-                var sprite = go.GetComponentInChildren<SpriteRenderer>();
-                if (sprite != null)
-                    sprite.transform.localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
-
+                go.transform.GetChild(0).localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
+                
                 var col = go.GetComponent<SphereCollider>();
                 if (col != null)
-                    col.radius = col.radius * ctx.Modifiers.SizeMultiplier;
+                    col.radius *= ctx.Modifiers.SizeMultiplier / 2;
             }
         }
 

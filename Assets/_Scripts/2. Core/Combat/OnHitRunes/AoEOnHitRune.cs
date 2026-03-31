@@ -20,9 +20,6 @@ namespace Core
 
             float radius = _baseRadius * stackCount;
             var hits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
-            var primaryDamageable = ctx.HitTarget != null
-                ? (ctx.HitTarget.GetComponentInParent<IDamageable>(true) ?? ctx.HitTarget.GetComponent<IDamageable>())
-                : null;
 
             _isExpanding = true;
 

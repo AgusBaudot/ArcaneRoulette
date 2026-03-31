@@ -16,18 +16,16 @@ namespace Core
             baseDir.y = 0f;
             baseDir.Normalize();
 
-            if (count <= 1f)
+            if (count <= 1)
                 return new[] { baseDir };
             
-            //Avoid calculating each for
+            //Avoid calculating in each iteration
             var dirs = new Vector3[count];
             float step = totalSpreadDeg / (count - 1);
             float start = -totalSpreadDeg / 2f;
 
             for (int i = 0; i < count; i++)
-            {
-                dirs[i] = Quaternion.AngleAxis(start + step * 1, Vector3.up) * baseDir;
-            }
+                dirs[i] = Quaternion.AngleAxis(start + step * i, Vector3.up) * baseDir;
             
             return dirs;
         }

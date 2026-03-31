@@ -31,40 +31,42 @@ namespace Core
             _active = true;
             _timeHeld = 0f;
 
+            //Instantiate once
             if (!_shieldVisual)
             {
-                _shieldVisual = Instantiate(_shieldVisualPrefab, player.transform.position + new Vector3(-0.2f, 1f, 1f),
-                    Quaternion.identity, player.transform);
-                // Prevent trigger/collision events during the setup/bind phase.
-                _shieldVisual.SetActive(false);
-                _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
+                _shieldVisual = Instantiate(
+                    _shieldVisualPrefab,
+                    player.transform.position + new Vector3(-0.2f, 1f, 1f),
+                    Quaternion.identity,
+                    player.transform);
+
+                _shieldVisual.SetActive(false); // prevent events during setup
 
                 var shield = _shieldVisual.GetComponent<ShieldCollider>();
-                shield.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
-                shield.ReflectCount = ctx.Modifiers.ReflectCount;
-                shield.ReflectSpread = ctx.Modifiers.ReflectSpread;
                 shield.Bind(source, ctx.Runner);
-                
-                //Now we have source - TriggerOnHit is wired correctly
+
+                // Subscribe events once — they capture source correctly
                 shield.OnProjectileAbsorbed += (pos, target) =>
                     source.TriggerOnHit(pos, target, ctx.Runner);
-                // shield.OnProjectileReflected += (pos, target) =>
-                // {
-                //     // Bounce reflection moment (Collision 1):
-                //     // suppress full shield OnHit rune set here.
-                //     // Reflected projectile hits will trigger the OnHit runes in Collision 3.
-                // };
-                shield.OnEnemyBodyContact += (pos, target) => 
+                shield.OnEnemyBodyContact += (pos, target) =>
                     source.TriggerOnHit(pos, target, ctx.Runner);
 
-                //After instantiating shield visual, alongside ShieldCollder wiring:
                 var damageZone = _shieldVisual.GetComponent<ShieldDamageZone>();
                 if (damageZone != null)
                     damageZone.Active = ctx.Modifiers.AllowEnemyThrough;
-                
-                if (ctx.Modifiers.AllowEnemyThrough)
-                    _shieldVisual.GetComponent<Collider>().isTrigger = true;
             }
+            
+            //Update every activation - rune recipe may have changed
+            _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
+
+            var shieldCollider = _shieldVisual.GetComponent<ShieldCollider>();
+            shieldCollider.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
+            shieldCollider.ReflectCount = ctx.Modifiers.ReflectCount;
+            shieldCollider.ReflectSpread = ctx.Modifiers.ReflectSpread;
+            
+            //Piercing toggles trigger mode - update every activation
+            var col = _shieldVisual.GetComponent<Collider>();
+            col.isTrigger = ctx.Modifiers.AllowEnemyThrough;
             
             _shieldVisual.SetActive(true);
         }

@@ -18,6 +18,7 @@ namespace Core
                 
                 case AbilityType.Dash:
                 case AbilityType.Shield:
+                    ctx.Modifiers.ReflectsProjectiles = true;
                     ctx.Modifiers.ReflectCount = stackCount;
                     ctx.Modifiers.ReflectSpread = _spread;
                     break;

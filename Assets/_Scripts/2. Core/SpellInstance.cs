@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -102,10 +103,14 @@ namespace Core
                         castCounts[i] = 0;
                 }
             }
+            
+            //The callback captures 'this' and 'runner' - secondary hits re-enter TriggerOnHit
+            //on this same SpellInstance, propagating the full OnHit rune chain.
+            Action<Vector3, GameObject> secondary = (pos, tgt) => TriggerOnHit(pos, tgt, runner);
 
             var ctx = SpellContext.ForHit(
                 abilityTypeForContext, castCounts, _onHitCounts, position, target, runner,
-                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral);
+                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral, secondary);
             FireOnHitRunes(ctx);
         }
 

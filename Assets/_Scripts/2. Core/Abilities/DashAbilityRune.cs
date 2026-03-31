@@ -71,14 +71,18 @@ namespace Core
 
                 foreach (var hit in enemies)
                 {
-                    if (!hitEnemies.Add(hit.gameObject)) continue;
-                    if (!hit.TryGetComponent<IDamageable>(out var dmg)) continue;
+                    if (!hitEnemies.Add(hit.gameObject))
+                        continue;
+                    
+                    if (!hit.TryGetComponent<IDamageable>(out var dmg)) 
+                        continue;
 
                     // Damage only if PiercingCastRune is slotted
                     if (ctx.Modifiers.DamagesOnDash)
                     {
                         DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, source.SpellElement);
-                        if (hit.TryGetComponent<DamageFlash>(out var flash)) flash.Flash();
+                        if (hit.TryGetComponent<DamageFlash>(out var flash)) 
+                            flash.Flash();
                     }
 
                     // OnHit runes always fire per enemy touched regardless of damage
@@ -109,15 +113,19 @@ namespace Core
 
             foreach (var col in cols)
             {
-                if (!col.TryGetComponent<IEnemyProjectile>(out var enemy))
+                if (!col.TryGetComponent<IProjectile>(out var proj))
+                    continue;
+                if (!proj.IsEnemy)
                     continue;
 
-                Vector3 reflectDir = Vector3.Reflect(enemy.Rb.velocity.normalized, dashDir.normalized);
-                reflectDir.y = 0f;
-
+                //Straight back toward the source - consistent with image and shield behaviour
+                Vector3 reflectBase = -proj.Rb.velocity.normalized;
+                reflectBase.y = 0f;
+                reflectBase.Normalize();
+                
                 SpawnReflectedSpread(
-                    col.transform.position, reflectDir,
-                    enemy.Rb.velocity.magnitude, ctx, source);
+                    col.transform.position, reflectBase,
+                    proj.Rb.velocity.magnitude, ctx, source);
                 
                 Destroy(col.gameObject);
             }

@@ -64,7 +64,7 @@ namespace World
         private void Fire()
         {
             var projectile = Instantiate(_enemyProjectilePrefab, transform.position, Quaternion.identity);
-            projectile.Init(Vector3.forward, 10f, _damageAmount, ElementType.Neutral);
+            projectile.Init(Vector3.forward, 10f, _damageAmount, ElementType.Neutral, gameObject);
 
             _fireInterval = _defaultFireInterval;
         }
