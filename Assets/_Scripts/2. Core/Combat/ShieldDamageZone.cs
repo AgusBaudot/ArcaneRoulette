@@ -10,11 +10,14 @@ namespace Core
     /// Only activate when PiercingCastRune sets AllowEnemyThrough = true.
     /// </summary>
     [RequireComponent(typeof(Collider))]
-    public class ShieldDamageZone : MonoBehaviour
+    public class ShieldDamageZone : MonoBehaviour, IUpdatable
     {
         [SerializeField] private float _damagePerSecond = 5f;
         [SerializeField] private float _tickInterval = 0.3f;
 
+        //IUpdatable
+        public int UpdatePriority => Foundation.UpdatePriority.Player;
+        
         private float _tickTimer;
         private bool _armed;
 
@@ -25,6 +28,7 @@ namespace Core
 
         private void OnEnable()
         {
+            UpdateManager.Instance.Register(this);
             _armed = false;
             StartCoroutine(ArmNextPhysicsTick());
         }
@@ -57,7 +61,7 @@ namespace Core
                 _inside.Remove(dmg);
         }
 
-        private void Update()
+        public void Tick(float dt)
         {
             if (!Active || _inside.Count == 0)
                 return;
@@ -80,6 +84,7 @@ namespace Core
 
         private void OnDisable()
         {
+            UpdateManager.Instance.Register(this);
             _inside.Clear();
             _tickTimer = 0f;
         }

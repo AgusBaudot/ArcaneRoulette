@@ -1,13 +1,16 @@
-using Unity.VisualScripting;
+using Foundation;
 using UnityEngine;
 
 namespace Core
 {
-    public class PlayerEnergy : MonoBehaviour
+    public class PlayerEnergy : MonoBehaviour, IUpdatable
     {
         public float Current { get; private set; }
         public float Max => _stats.MaxEnergy;
         public bool IsBroken { get; private set; } //true = depleted, must fully restore.
+        
+        //IUpdatable
+        public int UpdatePriority => Foundation.UpdatePriority.Player;
 
         private PlayerStats _stats;
         private bool _isDraining;
@@ -17,15 +20,22 @@ namespace Core
             _stats = stats;
             Current = stats.MaxEnergy;
         }
+        
+        private void OnEnable()
+        {
+            UpdateManager.Instance.Register(this);
+        }
 
-        //UpdateManager: replace Update() with Tick()
-        private void Update() => Tick(Time.deltaTime);
+        private void OnDisable()
+        {
+            UpdateManager.Instance.Unregister(this);
+        }
 
-        public void Tick(float deltaTime)
+        public void Tick(float dt)
         {
             if (_isDraining)
             {
-                Current = Mathf.Max(0f, Current - _stats.EnergyDrainRate * deltaTime);
+                Current = Mathf.Max(0f, Current - _stats.EnergyDrainRate * dt);
 
                 if (Current <= 0f)
                 {
@@ -37,7 +47,7 @@ namespace Core
             }
             else
             {
-                Current = Mathf.Min(Max, Current + _stats.EnergyRestoreRate * deltaTime);
+                Current = Mathf.Min(Max, Current + _stats.EnergyRestoreRate * dt);
 
                 if (IsBroken && Current >= Max)
                     IsBroken = false; //only clears on full restore.

@@ -7,7 +7,7 @@ namespace Core
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PlayerHealth))]
     [RequireComponent(typeof(PlayerEnergy))]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable
     {
         public PlayerStats Stats => _playerStats;
         public Rigidbody Rigidbody => _rb;
@@ -15,6 +15,10 @@ namespace Core
         public PlayerEnergy Energy => _energy;
         public GameObject Hurtbox => _hurtBox;
         
+        //IUpdatable
+        public int UpdatePriority => Foundation.UpdatePriority.Player;
+        public int FixedUpdatePriority => Foundation.UpdatePriority.Player;
+
         //Last intentional input direction - used by DashAbilityRune for dash direction.
         //Falls back to facing direction when stick/WASD is neutral.
         public Vector2 LastInputDirection => _input.sqrMagnitude > 0.01f ? _input : _facingDirection;
@@ -57,20 +61,31 @@ namespace Core
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
         }
 
+        private void OnEnable()
+        {
+            UpdateManager.Instance.Register((IUpdatable)this);
+            UpdateManager.Instance.Register((IFixedUpdatable)this);
+        }
+
+        private void OnDisable()
+        {
+            UpdateManager.Instance.Unregister((IUpdatable)this);
+            UpdateManager.Instance.Unregister((IFixedUpdatable)this);
+        }
+
         private void OnValidate()
         {
             if (!_playerStats)
                 Debug.LogWarning("PlayerStats SO must be assigned.", this);
         }
 
-        //UpdateManager: replace Update/FixedUpdate with Tick registrations
-        private void Update()
+        public void Tick(float dt)
         {
             ReadInput();
             TickSpells();
         }
 
-        private void FixedUpdate()
+        public void FixedTick(float dt)
         {
             if (!_canMove) return;
             HandleMovement();
