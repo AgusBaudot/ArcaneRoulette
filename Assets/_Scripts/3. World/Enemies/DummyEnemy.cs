@@ -29,6 +29,7 @@ namespace world
             rb.useGravity   = false;
             rb.constraints  = RigidbodyConstraints.FreezePositionY
                               | RigidbodyConstraints.FreezeRotation;
+            //this.transform.rotation.y.FreezeRotation;
         }
 
         private void Update()

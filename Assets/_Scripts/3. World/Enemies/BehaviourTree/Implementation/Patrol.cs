@@ -11,7 +11,7 @@ namespace world
         readonly NavMeshAgent _agent;
         readonly List<Transform> _patrolPoints;
         readonly float _patrolSpeed;
-        int _currentIndex;
+        int _currentIndex = 0;
         bool _isPathCalculated = true; // para navmesh
 
         public Patrol(Transform entity, NavMeshAgent agent, List<Transform> patrolPoints, float patrolSpeed)
@@ -28,7 +28,7 @@ namespace world
 
             var target = _patrolPoints[_currentIndex];
             _agent.SetDestination(target.position);
-            _entity.LookAt(target);
+            //_entity.LookAt(target);
 
             float distance = (_patrolPoints[_currentIndex].position - _entity.position).sqrMagnitude;
 
@@ -38,7 +38,12 @@ namespace world
                _isPathCalculated = false;
             }
 
-            _isPathCalculated = _agent.pathPending;
+
+            if (_agent.pathPending) 
+            {
+                _isPathCalculated = true;
+            }
+             //= _agent.pathPending;
 
             return Node.NodeState.Running;
         }

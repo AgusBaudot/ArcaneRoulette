@@ -30,6 +30,7 @@ namespace world
         void Awake() 
         {
             _agent = GetComponent<NavMeshAgent>();
+            _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
             tree = new BehaviourTree(_behaviourTreeName);
             tree.AddChild(new TaskNode("Patrol", new Patrol(transform, _agent, wayPoints, _patrolspeed)));
