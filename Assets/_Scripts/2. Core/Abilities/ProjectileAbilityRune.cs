@@ -5,7 +5,7 @@ using Foundation;
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Projectile")]
-    public class ProjectileAbilityRune : AbilityRuneSO
+    public class ProjectileAbilityRune : AbilityRuneSO, IProjectileConfig
     {
         [SerializeField] private Projectile _projectilePrefab;
         [SerializeField] private float _projectileSpeed = 18f;
@@ -18,21 +18,30 @@ namespace Core
         public override AbilityType Type => AbilityType.Projectile;
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
-
-        //Called by SpellInstance when ability is a ProjectileAbilityRune.
-        //SpellInstance passes itself so Projectile can call TriggerOnHit on impact
-        internal void ActivateWithInstance(SpellContext ctx, SpellInstance source)
+        
+        //IProjectileConfig - cast runes write here
+        int IProjectileConfig.PierceCount {set => _activePierceCount = value;}
+        int IProjectileConfig.BounceCount {set => _activeBounceCount = value;}
+        float IProjectileConfig.SizeMultiplier {set => _activeSizeMultiplier = value;}
+        
+        //Private backing fields - written by cast runes via the interface
+        private int _activePierceCount = 0;
+        private int _activeBounceCount = 0;
+        private float _activeSizeMultiplier = 1f;
+        
+        public override void Activate(SpellContext ctx)
         {
-            ctx.Runner.StartCoroutine(WindUpThenFire(ctx, source));
+            //Cast runes already ran - active config is populated
+            ctx.Runner.StartCoroutine(WindUpThenFire(ctx));
         }
 
-        private IEnumerator WindUpThenFire(SpellContext ctx, SpellInstance source)
+        private IEnumerator WindUpThenFire(SpellContext ctx)
         {
             yield return Helpers.GetWait(_windupDuration);
-            Fire(ctx, source);
+            Fire(ctx);
         }
 
-        private void Fire(SpellContext ctx, SpellInstance source)
+        private void Fire(SpellContext ctx)
         {
             //Raycast floor plane for mouse-aimed direction.
             var floorPlane = new Plane(Vector3.up, Vector3.zero);
@@ -47,25 +56,28 @@ namespace Core
 
             var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
             go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
-            go.Init(source, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma,
+            go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma,
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
-            go.SetPierceCount(ctx.Modifiers.PierceCount);
-            go.SetBounceCount(ctx.Modifiers.BounceCount);
+            go.SetPierceCount(_activePierceCount);
+            go.SetBounceCount(_activeBounceCount);
             
-            if (ctx.Modifiers.SizeMultiplier != 1f)
+            if (_activeSizeMultiplier != 1f)
             {
-                go.transform.GetChild(0).localScale = Vector3.one * ctx.Modifiers.SizeMultiplier;
+                go.transform.GetChild(0).localScale = Vector3.one * _activeSizeMultiplier;
                 
                 var col = go.GetComponent<SphereCollider>();
                 if (col != null)
-                    col.radius *= ctx.Modifiers.SizeMultiplier / 2;
+                    col.radius *= _activeSizeMultiplier / 2;
             }
         }
-
-        //Called by SpellInstance for non-projectile abilities.
-        //Projectile path goes through ActivateWithInstance - see SpellInstance.Activate().
-        public override void Activate(SpellContext ctx)
+        
+        //Reset must happen at the start of every Activate so stale values
+        //never carry over between casts. Called before FireCastRunes
+        public override void ResetActiveConfig()
         {
+            _activePierceCount = 0;
+            _activeBounceCount = 0;
+            _activeSizeMultiplier = 1f;
         }
 
         //Hold lifecycle - never called, Projectile is not a hold ability

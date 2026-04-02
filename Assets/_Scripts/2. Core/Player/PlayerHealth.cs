@@ -47,7 +47,6 @@ namespace Core
         {
             if (IsInvincible) return;
             
-            Debug.Log("Dmg");
             //Juice
             CameraShake.AddTrauma(_cameraTrauma);
             HitStop.Apply(_hitStopDuration);

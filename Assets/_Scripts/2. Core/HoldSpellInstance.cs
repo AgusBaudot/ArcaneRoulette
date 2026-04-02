@@ -17,13 +17,9 @@ namespace Core
         public void StartHold(MonoBehaviour runner)
         {
             var ctx = BuildCastContext(runner);
+            
             FireCastRunes(ctx); //Cast runes apply on hold start.
-            
-            
-            if (Recipe.Ability is ShieldAbilityRune shield)
-                shield.StartHoldWithInstance(ctx, this);
-            else
-                Recipe.Ability.StartHold(ctx);
+            Recipe.Ability.StartHold(ctx);
         }
 
         public void StopHold(MonoBehaviour runner)

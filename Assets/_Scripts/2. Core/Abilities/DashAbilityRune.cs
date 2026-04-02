@@ -6,14 +6,22 @@ using Foundation;
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
-    public sealed class DashAbilityRune : AbilityRuneSO
+    public sealed class DashAbilityRune : AbilityRuneSO, IDashConfig
     {
-        [SerializeField] private float      _dashSpeed          = 20f;
-        [SerializeField] private float      _baseDashDuration   = 0.2f;
-        [SerializeField] private float      _cooldownDuration   = 0.8f;
-        [SerializeField] private float      _cameraTrauma       = 0.5f;
-        [SerializeField] private int        _baseDamage         = 8;
-        [SerializeField] private float      _dashHitRadius      = 0.8f;
+        //IDashConfig
+        float IDashConfig.DurationMultiplier { set => _activeDurationMultiplier = value; }
+        bool IDashConfig.DamagesOnDash { set => _activeDamagesOnDash = value; }
+        bool IDashConfig.ReflectsProjectiles { set => _activeReflectsProjectiles = value; }
+        int IDashConfig.BounceCount { set =>  _activeBounceCount = value; }
+        int IDashConfig.ReflectCount { set => _activeReflectCount = value; }
+        float IDashConfig.ReflectSpread { set => _activeReflectSpread = value; }
+        
+        [SerializeField] private float _dashSpeed = 20f;
+        [SerializeField] private float _baseDashDuration = 0.2f;
+        [SerializeField] private float _cooldownDuration = 0.8f;
+        [SerializeField] private float _cameraTrauma = 0.5f;
+        [SerializeField] private int _baseDamage = 8;
+        [SerializeField] private float _dashHitRadius = 0.8f;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
         [SerializeField] private float _reflectHitStop = 0.06f;
         [SerializeField] private float _reflectTrauma = 0.8f;
@@ -23,17 +31,20 @@ namespace Core
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
 
-        public override void Activate(SpellContext ctx)
-        { }
+        private float _activeDurationMultiplier;
+        private bool _activeDamagesOnDash;
+        private bool _activeReflectsProjectiles;
+        private int _activeBounceCount;
+        private int _activeReflectCount;
+        private float _activeReflectSpread;
 
-        internal void ActivateWithInstance(SpellContext ctx, SpellInstance source)
+        public override void Activate(SpellContext ctx)
         {
-            var player = (PlayerController)ctx.Runner;
-            float duration = _baseDashDuration * ctx.Modifiers.DurationMultiplier;
-            ctx.Runner.StartCoroutine(DashRoutine(ctx, player, duration, source));
+            ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
+                _baseDashDuration * _activeDurationMultiplier));
         }
 
-        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, SpellInstance source)
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration)
         {
             // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
@@ -44,27 +55,13 @@ namespace Core
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
 
-            int bouncesLeft = ctx.Modifiers.BounceCount;
+            int bouncesLeft = _activeBounceCount;
             float elapsed = 0f;
 
             var hitEnemies = new HashSet<GameObject>();
             
             while (elapsed < duration)
             {
-                //Bounce check - raycast a short distance ahead each frame
-                if (bouncesLeft > 0)
-                {
-                    float checkDist = _dashSpeed * Time.fixedDeltaTime * 2f;
-                    
-                    //Bounce off anything: walls and enemies
-                    if (Physics.Raycast(player.transform.position, dir, out RaycastHit hit, checkDist))
-                    {
-                        dir = Vector3.Reflect(dir, hit.normal);
-                        dir.y = 0f; //stay on XZ plane
-                        dir = dir.normalized;
-                        bouncesLeft--;
-                    }
-                }
                 //Enemy collision - OnHit per enemy touched
                 var enemies = Physics.OverlapSphere(
                     player.transform.position, _dashHitRadius, player.Stats.EnemyLayerMask);
@@ -78,21 +75,22 @@ namespace Core
                         continue;
 
                     // Damage only if PiercingCastRune is slotted
-                    if (ctx.Modifiers.DamagesOnDash)
+                    if (_activeDamagesOnDash)
                     {
-                        DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, source.SpellElement);
+                        DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.Source.SpellElement);
                         if (hit.TryGetComponent<DamageFlash>(out var flash)) 
                             flash.Flash();
                     }
 
                     // OnHit runes always fire per enemy touched regardless of damage
-                    source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner);
+                    ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
+                        AbilityType.Dash, false, dir);
                 }
 
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
-                if (ctx.Modifiers.ReflectCount > 0 && _reflectedProjectilePrefab != null)
+                if (_activeReflectCount > 0 && _reflectedProjectilePrefab != null)
                 {
-                    ReflectNearbyProjectiles(player, dir, ctx, source);
+                    ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance);
                 }
                 
                 player.Rigidbody.velocity = dir * _dashSpeed;
@@ -135,7 +133,7 @@ namespace Core
             SpellInstance source)
         {
             var dirs = ReflectionUtils.GetSpreadDirections(
-                baseDir, ctx.Modifiers.ReflectCount, ctx.Modifiers.ReflectSpread);
+                baseDir, _activeReflectCount, _activeReflectSpread);
 
             foreach (var d in dirs)
             {
@@ -147,6 +145,16 @@ namespace Core
                 go.SetPierceCount(0);
                 go.SetBounceCount(0);
             }
+        }
+
+        public override void ResetActiveConfig()
+        {
+            _activeDurationMultiplier = 01f;
+            _activeDamagesOnDash = false;
+            _activeReflectsProjectiles = false;
+            _activeBounceCount = 0;
+            _activeReflectCount = 0;
+            _activeReflectSpread = 0;
         }
 
         public override void StartHold(SpellContext ctx)

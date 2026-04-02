@@ -4,7 +4,7 @@ using Foundation;
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Shield")]
-    public class ShieldAbilityRune : AbilityRuneSO
+    public class ShieldAbilityRune : AbilityRuneSO, IShieldConfig
     {
         [SerializeField] private GameObject _shieldVisualPrefab;
         [SerializeField] private GameObject _shockwavePrefab;
@@ -13,16 +13,29 @@ namespace Core
         public override AbilityType Type => AbilityType.Shield;
         public override bool IsHoldAbility => true;
         public override float CooldownDuration => 0f;
+        
+        //IShieldConfig
+        float IShieldConfig.RadiusMultiplier { set => _activeRadiusMultiplier = value; }
+        bool IShieldConfig.AllowEnemyThrough { set => _activeAllowEnemyThrough = value; }
+        bool IShieldConfig.ReflectsProjectiles { set => _activeReflectsProjectiles = value; }
+        int IShieldConfig.ReflectCount { set => _activeReflectCount = value; }
+        float IShieldConfig.ReflectSpread { set => _activeReflectSpread = value; }
+        
+        //Private backing fields - written by cast runes via the interface
+        private float _activeRadiusMultiplier;
+        private bool _activeAllowEnemyThrough;
+        private bool _activeReflectsProjectiles;
+        private int _activeReflectCount;
+        private float _activeReflectSpread;
 
         // PROTOTYPE: single-player only. Mutable state on SO is safe here
         // because there is exactly one PlayerController and one shield slot.
         // Replace with per-instance state bag when multiplayer or pooling is needed.
         private float _timeHeld;
         private bool _active;
-        private bool _allowEnemyThrough;
         private GameObject _shieldVisual;
 
-        internal void StartHoldWithInstance(SpellContext ctx, SpellInstance source)
+        internal void ConfigureAndStartHold(SpellContext ctx, SpellInstance source)
         {
             var player = (PlayerController)ctx.Runner;
             if (!player.Energy.TryStartDrain())
@@ -50,29 +63,31 @@ namespace Core
                     source.TriggerOnHit(pos, target, ctx.Runner);
                 shield.OnEnemyBodyContact += (pos, target) =>
                     source.TriggerOnHit(pos, target, ctx.Runner);
-
-                var damageZone = _shieldVisual.GetComponent<ShieldDamageZone>();
-                if (damageZone != null)
-                    damageZone.Active = ctx.Modifiers.AllowEnemyThrough;
             }
             
             //Update every activation - rune recipe may have changed
-            _shieldVisual.transform.localScale = Vector3.one * ctx.Modifiers.RadiusMultiplier;
+            _shieldVisual.transform.localScale = Vector3.one * _activeRadiusMultiplier;
 
             var shieldCollider = _shieldVisual.GetComponent<ShieldCollider>();
-            shieldCollider.ReflectsProjectiles = ctx.Modifiers.ReflectsProjectiles;
-            shieldCollider.ReflectCount = ctx.Modifiers.ReflectCount;
-            shieldCollider.ReflectSpread = ctx.Modifiers.ReflectSpread;
+            shieldCollider.ReflectsProjectiles = _activeReflectsProjectiles;
+            shieldCollider.ReflectCount = _activeReflectCount;
+            shieldCollider.ReflectSpread = _activeReflectSpread;
             
             //Piercing toggles trigger mode - update every activation
             var col = _shieldVisual.GetComponent<Collider>();
-            col.isTrigger = ctx.Modifiers.AllowEnemyThrough;
+            col.isTrigger = _activeAllowEnemyThrough;
+
+            var damageZone = _shieldVisual.GetComponent<ShieldDamageZone>();
+            if (damageZone != null)
+                damageZone.Active = _activeAllowEnemyThrough;
             
             _shieldVisual.SetActive(true);
         }
 
         public override void StartHold(SpellContext ctx)
-        { }
+        {
+            ConfigureAndStartHold(ctx, ctx.Source as SpellInstance);
+        }
 
         public override void HoldTick(SpellContext ctx, float deltaTime)
         {
@@ -106,6 +121,15 @@ namespace Core
             player.Energy.StopDrain();
             if (_shieldVisual)
                 _shieldVisual.SetActive(false);
+        }
+
+        public override void ResetActiveConfig()
+        {
+            _activeRadiusMultiplier = 1f;
+            _activeAllowEnemyThrough = false;
+            _activeReflectsProjectiles = false;
+            _activeReflectCount = 0;
+            _activeReflectSpread = 0;
         }
 
         public override void Activate(SpellContext ctx)

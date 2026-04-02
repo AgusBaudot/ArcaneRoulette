@@ -36,10 +36,16 @@ namespace Core
                 if (hit.TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();
                 
+                //Dash/Shield: keep dash direction for secondary hits
+                //Projectile: repel form AoE center (zero - repel from HitPosition).
+                Vector3 secondaryDir = ctx.AbilityType == AbilityType.Projectile
+                    ? Vector3.zero
+                    : ctx.AttackerDirection;
+                
                 //Full OnHit chain on each secondary target.
                 //_isExpanding blocks AoEOnHitRune from firing again - all other
                 //runes (OnCast, OnHit) run normally on secondary targets.
-                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject);
+                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, secondaryDir);
             }
 
             _isExpanding = false;
