@@ -15,13 +15,15 @@ namespace world {
         }
 
         public readonly string _name;
+        public readonly int _priority;
             
         public readonly List<Node> _children = new();
         protected int _currentChild;
-    
-        public Node(string name = "Node") 
+
+        public Node(string name = "Node", int priority = 0) 
         {
             this._name = name;
+            this._priority = priority;
         }
 
         public void AddChild(Node child) => _children.Add(child);

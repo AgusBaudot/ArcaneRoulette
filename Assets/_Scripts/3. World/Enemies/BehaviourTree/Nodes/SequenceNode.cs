@@ -3,23 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using world;
 
-public class SequenceNode //: Node, ITreeNode
+public class SequenceNode : Node
 {
-    /*private List<Node> _children;
+    public SequenceNode(string name, int priority = 0) : base(name, priority) { }
 
-    public override NodeState Tick()
+    public override NodeState Process()
     {
-        foreach (var child in _children)
+        if (_currentChild < _children.Count)
         {
-            var result = child.Tick();
-            if (result != NodeState.Success)
-                return result;
+            switch (_children[_currentChild].Process())
+            {
+                case NodeState.Running:
+                    return NodeState.Running;
+                case NodeState.Failure:
+                     Reset();
+                    return NodeState.Failure;
+                default:
+                    _currentChild++;
+                    return _currentChild == _children.Count ? NodeState.Success : NodeState.Running; // if it is last node the Sequence return success
+            }
         }
+
+        Reset();
         return NodeState.Success;
     }
-    public void Execute() 
-    {
-
-    }
-    */
 }

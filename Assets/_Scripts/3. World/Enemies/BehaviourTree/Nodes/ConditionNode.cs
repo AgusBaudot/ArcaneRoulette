@@ -4,24 +4,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using world;
 
-public class ConditionNode //: IStrategy
+public class ConditionNode : IStrategy
 {
-    /*private ITreeNode trueNode;
-    private ITreeNode flaseNode;
-    private Func<bool> question;
+    readonly Func<bool> predicate;
 
-    public ConditionNode(Func<bool> question, ITreeNode trueNode, ITreeNode falseNode)
+    public ConditionNode (Func<bool> predicate) 
     {
-        this.question = question;
-        this.trueNode = trueNode;
-        this.flaseNode = falseNode;
+        this.predicate = predicate;
     }
-    public void Execute()
-    {
-        if (question.Invoke())
-            trueNode.Execute();
-        else
-            flaseNode.Execute();
-    }
-    */
+
+    public Node.NodeState Process() => predicate () ? Node.NodeState.Success : Node.NodeState.Failure;
+
+    //public void Reset() { } anulada por la interfaz
 }

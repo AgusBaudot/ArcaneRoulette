@@ -33,7 +33,7 @@ namespace world
             _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
             tree = new BehaviourTree(_behaviourTreeName);
-            tree.AddChild(new TaskNode("Patrol", new Patrol(transform, _agent, wayPoints, _patrolspeed)));
+            tree.AddChild(new LeafNode("Patrol", new Patrol(transform, _agent, wayPoints, _patrolspeed)));
         }
         private bool IsInLos() => _los.CheckRange(target) && _los.CheckAngle(target) && _los.CheckView(target);
 
@@ -58,6 +58,7 @@ namespace world
                 }
                 _currentChild++;
             }
+            //Reset(); por testear
             return NodeState.Success;
         }
     }

@@ -4,10 +4,10 @@ using UnityEngine;
 using System;
 using world;
 
-public class TaskNode : Node
+public class LeafNode : Node
 {
     readonly IStrategy strategy;
-    public TaskNode(string name, IStrategy strategy) : base(name)
+    public LeafNode(string name, IStrategy strategy, int priority = 0) : base(name, priority)
     {
         this.strategy = strategy;
     }
