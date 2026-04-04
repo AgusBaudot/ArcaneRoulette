@@ -1447,7 +1447,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!195 &670413627
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1485,6 +1485,8 @@ MonoBehaviour:
   _patrolspeed: 5
   _runningspeed: 10
   _behaviourTreeName: Dummy1
+  _agent: {fileID: 0}
+  _los: {fileID: 0}
   target: {fileID: 1364292775}
   wayPoints:
   - {fileID: 1538017317}
@@ -7661,10 +7663,10 @@ GameObject:
   - component: {fileID: 1580436685}
   - component: {fileID: 1580436686}
   - component: {fileID: 1580436688}
-  - component: {fileID: 1580436687}
   - component: {fileID: 1580436689}
+  - component: {fileID: 1580436690}
   m_Layer: 7
-  m_Name: Bruto
+  m_Name: Melee
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7795,26 +7797,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _amount: 10
   _element: 5
---- !u!114 &1580436687
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1580436679}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b346d84fafcd1644b5b48565574148f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _patrolspeed: 5
-  _runningspeed: 10
-  _behaviourTreeName: Dummy0
-  target: {fileID: 1364292775}
-  wayPoints:
-  - {fileID: 681260113}
-  - {fileID: 1406081413}
-  - {fileID: 821794012}
 --- !u!114 &1580436688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7855,6 +7837,22 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 0
+--- !u!114 &1580436690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1580436679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 550b2ee0a7a8bc743ba0883740dff2b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _agent: {fileID: 0}
+  _los: {fileID: 0}
+  target: {fileID: 0}
+  _behaviourTreeName: MeleeBasico
 --- !u!1 &1617717751
 GameObject:
   m_ObjectHideFlags: 0
@@ -8490,7 +8488,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1906068482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8631,6 +8629,8 @@ MonoBehaviour:
   _patrolspeed: 5
   _runningspeed: 10
   _behaviourTreeName: Dummy1
+  _agent: {fileID: 0}
+  _los: {fileID: 0}
   target: {fileID: 1364292775}
   wayPoints:
   - {fileID: 707403942}

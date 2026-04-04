@@ -8,38 +8,36 @@ namespace world
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent (typeof(NavMeshAgent))]
-    public class AIBrain : MonoBehaviour
+    public abstract class AIBrain : MonoBehaviour
     {
-        
-
-        [Header("BehaviourTree")]
-        [SerializeField] private float _patrolspeed;
-        [SerializeField] private float _runningspeed;
-        [SerializeField] private string _behaviourTreeName;
-        private NavMeshAgent _agent;
-        private BehaviourTree tree;
-        private ConditionNode _root;
-        private LineOfSight _los;
-        public Blackboard _blackboard;
+        [Header("Components Reference")]
+        [SerializeField] protected BehaviourTree tree;
+        [SerializeField] protected NavMeshAgent _agent;
+        [SerializeField] protected LineOfSight _los;
+        [Header("Common AI Data")]
+        [SerializeField] protected Transform target;
+        [SerializeField] protected string _behaviourTreeName;
+        //public List<Transform> wayPoints;
 
 
-        public Transform target;
-        public List<Transform> wayPoints;
-        //private int currentWP = 0;
-
-        void Awake() 
+        protected virtual void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
             _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
-            tree = new BehaviourTree(_behaviourTreeName);
-            tree.AddChild(new LeafNode("Patrol", new Patrol(transform, _agent, wayPoints, _patrolspeed)));
+            tree = BuildTree();
         }
-        private bool IsInLos() => _los.CheckRange(target) && _los.CheckAngle(target) && _los.CheckView(target);
-
-        private void Update()
+        protected virtual void Update()
         {
-            tree.Process();
+            tree?.Process();
+        }
+        protected abstract BehaviourTree BuildTree();
+        protected virtual bool IsInLos() //virtual para poder anularlo
+        {
+            if (_los == null || target == null) return false;
+            return _los.CheckRange(target) &&
+                   _los.CheckAngle(target) &&
+                   _los.CheckView(target);
         }
     }
 

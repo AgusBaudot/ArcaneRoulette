@@ -24,15 +24,15 @@ namespace world
 
         public Node.NodeState Process() 
         {
+            _agent.speed = _patrolSpeed;
             if (_currentIndex == _patrolPoints.Count) return Node.NodeState.Success;
 
             var target = _patrolPoints[_currentIndex];
             _agent.SetDestination(target.position);
-            //_entity.LookAt(target);
 
             float distance = (_patrolPoints[_currentIndex].position - _entity.position).sqrMagnitude;
 
-            if (_isPathCalculated && distance < 0.5f) //_agent.remainingDistance alternative way to calculate distance
+            if (_isPathCalculated && distance < 0.5f)
             {
                 _currentIndex++;
                _isPathCalculated = false;
