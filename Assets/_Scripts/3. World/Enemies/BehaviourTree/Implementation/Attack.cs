@@ -7,29 +7,23 @@ namespace world
     public class Attack : IStrategy
     {
         readonly float _cooldown;
-        readonly Animation _animation;
+        readonly Animator _animator;
+
         float cooldownTimer;
         bool isAttacking;
         bool inCooldown;
 
-        public Attack(float Cooldown, Animation animation) 
+        public Attack(float cooldown, Animator animator)
         {
-            this._cooldown = Cooldown;
-            this._animation = animation;
+            _cooldown = cooldown;
+            _animator = animator;
         }
 
-        public Node.NodeState Process() 
+        public Node.NodeState Process()
         {
-            if (!isAttacking && !inCooldown) 
-            {
-                _animation.Play();
-                isAttacking = true;
-                return Node.NodeState.Running;
-            }
-
             if (isAttacking)
             {
-                if (_animation.isPlaying)
+                if (IsAnimationPlaying())
                     return Node.NodeState.Running;
 
                 isAttacking = false;
@@ -37,7 +31,7 @@ namespace world
                 cooldownTimer = _cooldown;
             }
 
-            if (inCooldown && _cooldown > 0)
+            if (inCooldown)
             {
                 cooldownTimer -= Time.deltaTime;
 
@@ -47,8 +41,15 @@ namespace world
                 inCooldown = false;
                 return Node.NodeState.Success;
             }
+            _animator.SetTrigger("Attack");
+            isAttacking = true;
+            return Node.NodeState.Running;
+        }
 
-            return Node.NodeState.Success;
+        bool IsAnimationPlaying()
+        {
+            var state = _animator.GetCurrentAnimatorStateInfo(0);
+            return state.IsName("Attack") && state.normalizedTime < 1f;
         }
 
         public void Reset()
@@ -56,9 +57,6 @@ namespace world
             isAttacking = false;
             inCooldown = false;
             cooldownTimer = 0f;
-
-            if (_animation.isPlaying)
-                _animation.Stop();
         }
     }
 }

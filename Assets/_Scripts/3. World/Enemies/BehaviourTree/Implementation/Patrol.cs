@@ -25,6 +25,7 @@ namespace world
         public Node.NodeState Process() 
         {
             _agent.speed = _patrolSpeed;
+            _currentIndex = (_currentIndex + 1) % _patrolPoints.Count;
             if (_currentIndex == _patrolPoints.Count) return Node.NodeState.Success;
 
             var target = _patrolPoints[_currentIndex];

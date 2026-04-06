@@ -1441,6 +1441,7 @@ GameObject:
   - component: {fileID: 670413629}
   - component: {fileID: 670413628}
   - component: {fileID: 670413627}
+  - component: {fileID: 670413637}
   m_Layer: 7
   m_Name: Mele
   m_TagString: Untagged
@@ -1482,16 +1483,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b346d84fafcd1644b5b48565574148f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _patrolspeed: 5
-  _runningspeed: 10
-  _behaviourTreeName: Dummy1
-  _agent: {fileID: 0}
-  _los: {fileID: 0}
-  target: {fileID: 1364292775}
-  wayPoints:
-  - {fileID: 1538017317}
-  - {fileID: 1380612799}
-  - {fileID: 385799086}
 --- !u!114 &670413629
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1635,6 +1626,27 @@ Transform:
   - {fileID: 1631926555}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &670413637
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 670413626}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &671718325
 GameObject:
   m_ObjectHideFlags: 0
@@ -7665,6 +7677,7 @@ GameObject:
   - component: {fileID: 1580436688}
   - component: {fileID: 1580436689}
   - component: {fileID: 1580436690}
+  - component: {fileID: 1580436691}
   m_Layer: 7
   m_Name: Melee
   m_TagString: Untagged
@@ -7829,7 +7842,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0
+  m_StoppingDistance: 2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -7849,10 +7862,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 550b2ee0a7a8bc743ba0883740dff2b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _animator: {fileID: 0}
   _agent: {fileID: 0}
   _los: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: MeleeBasico
+  attackRange: 1
+  chaseSpeed: 5
+  patrolSpeed: 0
+  waypoints: []
+  attackAnimation: {fileID: 0}
+  attackCooldown: 3
+--- !u!95 &1580436691
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1580436679}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1617717751
 GameObject:
   m_ObjectHideFlags: 0
@@ -8482,6 +8523,7 @@ GameObject:
   - component: {fileID: 1906068490}
   - component: {fileID: 1906068489}
   - component: {fileID: 1906068491}
+  - component: {fileID: 1906068492}
   m_Layer: 7
   m_Name: Range
   m_TagString: Untagged
@@ -8626,16 +8668,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b346d84fafcd1644b5b48565574148f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _patrolspeed: 5
-  _runningspeed: 10
-  _behaviourTreeName: Dummy1
-  _agent: {fileID: 0}
-  _los: {fileID: 0}
-  target: {fileID: 1364292775}
-  wayPoints:
-  - {fileID: 707403942}
-  - {fileID: 1521953805}
-  - {fileID: 1756235936}
 --- !u!114 &1906068490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8676,6 +8708,27 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!95 &1906068492
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1906068481}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1925471329
 GameObject:
   m_ObjectHideFlags: 0

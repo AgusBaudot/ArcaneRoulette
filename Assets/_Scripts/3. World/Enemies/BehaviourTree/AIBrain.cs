@@ -7,14 +7,16 @@ using World;
 namespace world 
 {
     [RequireComponent(typeof(LineOfSight))]
-    [RequireComponent (typeof(NavMeshAgent))]
+    [RequireComponent(typeof(NavMeshAgent))]
+    [RequireComponent(typeof(Animator))]
     public abstract class AIBrain : MonoBehaviour
     {
         [Header("Components Reference")]
-        [SerializeField] protected BehaviourTree tree;
+        [SerializeField] protected Animator _animator;
         [SerializeField] protected NavMeshAgent _agent;
         [SerializeField] protected LineOfSight _los;
         [Header("Common AI Data")]
+        [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
         //public List<Transform> wayPoints;
@@ -22,6 +24,7 @@ namespace world
 
         protected virtual void Awake()
         {
+            _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
@@ -56,7 +59,7 @@ namespace world
                 }
                 _currentChild++;
             }
-            //Reset(); por testear
+            //Reset(); //solo test
             return NodeState.Success;
         }
     }
