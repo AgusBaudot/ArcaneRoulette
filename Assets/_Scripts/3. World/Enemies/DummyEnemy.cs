@@ -7,6 +7,12 @@ namespace World
     [RequireComponent(typeof(Rigidbody))]
     public class DummyEnemy : MonoBehaviour, IDamageable
     {
+        public bool CanAttack
+        {
+            get => _canAttack;
+            set => _canAttack = value;
+        }
+        
         [Header("Stats")]
         [SerializeField] private float _maxHp = 100f;
         

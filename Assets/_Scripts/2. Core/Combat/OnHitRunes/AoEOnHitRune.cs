@@ -9,6 +9,7 @@ namespace Core
         [SerializeField] private float _baseRadius = 3f;
         [SerializeField] private int _baseDamage = 5;
         [SerializeField] private LayerMask _enemyMask;
+        [SerializeField] private GameObject _aoeFX;
         
         private bool _isExpanding;
 
@@ -19,6 +20,8 @@ namespace Core
 
             float radius = _baseRadius * stackCount;
             var hits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
+
+            Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
 
             _isExpanding = true;
 
