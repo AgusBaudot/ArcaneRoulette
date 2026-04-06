@@ -1,10 +1,14 @@
-using Foundation;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Core;
+using Foundation;
+using TMPro;
 
-namespace World
+namespace world
 {
     [RequireComponent(typeof(Rigidbody))]
+    
     public class DummyEnemy : MonoBehaviour, IDamageable
     {
         public bool CanAttack
@@ -19,36 +23,23 @@ namespace World
         [Header("HP Bar - assign WorldSpace Canvas children")]
         [SerializeField] private Image _hpFill;
         [SerializeField] private Image _ghostFill; //sits behind _hpFill, lerps slowly
+        [SerializeField] public TextMeshProUGUI _stateText;
         [SerializeField] private float _ghostSpeed = 2.5f;
-        
-        [Header("Attack")]
-        [SerializeField] private EnemyProjectile _enemyProjectilePrefab;
-        [SerializeField] private bool _canAttack;
-        [SerializeField] private int _damageAmount = 10;
 
-        private float _fireInterval = 2f;
-        private const float _defaultFireInterval = 2f;
         private float _currentHp;
 
         private void Awake()
         {
             _currentHp = _maxHp;
-            
             var rb =  GetComponent<Rigidbody>();
             rb.useGravity   = false;
             rb.constraints  = RigidbodyConstraints.FreezePositionY
                               | RigidbodyConstraints.FreezeRotation;
+            //this.transform.rotation.y.FreezeRotation;
         }
 
         private void Update()
         {
-            if (_canAttack)
-            {
-                _fireInterval -= Time.deltaTime;
-                if (_fireInterval <= 0f)
-                    Fire();
-            }
-            
             if (_ghostFill == null) return;
             //Ghost bar trails the real bar - the gap is the "damage taken" read
             _ghostFill.fillAmount = Mathf.Lerp(
@@ -80,6 +71,5 @@ namespace World
            //EventBus.Publish(new EnemyDiedEvent()); - wirte this when EventBus is ready
            Destroy(gameObject);
         }
-        
     }
 }
