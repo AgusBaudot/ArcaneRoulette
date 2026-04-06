@@ -1,14 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InventorySlot : MonoBehaviour
+namespace UI
 {
-    public Image icon;
-    public Text amountText;
-
-    public void Setup(ItemData item, int amount)
+    public class InventorySlot : MonoBehaviour
     {
-        if (icon != null) icon.sprite = item != null ? item.icon : null;
-        if (amountText != null) amountText.text = (amount > 1) ? amount.ToString() : "";
+        public Image icon;
+        public Text amountText;
+
+        public void Setup(ItemData item, int amount)
+        {
+            if (icon != null) icon.sprite = item != null ? item.icon : null;
+            if (amountText != null) amountText.text = (amount > 1) ? amount.ToString() : "";
+        }
     }
+
 }

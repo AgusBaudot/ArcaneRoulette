@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 2616178457233273684}
   - component: {fileID: 3758538552158377580}
   m_Layer: 0
-  m_Name: AmountText
+  m_Name: CountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -220,10 +220,10 @@ GameObject:
   - component: {fileID: 6415658508420927652}
   - component: {fileID: 1788122232258810866}
   - component: {fileID: 7754265108793962785}
-  - component: {fileID: 6931794977284402444}
   - component: {fileID: 2132756708115182722}
+  - component: {fileID: 8726821017808334810}
   m_Layer: 0
-  m_Name: RuneSlot
+  m_Name: RuneTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -303,30 +303,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &6931794977284402444
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6640511695469699178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb89d1af9e1bc8043bd191054097be6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  iconImage: {fileID: 3738423198281971639}
-  amountText: {fileID: 3758538552158377580}
-  slotButton: {fileID: 7754265108793962785}
-  highlightImage: {fileID: 0}
-  preserveIconAspect: 1
-  tintByCategory: 0
-  abilityTint: {r: 1, g: 1, b: 1, a: 1}
-  elementTint: {r: 1, g: 1, b: 1, a: 1}
-  modifierTint: {r: 1, g: 1, b: 1, a: 1}
-  abilityIconScale: 1
-  elementIconScale: 1
-  modifierIconScale: 1
 --- !u!114 &2132756708115182722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -357,6 +333,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8726821017808334810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6640511695469699178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 913b694f6323482bb477428cba91f445, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  icon: {fileID: 3738423198281971639}
+  countText: {fileID: 3758538552158377580}
+  highlight: {fileID: 3060127680432588701}
 --- !u!1 &7844958074030344216
 GameObject:
   m_ObjectHideFlags: 0

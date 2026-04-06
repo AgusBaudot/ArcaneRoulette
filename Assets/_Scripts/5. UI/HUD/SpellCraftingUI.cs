@@ -1,348 +1,116 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Foundation;
-using System.Collections.Generic;
 using Core;
-using System;
 
-public class SpellCraftingUI : MonoBehaviour
+/// <summary>
+/// Orchestrator. Owns the pending rune selection.
+/// Opens/closes the panel, routes clicks, commits on close.
+/// </summary>
+public sealed class SpellCraftingUI : MonoBehaviour
 {
-    [SerializeField] private GameObject mainInventorySide;
-    [SerializeField] private GameObject craftingSide;
-    [SerializeField] private Transform inventoryGridParent;
-    [SerializeField] private GameObject runeSlotPrefab;
-    [SerializeField] private CraftingRecipePanel[] craftingPanels = new CraftingRecipePanel[3];
-    [SerializeField] private Button openButton;
-    [SerializeField] private Button closeButton;
     [SerializeField] private GameObject craftingPanel;
-    [SerializeField] private Text titleText;
     [SerializeField] private KeyCode toggleKey = KeyCode.Tab;
 
-    private VolatileRunState RunState => GameStateManager.RunState;
+    [SerializeField] private RuneInventoryPanel inventoryPanel;
+    [SerializeField] private SpellSlotPanel[] slotPanels; // length 3, Slot0/1/2
+
     private SpellCrafter _spellCrafter;
-    private List<RuneSlotUI> _inventorySlots = new List<RuneSlotUI>();
-    private bool _uiOpen = false;
+    private RuneDefinitionSO _pendingRune;
+    private bool _isOpen;
 
     private void Awake()
     {
         _spellCrafter = FindObjectOfType<SpellCrafter>();
-        
-        if (openButton != null)
-            openButton.onClick.AddListener(OpenCraftingUI);
 
-        if (openButton != null)
-            openButton.onClick.AddListener(OpenCraftingUI);
+        inventoryPanel.Init(this);
 
-        if (closeButton != null)
-            closeButton.onClick.AddListener(OnCloseButtonClicked);
+        foreach (var panel in slotPanels)
+            panel.Init(this);
 
-        // Find crafting panels if not assigned
-        if (craftingPanels.Length == 0 || craftingPanels[0] == null)
-        {
-            craftingPanels = FindObjectsOfType<CraftingRecipePanel>();
-        }
-
-        EnsureUniquePanelTargetSlots();
-
-        // Fallback 1: use assigned craftingSide if set.
-        if (craftingPanel == null && craftingSide != null)
-        {
-            craftingPanel = craftingSide;
-            // Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned craftingSide as craftingPanel.");
-        }
-
-        // Fallback 2: use this GameObject to avoid complete null fail.
-        if (craftingPanel == null)
-        {
-            craftingPanel = gameObject;
-            // Debug.LogWarning("SpellCraftingUI: craftingPanel was null, auto-assigned to component GameObject.");
-        }
-
-        // Instant debug info on startup.
-        // Debug.Log($"SpellCraftingUI Awake: craftPanel={craftingPanel?.name} craftSide={craftingSide?.name} openBtn={(openButton!=null)} closeBtn={(closeButton!=null)} inventoryGrid={(inventoryGridParent!=null)}");
-    }
-
-    private void EnsureUniquePanelTargetSlots()
-    {
-        if (craftingPanels == null || craftingPanels.Length == 0)
-            return;
-
-        // If panels share the same SlotIndex (common misconfiguration), they will all mirror the same spell.
-        // Auto-assign by index (0..2) in that case to keep UI sane.
-        var seen = new HashSet<SlotIndex>();
-        bool hasDuplicate = false;
-
-        foreach (var p in craftingPanels)
-        {
-            if (p == null) continue;
-            if (!seen.Add(p.TargetSlot))
-            {
-                hasDuplicate = true;
-                break;
-            }
-        }
-
-        if (!hasDuplicate)
-            return;
-
-        // Debug.LogWarning("SpellCraftingUI: CraftingRecipePanels have duplicate TargetSlot values. Auto-assigning Slot0/Slot1/Slot2 by panel index.");
-
-        for (int i = 0; i < craftingPanels.Length; i++)
-        {
-            var p = craftingPanels[i];
-            if (p == null) continue;
-            if (i <= 2)
-                p.SetTargetSlot((SlotIndex)i);
-        }
-    }
-
-    private void Start()
-    {
-        // Debug.Log("SpellCraftingUI: START. component active=" + enabled + ", gameObject active=" + gameObject.activeSelf);
-
-        // Ensure UI starts closed
-        if (craftingPanel != null)
-        {
-            craftingPanel.SetActive(false);
-            // Debug.Log("SpellCraftingUI: Start() set craftingPanel inactive.");
-        }
-        else
-        {
-            // Debug.LogError("SpellCraftingUI: craftingPanel is still null in Start(). UI cannot open.");
-        }
-
-        // Safety check: if open button is missing, log explicitly.
-        // if (openButton == null)
-            // Debug.LogWarning("SpellCraftingUI: openButton is not assigned. Use 'C' key or create open button in Canvas.");
-
-        // Safety test: show UI by direct call once at start while debugging (comment out after verification)
-        // OpenCraftingUI();
+        craftingPanel.SetActive(false);
     }
 
     private void Update()
     {
-        // Extra key fail-safe (Tab can be blocked by UI/input focus or New Input System setup).
         if (Input.GetKeyDown(toggleKey))
         {
-            // Debug.Log($"SpellCraftingUI: Toggle key pressed (toggleKey={toggleKey}). _uiOpen={_uiOpen}");
-            if (_uiOpen)
-            {
-                OnCloseButtonClicked();
-            }
-            else
-            {
-                OpenCraftingUI();
-            }
+            if (_isOpen) CloseCraftingUI();
+            else         OpenCraftingUI();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            // Debug.Log("SpellCraftingUI: Escape pressed, trying close UI.");
-            if (_uiOpen)
-                CloseCraftingUI();
-        }
+        if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
+            CloseCraftingUI();
     }
 
-    public void OpenCraftingUI()
+    // ── Open / Close ────────────────────────────────────────────────────
+
+    private void OpenCraftingUI()
     {
-        // Debug.Log("SpellCraftingUI: OpenCraftingUI invoked (toggleKey=" + toggleKey + "). _uiOpen=" + _uiOpen);
+        _isOpen = true;
+        _pendingRune = null;
 
-        if (_uiOpen)
-            return;
-
-        _uiOpen = true;
-        EnsureUniquePanelTargetSlots();
-
-        // Show UI
-        if (craftingPanel != null)
-        {
-            craftingPanel.SetActive(true);
-            // Debug.Log("SpellCraftingUI: Crafting panel set active.");
-        }
-        else
-        {
-            // Debug.LogError("SpellCraftingUI: craftingPanel is null in OpenCraftingUI.");
-        }
-
-        // Pause game
+        craftingPanel.SetActive(true);
         Time.timeScale = 0f;
-        // Debug.Log("SpellCraftingUI: game paused (timeScale=0). UI should be visible.");
 
-        // Refresh inventory display
-        RefreshInventoryDisplay();
+        foreach (var panel in slotPanels)
+            panel.PopulateFromRunState();
 
-        // Refresh crafting panels
-        foreach (var panel in craftingPanels)
-        {
-            if (panel != null)
-            {
-                panel.SetRuneSlotPrefab(runeSlotPrefab);
-                panel.PopulateFromCurrentSlot();
-                panel.RefreshDisplay(_spellCrafter);
-            }
-        }
-
-        // Debug.Log("SpellCraftingUI: OpenCraftingUI completed.");
+        RefreshAll();
     }
 
-    private void OnCloseButtonClicked()
+    private void CloseCraftingUI()
     {
-        CloseCraftingUI();
-    }
+        _isOpen = false;
+        _pendingRune = null;
 
-    public void CloseCraftingUI()
-    {
-        if (!_uiOpen)
-            return;
+        foreach (var panel in slotPanels)
+            panel.TryApply(_spellCrafter);
 
-        _uiOpen = false;
-
-        ApplySelectionsToRunState();
-        
-        // Hide UI
-        if (craftingPanel != null)
-            craftingPanel.SetActive(false);
-
-        // Resume game
+        craftingPanel.SetActive(false);
         Time.timeScale = 1f;
     }
 
-    public void NotifyCraftSuccessful()
-    {
-        // Update remaining rune counts after successful crafting.
-        RefreshInventoryDisplay();
+    // ── Click callbacks (called by tiles via Init lambdas) ──────────────
 
-        foreach (var panel in craftingPanels)
-        {
-            if (panel != null)
-            {
-                panel.PopulateFromCurrentSlot();
-                panel.RefreshDisplay(_spellCrafter);
-            }
-        }
+    /// <summary>
+    /// Inventory tile clicked. Toggles pending selection.
+    /// </summary>
+    public void OnInventoryTileClicked(RuneDefinitionSO rune)
+    {
+        _pendingRune = (_pendingRune == rune) ? null : rune;
+        RefreshAll();
     }
 
-    private void ApplySelectionsToRunState()
+    /// <summary>
+    /// Spell slot tile clicked.
+    /// If holding a rune: assign it (type mismatch = ignored by TryAssign).
+    /// If not holding: clear that slot.
+    /// </summary>
+    public void OnSlotTileClicked(SpellSlotPanel panel,
+                                   SpellSlotPanel.SlotType slotType,
+                                   int modIndex)
     {
-        if (_spellCrafter == null) return;
+        if (_pendingRune != null)
+            panel.TryAssign(_pendingRune, slotType, modIndex);
+        else
+            panel.ClearSlot(slotType, modIndex);
 
-        foreach (var panel in craftingPanels)
-        {
-            if (panel == null) continue;
-            var ok = panel.TryApplySelectionToRunState(_spellCrafter);
-            if (!ok)
-            {
-                // Debug.LogWarning($"SpellCraftingUI: Failed to apply selection for slot {panel.TargetSlot}.");
-            }
-        }
-
-        // Sync visuals from runtime after applying.
-        RefreshInventoryDisplay();
-        foreach (var panel in craftingPanels)
-        {
-            if (panel == null) continue;
-            panel.PopulateFromCurrentSlot();
-            panel.RefreshDisplay(_spellCrafter);
-        }
+        _pendingRune = null;
+        RefreshAll();
     }
 
-    public void RefreshInventoryDisplay()
+    // ── Refresh ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Single refresh call updates all tiles on both sides.
+    /// Called after every state change.
+    /// </summary>
+    private void RefreshAll()
     {
-        // Clear existing slots
-        foreach (var slot in _inventorySlots)
-        {
-            if (slot != null)
-                Destroy(slot.gameObject);
-        }
-        _inventorySlots.Clear();
-        if (inventoryGridParent == null)
-            return;
+        inventoryPanel.Refresh(_pendingRune);
 
-        // Populate with available runes
-        foreach (var runeEntry in RunState.RuneInventory)
-        {
-            int available = RunState.AvailableCount(runeEntry.Key);
-
-            GameObject slotGO = null;
-            if (runeSlotPrefab != null)
-            {
-                slotGO = Instantiate(runeSlotPrefab, inventoryGridParent);
-            }
-            else
-            {
-                var resourcePrefab = Resources.Load<GameObject>("RuneSlot");
-                if (resourcePrefab != null)
-                    slotGO = Instantiate(resourcePrefab, inventoryGridParent);
-            }
-
-            if (slotGO == null)
-            {
-                slotGO = new GameObject(runeEntry.Key.Name);
-                slotGO.transform.SetParent(inventoryGridParent);
-            }
-
-            var slotUI = slotGO.GetComponent<RuneSlotUI>() ?? slotGO.AddComponent<RuneSlotUI>();
-            slotUI.SetAsInventorySlot();
-            // Disable click-to-assign; drag/drop only.
-            slotUI.Setup(runeEntry.Key, available, null);
-
-            // Drag (inventory -> right slots). Drop (right slots -> inventory) is handled per-tile.
-            var drag = slotGO.GetComponent<RuneDragItemUI>() ?? slotGO.AddComponent<RuneDragItemUI>();
-            drag.Configure(
-                runeEntry.Key,
-                canDrag: available > 0,
-                originKind: RuneDragItemUI.DragOriginKind.Inventory,
-                originSlot: SlotIndex.Slot0,
-                originModifierIndex: -1,
-                quantity: 1);
-
-            var drop = slotGO.GetComponent<RuneDropTargetUI>() ?? slotGO.AddComponent<RuneDropTargetUI>();
-            drop.Configure(
-                SlotIndex.Slot0,
-                RuneDropTargetUI.DropKind.Ability,
-                -1,
-                onDrop: (dragged) =>
-                {
-                    if (dragged == null) return;
-                    if (dragged.OriginKind == RuneDragItemUI.DragOriginKind.Inventory) return;
-
-                    var panel = GetPanelForSlot(dragged.OriginSlot);
-                    panel?.ClearSlotFromOrigin(dragged.OriginKind, dragged.OriginModifierIndex);
-                });
-
-            _inventorySlots.Add(slotUI);
-        }
-    }
-
-    public void SetCraftingPanelTarget(int panelIndex, SlotIndex slot)
-    {
-        if (panelIndex >= 0 && panelIndex < craftingPanels.Length && craftingPanels[panelIndex] != null)
-        {
-            craftingPanels[panelIndex].SetTargetSlot(slot);
-        }
-    }
-
-    public void DismantleSlot(SlotIndex slot)
-    {
-        if (_spellCrafter == null) return;
-        _spellCrafter.Dismantle(slot);
-
-        RefreshInventoryDisplay();
-        foreach (var panel in craftingPanels)
-        {
-            if (panel == null) continue;
-            panel.PopulateFromCurrentSlot();
-            panel.RefreshDisplay(_spellCrafter);
-        }
-    }
-
-    public CraftingRecipePanel GetPanelForSlot(SlotIndex slot)
-    {
-        foreach (var panel in craftingPanels)
-        {
-            if (panel == null) continue;
-            if (panel.TargetSlot == slot) return panel;
-        }
-        return null;
+        foreach (var panel in slotPanels)
+            panel.RefreshDisplay(_pendingRune);
     }
 }
