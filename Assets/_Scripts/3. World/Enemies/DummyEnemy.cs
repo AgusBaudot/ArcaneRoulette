@@ -5,10 +5,9 @@ using Core;
 using Foundation;
 using TMPro;
 
-namespace world
+namespace World
 {
     [RequireComponent(typeof(Rigidbody))]
-    
     public class DummyEnemy : MonoBehaviour, IDamageable
     {
         public bool CanAttack
@@ -26,11 +25,19 @@ namespace world
         [SerializeField] public TextMeshProUGUI _stateText;
         [SerializeField] private float _ghostSpeed = 2.5f;
 
+        [Header("Attack")]
+        [SerializeField] private EnemyProjectile _enemyProjectilePrefab;
+        [SerializeField] private bool _canAttack;
+        [SerializeField] private int _damageAmount = 10;
+
+        private float _fireInterval = 2f;
+        private const float _defaultFireInterval = 2f;
         private float _currentHp;
 
         private void Awake()
         {
             _currentHp = _maxHp;
+            
             var rb =  GetComponent<Rigidbody>();
             rb.useGravity   = false;
             rb.constraints  = RigidbodyConstraints.FreezePositionY
@@ -40,6 +47,13 @@ namespace world
 
         private void Update()
         {
+            if (_canAttack)
+            {
+                _fireInterval -= Time.deltaTime;
+                if (_fireInterval <= 0f)
+                    Fire();
+            }
+            
             if (_ghostFill == null) return;
             //Ghost bar trails the real bar - the gap is the "damage taken" read
             _ghostFill.fillAmount = Mathf.Lerp(
