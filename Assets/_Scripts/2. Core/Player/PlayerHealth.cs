@@ -34,7 +34,7 @@ namespace Core
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister(this);
+            UpdateManager.Instance?.Unregister(this);
         }
 
         public void Tick(float dt)

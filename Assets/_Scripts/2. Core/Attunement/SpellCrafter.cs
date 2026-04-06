@@ -96,6 +96,9 @@ namespace Core
             foreach (var mod in recipe.Modifiers)
                 Free(mod);
 
+            if (current.Recipe.Ability is ShieldAbilityRune shieldRune)
+                shieldRune.CleanupInstance(current);
+
             _attunement.Bind(slot, null);
             EventBus.Publish(new SpellDismantledEvent(slot));
         }

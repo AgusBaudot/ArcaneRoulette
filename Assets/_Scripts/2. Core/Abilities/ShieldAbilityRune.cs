@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
@@ -27,13 +28,10 @@ namespace Core
         private bool _activeReflectsProjectiles;
         private int _activeReflectCount;
         private float _activeReflectSpread;
-
-        // PROTOTYPE: single-player only. Mutable state on SO is safe here
-        // because there is exactly one PlayerController and one shield slot.
-        // Replace with per-instance state bag when multiplayer or pooling is needed.
-        private float _timeHeld;
-        private bool _active;
-        private GameObject _shieldVisual;
+        
+        //One visual per HoldSpellInstance - keyed by ISpellSource identity
+        //Cleared on eun end when SpellInstances are dismantled
+        private readonly Dictionary<ISpellSource, GameObject> _visuals = new();
 
         internal void ConfigureAndStartHold(SpellContext ctx, SpellInstance source)
         {
@@ -41,47 +39,51 @@ namespace Core
             if (!player.Energy.TryStartDrain())
                 return;
 
-            _active = true;
-            _timeHeld = 0f;
+            var state = ctx.Source.ShieldState;
+            state.Active = true;
+            state.TimeHeld = 0f;
 
-            //Instantiate once
-            if (!_shieldVisual)
+            // ── Instantiate once per source instance ────────────────────────────
+            if (!_visuals.TryGetValue(ctx.Source, out var visual) || visual == null)
             {
-                _shieldVisual = Instantiate(
+                visual = Instantiate(
                     _shieldVisualPrefab,
                     player.transform.position + new Vector3(-0.2f, 1f, 1f),
                     Quaternion.identity,
                     player.transform);
 
-                _shieldVisual.SetActive(false); // prevent events during setup
-
-                var shield = _shieldVisual.GetComponent<ShieldCollider>();
-                shield.Bind(source, ctx.Runner);
-
-                // Subscribe events once — they capture source correctly
-                shield.OnProjectileAbsorbed += (pos, target) =>
-                    source.TriggerOnHit(pos, target, ctx.Runner);
-                shield.OnEnemyBodyContact += (pos, target) =>
-                    source.TriggerOnHit(pos, target, ctx.Runner);
+                visual.SetActive(false); // prevent events during setup
+                _visuals[ctx.Source] = visual;
             }
             
-            //Update every activation - rune recipe may have changed
-            _shieldVisual.transform.localScale = Vector3.one * _activeRadiusMultiplier;
+            // ── Wire every activation — source may have changed ─────────────────
+            var shield = visual.GetComponent<ShieldCollider>();
+            shield.Bind(source, ctx.Runner);
 
-            var shieldCollider = _shieldVisual.GetComponent<ShieldCollider>();
-            shieldCollider.ReflectsProjectiles = _activeReflectsProjectiles;
-            shieldCollider.ReflectCount = _activeReflectCount;
-            shieldCollider.ReflectSpread = _activeReflectSpread;
+            // Unsubscribe previous listeners before re-subscribing.
+            shield.UnsubscribeListeners();
+
+            shield.OnProjectileAbsorbed += (pos, target) =>
+                source.TriggerOnHit(pos, target, ctx.Runner);
+            shield.OnEnemyBodyContact += (pos, target) =>
+                source.TriggerOnHit(pos, target, ctx.Runner);
+            
+            // ── Update collider properties every activation ──────────────────────
+            visual.transform.localScale = Vector3.one * _activeRadiusMultiplier;
+            
+            shield.ReflectsProjectiles = _activeReflectsProjectiles;
+            shield.ReflectCount = _activeReflectCount;
+            shield.ReflectSpread = _activeReflectSpread;
             
             //Piercing toggles trigger mode - update every activation
-            var col = _shieldVisual.GetComponent<Collider>();
+            var col = visual.GetComponent<Collider>();
             col.isTrigger = _activeAllowEnemyThrough;
 
-            var damageZone = _shieldVisual.GetComponent<ShieldDamageZone>();
+            var damageZone = visual.GetComponent<ShieldDamageZone>();
             if (damageZone != null)
                 damageZone.Active = _activeAllowEnemyThrough;
             
-            _shieldVisual.SetActive(true);
+            visual.SetActive(true);
         }
 
         public override void StartHold(SpellContext ctx)
@@ -91,7 +93,8 @@ namespace Core
 
         public override void HoldTick(SpellContext ctx, float deltaTime)
         {
-            if (!_active) return;
+            var state = ctx.Source.ShieldState;
+            if (!state.Active) return;
             
             var player = (PlayerController)ctx.Runner;
 
@@ -99,28 +102,28 @@ namespace Core
             //Shield just watches for depletion and reacts.
             if (player.Energy.IsBroken)
             {
-                Deactivate(player);
+                StopHold(ctx);
                 return;
             }
 
-            _timeHeld += deltaTime;
-            if (_timeHeld >= _abilityThreshold)
+            state.TimeHeld += deltaTime;
+            if (state.TimeHeld >= _abilityThreshold)
             {
                 //Fire ability here. No abilities yet.
-                _timeHeld -= _abilityThreshold;
+                state.TimeHeld -= _abilityThreshold;
             }
         }
 
         public override void StopHold(SpellContext ctx)
-            => Deactivate((PlayerController)ctx.Runner);
-
-        private void Deactivate(PlayerController player)
         {
-            _active = false;
-            _timeHeld = 0f;
-            player.Energy.StopDrain();
-            if (_shieldVisual)
-                _shieldVisual.SetActive(false);
+            var state = ctx.Source.ShieldState;
+            state.Active = false;
+            state.TimeHeld = 0f;
+            
+            ((PlayerController)ctx.Runner).Energy.StopDrain();
+            
+            if (_visuals.TryGetValue(ctx.Source, out var visual) && visual != null)
+                visual.SetActive(false);
         }
 
         public override void ResetActiveConfig()
@@ -129,11 +132,19 @@ namespace Core
             _activeAllowEnemyThrough = false;
             _activeReflectsProjectiles = false;
             _activeReflectCount = 0;
-            _activeReflectSpread = 0;
+            _activeReflectSpread = 0f;
         }
 
         public override void Activate(SpellContext ctx)
         {
+        }
+
+        //Called by SpellCrafter.Dismantle - cleans up the visual for this instance
+        public void CleanupInstance(ISpellSource source)
+        {
+            if (_visuals.TryGetValue(source, out var visual) && visual != null)
+                Destroy(visual);
+            _visuals.Remove(source);
         }
     }
 }

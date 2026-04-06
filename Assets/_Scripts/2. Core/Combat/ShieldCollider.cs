@@ -37,7 +37,7 @@ namespace Core
 
         //Trigger mode - active when AllowEnemyThrough (Piercing + Shield)
         private void OnTriggerEnter(Collider other)
-            => HandleContact(other, other.transform.position);
+            => HandleContact(other, (transform.position + other.transform.position) * 0.5f);
 
         private void HandleContact(Collider other, Vector3 contactPoint)
         {
@@ -96,6 +96,12 @@ namespace Core
             
                 Destroy(other.gameObject);
             }
+        }
+
+        public void UnsubscribeListeners()
+        {
+            OnProjectileAbsorbed = null;
+            OnEnemyBodyContact = null;
         }
     }
 }

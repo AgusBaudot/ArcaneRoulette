@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
@@ -29,6 +30,8 @@ namespace Core
 
         //Populated by DebugSpellSeeder in Phase 1, by AttunementSystem in Phase 2.
         private readonly SpellInstance[] _spellSlots = new SpellInstance[3];
+
+        private readonly List<int> _heldHoldSlots = new(); //Insertion order = press order
 
         private Rigidbody _rb;
         private PlayerHealth _health;
@@ -69,8 +72,8 @@ namespace Core
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister((IUpdatable)this);
-            UpdateManager.Instance.Unregister((IFixedUpdatable)this);
+            UpdateManager.Instance?.Unregister((IUpdatable)this);
+            UpdateManager.Instance?.Unregister((IFixedUpdatable)this);
         }
 
         private void OnValidate()
@@ -106,28 +109,54 @@ namespace Core
             if (_input.sqrMagnitude > 0.01f)
                 _facingDirection = _input;
 
-            HandleSlotInput(_playerStats.Slot1, _spellSlots[0]);
-            HandleSlotInput(_playerStats.Slot2, _spellSlots[1]);
-            HandleSlotInput(_playerStats.Slot3, _spellSlots[2]);
+            for (int i = 0; i < _spellSlots.Length; i++)
+                HandleSlotInput(i, _playerStats.SlotKeys[i], _spellSlots[i]);
         }
 
-        private void HandleSlotInput(KeyCode key, ISpellSlot slot)
+        private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
         {
-            if (slot == null) 
+            if (spell == null) 
                 return;
 
-            if (slot is IHoldAbility hold)
+            if (spell is IHoldAbility hold)
             {
-                if (Input.GetKeyDown(key)) 
-                    hold.StartHold(this);
+                if (Input.GetKeyDown(key))
+                {
+                    //Suspend currently active hold (last in list) if different slot
+                    if (_heldHoldSlots.Count > 0)
+                    {
+                        int activeSlot = _heldHoldSlots[^1];
+                        if (activeSlot != slotIndex && _spellSlots[activeSlot] is IHoldAbility activeHold)
+                            activeHold.StopHold(this);
+                    }
 
-                if (Input.GetKey(key))
-                    hold.HoldTick(Time.deltaTime, this);
+                    _heldHoldSlots.Remove(slotIndex); //Safety - shouldn't be present
+                    _heldHoldSlots.Add(slotIndex);
+                    hold.StartHold(this);
+                }
                 
-                if (Input.GetKeyUp(key)) 
+                //Only tick the last-pressed (active) hold
+                if (Input.GetKey(key) && _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex)
+                {
+                    hold.HoldTick(Time.deltaTime, this);
+                }
+
+                if (Input.GetKeyUp(key))
+                {
+                    bool wasActive = _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex;
+
                     hold.StopHold(this);
+                    _heldHoldSlots.Remove(slotIndex);
+                    
+                    //If the released slot was active and another is still held, resume it
+                    if (wasActive && _heldHoldSlots.Count > 0)
+                    {
+                        if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
+                            resumeHold.StartHold(this);
+                    }
+                }
             }
-            else if (slot is IAbility ability)
+            else if (spell is IAbility ability)
             {
                 if (Input.GetKeyDown(key))
                     ability.Activate(this);

@@ -29,6 +29,7 @@ namespace Core
         public bool IsReady => _cooldownRemaining <= 0f;
         public ElementType SpellElement
             => _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral;
+        public virtual ShieldInstanceState ShieldState => null;
 
         internal SpellInstance(SpellRecipe recipe)
         {

@@ -10,8 +10,7 @@ namespace Core
         [SerializeField] private int _baseDamage = 5;
         [SerializeField] private LayerMask _enemyMask;
         
-        //Explicit prototype guard - one level deep only, no recursive calls
-        private static bool _isExpanding;
+        private bool _isExpanding;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
@@ -36,16 +35,16 @@ namespace Core
                 if (hit.TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();
                 
-                //Dash/Shield: keep dash direction for secondary hits
-                //Projectile: repel form AoE center (zero - repel from HitPosition).
-                Vector3 secondaryDir = ctx.AbilityType == AbilityType.Projectile
-                    ? Vector3.zero
-                    : ctx.AttackerDirection;
+                Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
+                if (pushDir == Vector3.zero)
+                {
+                    Debug.Log("Direction is zero");
+                }
                 
                 //Full OnHit chain on each secondary target.
                 //_isExpanding blocks AoEOnHitRune from firing again - all other
                 //runes (OnCast, OnHit) run normally on secondary targets.
-                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, secondaryDir);
+                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, pushDir);
             }
 
             _isExpanding = false;

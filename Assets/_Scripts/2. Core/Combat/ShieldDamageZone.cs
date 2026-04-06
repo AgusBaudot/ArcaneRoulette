@@ -12,19 +12,26 @@ namespace Core
     [RequireComponent(typeof(Collider))]
     public class ShieldDamageZone : MonoBehaviour, IUpdatable
     {
+        [SerializeField] private LayerMask _enemyMask;
         [SerializeField] private float _damagePerSecond = 5f;
         [SerializeField] private float _tickInterval = 0.3f;
 
         //IUpdatable
         public int UpdatePriority => Foundation.UpdatePriority.Player;
-        
+
+        private SphereCollider _col;
         private float _tickTimer;
         private bool _armed;
 
         //Enemies currently inside the zone
         private readonly HashSet<IDamageable> _inside = new();
 
-        public bool Active { get; set; } = false;
+        public bool Active { get; set; }
+
+        private void Awake()
+        {
+            _col = GetComponent<SphereCollider>();
+        }
 
         private void OnEnable()
         {
@@ -37,6 +44,24 @@ namespace Core
         {
             yield return new WaitForFixedUpdate();
             _armed = true;
+            SeedExistingOverlaps();
+        }
+
+        private void SeedExistingOverlaps()
+        {
+            //Use the actual collider bounds to match what Physics sees.
+            var hits = Physics.OverlapSphere(transform.TransformPoint(_col.center),
+                _col.radius * transform.lossyScale.x, _enemyMask,
+                QueryTriggerInteraction.Ignore);
+
+            foreach (var hit in hits)
+            {
+                if (hit.TryGetComponent<PlayerHurtBox>(out _))
+                    continue;
+
+                if (hit.TryGetComponent<IDamageable>(out var dmg))
+                    _inside.Add(dmg);
+            }
         }
 
         private void OnTriggerEnter(Collider other)
@@ -65,7 +90,7 @@ namespace Core
         {
             if (!Active || _inside.Count == 0)
                 return;
-
+            
             _tickTimer -= Time.deltaTime;
             if (_tickTimer > 0f)
                 return;
@@ -84,7 +109,7 @@ namespace Core
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Register(this);
+            UpdateManager.Instance.Unregister(this);
             _inside.Clear();
             _tickTimer = 0f;
         }
