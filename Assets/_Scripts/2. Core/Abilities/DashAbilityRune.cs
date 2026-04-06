@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
@@ -7,11 +8,16 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
     public sealed class DashAbilityRune : AbilityRuneSO
     {
-        [SerializeField] private float _dashSpeed = 20f;
-        [SerializeField] private float _baseDashDuration = 0.2f;
-        [SerializeField] private float _cooldownDuration = 0.8f;
-        [SerializeField] private float _cameraTrauma = 0.5f;
-        [SerializeField] private int _baseDamage = 8; // used when DamagesOnDash
+        [SerializeField] private float      _dashSpeed          = 20f;
+        [SerializeField] private float      _baseDashDuration   = 0.2f;
+        [SerializeField] private float      _cooldownDuration   = 0.8f;
+        [SerializeField] private float      _cameraTrauma       = 0.5f;
+        [SerializeField] private int        _baseDamage         = 8;
+        [SerializeField] private float      _dashHitRadius      = 0.8f;
+        [SerializeField] private Projectile _reflectedProjectilePrefab;
+        [SerializeField] private float _reflectHitStop = 0.06f;
+        [SerializeField] private float _reflectTrauma = 0.8f;
+        
 
         public override AbilityType Type => AbilityType.Dash;
         public override bool IsHoldAbility => false;
@@ -40,6 +46,8 @@ namespace Core
 
             int bouncesLeft = ctx.Modifiers.BounceCount;
             float elapsed = 0f;
+
+            var hitEnemies = new HashSet<GameObject>();
             
             while (elapsed < duration)
             {
@@ -55,17 +63,32 @@ namespace Core
                         dir.y = 0f; //stay on XZ plane
                         dir = dir.normalized;
                         bouncesLeft--;
-                        
-                        //Damage enemy on bounce contact
-                        if (ctx.Modifiers.DamagesOnDash &&
-                            hit.collider.TryGetComponent<IDamageable>(out var dmg))
-                        {
-                            DamageSystem.Deal(dmg, hit.collider.gameObject, _baseDamage, source.SpellElement);
-                            // dmg.TakeDamage(_baseDamage, ElementType.Neutral);
-                            if (hit.collider.TryGetComponent<DamageFlash>(out var flash))
-                                flash.Flash();
-                        }
                     }
+                }
+                //Enemy collision - OnHit per enemy touched
+                var enemies = Physics.OverlapSphere(
+                    player.transform.position, _dashHitRadius, player.Stats.EnemyLayerMask);
+
+                foreach (var hit in enemies)
+                {
+                    if (!hitEnemies.Add(hit.gameObject)) continue;
+                    if (!hit.TryGetComponent<IDamageable>(out var dmg)) continue;
+
+                    // Damage only if PiercingCastRune is slotted
+                    if (ctx.Modifiers.DamagesOnDash)
+                    {
+                        DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, source.SpellElement);
+                        if (hit.TryGetComponent<DamageFlash>(out var flash)) flash.Flash();
+                    }
+
+                    // OnHit runes always fire per enemy touched regardless of damage
+                    source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner);
+                }
+
+                // ── Enemy projectile reflection (Bounce rune) ────────────────────
+                if (ctx.Modifiers.ReflectCount > 0 && _reflectedProjectilePrefab != null)
+                {
+                    ReflectNearbyProjectiles(player, dir, ctx, source);
                 }
                 
                 player.Rigidbody.velocity = dir * _dashSpeed;
@@ -76,39 +99,46 @@ namespace Core
             player.Rigidbody.velocity = Vector3.zero;
             player.SetCanMove(true);
             player.Hurtbox.SetActive(true);
-
-            // Damage at dash END — base dash has none unless DamagesOnDash is set.
-            // PiercingCastRune sets DamagesOnDash = true in Phase 3.
-            if (ctx.Modifiers.DamagesOnDash)
-                DealEndDamage(player, ctx, source);
         }
 
-        private void DealEndDamage(PlayerController player, SpellContext ctx, SpellInstance source)
+        private void ReflectNearbyProjectiles(PlayerController player, Vector3 dashDir, SpellContext ctx,
+            SpellInstance source)
         {
-            // PROTOTYPE: direct damage call, replace with DamageSystem in Phase 5
-            var hits = Physics.OverlapSphere(
-                player.transform.position, 2f,
-                player.Stats.EnemyLayerMask);
+            //Detect enemy projectiles in dash radius
+            var cols = Physics.OverlapSphere(player.transform.position, _dashHitRadius * 2f);
 
-            bool hitAny = false;
-            
-            foreach (var hit in hits)
+            foreach (var col in cols)
             {
-                if (!hit.TryGetComponent<IDamageable>(out var dmg))
+                if (!col.TryGetComponent<IEnemyProjectile>(out var enemy))
                     continue;
-                
-                DamageSystem.Deal(dmg, hit.gameObject,  _baseDamage, source.SpellElement);
-                // dmg.TakeDamage(_baseDamage, ElementType.Neutral);
-                
-                if (hit.TryGetComponent<DamageFlash>(out var flash)) 
-                    flash.Flash();
 
-                //TriggerOnHit per enemy - gives Dot and Knockback a real target
-                source.TriggerOnHit(player.transform.position, hit.gameObject, ctx.Runner);
-                hitAny = true;
+                Vector3 reflectDir = Vector3.Reflect(enemy.Rb.velocity.normalized, dashDir.normalized);
+                reflectDir.y = 0f;
+
+                SpawnReflectedSpread(
+                    col.transform.position, reflectDir,
+                    enemy.Rb.velocity.magnitude, ctx, source);
+                
+                Destroy(col.gameObject);
             }
+        }
 
-            if (hitAny) HitStop.Apply(0.06f);
+        private void SpawnReflectedSpread(Vector3 origin, Vector3 baseDir, float speed, SpellContext ctx,
+            SpellInstance source)
+        {
+            var dirs = ReflectionUtils.GetSpreadDirections(
+                baseDir, ctx.Modifiers.ReflectCount, ctx.Modifiers.ReflectSpread);
+
+            foreach (var d in dirs)
+            {
+                var go = Instantiate(
+                    _reflectedProjectilePrefab, origin, Quaternion.LookRotation(d));
+                
+                //Reflected projectiles inherit all OnHit runes, no BounceCastRune context
+                go.Init(source, d, speed, _baseDamage, _reflectHitStop, _reflectTrauma, ctx.Runner, AbilityType.Projectile, true);
+                go.SetPierceCount(0);
+                go.SetBounceCount(0);
+            }
         }
 
         public override void StartHold(SpellContext ctx)

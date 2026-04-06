@@ -20,7 +20,7 @@ namespace Core
             var dot = ctx.HitTarget.GetComponent<DoTComponent>()
                       ?? ctx.HitTarget.AddComponent<DoTComponent>();
 
-            dot.Apply(dmg, _damagePerTick, _tickInterval, _baseDuration * stackCount, ctx.AttackerElement);
+            dot.Apply(dmg, _damagePerTick * stackCount, _tickInterval, _baseDuration, ctx.AttackerElement);
         }
     }
 }

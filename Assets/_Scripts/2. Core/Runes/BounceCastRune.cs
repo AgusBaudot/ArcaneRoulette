@@ -6,6 +6,8 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Cast/Bounce")]
     public sealed class BounceCastRune : CastRuneSO
     {
+        [SerializeField] private float _spread = 60f; //Total arc in degrees across all stacks
+        
         public override void Apply(SpellContext ctx, int stackCount)
         {
             switch (ctx.AbilityType)
@@ -15,11 +17,9 @@ namespace Core
                     break;
                 
                 case AbilityType.Dash:
-                    ctx.Modifiers.BounceCount = 3 * stackCount;
-                    break;
-                
                 case AbilityType.Shield:
-                    ctx.Modifiers.ReflectsProjectiles = true;
+                    ctx.Modifiers.ReflectCount = stackCount;
+                    ctx.Modifiers.ReflectSpread = _spread;
                     break;
             }
         }
