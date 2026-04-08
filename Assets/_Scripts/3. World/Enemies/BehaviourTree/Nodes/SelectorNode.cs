@@ -11,11 +11,13 @@ namespace world
 
         public override NodeState Process()
         {
+            Debug.Log("Hijo Actual=" + _children[_currentChild]._name);
             if (_currentChild < _children.Count)
             {
                 switch (_children[_currentChild].Process())
                 {
                     case NodeState.Running:
+                        //_currentChild = 0; // este nodo deberia ser como el de prioridad
                         return NodeState.Running;
                     case NodeState.Success:
                         Reset();

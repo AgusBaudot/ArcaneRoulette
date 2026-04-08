@@ -14,9 +14,10 @@ public class SequenceNode : Node
             switch (_children[_currentChild].Process())
             {
                 case NodeState.Running:
+                    _currentChild = 0; // Esto se tiene que chequear
                     return NodeState.Running;
                 case NodeState.Failure:
-                     Reset();
+                    Reset();
                     return NodeState.Failure;
                 default:
                     _currentChild++;
