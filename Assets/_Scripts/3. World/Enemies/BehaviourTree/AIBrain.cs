@@ -19,8 +19,6 @@ namespace world
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
-        //public List<Transform> wayPoints;
-
 
         protected virtual void Awake()
         {
@@ -35,12 +33,15 @@ namespace world
             tree?.Process();
         }
         protected abstract BehaviourTree BuildTree();
-        protected virtual bool IsInLos() //virtual para poder anularlo
+        protected virtual bool IsInLos()
         {
             if (_los == null || target == null) return false;
-            return _los.CheckRange(target) &&
-                   _los.CheckAngle(target) &&
-                   _los.CheckView(target);
+            return _los.CheckRange(target) && _los.CheckView(target);
+        }
+
+        protected virtual bool IsInRange(float attackRange) 
+        {
+            return Vector3.Distance(transform.position, target.position) <= attackRange;
         }
     }
 
