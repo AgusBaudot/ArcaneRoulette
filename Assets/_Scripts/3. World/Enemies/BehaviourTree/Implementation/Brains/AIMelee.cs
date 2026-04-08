@@ -14,7 +14,9 @@ namespace world
         [SerializeField] private float patrolSpeed;
 
         [SerializeField] private List<Transform> waypoints;
-        [SerializeField] private float attackCooldown;
+        [SerializeField] private float _cooldown;
+        [SerializeField] private GameObject projectilePrefab;
+        //[SerializeField] private Transform firePoint;
         protected override void Awake()
         {
             base.Awake();
@@ -31,8 +33,9 @@ namespace world
 
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack",2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => Vector3.Distance(transform.position, target.position) <= attackRange)));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(attackCooldown, _animator)));
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInRange(attackRange))));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator)));
+            attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase",1);
@@ -43,7 +46,7 @@ namespace world
             var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, waypoints, patrolSpeed), 0);
 
             // --- Estructura ---
-            //root.AddChild(attackSequence);
+            root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
 
@@ -53,17 +56,21 @@ namespace world
         }
         public void PrintLog() 
         {
-            Debug.Log("Disparo");
+            Debug.Log("DISPARO");
         }
-        /*
-        public void FireProjectile(Transform target, Transform firePoint)
-        {
-            Vector3 dir = (target.position - firePoint.position).normalized;
 
-            var go = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+        public void FireProjectile()
+        {
+            Vector3 dir = (target.position - transform.position).normalized;
+
+            float spawnOffset = 1.0f;
+
+            Vector3 spawnPos = transform.position + dir * spawnOffset;
+
+            var go = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
-            proj.Init(dir, speed, damage, element);
-        }*/
+            proj.Init(dir, 10, 20, Foundation.ElementType.Neutral);
+        }
     }
 }
 

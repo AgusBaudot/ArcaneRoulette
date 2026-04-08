@@ -7,16 +7,12 @@ namespace world
 {
     public class Attack : IStrategy
     {
-        private readonly float _cooldown;
         private readonly Animator _animator;
-
-        float cooldownTimer;
         bool isAttacking;
-        bool inCooldown;
 
-        public Attack(float cooldown, Animator animator)
+
+        public Attack(Animator animator)
         {
-            _cooldown = cooldown;
             _animator = animator;
         }
 
@@ -27,19 +23,6 @@ namespace world
                 if (IsAnimationPlaying())
                     return Node.NodeState.Running;
 
-                isAttacking = false;
-                inCooldown = true;
-                cooldownTimer = _cooldown;
-            }
-
-            if (inCooldown)
-            {
-                cooldownTimer -= Time.deltaTime;
-
-                if (cooldownTimer > 0)
-                    return Node.NodeState.Running;
-
-                inCooldown = false;
                 return Node.NodeState.Success;
             }
 
@@ -58,8 +41,6 @@ namespace world
         public void Reset()
         {
             isAttacking = false;
-            inCooldown = false;
-            cooldownTimer = 0f;
         }
     }
 }
