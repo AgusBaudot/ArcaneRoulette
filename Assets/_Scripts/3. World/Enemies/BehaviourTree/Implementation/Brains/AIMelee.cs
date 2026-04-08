@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using World;
+using static UnityEditor.Rendering.FilterWindow;
+using static UnityEngine.GraphicsBuffer;
 
 namespace world 
 {
@@ -11,7 +14,6 @@ namespace world
         [SerializeField] private float patrolSpeed;
 
         [SerializeField] private List<Transform> waypoints;
-        [SerializeField] private Animator attackAnimation;
         [SerializeField] private float attackCooldown;
         protected override void Awake()
         {
@@ -30,7 +32,7 @@ namespace world
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack",2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => Vector3.Distance(transform.position, target.position) <= attackRange)));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(attackCooldown, attackAnimation)));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(attackCooldown, _animator)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase",1);
@@ -49,6 +51,19 @@ namespace world
 
             return tree;
         }
+        public void PrintLog() 
+        {
+            Debug.Log("Disparo");
+        }
+        /*
+        public void FireProjectile(Transform target, Transform firePoint)
+        {
+            Vector3 dir = (target.position - firePoint.position).normalized;
+
+            var go = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity);
+            var proj = go.GetComponent<EnemyProjectile>();
+            proj.Init(dir, speed, damage, element);
+        }*/
     }
 }
 

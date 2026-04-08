@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 
 namespace world 
 {
     public class Attack : IStrategy
     {
-        readonly float _cooldown;
-        readonly Animator _animator;
+        private readonly float _cooldown;
+        private readonly Animator _animator;
 
         float cooldownTimer;
         bool isAttacking;
@@ -41,15 +42,17 @@ namespace world
                 inCooldown = false;
                 return Node.NodeState.Success;
             }
+
             _animator.SetTrigger("Attack");
             isAttacking = true;
+
             return Node.NodeState.Running;
         }
 
         bool IsAnimationPlaying()
         {
             var state = _animator.GetCurrentAnimatorStateInfo(0);
-            return state.IsName("Attack") && state.normalizedTime < 1f;
+            return state.IsName("PlaceHolderAnimation") && state.normalizedTime < 1f;
         }
 
         public void Reset()
