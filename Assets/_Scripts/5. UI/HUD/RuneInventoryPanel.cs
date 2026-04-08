@@ -43,7 +43,7 @@ namespace UI
             //One tile per rune instance in inventory.
             foreach (var entry in GameStateManager.RunState.RuneInventory)
             {
-                for (int i = 0; i < entry.Value; i++)
+                for (int i = 0; i < GameStateManager.RunState.AvailableCount(entry.Key); i++)
                 {
                     _tiles.Add((entry.Key, BuildTile(entry.Key)));
                 }

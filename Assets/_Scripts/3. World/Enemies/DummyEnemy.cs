@@ -8,16 +8,19 @@ using TMPro;
 namespace World
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class DummyEnemy : MonoBehaviour, IDamageable
+    public class DummyEnemy : MonoBehaviour, IDamageable, IElemental
     {
         public bool CanAttack
         {
             get => _canAttack;
             set => _canAttack = value;
         }
+
+        public ElementType Element => _element;
         
         [Header("Stats")]
         [SerializeField] private float _maxHp = 100f;
+        [SerializeField] private ElementType _element;
         
         [Header("HP Bar - assign WorldSpace Canvas children")]
         [SerializeField] private Image _hpFill;

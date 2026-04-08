@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -96,7 +97,7 @@ namespace UI
 
             foreach (var panel in _slotPanels)
                 panel.PopulateFromRunState();
-
+            
             _inventoryPanel.Rebuild();
             ApplyCarouselLayout();
             RefreshAll();

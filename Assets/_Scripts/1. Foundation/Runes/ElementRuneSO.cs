@@ -3,8 +3,9 @@ using UnityEngine;
 namespace Foundation
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Element")]
-    public class ElementRuneSO : RuneDefinitionSO
+    public sealed class ElementRuneSO : RuneDefinitionSO
     {
-        public ElementType Element;
+        [SerializeField] private ElementType _element;
+        public ElementType Element => _element;
     }
 }
