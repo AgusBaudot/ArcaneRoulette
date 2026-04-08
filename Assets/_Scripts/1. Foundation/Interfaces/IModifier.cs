@@ -1,14 +1,14 @@
 namespace Foundation
 {
     /// <summary>
-    /// Implemented by any artifact or effect that wants to intercept
-    /// game events and mutate their context.
-    /// InventorySystem calls Register/Unregister as artifacts are
-    /// added or removed during a run.
+    /// Implemented by any artifact or effect that modifies gameplay events.
+    /// InventorySystem calls Register/Unregister as artifacts enter/leave a run.
+    /// Implementations subscribe their own delegates to VolatileRuneState
+    /// pipeline events in Register, and unsubscribe in Unregister.
     /// </summary>
     public interface IModifier
     {
-        void Register(VolatileRunState state);
-        void Unregister(VolatileRunState state);
+        void Register();
+        void Unregister();
     }
 }

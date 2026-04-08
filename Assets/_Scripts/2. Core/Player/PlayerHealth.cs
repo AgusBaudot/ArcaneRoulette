@@ -1,16 +1,23 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using Foundation;
 
 namespace Core
 {
-    public class PlayerHealth : MonoBehaviour, IDamageable
+    public class PlayerHealth : MonoBehaviour, IDamageable, IUpdatable
     {
-        [SerializeField] private SpriteRenderer _spriteRenderer;
-        
         public float Current {get; private set;}
         public bool IsInvincible => _iFrameTimer > 0f;
-
+        
+        [SerializeField] private float _hitStopDuration = 0.06f;
+        [SerializeField] private float _cameraTrauma = 0.85f;
+        
+        //IUpdatable
+        public int UpdatePriority => Foundation.UpdatePriority.Player; 
+            
+        [SerializeField] private SpriteRenderer _spriteRenderer;
+        
         private PlayerStats _stats;
         private float _iFrameTimer;
 
@@ -19,19 +26,30 @@ namespace Core
             _stats = stats;
             Current = stats.BaseHp;
         }
-        
-        //Updatemanager: replace Update() with Tick() registration
-        private void Update() => Tick(Time.deltaTime);
 
-        public void Tick(float deltaTime)
+        private void OnEnable()
+        {
+            UpdateManager.Instance.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            UpdateManager.Instance?.Unregister(this);
+        }
+
+        public void Tick(float dt)
         {
             if (_iFrameTimer > 0f)
-                _iFrameTimer -= deltaTime;
+                _iFrameTimer -= dt;
         }
 
         public void TakeDamage(int amount, ElementType elementType)
         {
             if (IsInvincible) return;
+            
+            //Juice
+            CameraShake.AddTrauma(_cameraTrauma);
+            HitStop.Apply(_hitStopDuration);
 
             Current = Mathf.Max(0f, Current - amount);
             _iFrameTimer = _stats.IFrameDuration;

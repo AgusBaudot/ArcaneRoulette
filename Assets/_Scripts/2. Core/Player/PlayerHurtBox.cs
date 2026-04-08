@@ -6,9 +6,6 @@ namespace Core
     [RequireComponent(typeof(Collider))]
     public class PlayerHurtBox : MonoBehaviour, IDamageable
     {
-        [SerializeField] private float _hitStopDuration = 0.06f;
-        [SerializeField] private float _cameraTrauma = 0.85f;
-        
         private PlayerHealth _health;
 
         private void Awake()
@@ -24,9 +21,6 @@ namespace Core
         public void TakeDamage(int amount, ElementType elementType)
         {
             _health.TakeDamage(amount, elementType);
-            //Juice
-            CameraShake.AddTrauma(_cameraTrauma);
-            HitStop.Apply(_hitStopDuration);
         }
     }
 }

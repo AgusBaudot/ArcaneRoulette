@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -12,7 +13,7 @@ namespace Core
 
     //SpellCrafter is the only factory. Never construct directly.
     //For hold abilities SpellCrafter produces HoldSpellInstance instead.
-    public class SpellInstance : IAbility, ISpellSlot
+    public class SpellInstance : IAbility, ISpellSlot, ISpellSource
     {
         private readonly SpellRecipe _recipe;
         private readonly List<CastRuneSO> _castRunes;
@@ -28,6 +29,7 @@ namespace Core
         public bool IsReady => _cooldownRemaining <= 0f;
         public ElementType SpellElement
             => _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral;
+        public virtual ShieldInstanceState ShieldState => null;
 
         internal SpellInstance(SpellRecipe recipe)
         {
@@ -54,15 +56,8 @@ namespace Core
             //Fresh modifiers allocated inside ForCast - cast runes write, ability reads.
             var ctx = BuildCastContext(runner);
             
-            //Cast runes MUST fire before Activate so Modifiers are populated.
-            FireCastRunes(ctx);
-
-            if (_recipe.Ability is ProjectileAbilityRune proj)
-                proj.ActivateWithInstance(ctx, this); //needs SpellInstance for Projectile.Init
-            else if (_recipe.Ability is DashAbilityRune dash)
-                dash.ActivateWithInstance(ctx, this);
-            else
-                _recipe.Ability.Activate(ctx);
+            FireCastRunes(ctx); //runes write to ability via ctx.Ability interfaces
+            _recipe.Ability.Activate(ctx); //ability reads its own fields, ctx.Souce available
 
             _cooldownRemaining = _recipe.Ability.CooldownDuration;
         }
@@ -88,7 +83,8 @@ namespace Core
             GameObject target,
             MonoBehaviour runner,
             AbilityType abilityTypeForContext,
-            bool excludeBounceCastRune)
+            bool excludeBounceCastRune,
+            Vector3 attackerDirection = default)
         {
             int[] castCounts = _castCounts;
             if (excludeBounceCastRune)
@@ -102,38 +98,37 @@ namespace Core
                         castCounts[i] = 0;
                 }
             }
+            
+            //The callback captures 'this' and 'runner' - secondary hits re-enter TriggerOnHit
+            //on this same SpellInstance, propagating the full OnHit rune chain.
+            Action<Vector3, GameObject, Vector3> secondary = (pos, tgt, secDir)
+                => TriggerOnHit(pos, tgt, runner, abilityTypeForContext, excludeBounceCastRune, secDir);
 
             var ctx = SpellContext.ForHit(
                 abilityTypeForContext, castCounts, _onHitCounts, position, target, runner,
-                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral);
+                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral,
+                secondary, _recipe.Ability, this, attackerDirection);
             FireOnHitRunes(ctx);
-        }
-
-        // Used by shield reflection: reflected projectiles should inherit all Cast+OnHit runes
-        // except the bounce cast rune, and should be interpreted as AbilityType.Projectile.
-        internal SpellCastModifiers BuildProjectileCastModifiersForReflection(MonoBehaviour runner)
-        {
-            // Cast modifiers are re-derived from equipped cast runes, but with ability type switched.
-            var ctx = SpellContext.ForCast(
-                AbilityType.Projectile, _castCounts, _onHitCounts, runner);
-
-            for (int i = 0; i < _castRunes.Count; i++)
-            {
-                // Exclude BounceCastRune from the reflected projectile.
-                if (_castRunes[i] is BounceCastRune) continue;
-                _castRunes[i].Apply(ctx, _castCounts[i]);
-            }
-
-            return ctx.Modifiers;
         }
 
         //Shared helpers (used by HoldSpellInstance)
 
         //Exposes a cast-phase context without leaking the raw count arrays.
         protected SpellContext BuildCastContext(MonoBehaviour runner)
-            => SpellContext.ForCast(_recipe.Ability.Type, _castCounts, _onHitCounts, runner,
-                _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral);
+        {
+            //Reset ability config before every cast = stale values must never carry over
+            _recipe.Ability.ResetActiveConfig();
 
+            return SpellContext.ForCast(
+                _recipe.Ability.Type,
+                _castCounts,
+                _onHitCounts,
+                runner,
+                SpellElement,
+                _recipe.Ability,
+                this);
+        }
+        
         protected void FireCastRunes(SpellContext ctx)
         {
             for (int i = 0; i < _castRunes.Count; i++)

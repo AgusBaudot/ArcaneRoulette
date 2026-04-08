@@ -5,8 +5,11 @@ using UnityEngine;
 
 namespace Core
 {
-    public class WindShieldShockwave : MonoBehaviour
+    public class WindShieldShockwave : MonoBehaviour, IUpdatable
     {
+        //IUpdatable
+        public int UpdatePriority => Foundation.UpdatePriority.Spells;
+
         [SerializeField] private float _knockbackForce;
 
         private float _shieldLifeTime;
@@ -18,10 +21,20 @@ namespace Core
             _collider = GetComponent<SphereCollider>();
             Destroy(gameObject, 1f);
         }
-
-        private void Update()
+        
+        private void OnEnable()
         {
-            _shieldLifeTime += Time.deltaTime;
+            UpdateManager.Instance.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            UpdateManager.Instance.Unregister(this);
+        }
+
+        public void Tick(float dt)
+        {
+            _shieldLifeTime += dt;
             float percent = _shieldLifeTime / 0.6f; //0.6 is the total duration of the VFX
             _collider.radius = Mathf.Lerp(0, 5, percent);
         }

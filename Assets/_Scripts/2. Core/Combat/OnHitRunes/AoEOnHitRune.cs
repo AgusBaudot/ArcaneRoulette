@@ -9,9 +9,9 @@ namespace Core
         [SerializeField] private float _baseRadius = 3f;
         [SerializeField] private int _baseDamage = 5;
         [SerializeField] private LayerMask _enemyMask;
+        [SerializeField] private GameObject _aoeFX;
         
-        //Explicit prototype guard - one level deep only, no recursive calls
-        private static bool _isExpanding;
+        private bool _isExpanding;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
@@ -20,9 +20,8 @@ namespace Core
 
             float radius = _baseRadius * stackCount;
             var hits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
-            var primaryDamageable = ctx.HitTarget != null
-                ? (ctx.HitTarget.GetComponentInParent<IDamageable>(true) ?? ctx.HitTarget.GetComponent<IDamageable>())
-                : null;
+
+            Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
 
             _isExpanding = true;
 
@@ -39,10 +38,16 @@ namespace Core
                 if (hit.TryGetComponent<DamageFlash>(out var flash))
                     flash.Flash();
                 
+                Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
+                if (pushDir == Vector3.zero)
+                {
+                    Debug.Log("Direction is zero");
+                }
+                
                 //Full OnHit chain on each secondary target.
                 //_isExpanding blocks AoEOnHitRune from firing again - all other
                 //runes (OnCast, OnHit) run normally on secondary targets.
-                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject);
+                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, pushDir);
             }
 
             _isExpanding = false;

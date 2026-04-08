@@ -10,16 +10,23 @@ namespace Core
         
         public override void Apply(SpellContext ctx, int stackCount)
         {
-            switch (ctx.AbilityType)
+            switch (ctx.Ability)
             {
-                case AbilityType.Projectile:
-                    ctx.Modifiers.BounceCount = 3 * stackCount;
+                case IProjectileConfig proj:
+                    proj.BounceCount = 3 * stackCount;
                     break;
                 
-                case AbilityType.Dash:
-                case AbilityType.Shield:
-                    ctx.Modifiers.ReflectCount = stackCount;
-                    ctx.Modifiers.ReflectSpread = _spread;
+                case IDashConfig dash:
+                    dash.ReflectsProjectiles = true;
+                    dash.ReflectCount = stackCount;
+                    dash.ReflectSpread = _spread;
+                    dash.BounceCount = stackCount;
+                    break;
+                    
+                case IShieldConfig shield:
+                    shield.ReflectsProjectiles = true;
+                    shield.ReflectCount = stackCount;
+                    shield.ReflectSpread = _spread;
                     break;
             }
         }

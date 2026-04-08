@@ -1,24 +1,27 @@
 using UnityEngine;
 
-public class ItemPickup : MonoBehaviour
+namespace UI
 {
-    public ItemData item;
-    public int amount = 1;
-
-    // Prevent double pickup when multiple trigger events fire in the same frame.
-    private bool pickedUp;
-
-    void OnTriggerEnter(Collider other)
+    public class ItemPickup : MonoBehaviour
     {
-        if (pickedUp) return;
-        if (!other.CompareTag("Player")) return;
+        public ItemData item;
+        public int amount = 1;
 
-        pickedUp = true;
+        // Prevent double pickup when multiple trigger events fire in the same frame.
+        private bool pickedUp;
 
-        if (Inventory.Instance != null)
+        void OnTriggerEnter(Collider other)
         {
-            Inventory.Instance.AddItem(item, amount);
-            Destroy(gameObject);
+            if (pickedUp) return;
+            if (!other.CompareTag("Player")) return;
+
+            pickedUp = true;
+
+            if (Inventory.Instance != null)
+            {
+                Inventory.Instance.AddItem(item, amount);
+                Destroy(gameObject);
+            }
         }
     }
 }

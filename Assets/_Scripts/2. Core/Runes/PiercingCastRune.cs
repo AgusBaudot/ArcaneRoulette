@@ -8,18 +8,18 @@ namespace Core
     {
         public override void Apply(SpellContext ctx, int stackCount)
         {
-            switch (ctx.AbilityType)
+            switch (ctx.Ability)
             {
-                case AbilityType.Projectile:
-                    ctx.Modifiers.PierceCount = 3 * stackCount;
+                case IProjectileConfig proj:
+                    proj.PierceCount = 3 * stackCount;
                     break;
                 
-                case AbilityType.Dash:
-                    ctx.Modifiers.DamagesOnDash = true;
+                case IDashConfig dash:
+                    dash.DamagesOnDash = true;
                     break;
                 
-                case AbilityType.Shield:
-                    ctx.Modifiers.AllowEnemyThrough = true;
+                case IShieldConfig shield:
+                    shield.AllowEnemyThrough = true;
                     break;
             }
         }

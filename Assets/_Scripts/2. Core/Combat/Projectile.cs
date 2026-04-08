@@ -80,7 +80,8 @@ namespace Core
                 damageableGo,
                 _runner,
                 _abilityTypeForOnHit,
-                _excludeBounceCastRuneForOnHitContext);
+                _excludeBounceCastRuneForOnHitContext,
+                Rb.velocity.normalized);
 
             if (_pierceCount <= 0)
             {

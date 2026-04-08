@@ -57,10 +57,12 @@ namespace Core
         public KeyCode Slot1 = KeyCode.Mouse0;
 
         [Tooltip("Which key will trigger the player's 2nd slot.")]
-        public KeyCode Slot2 = KeyCode.E;
+        public KeyCode Slot2 = KeyCode.LeftShift;
 
         [Tooltip("Which key will trigger the player's 3rd slot.")]
         public KeyCode Slot3 = KeyCode.Space;
+        
+        public KeyCode[] SlotKeys;
         
         [Header("IFrames")]
         [Tooltip("The amount of time that invincibility frames last.")]

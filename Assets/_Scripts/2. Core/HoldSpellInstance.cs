@@ -8,22 +8,18 @@ namespace Core
     //Cast runes fire on StartHold (coincides with activation for hold spells).
     //StopHold/HoldTick delegate to the ability rune only - timing of any
     //secondary effects (e.g. AoE on dash end) is owned by the ability rune impl.
-    public sealed class HoldSpellInstance : SpellInstance, IHoldAbility, ISpellSlot
+    public sealed class HoldSpellInstance : SpellInstance, IHoldAbility
     {
-        public new bool IsHoldAbility => false;
+        public override ShieldInstanceState ShieldState { get; } = new ShieldInstanceState();
 
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 
         public void StartHold(MonoBehaviour runner)
         {
             var ctx = BuildCastContext(runner);
+            
             FireCastRunes(ctx); //Cast runes apply on hold start.
-            
-            
-            if (Recipe.Ability is ShieldAbilityRune shield)
-                shield.StartHoldWithInstance(ctx, this);
-            else
-                Recipe.Ability.StartHold(ctx);
+            Recipe.Ability.StartHold(ctx);
         }
 
         public void StopHold(MonoBehaviour runner)
