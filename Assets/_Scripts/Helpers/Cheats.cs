@@ -19,20 +19,40 @@ public class Cheats : MonoBehaviour
         {
             RespawnEnemies();
         }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            Debug.LogWarning("Not implemented yet");
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            Debug.LogWarning("Not implemented yet");
+        }
     }
 
     private void RespawnEnemies()
     {
         foreach (Transform t in _enemyShooting)
         {
-            if (t.childCount > 0) continue;
+            if (t.childCount > 0)
+                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
+                {
+                    e.Reset();
+                    continue;
+                }
             var enemy = Instantiate(_enemyPrefab, t.position, t.rotation, t);
             enemy.CanAttack = true;
         }
 
         foreach (Transform t in _enemyIdle)
         {
-            if (t.childCount > 0) continue;
+            if (t.childCount > 0)
+                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
+                {
+                    e.Reset();
+                    continue;
+                }
             Instantiate(_enemyPrefab, t.position, t.rotation, t);
         }
     }

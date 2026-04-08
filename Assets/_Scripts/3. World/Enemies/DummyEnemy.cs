@@ -33,10 +33,12 @@ namespace World
         private float _fireInterval = 2f;
         private const float _defaultFireInterval = 2f;
         private float _currentHp;
+        private Vector3 _originalPosition;
 
         private void Awake()
         {
             _currentHp = _maxHp;
+            _originalPosition = transform.position;
             
             var rb =  GetComponent<Rigidbody>();
             rb.useGravity   = false;
@@ -84,6 +86,12 @@ namespace World
         {
            //EventBus.Publish(new EnemyDiedEvent()); - wirte this when EventBus is ready
            Destroy(gameObject);
+        }
+
+        public void Reset()
+        {
+            _currentHp = _maxHp;
+            transform.position = _originalPosition;
         }
     }
 }

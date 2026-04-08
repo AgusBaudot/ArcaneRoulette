@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Foundation;
 
 namespace UI
 {
@@ -33,7 +34,7 @@ namespace UI
         /// <summary>
         /// Call whenever the tile's represented rune or state changes.
         /// </summary>
-        public void Refresh(Foundation.RuneDefinitionSO rune, int count, bool highlighted)
+        public void Refresh(RuneDefinitionSO rune, int count, bool highlighted)
         {
             bool hasRune = rune != null;
 

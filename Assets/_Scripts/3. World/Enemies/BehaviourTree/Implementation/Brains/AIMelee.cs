@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering.PostProcessing;
 using UnityEngine;
 
 namespace world 

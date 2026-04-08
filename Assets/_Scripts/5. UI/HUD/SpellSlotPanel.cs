@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 using Foundation;
 using Core;
 using UI;
@@ -13,10 +15,13 @@ public sealed class SpellSlotPanel : MonoBehaviour
 {
     public enum SlotType { Ability, Element, Modifier }
 
+    public RectTransform VisualRoot => visualRoot;
+
     [Header("Slot index this panel manages")]
     [SerializeField] private SlotIndex targetSlot;
 
     [Header("Anchors — size these in the scene to control tile size per rune type")]
+    [SerializeField] private RectTransform visualRoot;
     [SerializeField] private RectTransform abilityAnchor;
     [SerializeField] private RectTransform elementAnchor;
     [SerializeField] private RectTransform[] modifierAnchors; // length 5
@@ -68,10 +73,10 @@ public sealed class SpellSlotPanel : MonoBehaviour
         // Stretch tile to fill anchor completely.
         // Anchor sizing in the scene controls the visual size per rune type.
         var rect = go.GetComponent<RectTransform>();
-        rect.anchorMin        = Vector2.zero;
-        rect.anchorMax        = Vector2.one;
-        rect.offsetMin        = Vector2.zero;
-        rect.offsetMax        = Vector2.zero;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
 
         var tile = go.GetComponent<RuneTileUI>();
         tile.Init(() => _owner.OnSlotTileClicked(this, slotType, modIndex));
@@ -139,8 +144,12 @@ public sealed class SpellSlotPanel : MonoBehaviour
     {
         switch (slotType)
         {
-            case SlotType.Ability:   _selectedAbility = null; break;
-            case SlotType.Element:   _selectedElement = null; break;
+            case SlotType.Ability: _selectedAbility = null; 
+                break;
+            
+            case SlotType.Element: _selectedElement = null;
+                break;
+            
             case SlotType.Modifier:
                 if (modIndex >= 0 && modIndex < SpellRecipe.MODIFIER_SLOTS)
                     _selectedModifiers[modIndex] = null;
@@ -154,19 +163,19 @@ public sealed class SpellSlotPanel : MonoBehaviour
     /// Refreshes all 7 tiles from current _selected* state.
     /// No GameObjects created or destroyed.
     /// </summary>
-    public void RefreshDisplay(RuneDefinitionSO pendingRune)
+    public void RefreshDisplay(Func<RuneDefinitionSO, bool> shouldHighlight)
     {
         if (_abilityTile != null)
             _abilityTile.Refresh(
                 _selectedAbility,
                 _selectedAbility != null ? RunState.AvailableCount(_selectedAbility) : 0,
-                _selectedAbility != null && _selectedAbility == pendingRune);
+                _selectedAbility != null && shouldHighlight(_selectedAbility));
 
         if (_elementTile != null)
             _elementTile.Refresh(
                 _selectedElement,
                 _selectedElement != null ? RunState.AvailableCount(_selectedElement) : 0,
-                _selectedElement != null && _selectedElement == pendingRune);
+                _selectedElement != null && shouldHighlight(_selectedElement));
 
         for (int i = 0; i < SpellRecipe.MODIFIER_SLOTS; i++)
         {
@@ -175,7 +184,7 @@ public sealed class SpellSlotPanel : MonoBehaviour
             _modifierTiles[i].Refresh(
                 mod,
                 mod != null ? RunState.AvailableCount(mod) : 0,
-                mod != null && mod == pendingRune);
+                mod != null && shouldHighlight(mod));
         }
     }
 
@@ -203,4 +212,19 @@ public sealed class SpellSlotPanel : MonoBehaviour
     }
 
     public SlotIndex TargetSlot => targetSlot;
+    
+    public void SetInteractable(bool interactable)
+    {
+        if (_abilityTile != null)
+            _abilityTile.GetComponent<Button>().interactable = interactable;
+
+        if (_elementTile != null)
+            _elementTile.GetComponent<Button>().interactable = interactable;
+
+        foreach (var tile in _modifierTiles)
+        {
+            if (tile != null)
+                tile.GetComponent<Button>().interactable = interactable;
+        }
+    }
 }

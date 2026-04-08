@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -26,25 +27,29 @@ public sealed class RuneInventoryPanel : MonoBehaviour
     /// Call on UI open and after every assign. Builds missing tiles,
     /// refreshes counts and highlights on all existing ones.
     /// </summary>
-    public void Refresh(RuneDefinitionSO pendingRune)
+    public void Refresh(Func<RuneDefinitionSO, bool> shouldHighlight)
     {
         var inventory = GameStateManager.RunState.RuneInventory;
-
+        
         foreach (var entry in inventory)
         {
             var rune = entry.Key;
-
+        
             if (!_tiles.TryGetValue(rune, out var tile))
                 tile = BuildTile(rune);
-
+        
             int available = GameStateManager.RunState.AvailableCount(rune);
-            bool highlighted = rune == pendingRune;
-            tile.Refresh(rune, available, highlighted);
-
+            tile.Refresh(rune, available, shouldHighlight(rune));
+        
             // Tiles with zero available are shown but not interactable
             // unless they are already the pending selection.
             tile.GetComponent<UnityEngine.UI.Button>().interactable =
-                available > 0 || highlighted;
+                available > 0 || shouldHighlight(rune);
+        }
+        
+        foreach (var entry in _tiles)
+        {
+            entry.Value.Refresh(entry.Key, GameStateManager.RunState.AvailableCount(entry.Key), shouldHighlight(entry.Key));
         }
     }
 
