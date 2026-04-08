@@ -11,6 +11,7 @@ namespace world
 
         public override NodeState Process()
         {
+            Debug.Log("Hijo Actual=" + _children[_currentChild]._name);
             if (_currentChild < _children.Count)
             {
                 switch (_children[_currentChild].Process())

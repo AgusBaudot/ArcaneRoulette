@@ -27,24 +27,24 @@ namespace world
         protected override BehaviourTree BuildTree() 
         {
             var tree = new BehaviourTree(base._behaviourTreeName);
-            var root = new SelectorNode("Root");
-            
+            var root = new PrioritySelectorNode("Root");
+
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack");
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => Vector3.Distance(transform.position, target.position) <= attackRange)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(attackCooldown, attackAnimation)));
 
             // --- Chase ---
-            var chaseSequence = new SequenceNode("Chase");
-            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
+            var chaseSequence = new SequenceNode("Chase",1);
+            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(IsInLos)));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, _agent, chaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, waypoints, patrolSpeed));
+            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, waypoints, patrolSpeed), 0);
 
             // --- Estructura ---
             //root.AddChild(attackSequence);
-            //root.AddChild(chaseSequence);
+            root.AddChild(chaseSequence);
             root.AddChild(patrol);
 
             tree.AddChild(root);

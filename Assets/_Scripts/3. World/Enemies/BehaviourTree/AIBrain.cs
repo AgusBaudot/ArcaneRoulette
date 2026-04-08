@@ -35,12 +35,12 @@ namespace world
             tree?.Process();
         }
         protected abstract BehaviourTree BuildTree();
-        protected virtual bool IsInLos() //virtual para poder anularlo
+        protected virtual bool IsInLos()
         {
             if (_los == null || target == null) return false;
-            return _los.CheckRange(target) &&
-                   _los.CheckAngle(target) &&
-                   _los.CheckView(target);
+
+            Debug.Log("USO DE LA VISION");
+            return _los.CheckRange(target) && _los.CheckView(target);
         }
     }
 
