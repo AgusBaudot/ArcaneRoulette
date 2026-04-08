@@ -27,10 +27,9 @@ namespace UI
         }
 
         /// <summary>
-        /// Called on UI open. Rebuilds tiles from scratch to match RunState.
-        /// On open only - not after every assign (RemoveTile handles that).
+        /// Rebuilds tiles from scratch, filtering by the selected RuneFilter.
         /// </summary>
-        public void Rebuild()
+        public void Rebuild(RuneFilter currentFilter)
         {
             //Destroy all existing tiles.
             foreach (var entry in _tiles)
@@ -40,9 +39,22 @@ namespace UI
             }
             _tiles.Clear();
             
-            //One tile per rune instance in inventory.
+            //Loop through the inventory definitions.
             foreach (var entry in GameStateManager.RunState.RuneInventory)
             {
+                //Apply the filter
+                if (currentFilter == RuneFilter.Ability && !(entry.Key is AbilityRuneSO))
+                    continue;
+
+                if (currentFilter == RuneFilter.Element && !(entry.Key is ElementRuneSO))
+                    continue;
+
+                if (currentFilter == RuneFilter.Cast && !(entry.Key is CastRuneSO))
+                    continue;
+
+                if (currentFilter == RuneFilter.OnHit && !(entry.Key is OnHitRuneSO))
+                    continue;
+                
                 for (int i = 0; i < GameStateManager.RunState.AvailableCount(entry.Key); i++)
                 {
                     _tiles.Add((entry.Key, BuildTile(entry.Key)));

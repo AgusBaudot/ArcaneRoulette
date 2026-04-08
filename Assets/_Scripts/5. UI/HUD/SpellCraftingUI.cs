@@ -29,6 +29,14 @@ namespace UI
 
         [Header("Inventory")]
         [SerializeField] private RuneInventoryPanel _inventoryPanel;
+        
+        [Header("Filter Tabs")]
+        [SerializeField] private Button _btnFilterAll;
+        [SerializeField] private Button _btnFilterAbility;
+        [SerializeField] private Button _btnFilterElement;
+        [SerializeField] private Button _btnFilterCast;
+        [SerializeField] private Button _btnFilterOnHit;
+        [SerializeField] private RuneFilterTab[] _filterTabs;
 
         [Header("Carousel Animation")] 
         [SerializeField] private float _animDuration = 0.35f;
@@ -55,6 +63,7 @@ namespace UI
         private int _pendingRuneIndex = -1;
         private static bool _isOpen;
         private int _centerIndex; // which _slotPanels[] index is currently centered
+        private RuneFilter _currentFilter = RuneFilter.All;
 
         // ── Unity ────────────────────────────────────────────────────────────
 
@@ -69,6 +78,12 @@ namespace UI
             _leftArrowButton.onClick.AddListener(OnLeftArrow);
             _rightArrowButton.onClick.AddListener(OnRightArrow);
 
+            _btnFilterAll.onClick.AddListener(() => OnFilterClicked(RuneFilter.All));
+            _btnFilterAbility.onClick.AddListener(() => OnFilterClicked(RuneFilter.Ability));
+            _btnFilterElement.onClick.AddListener(() => OnFilterClicked(RuneFilter.Element));
+            _btnFilterCast.onClick.AddListener(() => OnFilterClicked(RuneFilter.Cast));
+            _btnFilterOnHit.onClick.AddListener(() => OnFilterClicked(RuneFilter.OnHit));
+            
             _craftingPanel.SetActive(false);
         }
 
@@ -98,7 +113,7 @@ namespace UI
             foreach (var panel in _slotPanels)
                 panel.PopulateFromRunState();
             
-            _inventoryPanel.Rebuild();
+            _inventoryPanel.Rebuild(_currentFilter);
             ApplyCarouselLayout();
             RefreshAll();
         }
@@ -266,6 +281,20 @@ namespace UI
             _pendingRune = null;
             _pendingRuneIndex = -1;
             RefreshAll();
+        }
+
+        private void OnFilterClicked(RuneFilter selectedFilter)
+        {
+            //Don't rebuild if clicking the already active tab
+            if (_currentFilter == selectedFilter)
+                return;
+            
+            _currentFilter = selectedFilter;
+            
+            //Rebuild the inventory with the new filter
+            _inventoryPanel.Rebuild(_currentFilter);
+            
+            //Optional later, call to make the active button pressed/highlighted
         }
 
         // ── Refresh ───────────────────────────────────────────────────────────
