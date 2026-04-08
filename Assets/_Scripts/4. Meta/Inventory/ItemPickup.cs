@@ -4,8 +4,8 @@ namespace UI
 {
     public class ItemPickup : MonoBehaviour
     {
-        public ItemData item;
-        public int amount = 1;
+        public ItemData Item;
+        public int Amount = 1;
 
         // Prevent double pickup when multiple trigger events fire in the same frame.
         private bool pickedUp;
@@ -19,7 +19,7 @@ namespace UI
 
             if (Inventory.Instance != null)
             {
-                Inventory.Instance.AddItem(item, amount);
+                Inventory.Instance.AddItem(Item, Amount);
                 Destroy(gameObject);
             }
         }

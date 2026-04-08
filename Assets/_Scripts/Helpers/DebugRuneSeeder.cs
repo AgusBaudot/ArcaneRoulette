@@ -8,6 +8,9 @@ public sealed class DebugRuneSeeder : MonoBehaviour
     [SerializeField] private ProjectileAbilityRune  _projectileRune;
     [SerializeField] private DashAbilityRune        _dashRune;
     [SerializeField] private ShieldAbilityRune      _shieldRune;
+    
+    [Header("Element Runes")]
+    // [SerializeField] private 
 
     [Header("Cast Runes")]
     [SerializeField] private PiercingCastRune       _piercingRune;

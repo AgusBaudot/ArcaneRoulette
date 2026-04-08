@@ -13,9 +13,9 @@ namespace UI
     [RequireComponent(typeof(Button))]
     public sealed class RuneTileUI : MonoBehaviour
     {
-        [SerializeField] private Image icon;
-        [SerializeField] private TextMeshProUGUI countText;
-        [SerializeField] private GameObject highlight;
+        [SerializeField] private Image _icon;
+        [SerializeField] private TextMeshProUGUI _countText;
+        [SerializeField] private GameObject _highlight;
 
         private Button _button;
         private Action _onClick;
@@ -34,18 +34,18 @@ namespace UI
         /// <summary>
         /// Call whenever the tile's represented rune or state changes.
         /// </summary>
-        public void Refresh(RuneDefinitionSO rune, int count, bool highlighted)
+        public void Refresh(RuneDefinitionSO rune, bool highlighted)
         {
             bool hasRune = rune != null;
 
-            icon.sprite = hasRune ? rune.Icon : null;
-            icon.enabled = hasRune;
-            icon.preserveAspect = true;
+            _icon.sprite = hasRune ? rune.Icon : null;
+            _icon.enabled = hasRune;
+            _icon.preserveAspect = true;
 
-            countText.text = hasRune && count > 1 ? count.ToString() : "";
-            countText.enabled = hasRune && count > 1;
+            if (_countText != null)
+                _countText.enabled = false;
 
-            highlight.SetActive(highlighted);
+            _highlight.SetActive(highlighted);
 
             // Slot is clickable even when empty — clicking empty slot
             // with a pending rune assigns it; without one, does nothing.
