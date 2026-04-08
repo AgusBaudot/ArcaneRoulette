@@ -31,22 +31,16 @@ namespace world
             var tree = new BehaviourTree(base._behaviourTreeName);
             var root = new PrioritySelectorNode("Root");
 
-            // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack",2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInRange(attackRange))));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator)));
-            attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
-
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase",1);
-            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(IsInLos)));
+            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, _agent, chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Patrol ---
             var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, waypoints, patrolSpeed), 0);
 
             // --- Estructura ---
-            root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
 
