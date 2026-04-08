@@ -17,6 +17,7 @@ namespace world
                 switch (_children[_currentChild].Process())
                 {
                     case NodeState.Running:
+                        //_currentChild = 0; // este nodo deberia ser como el de prioridad
                         return NodeState.Running;
                     case NodeState.Success:
                         Reset();

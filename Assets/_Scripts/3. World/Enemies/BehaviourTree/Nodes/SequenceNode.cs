@@ -17,7 +17,7 @@ public class SequenceNode : Node
                     _currentChild = 0; // Esto se tiene que chequear
                     return NodeState.Running;
                 case NodeState.Failure:
-                     Reset();
+                    Reset();
                     return NodeState.Failure;
                 default:
                     _currentChild++;

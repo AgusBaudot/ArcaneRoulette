@@ -38,8 +38,6 @@ namespace world
         protected virtual bool IsInLos()
         {
             if (_los == null || target == null) return false;
-
-            Debug.Log("USO DE LA VISION");
             return _los.CheckRange(target) && _los.CheckView(target);
         }
     }

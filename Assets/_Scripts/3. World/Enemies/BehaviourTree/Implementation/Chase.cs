@@ -34,7 +34,8 @@ namespace world
 
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
-                return Node.NodeState.Success;
+                Debug.Log("SUCCESS");
+                return Node.NodeState.Failure;
             }
 
             return Node.NodeState.Running;

@@ -30,7 +30,7 @@ namespace world
             var root = new PrioritySelectorNode("Root");
 
             // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack");
+            var attackSequence = new SequenceNode("Attack",2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => Vector3.Distance(transform.position, target.position) <= attackRange)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(attackCooldown, attackAnimation)));
 
