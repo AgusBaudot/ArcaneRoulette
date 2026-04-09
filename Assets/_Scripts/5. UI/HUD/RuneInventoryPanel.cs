@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Foundation;
 
 namespace UI
@@ -118,10 +119,10 @@ namespace UI
             var go = Instantiate(_runeTilePrefab, _gridParent);
             var tile = go.GetComponent<RuneTileUI>();
 
-            tile.Init(() =>
+            tile.Init((buttonType) =>
             {
                 int currentIndex = _tiles.FindIndex(t => t.tile == tile);
-                _owner.OnInventoryTileClicked(rune,currentIndex);
+                _owner.OnInventoryTileClicked(rune, currentIndex, buttonType);
             });
             
             tile.Refresh(rune, false);

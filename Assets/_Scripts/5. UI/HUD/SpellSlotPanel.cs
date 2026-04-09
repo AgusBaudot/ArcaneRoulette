@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Foundation;
 using Core;
 
@@ -87,7 +87,14 @@ namespace UI
             rect.offsetMax = Vector2.zero;
 
             var tile = go.GetComponent<RuneTileUI>();
-            tile.Init(() => _owner.OnSlotTileClicked(this, slotType, modIndex));
+            
+            //Only trigger the slot logic if it was a Left Click
+            tile.Init((buttonType) =>
+            {
+                if (buttonType == PointerEventData.InputButton.Left)
+                    _owner.OnSlotTileClicked(this, slotType, modIndex);
+            });
+            
             return tile;
         }
 
@@ -254,6 +261,48 @@ namespace UI
                 if (tile != null)
                     tile.GetComponent<Button>().interactable = interactable;
             }
+        }
+        
+        // ── Auto-Assignment ─────────────────────────────────────────────────────────
+        /// <summary>
+        /// Attempts to assign the rune to the first available empty slot of its type.
+        /// Returns true if successfully assigned, false if slots are full.
+        /// </summary>
+        /// <param name="rune"></param>
+        /// <returns></returns>
+        public bool TryAutoAssignEmptySlot(RuneDefinitionSO rune)
+        {
+            if (rune is AbilityRuneSO ability)
+            {
+                if (_selectedAbility == null)
+                {
+                    _selectedAbility = ability;
+                    return true;
+                }
+            }
+            else if (rune is ElementRuneSO element)
+            {
+                if (_selectedElement == null)
+                {
+                    _selectedElement = element;
+                    return true;
+                }
+            }
+            else if (rune is ModifierRuneSO modifier)
+            {
+                //Find the first empty modifier slot
+                for (int i = 0; i < SpellRecipe.MODIFIER_SLOTS; i++)
+                {
+                    if (_selectedModifiers[i] == null)
+                    {
+                        _selectedModifiers[i] = modifier;
+                        return true;
+                    }
+                }
+            }
+
+            //No empty slot available for this rune type
+            return false; 
         }
     }
 }

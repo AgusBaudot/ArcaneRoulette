@@ -35,10 +35,10 @@ namespace UI
         /// </summary>
         public void SetActiveState(bool isActive)
         {
-            // _tabBackgroundImage.sprite = isActive ? _selectedSprite : _unselectedSprite;
-            //
-            // // Disable interaction if it's already the active tab to prevent spam-clicking
-            // _button.interactable = !isActive; 
+            _tabBackgroundImage.sprite = isActive ? _selectedSprite : _unselectedSprite;
+            
+            // Disable interaction if it's already the active tab to prevent spam-clicking
+            _button.interactable = !isActive; 
         }
     }
 }

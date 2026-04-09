@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 using Foundation;
 using Core;
@@ -77,12 +78,9 @@ namespace UI
 
             _leftArrowButton.onClick.AddListener(OnLeftArrow);
             _rightArrowButton.onClick.AddListener(OnRightArrow);
-
-            _btnFilterAll.onClick.AddListener(() => OnFilterClicked(RuneFilter.All));
-            _btnFilterAbility.onClick.AddListener(() => OnFilterClicked(RuneFilter.Ability));
-            _btnFilterElement.onClick.AddListener(() => OnFilterClicked(RuneFilter.Element));
-            _btnFilterCast.onClick.AddListener(() => OnFilterClicked(RuneFilter.Cast));
-            _btnFilterOnHit.onClick.AddListener(() => OnFilterClicked(RuneFilter.OnHit));
+            
+            foreach(var tab in _filterTabs)
+                tab.Init(OnFilterTabClicked);
             
             _craftingPanel.SetActive(false);
         }
@@ -116,6 +114,7 @@ namespace UI
             _inventoryPanel.Rebuild(_currentFilter);
             ApplyCarouselLayout();
             RefreshAll();
+            RefreshTabVisuals();
         }
 
         private void CloseCraftingUI()
@@ -239,17 +238,39 @@ namespace UI
 
         // ── Click callbacks ───────────────────────────────────────────────────
 
-        public void OnInventoryTileClicked(RuneDefinitionSO rune, int index)
+        public void OnInventoryTileClicked(RuneDefinitionSO rune, int index, PointerEventData.InputButton buttonType)
         {
-            if (_pendingRuneIndex == index)
+            if (buttonType == PointerEventData.InputButton.Right)
             {
-                _pendingRune = null;
-                _pendingRuneIndex = -1;
+                //Right click: Auto-assign
+                bool autoAssigned = _slotPanels[_centerIndex].TryAutoAssignEmptySlot(rune);
+
+                if (autoAssigned)
+                {
+                    _inventoryPanel.RemoveOneTile(rune);
+
+                    if (_pendingRuneIndex == index)
+                    {
+                        _pendingRune = null;
+                        _pendingRuneIndex = -1;
+                    }
+                }
             }
-            else
+            else if (buttonType == PointerEventData.InputButton.Left)
             {
-                _pendingRune = rune;
-                _pendingRuneIndex = index;
+                //Left click: Select/Deselect
+                if (_pendingRuneIndex == index)
+                {
+                    //Clicked the already-selected rune -> Deselect it
+                    _pendingRune = null;
+                    _pendingRuneIndex = -1;
+                }
+                else
+                {
+                    //Clicked a new rune -> Select it
+                    _pendingRune = rune;
+                    _pendingRuneIndex = index;
+                }
             }
             
             RefreshAll();
@@ -283,18 +304,14 @@ namespace UI
             RefreshAll();
         }
 
-        private void OnFilterClicked(RuneFilter selectedFilter)
+        private void OnFilterTabClicked(RuneFilterTab clickedTab)
         {
-            //Don't rebuild if clicking the already active tab
-            if (_currentFilter == selectedFilter)
+            if (_currentFilter == clickedTab.FilterType)
                 return;
             
-            _currentFilter = selectedFilter;
-            
-            //Rebuild the inventory with the new filter
+            _currentFilter = clickedTab.FilterType;
             _inventoryPanel.Rebuild(_currentFilter);
-            
-            //Optional later, call to make the active button pressed/highlighted
+            RefreshTabVisuals();
         }
 
         // ── Refresh ───────────────────────────────────────────────────────────
@@ -307,6 +324,12 @@ namespace UI
             
             foreach (var panel in _slotPanels)
                 panel.RefreshDisplay(_ => false);
+        }
+        
+        private void RefreshTabVisuals()
+        {
+            foreach(var tab in _filterTabs)
+            tab.SetActiveState(tab.FilterType == _currentFilter);
         }
     }
 }

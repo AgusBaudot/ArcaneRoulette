@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Foundation;
 
 namespace UI
@@ -11,24 +12,31 @@ namespace UI
     /// Init once, Refresh whenever state changes. No drag, no drop.
     /// </summary>
     [RequireComponent(typeof(Button))]
-    public sealed class RuneTileUI : MonoBehaviour
+    public sealed class RuneTileUI : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private Image _icon;
         [SerializeField] private TextMeshProUGUI _countText;
         [SerializeField] private GameObject _highlight;
 
         private Button _button;
-        private Action _onClick;
+        private Action<PointerEventData.InputButton> _onClick;
 
         private void Awake()
         {
             _button = GetComponent<Button>();
-            _button.onClick.AddListener(() => _onClick?.Invoke());
         }
 
-        public void Init(Action onClick)
+        public void Init(Action<PointerEventData.InputButton> onClick)
         {
             _onClick = onClick;
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (_button != null && !_button.interactable)
+                return;
+            
+            _onClick?.Invoke(eventData.button);
         }
 
         /// <summary>
