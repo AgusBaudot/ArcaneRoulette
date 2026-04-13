@@ -5,13 +5,13 @@ namespace UI
 {
     public class InventorySlot : MonoBehaviour
     {
-        public Image icon;
-        public Text amountText;
+        public Image Icon;
+        public Text AmountText;
 
         public void Setup(ItemData item, int amount)
         {
-            if (icon != null) icon.sprite = item != null ? item.icon : null;
-            if (amountText != null) amountText.text = (amount > 1) ? amount.ToString() : "";
+            if (Icon != null) Icon.sprite = item != null ? item.Icon : null;
+            if (AmountText != null) AmountText.text = (amount > 1) ? amount.ToString() : "";
         }
     }
 

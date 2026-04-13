@@ -19,56 +19,74 @@ namespace Core
         {
             result = null;
 
-            //1. Recipe must have an ability rune
+            // 1. Recipe must have an ability rune
             if (!recipe.IsValid)
             {
                 Debug.LogWarning("SpellCrafter: recipe has no ability rune.");
                 return false;
             }
 
-            //2. Check availability for every rune in the recipe.
-            //We count how many times each rune appears in this recipe first,
-            //then compare against what's available.
-            //This handles the case where the same rune fills two modifier slots.
-            var needed = new Dictionary<RuneDefinitionSO, int>();
-
-            void Count(RuneDefinitionSO rune)
+            // 2. Tally what is currently in the slot, as these will be freed if we succeed.
+            var freedByDismantle = new Dictionary<RuneDefinitionSO, int>();
+            var current = RunState.GetSlot(slot) as SpellInstance;
+            
+            if (current != null)
             {
-                if (rune == null)
-                    return;
+                void CountFreed(RuneDefinitionSO rune)
+                {
+                    if (rune == null) return;
+                    freedByDismantle.TryGetValue(rune, out int c);
+                    freedByDismantle[rune] = c + 1;
+                }
+                
+                CountFreed(current.Recipe.Ability);
+                CountFreed(current.Recipe.Element);
+                foreach (var mod in current.Recipe.Modifiers)
+                    CountFreed(mod);
+            }
+
+            // 3. Tally what the new recipe needs.
+            var needed = new Dictionary<RuneDefinitionSO, int>();
+            void CountNeeded(RuneDefinitionSO rune)
+            {
+                if (rune == null) return;
                 needed.TryGetValue(rune, out int c);
                 needed[rune] = c + 1;
             }
             
-            Count(recipe.Ability);
-            Count(recipe.Element);
+            CountNeeded(recipe.Ability);
+            CountNeeded(recipe.Element);
             foreach (var mod in recipe.Modifiers)
-                Count(mod);
+                CountNeeded(mod);
 
+            // 4. Validate Effective Availability
             foreach (var pair in needed)
             {
-                if (RunState.AvailableCount(pair.Key) < pair.Value)
+                // Effective Available = Currently Available + What we are about to free from this slot
+                freedByDismantle.TryGetValue(pair.Key, out int freedCount);
+                int effectiveAvailable = RunState.AvailableCount(pair.Key) + freedCount;
+
+                if (effectiveAvailable < pair.Value)
                 {
                     Debug.LogWarning($"SpellCrafter: not enough {pair.Key.name}.");
                     return false;
                 }
             }
             
-            //3. Dismantle whatever is currently in this slot first.
-            //Frees its allocation before we allocate the new recipe.
+            // 5. Validation passed! Safe to dismantle the old spell.
             Dismantle(slot);
             
-            //4. Allocate every rune in the new recipe.
+            // 6. Allocate every rune in the new recipe.
             foreach (var pair in needed)
                 RunState.AllocateRune(pair.Key, pair.Value);
             
-            //5. Construct - IsHoldAbility on the rune decides the class.
+            // 7. Construct - IsHoldAbility on the rune decides the class.
             result = recipe.Ability.IsHoldAbility ? new HoldSpellInstance(recipe) : new SpellInstance(recipe);
             
-            //6. Bind into the slot and notify PlayerController via bus.
+            // 8. Bind into the slot and notify PlayerController via bus.
             _attunement.Bind(slot, result);
-            
             EventBus.Publish(new SpellCraftedEvent(slot, result));
+            
             return true;
         }
 

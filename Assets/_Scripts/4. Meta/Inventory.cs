@@ -7,25 +7,24 @@ namespace UI
     public class Inventory : MonoBehaviour
     {
         public static Inventory Instance { get; private set; }
-
-        public int capacity = 20;
+        public int Capacity = 20;
 
         public event Action OnInventoryChanged;
 
         [Serializable]
         public class InventoryItem
         {
-            public ItemData item;
-            public int amount;
+            public ItemData Item;
+            public int Amount;
 
             public InventoryItem(ItemData i, int a)
             {
-                item = i;
-                amount = a;
+                Item = i;
+                Amount = a;
             }
         }
 
-        public List<InventoryItem> items = new List<InventoryItem>();
+        public List<InventoryItem> items = new();
 
         void Awake()
         {
@@ -37,19 +36,19 @@ namespace UI
         {
             if (item == null) return false;
 
-            if (item.stackable)
+            if (item.Stackable)
             {
-                var existing = items.Find(x => x.item == item);
+                var existing = items.Find(x => x.Item == item);
                 if (existing != null)
                 {
-                    existing.amount = Mathf.Min(existing.amount + amount, item.maxStack);
+                    existing.Amount = Mathf.Min(existing.Amount + amount, item.MaxStack);
                     OnInventoryChanged?.Invoke();
                     return true;
                 }
                 else
                 {
-                    if (items.Count >= capacity) return false;
-                    items.Add(new InventoryItem(item, Mathf.Min(amount, item.maxStack)));
+                    if (items.Count >= Capacity) return false;
+                    items.Add(new InventoryItem(item, Mathf.Min(amount, item.MaxStack)));
                     OnInventoryChanged?.Invoke();
                     return true;
                 }
@@ -58,7 +57,7 @@ namespace UI
             {
                 for (int i = 0; i < amount; i++)
                 {
-                    if (items.Count >= capacity) return false;
+                    if (items.Count >= Capacity) return false;
                     items.Add(new InventoryItem(item, 1));
                 }
 

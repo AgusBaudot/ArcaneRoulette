@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using World;
-using static UnityEditor.Rendering.FilterWindow;
-using static UnityEngine.GraphicsBuffer;
 
 namespace world 
 {

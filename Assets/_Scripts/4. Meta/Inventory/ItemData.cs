@@ -3,14 +3,13 @@ using UnityEngine;
 namespace UI
 {
     [CreateAssetMenu(menuName = "ArcaneRoulette/ItemData")]
-
     public class ItemData : ScriptableObject
     {
-        public string itemName;
-        public Sprite icon;
-        public GameObject worldPrefab;
-        public bool stackable = true;
-        public int maxStack = 99;
-        public string id;
+        public string ItemName;
+        public Sprite Icon;
+        public GameObject WorldPrefab;
+        public bool Stackable = true;
+        public int MaxStack = 99;
+        public string ID;
     }
 }

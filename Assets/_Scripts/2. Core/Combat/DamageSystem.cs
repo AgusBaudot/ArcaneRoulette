@@ -37,7 +37,7 @@ namespace Core
             ElementType attackerElement)
             => Deal(target, null, baseDamage, attackerElement);
 
-        //PROTOTYPE: flas hardcoded table.
+        //PROTOTYPE: flat hardcoded table.
         //Replace with enemy.GetComponent<ElementalResistanceMap>() post-prototype.
         private static float GetResistance(ElementType attacker, ElementType defender)
             => (attacker, defender) switch

@@ -6,10 +6,10 @@ namespace UI
 {
     public class InventoryUI : MonoBehaviour
     {
-        public Transform itemsParent;
-        public GameObject slotPrefab;
+        public Transform ItemsParent;
+        public GameObject SlotPrefab;
 
-        private List<GameObject> slots = new List<GameObject>();
+        private List<GameObject> _slots = new();
 
         void Start()
         {
@@ -22,19 +22,19 @@ namespace UI
             if (Inventory.Instance != null) Inventory.Instance.OnInventoryChanged -= RefreshUI;
         }
 
-        public void RefreshUI()
+        public void RefreshUI() //Can be made private
         {
-            foreach (var s in slots) Destroy(s);
-            slots.Clear();
+            foreach (var s in _slots) Destroy(s);
+            _slots.Clear();
 
             if (Inventory.Instance == null) return;
 
             foreach (var it in Inventory.Instance.GetItems())
             {
-                var go = Instantiate(slotPrefab, itemsParent);
+                var go = Instantiate(SlotPrefab, ItemsParent);
                 var slot = go.GetComponent<InventorySlot>();
-                if (slot != null) slot.Setup(it.item, it.amount);
-                slots.Add(go);
+                if (slot != null) slot.Setup(it.Item, it.Amount);
+                _slots.Add(go);
             }
         }
     }

@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
+using UI;
 
 namespace Core
 {
@@ -115,7 +115,8 @@ namespace Core
 
         private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
         {
-            if (spell == null) 
+            Debug.LogWarning("Core references UI, change later");
+            if (spell == null || SpellCraftingUI.IsUIOpen) 
                 return;
 
             if (spell is IHoldAbility hold)

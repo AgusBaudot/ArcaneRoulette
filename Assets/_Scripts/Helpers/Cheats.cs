@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using World;
 
 public class Cheats : MonoBehaviour
@@ -22,17 +23,20 @@ public class Cheats : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            Debug.LogWarning("Not implemented yet");
+            SceneManager.LoadScene("Prototype");
         }
         
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            Debug.LogWarning("Not implemented yet");
+            SceneManager.LoadScene("EnemyTesting");
         }
     }
 
     private void RespawnEnemies()
     {
+        if (SceneManager.GetActiveScene().name == "EnemyTesting")
+            return;
+        
         foreach (Transform t in _enemyShooting)
         {
             if (t.childCount > 0)

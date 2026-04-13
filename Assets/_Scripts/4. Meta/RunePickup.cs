@@ -5,12 +5,11 @@ using Core;
 namespace UI
 {
     [RequireComponent(typeof(Collider))]
-
     public class RunePickup : MonoBehaviour
     {
-        public RuneDefinitionSO runeDefinition;
-        public int amount = 1;
-        public bool destroyOnPick = true;
+        public RuneDefinitionSO RuneDefinition;
+        public int Amount = 1;
+        public bool DestroyOnPick = true;
 
         private VolatileRunState RunState => GameStateManager.RunState;
 
@@ -28,22 +27,22 @@ namespace UI
             if (!other.CompareTag("Player"))
                 return;
 
-            if (runeDefinition == null)
+            if (RuneDefinition == null)
             {
                 Debug.LogWarning("RunePickup: No RuneDefinitionSO assigned.");
                 return;
             }
 
-            RunState.AddRune(runeDefinition, amount);
+            RunState.AddRune(RuneDefinition, Amount);
             Debug.Log(
-                $"RunePickup: picked up {amount}x {runeDefinition.name} -> now available {RunState.AvailableCount(runeDefinition)}");
+                $"RunePickup: picked up {Amount}x {RuneDefinition.name} -> now available {RunState.AvailableCount(RuneDefinition)}");
 
             // Update crafting UI inventory display if exists
             var craftingUI = FindObjectOfType<SpellCraftingUI>();
             // if (craftingUI != null)
             //     craftingUI.RefreshInventoryDisplay();
 
-            if (destroyOnPick)
+            if (DestroyOnPick)
                 Destroy(gameObject);
         }
     }

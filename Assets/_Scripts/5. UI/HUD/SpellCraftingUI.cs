@@ -1,223 +1,335 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using DG.Tweening;
 using Foundation;
 using Core;
 
-public sealed class SpellCraftingUI : MonoBehaviour
+namespace UI
 {
-    [Header("Panel")] 
-    [SerializeField] private GameObject craftingPanel;
-    [SerializeField] private KeyCode toggleKey = KeyCode.Tab;
-
-    [Header("Slot Panels — assign First, Second, Third in fixed order")] [SerializeField]
-    private SpellSlotPanel[] slotPanels; // always length 3
-
-    [Header("Carousel Navigation")] [SerializeField]
-    private Button leftArrowButton;
-
-    [SerializeField] private Button rightArrowButton;
-
-    [Header("Overlay — sits between center and back panels")] [SerializeField]
-    private GameObject dimOverlay;
-
-    [Header("Inventory")] [SerializeField] private RuneInventoryPanel inventoryPanel;
-
-    // ── Carousel layout constants ────────────────────────────────────────
-    // Center
-    private static readonly Vector2 CenterOffsetMin = Vector2.zero;
-    private static readonly Vector2 CenterOffsetMax = Vector2.zero;
-    private static readonly Vector3 CenterScale = Vector3.one;
-
-    // Left back slot
-    private static readonly Vector2 LeftOffsetMin = new(-75f, -25f);
-    private static readonly Vector2 LeftOffsetMax = new(-75f, -25f);
-    private static readonly Vector3 BackScale = new(0.75f, 0.75f, 1f);
-
-    // Right back slot
-    private static readonly Vector2 RightOffsetMin = new(300f, -25f);
-    private static readonly Vector2 RightOffsetMax = new(300f, -25f);
-
-    // ── Runtime state ────────────────────────────────────────────────────
-    private SpellCrafter _spellCrafter;
-    private RuneDefinitionSO _pendingRune;
-    private bool _isOpen;
-    private int _centerIndex; // which slotPanels[] index is currently centered
-
-    // ── Unity ────────────────────────────────────────────────────────────
-
-    private void Awake()
+    public sealed class SpellCraftingUI : MonoBehaviour
     {
-        _spellCrafter = FindObjectOfType<SpellCrafter>();
+        public static bool IsUIOpen => _isOpen;
+        
+        [Header("Panel")]
+        [SerializeField] private GameObject _craftingPanel;
+        [SerializeField] private KeyCode _toggleKey = KeyCode.Tab;
 
-        inventoryPanel.Init(this);
-        foreach (var panel in slotPanels)
-            panel.Init(this);
+        [Header("Slot Panels — assign First, Second, Third in fixed order")] 
+        [SerializeField] private SpellSlotPanel[] _slotPanels; // always length 3
 
-        leftArrowButton.onClick.AddListener(OnLeftArrow);
-        rightArrowButton.onClick.AddListener(OnRightArrow);
+        [Header("Carousel Navigation")]
+        [SerializeField] private Button _leftArrowButton;
 
-        craftingPanel.SetActive(false);
-    }
+        [SerializeField] private Button _rightArrowButton;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(toggleKey))
+        [Header("Overlay — sits between center and back panels")] 
+        [SerializeField] private GameObject _dimOverlay;
+
+        [Header("Inventory")]
+        [SerializeField] private RuneInventoryPanel _inventoryPanel;
+        
+        [Header("Filter Tabs")]
+        [SerializeField] private Button _btnFilterAll;
+        [SerializeField] private Button _btnFilterAbility;
+        [SerializeField] private Button _btnFilterElement;
+        [SerializeField] private Button _btnFilterCast;
+        [SerializeField] private Button _btnFilterOnHit;
+        [SerializeField] private RuneFilterTab[] _filterTabs;
+
+        [Header("Carousel Animation")] 
+        [SerializeField] private float _animDuration = 0.35f;
+        [SerializeField] private Ease _animEase = Ease.OutCubic;
+
+        // ── Carousel layout constants ────────────────────────────────────────
+        // Center
+        private static readonly Vector2 CenterOffsetMin = Vector2.zero;
+        private static readonly Vector2 CenterOffsetMax = Vector2.zero;
+        private static readonly Vector3 CenterScale = Vector3.one;
+
+        // Left back slot
+        private static readonly Vector2 LeftOffsetMin = new(-75f, -25f);
+        private static readonly Vector2 LeftOffsetMax = new(-75f, -25f);
+        private static readonly Vector3 BackScale = new(0.75f, 0.75f, 1f);
+
+        // Right back slot
+        private static readonly Vector2 RightOffsetMin = new(300f, -25f);
+        private static readonly Vector2 RightOffsetMax = new(300f, -25f);
+
+        // ── Runtime state ────────────────────────────────────────────────────
+        private SpellCrafter _spellCrafter;
+        private RuneDefinitionSO _pendingRune;
+        private int _pendingRuneIndex = -1;
+        private static bool _isOpen;
+        private int _centerIndex; // which _slotPanels[] index is currently centered
+        private RuneFilter _currentFilter = RuneFilter.All;
+
+        // ── Unity ────────────────────────────────────────────────────────────
+
+        private void Awake()
         {
-            if (_isOpen) CloseCraftingUI();
-            else OpenCraftingUI();
+            _spellCrafter = FindObjectOfType<SpellCrafter>();
+
+            _inventoryPanel.Init(this);
+            foreach (var panel in _slotPanels)
+                panel.Init(this);
+
+            _leftArrowButton.onClick.AddListener(OnLeftArrow);
+            _rightArrowButton.onClick.AddListener(OnRightArrow);
+            
+            foreach(var tab in _filterTabs)
+                tab.Init(OnFilterTabClicked);
+            
+            _craftingPanel.SetActive(false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
-            CloseCraftingUI();
-    }
-
-    // ── Open / Close ─────────────────────────────────────────────────────
-
-    private void OpenCraftingUI()
-    {
-        _isOpen = true;
-        _pendingRune = null;
-
-        craftingPanel.SetActive(true);
-        Time.timeScale = 0f;
-
-        foreach (var panel in slotPanels)
-            panel.PopulateFromRunState();
-
-        ApplyCarouselLayout();
-        RefreshAll();
-    }
-
-    private void CloseCraftingUI()
-    {
-        _isOpen = false;
-        _pendingRune = null;
-
-        foreach (var panel in slotPanels)
-            panel.TryApply(_spellCrafter);
-
-        craftingPanel.SetActive(false);
-        Time.timeScale = 1f;
-    }
-
-    // ── Arrow navigation ─────────────────────────────────────────────────
-
-    // Right arrow: the right back slot comes to center.
-    // [A, B, C] center=B → right pressed → center=C → visual order: B(left), C(center), A(right)
-    private void OnRightArrow()
-    {
-        _centerIndex = (_centerIndex + 1) % slotPanels.Length;
-        _pendingRune = null;
-        ApplyCarouselLayout();
-        RefreshAll();
-    }
-
-    // Left arrow: the left back slot comes to center.
-    private void OnLeftArrow()
-    {
-        _centerIndex = (_centerIndex + slotPanels.Length - 1) % slotPanels.Length;
-        _pendingRune = null;
-        ApplyCarouselLayout();
-        RefreshAll();
-    }
-
-    // ── Carousel layout ───────────────────────────────────────────────────
-
-    /// <summary>
-    /// Repositions and rescales all three panels instantly.
-    /// Center panel: full size, interactable.
-    /// Left back: offset left, scaled down, not interactable.
-    /// Right back: offset right, scaled down, not interactable.
-    /// </summary>
-    private void ApplyCarouselLayout()
-    {
-        int count = slotPanels.Length; // 3
-
-        // Relative positions around center:
-        // offset 0 = center, offset 1 = right back, offset -1 (= 2) = left back
-        for (int i = 0; i < count; i++)
+        private void Update()
         {
-            int offset = (i - _centerIndex + count) % count;
-            // offset 0 = center, 1 = right, 2 = left
-            var panel = slotPanels[i];
-            var rect = slotPanels[i].VisualRoot;
+            if (Input.GetKeyDown(_toggleKey))
+            {
+                if (_isOpen) CloseCraftingUI();
+                else OpenCraftingUI();
+            }
 
-            bool isCenter = offset == 0;
-            bool isRight = offset == 1;
-            // offset == 2 → left back
-
-            if (isCenter)
-            {
-                rect.offsetMin = CenterOffsetMin;
-                rect.offsetMax = CenterOffsetMax;
-                rect.localScale = CenterScale;
-                panel.SetInteractable(true);
-            }
-            else if (isRight)
-            {
-                rect.offsetMin = RightOffsetMin;
-                rect.offsetMax = RightOffsetMax;
-                rect.localScale = BackScale;
-                panel.SetInteractable(false);
-            }
-            else // left back
-            {
-                rect.offsetMin = LeftOffsetMin;
-                rect.offsetMax = LeftOffsetMax;
-                rect.localScale = BackScale;
-                panel.SetInteractable(false);
-            }
+            if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
+                CloseCraftingUI();
         }
 
-        // Dim overlay sits between center and back panels in the hierarchy.
-        // No repositioning needed — it's a full-stretch sibling.
-        // Ensure sibling order: back panels → dim overlay → center panel.
-        // We do this by setting the center panel as the last sibling.
-        if (dimOverlay != null)
+        // ── Open / Close ─────────────────────────────────────────────────────
+
+        private void OpenCraftingUI()
         {
-            // Back panels first (arbitrary order), then overlay, then center on top.
+            _isOpen = true;
+            _pendingRune = null;
+            _pendingRuneIndex = -1;
+
+            _craftingPanel.SetActive(true);
+            Time.timeScale = 0f;
+
+            foreach (var panel in _slotPanels)
+                panel.PopulateFromRunState();
+            
+            _inventoryPanel.Rebuild(_currentFilter);
+            ApplyCarouselLayout();
+            RefreshAll();
+            RefreshTabVisuals();
+        }
+
+        private void CloseCraftingUI()
+        {
+            _isOpen = false;
+            _pendingRune = null;
+            _pendingRuneIndex = -1;
+
+            foreach (var panel in _slotPanels)
+                panel.TryApply(_spellCrafter);
+
+            _craftingPanel.SetActive(false);
+            Time.timeScale = 1f;
+        }
+
+        // ── Arrow navigation ─────────────────────────────────────────────────
+
+        // Right arrow: the right back slot comes to center.
+        // [A, B, C] center=B → right pressed → center=C → visual order: B(left), C(center), A(right)
+        private void OnRightArrow()
+        {
+            _centerIndex = (_centerIndex + 1) % _slotPanels.Length;
+            _pendingRune = null;
+            _pendingRuneIndex = -1;
+            ApplyCarouselLayout();
+            RefreshAll();
+        }
+
+        // Left arrow: the left back slot comes to center.
+        private void OnLeftArrow()
+        {
+            _centerIndex = (_centerIndex + _slotPanels.Length - 1) % _slotPanels.Length;
+            _pendingRune = null;
+            _pendingRuneIndex = -1;
+            ApplyCarouselLayout();
+            RefreshAll();
+        }
+
+        // ── Carousel layout ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Repositions and rescales all three panels instantly.
+        /// Center panel: full size, interactable.
+        /// Left back: offset left, scaled down, not interactable.
+        /// Right back: offset right, scaled down, not interactable.
+        /// </summary>
+        private void ApplyCarouselLayout()
+        {
+            int count = _slotPanels.Length; // 3
+
             for (int i = 0; i < count; i++)
             {
                 int offset = (i - _centerIndex + count) % count;
-                if (offset != 0)
-                    slotPanels[i].transform.SetAsFirstSibling();
+                var panel = _slotPanels[i];
+                var rect = _slotPanels[i].VisualRoot;
+
+                // 1. Kill any running tweens on this specific RectTransform
+                rect.DOKill();
+
+                bool isCenter = offset == 0;
+                bool isRight = offset == 1;
+
+                Vector2 targetMin;
+                Vector2 targetMax;
+                Vector3 targetScale;
+
+                if (isCenter)
+                {
+                    targetMin = CenterOffsetMin;
+                    targetMax = CenterOffsetMax;
+                    targetScale = CenterScale;
+                    panel.SetInteractable(true);
+                }
+                else if (isRight)
+                {
+                    targetMin = RightOffsetMin;
+                    targetMax = RightOffsetMax;
+                    targetScale = BackScale;
+                    panel.SetInteractable(false);
+                }
+                else // left back
+                {
+                    targetMin = LeftOffsetMin;
+                    targetMax = LeftOffsetMax;
+                    targetScale = BackScale;
+                    panel.SetInteractable(false);
+                }
+
+                // 2. Animate using DOTween. 
+                // SetTarget ensures DOKill works later. SetUpdate(true) ensures it runs when timeScale == 0.
+                DOTween.To(() => rect.offsetMin, x => rect.offsetMin = x, targetMin, _animDuration)
+                    .SetEase(_animEase)
+                    .SetTarget(rect)
+                    .SetUpdate(true);
+
+                DOTween.To(() => rect.offsetMax, x => rect.offsetMax = x, targetMax, _animDuration)
+                    .SetEase(_animEase)
+                    .SetTarget(rect)
+                    .SetUpdate(true);
+
+                rect.DOScale(targetScale, _animDuration)
+                    .SetEase(_animEase)
+                    .SetUpdate(true);
             }
 
-            dimOverlay.transform.SetSiblingIndex(count - 1);
-            slotPanels[_centerIndex].transform.SetAsLastSibling();
+            // 3. EXACTLY preserve your sibling order logic on the PANEL roots, not the VisualRoots.
+            if (_dimOverlay != null)
+            {
+                // Back panels first (arbitrary order), then overlay, then center on top.
+                for (int i = 0; i < count; i++)
+                {
+                    int offset = (i - _centerIndex + count) % count;
+                    if (offset != 0)
+                        _slotPanels[i].transform.SetAsFirstSibling();
+                }
+
+                _dimOverlay.transform.SetSiblingIndex(count - 1);
+                _slotPanels[_centerIndex].transform.SetAsLastSibling();
+            }
         }
-    }
 
-    // ── Click callbacks ───────────────────────────────────────────────────
+        // ── Click callbacks ───────────────────────────────────────────────────
 
-    public void OnInventoryTileClicked(RuneDefinitionSO rune)
-    {
-        _pendingRune = (_pendingRune == rune) ? null : rune;
-        RefreshAll();
-    }
+        public void OnInventoryTileClicked(RuneDefinitionSO rune, int index, PointerEventData.InputButton buttonType)
+        {
+            if (buttonType == PointerEventData.InputButton.Right)
+            {
+                //Right click: Auto-assign
+                bool autoAssigned = _slotPanels[_centerIndex].TryAutoAssignEmptySlot(rune);
 
-    public void OnSlotTileClicked(SpellSlotPanel panel,
-        SpellSlotPanel.SlotType slotType,
-        int modIndex)
-    {
-        if (_pendingRune != null)
-            panel.TryAssign(_pendingRune, slotType, modIndex);
-        else
-            panel.ClearSlot(slotType, modIndex);
+                if (autoAssigned)
+                {
+                    _inventoryPanel.RemoveOneTile(rune);
 
-        _pendingRune = null;
-        RefreshAll();
-    }
+                    if (_pendingRuneIndex == index)
+                    {
+                        _pendingRune = null;
+                        _pendingRuneIndex = -1;
+                    }
+                }
+            }
+            else if (buttonType == PointerEventData.InputButton.Left)
+            {
+                //Left click: Select/Deselect
+                if (_pendingRuneIndex == index)
+                {
+                    //Clicked the already-selected rune -> Deselect it
+                    _pendingRune = null;
+                    _pendingRuneIndex = -1;
+                }
+                else
+                {
+                    //Clicked a new rune -> Select it
+                    _pendingRune = rune;
+                    _pendingRuneIndex = index;
+                }
+            }
+            
+            RefreshAll();
+        }
 
-    // ── Refresh ───────────────────────────────────────────────────────────
+        public void OnSlotTileClicked(SpellSlotPanel panel,
+            SpellSlotPanel.SlotType slotType,
+            int modIndex)
+        {
+            if (_pendingRune != null)
+            {
+                bool assigned = panel.TryAssign(_pendingRune, slotType, modIndex, out var replacedRune);
+                if (assigned)
+                {
+                    _inventoryPanel.RemoveOneTile(_pendingRune);
+                    
+                    if (replacedRune != null)
+                        _inventoryPanel.AddOneTile(replacedRune);
+                }
+            }
+            else
+            {
+                RuneDefinitionSO clearedRune = panel.ClearSlot(slotType, modIndex);
+                
+                if (clearedRune != null)
+                    _inventoryPanel.AddOneTile(clearedRune);
+            }
 
-    private void RefreshAll()
-    {
-        Func<RuneDefinitionSO, bool> highlight = rune => rune == _pendingRune;
+            _pendingRune = null;
+            _pendingRuneIndex = -1;
+            RefreshAll();
+        }
 
-        inventoryPanel.Refresh(highlight);
-        foreach (var panel in slotPanels)
-            panel.RefreshDisplay(_ => false);
+        private void OnFilterTabClicked(RuneFilterTab clickedTab)
+        {
+            if (_currentFilter == clickedTab.FilterType)
+                return;
+            
+            _currentFilter = clickedTab.FilterType;
+            _inventoryPanel.Rebuild(_currentFilter);
+            RefreshTabVisuals();
+        }
+
+        // ── Refresh ───────────────────────────────────────────────────────────
+
+        private void RefreshAll()
+        {
+            Func<int, bool> highlight = index => index == _pendingRuneIndex && index != -1;
+
+            _inventoryPanel.Refresh(highlight);
+            
+            foreach (var panel in _slotPanels)
+                panel.RefreshDisplay(_ => false);
+        }
+        
+        private void RefreshTabVisuals()
+        {
+            foreach(var tab in _filterTabs)
+            tab.SetActiveState(tab.FilterType == _currentFilter);
+        }
     }
 }

@@ -4,20 +4,25 @@ using Core;
 
 public sealed class DebugRuneSeeder : MonoBehaviour
 {
-    [Header("Ability Runes")]
-    [SerializeField] private ProjectileAbilityRune  _projectileRune;
-    [SerializeField] private DashAbilityRune        _dashRune;
-    [SerializeField] private ShieldAbilityRune      _shieldRune;
+    [Header("Ability Runes")] 
+    [SerializeField] private ProjectileAbilityRune _projectileRune;
+    [SerializeField] private DashAbilityRune _dashRune;
+    [SerializeField] private ShieldAbilityRune _shieldRune;
+
+    [Header("Element Runes")] 
+    [SerializeField] private ElementRuneSO _fireRune;
+    [SerializeField] private ElementRuneSO _waterRune;
+    [SerializeField] private ElementRuneSO _lightningRune;
 
     [Header("Cast Runes")]
-    [SerializeField] private PiercingCastRune       _piercingRune;
-    [SerializeField] private BounceCastRune         _bounceRune;
-    [SerializeField] private AmplifyCastRune        _amplifyRune;
+    [SerializeField] private PiercingCastRune _piercingRune;
+    [SerializeField] private BounceCastRune _bounceRune;
+    [SerializeField] private AmplifyCastRune _amplifyRune;
 
-    [Header("OnHit Runes")]
-    [SerializeField] private AoEOnHitRune           _aoeRune;
-    [SerializeField] private KnockbackOnHitRune     _knockbackRune;
-    [SerializeField] private DoTOnHitRune           _dotRune;
+    [Header("OnHit Runes")] 
+    [SerializeField] private AoEOnHitRune _aoeRune;
+    [SerializeField] private KnockbackOnHitRune _knockbackRune;
+    [SerializeField] private DoTOnHitRune _dotRune;
 
     [Header("Inventory Seed Count")]
     [SerializeField] private int _runeInventoryCount = 9;
@@ -93,18 +98,23 @@ public sealed class DebugRuneSeeder : MonoBehaviour
 
         // Ability runes
         s.AddRune(_projectileRune, _runeInventoryCount);
-        s.AddRune(_dashRune,       _runeInventoryCount);
-        s.AddRune(_shieldRune,     _runeInventoryCount);
+        s.AddRune(_dashRune, _runeInventoryCount);
+        s.AddRune(_shieldRune, _runeInventoryCount);
 
+        //Element runes
+        s.AddRune(_fireRune, _runeInventoryCount);
+        s.AddRune(_waterRune, _runeInventoryCount);
+        s.AddRune(_lightningRune, _runeInventoryCount);
+        
         // Cast runes
         s.AddRune(_piercingRune, _runeInventoryCount);
-        s.AddRune(_bounceRune,   _runeInventoryCount);
-        s.AddRune(_amplifyRune,  _runeInventoryCount);
+        s.AddRune(_bounceRune, _runeInventoryCount);
+        s.AddRune(_amplifyRune, _runeInventoryCount);
 
         // OnHit runes
-        s.AddRune(_aoeRune,       _runeInventoryCount);
+        s.AddRune(_aoeRune, _runeInventoryCount);
         s.AddRune(_knockbackRune, _runeInventoryCount);
-        s.AddRune(_dotRune,       _runeInventoryCount);
+        s.AddRune(_dotRune, _runeInventoryCount);
     }
 
     // ── Slot crafting ────────────────────────────────────────────────────────
