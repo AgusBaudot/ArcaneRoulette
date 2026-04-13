@@ -115,6 +115,7 @@ namespace UI
             ApplyCarouselLayout();
             RefreshAll();
             RefreshTabVisuals();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         private void CloseCraftingUI()
@@ -141,6 +142,7 @@ namespace UI
             _pendingRuneIndex = -1;
             ApplyCarouselLayout();
             RefreshAll();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         // Left arrow: the left back slot comes to center.
@@ -151,6 +153,7 @@ namespace UI
             _pendingRuneIndex = -1;
             ApplyCarouselLayout();
             RefreshAll();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         // ── Carousel layout ───────────────────────────────────────────────────
@@ -274,6 +277,7 @@ namespace UI
             }
             
             RefreshAll();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         public void OnSlotTileClicked(SpellSlotPanel panel,
@@ -302,6 +306,7 @@ namespace UI
             _pendingRune = null;
             _pendingRuneIndex = -1;
             RefreshAll();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         private void OnFilterTabClicked(RuneFilterTab clickedTab)
@@ -312,6 +317,7 @@ namespace UI
             _currentFilter = clickedTab.FilterType;
             _inventoryPanel.Rebuild(_currentFilter);
             RefreshTabVisuals();
+            EventSystem.current.SetSelectedGameObject(null);
         }
 
         // ── Refresh ───────────────────────────────────────────────────────────

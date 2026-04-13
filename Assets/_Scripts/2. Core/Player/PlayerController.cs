@@ -78,8 +78,8 @@ namespace Core
 
         private void OnValidate()
         {
-            if (!_playerStats)
-                Debug.LogWarning("PlayerStats SO must be assigned.", this);
+            //if (!_playerStats)
+               // Debug.LogWarning("PlayerStats SO must be assigned.", this);
         }
 
         public void Tick(float dt)
@@ -115,7 +115,7 @@ namespace Core
 
         private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
         {
-            Debug.LogWarning("Core references UI, change later");
+            //Debug.LogWarning("Core references UI, change later");
             if (spell == null || SpellCraftingUI.IsUIOpen) 
                 return;
 
