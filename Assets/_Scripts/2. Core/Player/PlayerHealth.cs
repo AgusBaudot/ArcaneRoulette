@@ -79,6 +79,9 @@ namespace Core
         
         private void Die()
         {
+            transform.position = Vector3.zero;
+            Current = _stats.BaseHp;
+            
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
         }
     }
