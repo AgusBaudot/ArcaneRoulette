@@ -14,7 +14,6 @@ public class AIRange : AIBrain
     [SerializeField] private List<Transform> waypoints;
     [SerializeField] private float _cooldown;
     [SerializeField] private GameObject projectilePrefab;
-    //[SerializeField] private Transform firePoint;
     protected override void Awake()
     {
         base.Awake();
