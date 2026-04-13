@@ -21,6 +21,7 @@ namespace UI
         // if the player owns N copies.
         private readonly List<(RuneDefinitionSO rune, RuneTileUI tile)> _tiles = new();
         private SpellCraftingUI _owner;
+        private RuneFilter _currentFilter;
 
         public void Init(SpellCraftingUI owner)
         {
@@ -32,6 +33,7 @@ namespace UI
         /// </summary>
         public void Rebuild(RuneFilter currentFilter)
         {
+            _currentFilter = currentFilter;
             //Destroy all existing tiles.
             foreach (var entry in _tiles)
             {
@@ -107,7 +109,31 @@ namespace UI
         /// </summary>
         /// <param name="rune"></param>
         public void AddOneTile(RuneDefinitionSO rune)
-            => _tiles.Add((rune, BuildTile(rune)));
+        {
+            // Only add the tile if it matches the current filter
+            if (MatchesCurrentFilter(rune))
+                _tiles.Add((rune, BuildTile(rune)));
+        }
+
+        private bool MatchesCurrentFilter(RuneDefinitionSO rune)
+        {
+            if (_currentFilter == RuneFilter.All)
+                return true;
+
+            if (_currentFilter == RuneFilter.Ability && rune is AbilityRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.Element && rune is ElementRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.Cast && rune is CastRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.OnHit && rune is OnHitRuneSO)
+                return true;
+
+            return false;
+        }
 
         private void RefreshHighlights(Func<int, bool> shouldHighlight)
         {

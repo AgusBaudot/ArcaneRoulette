@@ -300,7 +300,17 @@ namespace UI
                 RuneDefinitionSO clearedRune = panel.ClearSlot(slotType, modIndex);
                 
                 if (clearedRune != null)
+                {
                     _inventoryPanel.AddOneTile(clearedRune);
+                    
+                    // If the cleared rune doesn't match the current filter, switch to its filter
+                    if (!RuneMatchesCurrentFilter(clearedRune))
+                    {
+                        _currentFilter = GetFilterForRune(clearedRune);
+                        _inventoryPanel.Rebuild(_currentFilter);
+                        RefreshTabVisuals();
+                    }
+                }
             }
 
             _pendingRune = null;
@@ -336,6 +346,21 @@ namespace UI
         {
             foreach(var tab in _filterTabs)
             tab.SetActiveState(tab.FilterType == _currentFilter);
+        }
+
+        private RuneFilter GetFilterForRune(RuneDefinitionSO rune)
+        {
+            if (rune is AbilityRuneSO) return RuneFilter.Ability;
+            if (rune is ElementRuneSO) return RuneFilter.Element;
+            if (rune is CastRuneSO) return RuneFilter.Cast;
+            if (rune is OnHitRuneSO) return RuneFilter.OnHit;
+            return RuneFilter.All; // fallback
+        }
+
+        private bool RuneMatchesCurrentFilter(RuneDefinitionSO rune)
+        {
+            if (_currentFilter == RuneFilter.All) return true;
+            return GetFilterForRune(rune) == _currentFilter;
         }
     }
 }
