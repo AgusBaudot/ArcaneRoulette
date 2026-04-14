@@ -31,7 +31,7 @@ namespace UI
         /// <summary>
         /// Rebuilds tiles from scratch, filtering by the selected RuneFilter.
         /// </summary>
-        public void Rebuild(RuneFilter currentFilter)
+        public void Rebuild(RuneFilter currentFilter, Func<RuneDefinitionSO, int> availableCountProvider = null)
         {
             _currentFilter = currentFilter;
             //Destroy all existing tiles.
@@ -58,7 +58,8 @@ namespace UI
                 if (currentFilter == RuneFilter.OnHit && !(entry.Key is OnHitRuneSO))
                     continue;
                 
-                for (int i = 0; i < GameStateManager.RunState.AvailableCount(entry.Key); i++)
+                int availableCount = availableCountProvider?.Invoke(entry.Key) ?? GameStateManager.RunState.AvailableCount(entry.Key);
+                for (int i = 0; i < availableCount; i++)
                 {
                     _tiles.Add((entry.Key, BuildTile(entry.Key)));
                 }

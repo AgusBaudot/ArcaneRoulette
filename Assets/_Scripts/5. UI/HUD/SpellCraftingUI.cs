@@ -111,7 +111,7 @@ namespace UI
             foreach (var panel in _slotPanels)
                 panel.PopulateFromRunState();
             
-            _inventoryPanel.Rebuild(_currentFilter);
+            _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
             ApplyCarouselLayout();
             RefreshAll();
             RefreshTabVisuals();
@@ -307,7 +307,7 @@ namespace UI
                     if (!RuneMatchesCurrentFilter(clearedRune))
                     {
                         _currentFilter = GetFilterForRune(clearedRune);
-                        _inventoryPanel.Rebuild(_currentFilter);
+                        _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
                         RefreshTabVisuals();
                     }
                 }
@@ -325,7 +325,7 @@ namespace UI
                 return;
             
             _currentFilter = clickedTab.FilterType;
-            _inventoryPanel.Rebuild(_currentFilter);
+            _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
             RefreshTabVisuals();
             EventSystem.current.SetSelectedGameObject(null);
         }
@@ -346,6 +346,51 @@ namespace UI
         {
             foreach(var tab in _filterTabs)
             tab.SetActiveState(tab.FilterType == _currentFilter);
+        }
+
+        private int GetEffectiveAvailableCount(RuneDefinitionSO rune)
+        {
+            var selectedCounts = GetSelectedRuneCounts();
+            var committedCounts = GetCommittedRuneCounts();
+
+            selectedCounts.TryGetValue(rune, out int selected);
+            committedCounts.TryGetValue(rune, out int committed);
+
+            return GameStateManager.RunState.AvailableCount(rune) + committed - selected;
+        }
+
+        private Dictionary<RuneDefinitionSO, int> GetSelectedRuneCounts()
+        {
+            var counts = new Dictionary<RuneDefinitionSO, int>();
+            foreach (var panel in _slotPanels)
+                panel.AccumulateSelectedRunes(counts);
+            return counts;
+        }
+
+        private Dictionary<RuneDefinitionSO, int> GetCommittedRuneCounts()
+        {
+            var counts = new Dictionary<RuneDefinitionSO, int>();
+            foreach (var panel in _slotPanels)
+            {
+                var current = GameStateManager.RunState.GetSlot(panel.TargetSlot) as SpellInstance;
+                if (current == null)
+                    continue;
+
+                AccumulateRuneCount(counts, current.Recipe.Ability);
+                AccumulateRuneCount(counts, current.Recipe.Element);
+                foreach (var modifier in current.Recipe.Modifiers)
+                    AccumulateRuneCount(counts, modifier);
+            }
+            return counts;
+        }
+
+        private static void AccumulateRuneCount(Dictionary<RuneDefinitionSO, int> counts, RuneDefinitionSO rune)
+        {
+            if (rune == null)
+                return;
+
+            counts.TryGetValue(rune, out int current);
+            counts[rune] = current + 1;
         }
 
         private RuneFilter GetFilterForRune(RuneDefinitionSO rune)
