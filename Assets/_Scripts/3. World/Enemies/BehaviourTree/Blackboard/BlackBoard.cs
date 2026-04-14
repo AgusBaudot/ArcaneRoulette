@@ -6,6 +6,46 @@ using UnityEngine;
 
 namespace World 
 {
+    public interface IExpert 
+    {
+        int GetInsistence(Blackboard blackboard);
+        void Execute(Blackboard blackboard);
+    }
+
+    public class Arbiter 
+    {
+        readonly List<IExpert> experts = new();
+
+        public void RegisterExpert(IExpert expert) 
+        {
+            if(expert != null) experts.Add(expert);
+        }
+
+        public List<Action> BlackboardIteration (Blackboard blackboard) 
+        {
+            IExpert bestExpert = null;
+            int highestInsistence = 0;
+
+            foreach(IExpert expert in experts) 
+            {
+                int insistence = expert.GetInsistence(blackboard);
+                if(insistence > highestInsistence) 
+                {
+                    highestInsistence = insistence;
+                    bestExpert = expert;
+                }
+            }
+
+            bestExpert?.Execute(blackboard);
+
+            var actions = blackboard.PassedActions;
+            blackboard.ClearActions();
+
+
+            //execute here
+            return actions;
+        }
+    }
     
     [SerializeField]
     public readonly struct BlackboardKey : IEquatable<BlackboardKey> 
@@ -50,6 +90,17 @@ namespace World
     {
         Dictionary<string, BlackboardKey> keyRegistry = new();
         Dictionary<BlackboardKey, object> entries = new();
+        public List<Action> PassedActions { get; } = new();
+        
+        public void AddAction(Action action) 
+        {
+            if(action != null) 
+            {
+                PassedActions.Add(action);
+            }
+        }
+
+        public void ClearActions() => PassedActions.Clear();
 
         public void debug() 
         {
