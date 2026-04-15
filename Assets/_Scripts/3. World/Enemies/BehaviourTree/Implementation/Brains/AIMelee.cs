@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using World;
 
-namespace world 
+namespace World 
 {
     public class AIMelee : AIBrain // Hereda Monobehaviour
     {
@@ -18,15 +17,11 @@ namespace world
         protected override void Awake()
         {
             base.Awake();
+            waypoints.Add(target);
         }
         protected override void Update()
         {
             base.Update();
-        }
-
-        protected override Blackboard BuildBlackboard()
-        {
-            return null;
         }
 
         protected override BehaviourTree BuildTree() 
@@ -37,7 +32,7 @@ namespace world
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase",1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, _agent, chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform ,_agent, chaseSpeed)));
             chaseSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Patrol ---

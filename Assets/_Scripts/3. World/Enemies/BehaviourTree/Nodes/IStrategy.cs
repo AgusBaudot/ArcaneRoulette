@@ -1,4 +1,4 @@
-namespace world 
+namespace World 
 {
     public interface IStrategy
     {

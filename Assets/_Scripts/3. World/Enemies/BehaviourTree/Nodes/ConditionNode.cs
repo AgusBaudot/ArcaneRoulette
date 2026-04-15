@@ -3,16 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using world;
 
-public class ConditionNode : IStrategy
+namespace World 
 {
-    readonly Func<bool> predicate;
-    public ConditionNode (Func<bool> predicate) 
+    public class ConditionNode : IStrategy
     {
-        this.predicate = predicate;
-    }
-    public Node.NodeState Process() => predicate () ? Node.NodeState.Success : Node.NodeState.Failure;
+        readonly Func<bool> predicate;
+        public ConditionNode(Func<bool> predicate)
+        {
+            this.predicate = predicate;
+        }
+        public Node.NodeState Process() => predicate() ? Node.NodeState.Success : Node.NodeState.Failure;
 
-    //public void Reset() { } anulada por la interfaz
+        //public void Reset() { } anulada por la interfaz
+    }
+
 }

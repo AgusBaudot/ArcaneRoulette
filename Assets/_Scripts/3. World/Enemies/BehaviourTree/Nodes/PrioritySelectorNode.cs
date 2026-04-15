@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-namespace world 
+namespace World 
 {
     public class PrioritySelectorNode : Node
     {
