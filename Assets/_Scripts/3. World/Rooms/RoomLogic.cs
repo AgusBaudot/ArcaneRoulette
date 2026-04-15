@@ -22,11 +22,18 @@ namespace World
             }
         }
 
-        private void OnPlayerEnter()
+        private void OnPlayerEnter(Collider playerCol)
         {
             foreach (var spawnPoint in _spawnPoints)
             {
-                Instantiate(spawnPoint.GetEnemy(), spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
+                var go = Instantiate(spawnPoint.GetEnemy(), spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
+                
+                if (go.TryGetComponent<BasicMeleeEnemy>(out var melee))
+                    melee.Init(playerCol.transform);
+                
+                else if (go.TryGetComponent<BasicRangedEnemy>(out var ranged))
+                    ranged.Init(playerCol.transform);
+                
                 Destroy(spawnPoint.gameObject);
             }
 
