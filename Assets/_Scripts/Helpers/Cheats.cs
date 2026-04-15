@@ -23,18 +23,22 @@ public class Cheats : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
+            if (SceneManager.GetActiveScene().name == "Prototype")
+                return;
             SceneManager.LoadScene("Prototype");
         }
         
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            SceneManager.LoadScene("EnemyTesting");
+            if (SceneManager.GetActiveScene().name == "Room Testing")
+                return;
+            SceneManager.LoadScene("Room Testing");
         }
     }
 
     private void RespawnEnemies()
     {
-        if (SceneManager.GetActiveScene().name == "EnemyTesting")
+        if (SceneManager.GetActiveScene().name != "Prototype")
             return;
         
         foreach (Transform t in _enemyShooting)
