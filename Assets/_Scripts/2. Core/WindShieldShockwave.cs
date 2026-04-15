@@ -54,7 +54,7 @@ namespace Core
                     Debug.Log("Wire it with windshield to receive damage info");
                     
                     _enemiesHit.Add(damageable);
-                    damageable.TakeDamage(2, ElementType.Wind);
+                    // damageable.TakeDamage(2, ElementType.Wind);
 
                     if (other.TryGetComponent<DamageFlash>(out var flash))
                         flash.Flash();

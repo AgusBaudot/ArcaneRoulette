@@ -8,7 +8,10 @@ public static class Helpers
     
     public static Camera GetCamera()
     {
-        MainCamera ??= Camera.main;
+        MainCamera = Camera.main;
+        if (MainCamera == null)
+            Debug.LogError("CRITICAL: Camera.main is null! The scene is missing one.");
+        
         return MainCamera;
     }
 

@@ -21,6 +21,7 @@ namespace UI
         // if the player owns N copies.
         private readonly List<(RuneDefinitionSO rune, RuneTileUI tile)> _tiles = new();
         private SpellCraftingUI _owner;
+        private RuneFilter _currentFilter;
 
         public void Init(SpellCraftingUI owner)
         {
@@ -30,8 +31,9 @@ namespace UI
         /// <summary>
         /// Rebuilds tiles from scratch, filtering by the selected RuneFilter.
         /// </summary>
-        public void Rebuild(RuneFilter currentFilter)
+        public void Rebuild(RuneFilter currentFilter, Func<RuneDefinitionSO, int> availableCountProvider = null)
         {
+            _currentFilter = currentFilter;
             //Destroy all existing tiles.
             foreach (var entry in _tiles)
             {
@@ -56,7 +58,8 @@ namespace UI
                 if (currentFilter == RuneFilter.OnHit && !(entry.Key is OnHitRuneSO))
                     continue;
                 
-                for (int i = 0; i < GameStateManager.RunState.AvailableCount(entry.Key); i++)
+                int availableCount = availableCountProvider?.Invoke(entry.Key) ?? GameStateManager.RunState.AvailableCount(entry.Key);
+                for (int i = 0; i < availableCount; i++)
                 {
                     _tiles.Add((entry.Key, BuildTile(entry.Key)));
                 }
@@ -107,7 +110,31 @@ namespace UI
         /// </summary>
         /// <param name="rune"></param>
         public void AddOneTile(RuneDefinitionSO rune)
-            => _tiles.Add((rune, BuildTile(rune)));
+        {
+            // Only add the tile if it matches the current filter
+            if (MatchesCurrentFilter(rune))
+                _tiles.Add((rune, BuildTile(rune)));
+        }
+
+        private bool MatchesCurrentFilter(RuneDefinitionSO rune)
+        {
+            if (_currentFilter == RuneFilter.All)
+                return true;
+
+            if (_currentFilter == RuneFilter.Ability && rune is AbilityRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.Element && rune is ElementRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.Cast && rune is CastRuneSO)
+                return true;
+
+            if (_currentFilter == RuneFilter.OnHit && rune is OnHitRuneSO)
+                return true;
+
+            return false;
+        }
 
         private void RefreshHighlights(Func<int, bool> shouldHighlight)
         {

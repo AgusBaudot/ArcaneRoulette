@@ -42,9 +42,14 @@ namespace Core
         private static float GetResistance(ElementType attacker, ElementType defender)
             => (attacker, defender) switch
             {
-                (ElementType.Fire, ElementType.Water) => 0.5f,
-                (ElementType.Water, ElementType.Fire) => 1.5f,
-                (ElementType.Electric, ElementType.Water) => 1.5f,
+                (ElementType.Fire, ElementType.Water) => 0.7f,
+                (ElementType.Fire, ElementType.Earth) => 1.3f,
+                (ElementType.Earth, ElementType.Fire) => 0.7f,
+                (ElementType.Earth, ElementType.Electric) => 1.3f,
+                (ElementType.Electric, ElementType.Earth) => 0.7f,
+                (ElementType.Electric, ElementType.Water) => 1.3f,
+                (ElementType.Water, ElementType.Fire) => 1.3f,
+                (ElementType.Water, ElementType.Electric) => 0.7f,
                 _ => 1f
             };
         
