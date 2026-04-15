@@ -92,10 +92,6 @@ namespace Core
         private void Die()
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-            
-            transform.position = Vector3.zero;
-            Current = _stats.BaseHp;
-            
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
         }
 
