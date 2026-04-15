@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -119,6 +120,24 @@ namespace UI
             var mods = current.Recipe.Modifiers;
             for (int i = 0; i < SpellRecipe.MODIFIER_SLOTS; i++)
                 _selectedModifiers[i] = i < mods.Count ? mods[i] : null;
+        }
+
+        public void AccumulateSelectedRunes(Dictionary<RuneDefinitionSO, int> counts)
+        {
+            AddRuneCount(counts, _selectedAbility);
+            AddRuneCount(counts, _selectedElement);
+
+            foreach (var modifier in _selectedModifiers)
+                AddRuneCount(counts, modifier);
+        }
+
+        private static void AddRuneCount(Dictionary<RuneDefinitionSO, int> counts, RuneDefinitionSO rune)
+        {
+            if (rune == null)
+                return;
+
+            counts.TryGetValue(rune, out int current);
+            counts[rune] = current + 1;
         }
 
         // ── Assignment (called by SpellCraftingUI) ──────────────────────────
