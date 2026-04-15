@@ -22,6 +22,12 @@ public class AIRange : AIBrain
     {
         base.Update();
     }
+
+    protected override Blackboard BuildBlackboard()
+    {
+        return null;
+    }
+
     protected override BehaviourTree BuildTree()
     {
         var tree = new BehaviourTree(base._behaviourTreeName);

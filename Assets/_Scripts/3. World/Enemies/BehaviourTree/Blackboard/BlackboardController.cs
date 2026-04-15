@@ -22,7 +22,7 @@ namespace World
         public Blackboard GetBlackboard() => blackboard;
 
         public void RegisterExpert(IExpert expert) => arbiter.RegisterExpert(expert);
-        //public void DeregisterExpert(IExpert expert) => arbiter.DeregisterExpert(expert);
+        public void DeregisterExpert(IExpert expert) => arbiter.DeregisterExpert(expert);
 
         void Update()
         {

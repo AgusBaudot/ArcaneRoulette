@@ -21,6 +21,11 @@ namespace World
             if(expert != null) experts.Add(expert);
         }
 
+        public void DeregisterExpert(IExpert expert)
+        {
+            if(expert != null) experts.Remove(expert);
+        }
+
         public List<Action> BlackboardIteration (Blackboard blackboard) 
         {
             IExpert bestExpert = null;
@@ -167,16 +172,17 @@ namespace World
     }
 
     [SerializeField]
+    [System.Serializable]
     public class BlackboardEntryData : ISerializationCallbackReceiver 
     {
         public string keyName;
-        public AnyValue.ValueType valueType;
-        public AnyValue value;
+        public AnyValue.ValueType ValueType;
+        public AnyValue Value;
 
         public void SetValueOnBlackboard (Blackboard blackboard) 
         {
             var key = blackboard.GetOrRegisterKey(keyName);
-            setValueDispatchTable[value.type](blackboard, key, value);
+            setValueDispatchTable[Value.type](blackboard, key, Value);
         }
 
         static Dictionary<AnyValue.ValueType, Action<Blackboard, BlackboardKey, AnyValue>> setValueDispatchTable = new()
@@ -189,10 +195,11 @@ namespace World
         };
 
         public void OnBeforeSerialize() { }
-        public void OnAfterDeserialize() => value.type = valueType;
+        public void OnAfterDeserialize() => Value.type = ValueType;
     }
 
     [SerializeField]
+    [System.Serializable]
     public struct AnyValue
     {
         public enum ValueType { Int, Float, Bool, String, Vector3}

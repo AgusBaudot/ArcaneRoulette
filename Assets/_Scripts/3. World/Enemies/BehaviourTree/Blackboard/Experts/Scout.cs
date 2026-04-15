@@ -7,7 +7,7 @@ public class Scout : MonoBehaviour, IExpert
 {
    public int GetInsistence(Blackboard blackboard) 
     {
-        // return "value" ? 100 : 0
+        //return "value" ? 100 : 0;  
         return 0;
     }
 
