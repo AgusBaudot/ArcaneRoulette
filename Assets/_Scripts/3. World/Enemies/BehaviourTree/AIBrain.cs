@@ -26,6 +26,10 @@ namespace world
             _agent = GetComponent<NavMeshAgent>();
             _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
+            
+            if (target == null)
+                target = GameObject.FindGameObjectWithTag("Player").transform;
+            
             tree = BuildTree();
         }
         protected virtual void Update()
@@ -35,6 +39,8 @@ namespace world
         protected abstract BehaviourTree BuildTree();
         protected virtual bool IsInLos()
         {
+            if (target == null)
+                target = GameObject.FindGameObjectWithTag("Player").transform;
             if (_los == null || target == null) return false;
             return _los.CheckRange(target) && _los.CheckView(target);
         }

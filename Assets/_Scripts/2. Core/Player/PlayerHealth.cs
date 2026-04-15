@@ -79,6 +79,9 @@ namespace Core
         
         private void Die()
         {
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Room Testing")
+                UnityEngine.SceneManagement.SceneManager.LoadScene("Room Testing");
+            
             transform.position = Vector3.zero;
             Current = _stats.BaseHp;
             
