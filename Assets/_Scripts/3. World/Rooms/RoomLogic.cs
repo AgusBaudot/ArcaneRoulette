@@ -18,7 +18,7 @@ namespace World
         {
             if (transform.childCount == 0)
             {
-                Debug.LogError($"{nameof(RoomLogic)}: All enemies defeated! Rune dropping...");
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             }
         }
 

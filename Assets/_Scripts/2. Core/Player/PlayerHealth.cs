@@ -12,6 +12,7 @@ namespace Core
         
         [SerializeField] private float _hitStopDuration = 0.06f;
         [SerializeField] private float _cameraTrauma = 0.85f;
+        [SerializeField] private Transform _heartsContainer;
         
         //IUpdatable
         public int UpdatePriority => Foundation.UpdatePriority.Player; 
@@ -25,6 +26,8 @@ namespace Core
         {
             _stats = stats;
             Current = stats.BaseHp;
+            
+            PopulateHUD();
         }
 
         private void OnEnable()
@@ -53,6 +56,15 @@ namespace Core
 
             Current = Mathf.Max(0f, Current - amount);
             _iFrameTimer = _stats.IFrameDuration;
+            
+            if (_heartsContainer.transform.childCount > Current)
+            {
+                for (int i = 0; i < _heartsContainer.transform.childCount; i++)
+                {
+                    // If the index is less than Current, it stays on. Otherwise, it turns off.
+                    _heartsContainer.transform.GetChild(i).gameObject.SetActive(i < Current);
+                }
+            }
 
             StopAllCoroutines();
             StartCoroutine(IFrameFlash());
@@ -79,13 +91,20 @@ namespace Core
         
         private void Die()
         {
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Room Testing")
-                UnityEngine.SceneManagement.SceneManager.LoadScene("Room Testing");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             
             transform.position = Vector3.zero;
             Current = _stats.BaseHp;
             
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
+        }
+
+        private void PopulateHUD()
+        {
+            for (int i = 0; i < Current; i++)
+            {
+                _heartsContainer.transform.GetChild(i).gameObject.SetActive(true);
+            }
         }
     }
 }
