@@ -67,6 +67,6 @@ public class AIRange : AIBrain
 
         var go = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
         var proj = go.GetComponent<EnemyProjectile>();
-        proj.Init(dir, 10, 20, Foundation.ElementType.Neutral);
+        proj.Init(dir, 10, 2, Foundation.ElementType.Neutral);
     }
 }

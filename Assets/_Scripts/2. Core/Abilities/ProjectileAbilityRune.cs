@@ -43,16 +43,23 @@ namespace Core
 
         private void Fire(SpellContext ctx)
         {
-            //Raycast floor plane for mouse-aimed direction.
-            var floorPlane = new Plane(Vector3.up, Vector3.zero);
             Ray ray = Helpers.GetCamera().ScreenPointToRay(Input.mousePosition);
 
-            if (!floorPlane.Raycast(ray, out float distance))
+            if (!Physics.Raycast(ray, out var hit, 200f, LayerMask.GetMask("Floor")))
+            {
+                Debug.LogError($"{nameof(ProjectileAbilityRune)}: Raycast Failed");
                 return;
+            }
 
-            Vector3 dir = (ray.GetPoint(distance) - ctx.Runner.transform.position).normalized;
+            Vector3 dir = (hit.point - ctx.Runner.transform.position);
+            dir.y = 0f;
+            dir.Normalize();
+            
             if (dir == Vector3.zero)
+            {
+                Debug.LogError($"{nameof(ProjectileAbilityRune)}: Direction is zero");
                 return;
+            }
 
             var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
             go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");

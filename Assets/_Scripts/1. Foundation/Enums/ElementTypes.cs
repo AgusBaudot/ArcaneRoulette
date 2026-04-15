@@ -4,9 +4,8 @@ namespace Foundation
     {
         Fire,
         Water,
-        Wind,
-        Earth,
         Electric,
+        Earth,
         Neutral
     }
 }

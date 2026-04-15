@@ -16,8 +16,6 @@ namespace world
         [SerializeField] protected NavMeshAgent _agent;
         [SerializeField] protected LineOfSight _los;
         [Header("Common AI Data")]
-        [SerializeField] protected Blackboard blackboard;
-        [SerializeField] protected BlackboardController blackboardController;
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
@@ -28,19 +26,21 @@ namespace world
             _agent = GetComponent<NavMeshAgent>();
             _agent.updateRotation = false;
             _los = GetComponent<LineOfSight>();
-            blackboardController = GetComponent<BlackboardController>();
-            blackboard = blackboardController.GetBlackboard();
+            
+            if (target == null)
+                target = GameObject.FindGameObjectWithTag("Player").transform;
+            
             tree = BuildTree();
-            blackboard = BuildBlackboard();
         }
         protected virtual void Update()
         {
             tree?.Process();
         }
         protected abstract BehaviourTree BuildTree();
-        protected abstract Blackboard BuildBlackboard();
         protected virtual bool IsInLos()
         {
+            if (target == null)
+                target = GameObject.FindGameObjectWithTag("Player").transform;
             if (_los == null || target == null) return false;
             return _los.CheckRange(target) && _los.CheckView(target);
         }
