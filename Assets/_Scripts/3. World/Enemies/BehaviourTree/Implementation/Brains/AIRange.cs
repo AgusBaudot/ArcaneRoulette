@@ -55,7 +55,7 @@ namespace World
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
-            //chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => { return blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen; })));
+            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => { return blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen; })));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, chaseSpeed)));
 
             // --- Patrol ---
