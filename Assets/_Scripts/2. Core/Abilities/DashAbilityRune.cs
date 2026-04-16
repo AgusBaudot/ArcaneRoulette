@@ -78,8 +78,6 @@ namespace Core
                     if (_activeDamagesOnDash)
                     {
                         DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.Source.SpellElement);
-                        if (hit.TryGetComponent<DamageFlash>(out var flash)) 
-                            flash.Flash();
                     }
 
                     // OnHit runes always fire per enemy touched regardless of damage

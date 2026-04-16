@@ -15,9 +15,6 @@ namespace World
         [SerializeField] private Image _ghostFill;
         [SerializeField] private float _ghostSpeed = 2.5f;
 
-        [Header("Feedback Component (Optional)")]
-        [SerializeField] private DamageFlash _damageFlash;
-
         private float _currentHp;
 
         public ElementType Element => _element;
@@ -25,10 +22,6 @@ namespace World
         private void Awake()
         {
             _currentHp = _maxHp;
-            
-            // Auto-grab if it's on the same GameObject and not assigned
-            if (_damageFlash == null) 
-                _damageFlash = GetComponent<DamageFlash>();
         }
 
         private void Update()
@@ -49,9 +42,6 @@ namespace World
             
             if (_hpFill != null)
                 _hpFill.fillAmount = _currentHp / _maxHp;
-
-            if (_damageFlash != null)
-                _damageFlash.Flash();
             
             if (_currentHp <= 0f) Die();
         }

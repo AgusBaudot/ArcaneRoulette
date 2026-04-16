@@ -23,6 +23,11 @@ namespace Core
 
         private float _cooldownRemaining;
 
+        public float CooldownRemaining => _cooldownRemaining;
+        public float CooldownDuration => _recipe.Ability.CooldownDuration;
+        public float CooldownProgress => CooldownDuration > 0
+            ? 1f - (_cooldownRemaining / CooldownDuration)
+            : 1f;
         public SpellRecipe Recipe => _recipe;
         public AbilityType AbilityType => _recipe.Ability.Type;
         public bool IsHoldAbility => false;

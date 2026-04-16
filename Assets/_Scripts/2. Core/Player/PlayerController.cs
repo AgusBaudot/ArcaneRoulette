@@ -76,12 +76,6 @@ namespace Core
             UpdateManager.Instance?.Unregister((IFixedUpdatable)this);
         }
 
-        private void OnValidate()
-        {
-            //if (!_playerStats)
-               // Debug.LogWarning("PlayerStats SO must be assigned.", this);
-        }
-
         public void Tick(float dt)
         {
             ReadInput();
@@ -190,9 +184,11 @@ namespace Core
         private void OnSpellEquipped(SpellEquippedEvent evt)
         {
             if ((int)evt.Slot < _spellSlots.Length)
-                _spellSlots[(int)evt.Slot] = evt.Instance;
+                _spellSlots[(int)evt.Slot] = evt.Instance as SpellInstance;
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
+
+        public SpellInstance GetSlot(int index) => _spellSlots[index];
     }
 }

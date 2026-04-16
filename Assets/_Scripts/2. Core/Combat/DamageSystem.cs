@@ -14,7 +14,8 @@ namespace Core
             IDamageable target,
             GameObject targetObject,
             int baseDamage,
-            ElementType attackerElement)
+            ElementType attackerElement,
+            DamageJuice juice)
         {
             if (target == null)
                 return;
@@ -23,8 +24,16 @@ namespace Core
             int final = Mathf.Max(1, Mathf.RoundToInt(baseDamage * multiplier));
 
             target.TakeDamage(final, attackerElement);
+
+            CameraShake.AddTrauma(juice.CameraShake);
+            HitStop.Apply(juice.HitStop);
+            if (targetObject.TryGetComponent<DamageFlash>(out var flash))
+                flash.Flash(juice.FlashDuration);
         }
         
+        public static void Deal(IDamageable target, GameObject targetObject, int baseDamage, ElementType attackerElement)
+            => Deal(target, targetObject, baseDamage, attackerElement, new DamageJuice(0.06f, 0.7f, 0.07f));
+
         /// <summary>
         /// Overload for callers that already have IDamageable and no GameObject needed
         /// </summary>
@@ -35,7 +44,7 @@ namespace Core
             IDamageable target,
             int baseDamage,
             ElementType attackerElement)
-            => Deal(target, null, baseDamage, attackerElement);
+            => Deal(target, null, baseDamage, attackerElement, new DamageJuice(0.06f, 0.7f, 0.07f));
 
         //PROTOTYPE: flat hardcoded table.
         //Replace with enemy.GetComponent<ElementalResistanceMap>() post-prototype.
