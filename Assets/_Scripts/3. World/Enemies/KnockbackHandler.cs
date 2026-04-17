@@ -1,6 +1,6 @@
 using System.Collections;
-using UnityEngine;
 using Foundation;
+using UnityEngine;
 
 namespace World
 {
@@ -8,6 +8,7 @@ namespace World
     public class KnockbackHandler : MonoBehaviour, IKnockbackable
     {
         [SerializeField] private float _drag = 12f; //How fast it bleeds off
+        [SerializeField] private float _maxKnockbackDuration = 2f;
         
         public bool IsKnockedBack { get; private set; }
 
@@ -25,11 +26,20 @@ namespace World
         private IEnumerator Run(Vector3 direction, float force)
         {
             IsKnockedBack = true;
+            
+            //Ensure we aren't knocking them directly into the floor/sky
+            direction.y = 0;
+            
             _rb.velocity = direction.normalized * force; //Set directly, don't add - cleaner reset
 
-            while (_rb.velocity.sqrMagnitude > 0.05f)
+            float timeElapsed = 0f;
+            
+            while (new Vector3(_rb.velocity.x, 0, _rb.velocity.z).sqrMagnitude > 0.05f && timeElapsed < _maxKnockbackDuration)
             {
-                _rb.velocity = Vector3.MoveTowards(_rb.velocity, Vector3.zero, _drag * Time.deltaTime);
+                timeElapsed += Time.deltaTime;
+                Vector3 horizontalVel = Vector3.MoveTowards(new Vector3(_rb.velocity.x, 0, _rb.velocity.z), Vector3.zero, _drag * Time.deltaTime);
+                
+                _rb.velocity = new Vector3(horizontalVel.x, _rb.velocity.y, horizontalVel.z);
                 yield return null;
             }
             

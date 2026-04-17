@@ -34,6 +34,9 @@ namespace World
                 else if (go.TryGetComponent<BasicRangedEnemy>(out var ranged))
                     ranged.Init(playerCol.transform);
                 
+                else if (go.TryGetComponent<BasicBruteEnemy>(out var brute))
+                    ranged.Init(playerCol.transform);
+                
                 Destroy(spawnPoint.gameObject);
             }
 

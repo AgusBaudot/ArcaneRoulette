@@ -109,8 +109,8 @@ namespace Core
 
         private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
         {
-            //Debug.LogWarning("Core references UI, change later");
-            if (spell == null || SpellCraftingUI.IsUIOpen) 
+            //If time is 0, game is paused. Ignore input.
+            if (spell == null || Time.deltaTime == 0) 
                 return;
 
             if (spell is IHoldAbility hold)
@@ -189,6 +189,13 @@ namespace Core
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
 
-        public SpellInstance GetSlot(int index) => _spellSlots[index];
+        //Protect against IndexOutOfRange
+        public SpellInstance GetSlot(int index)
+        {
+            if (index < 0 || index >= _spellSlots.Length)
+                return null;
+            
+            return _spellSlots[index];
+        }
     }
 }
