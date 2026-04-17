@@ -1,6 +1,5 @@
 using UnityEngine;
 using Foundation;
-using UnityEditor.Rendering;
 
 namespace Core
 {
