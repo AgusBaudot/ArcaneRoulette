@@ -1,5 +1,3 @@
-
-
 namespace Foundation
 {
 	public struct DamageJuice

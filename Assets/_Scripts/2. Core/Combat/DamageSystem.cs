@@ -1,5 +1,6 @@
 using UnityEngine;
 using Foundation;
+using UnityEditor.Rendering;
 
 namespace Core
 {
@@ -10,6 +11,11 @@ namespace Core
     /// </summary>
     public static class DamageSystem
     {
+        //These could easily be moved to a global CombatSettings ScriptableObject later
+        private const float MULTIPLIER_WEAK = 1.3f;
+        private const float MULTIPLIER_RESISTANT = 0.7f;
+        private const float MULTIPLIER_IMMUNE = 0.0f;
+
         public static void Deal(
             IDamageable target,
             GameObject targetObject,
@@ -20,10 +26,21 @@ namespace Core
             if (target == null)
                 return;
 
-            float multiplier = GetResistance(attackerElement, GetDefenderElement(targetObject));
-            int final = Mathf.Max(1, Mathf.RoundToInt(baseDamage * multiplier));
+            float finalDamage = baseDamage;
 
-            target.TakeDamage(final, attackerElement);
+            if (target is MonoBehaviour mb && mb.TryGetComponent(out IElementalResistance resistance))
+            {
+                Effectiveness effectiveness = resistance.GetEffectiveness(attackerElement);
+                finalDamage = CalculateElementalDamage(baseDamage, effectiveness);
+
+                //Maybe trigger specific juice based on effectiveness level?
+                //e.g. larger flash and heavier hit-stop if attack is WEAK.
+            }
+
+            //float multiplier = GetResistance(attackerElement, GetDefenderElement(targetObject));
+            //int final = Mathf.Max(1, Mathf.RoundToInt(baseDamage * multiplier));
+
+            target.TakeDamage((int)finalDamage, attackerElement);
 
             CameraShake.AddTrauma(juice.CameraShake);
             HitStop.Apply(juice.HitStop);
@@ -49,7 +66,9 @@ namespace Core
         //PROTOTYPE: flat hardcoded table.
         //Replace with enemy.GetComponent<ElementalResistanceMap>() post-prototype.
         private static float GetResistance(ElementType attacker, ElementType defender)
-            => (attacker, defender) switch
+        {
+
+            return (attacker, defender) switch
             {
                 (ElementType.Fire, ElementType.Water) => 0.7f,
                 (ElementType.Fire, ElementType.Earth) => 1.3f,
@@ -61,6 +80,7 @@ namespace Core
                 (ElementType.Water, ElementType.Electric) => 0.7f,
                 _ => 1f
             };
+        }
         
         //PROTOTYPE: reads ElementType from a component on the target.
         // Enemies expose their element via IElemental - if absent, Neutral.
@@ -73,6 +93,17 @@ namespace Core
                 return el.Element;
 
             return ElementType.Neutral;
+        }
+
+        private static float CalculateElementalDamage(float baseDamage, Effectiveness tier)
+        {
+            return tier switch
+            {
+                Effectiveness.Weak => baseDamage * MULTIPLIER_WEAK,
+                Effectiveness.Resistant => baseDamage * MULTIPLIER_RESISTANT,
+                Effectiveness.Immune => baseDamage * MULTIPLIER_IMMUNE,
+                _ => 1f
+            };
         }
     }
 }
