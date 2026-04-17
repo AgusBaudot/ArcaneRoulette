@@ -21,6 +21,7 @@ namespace World
         protected override void Awake()
         {
             base.Awake();
+            waypoints.Clear();
             waypoints.Add(target);
         }
         protected override void Update()
