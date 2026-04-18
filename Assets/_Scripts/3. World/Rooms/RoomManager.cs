@@ -48,7 +48,7 @@ public class RoomManager : MonoBehaviour
     {
         public int roomId;
     }
-    private void Activate()
+    private void Activate(Collider playerCollider)
     {
         
         if(_state == RoomState.Idle) 
@@ -94,11 +94,11 @@ public class RoomManager : MonoBehaviour
         EventBus.Publish(new RoomClearEvent { roomId = _roomId });
     }
 
-    public void ExitRoom() 
+    public void ExitRoom(Collider playerCollider) 
     {
        
     }
-    public void ContinueRoom() 
+    public void ContinueRoom(Collider playerCollider) 
     {
         _state = RoomState.Unlocked;
     }
