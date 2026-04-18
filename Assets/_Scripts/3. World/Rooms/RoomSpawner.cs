@@ -33,7 +33,7 @@ namespace World
         {
             if (_dropPool == null)
             {
-                Debug.LogWarning($"RoomSpawner {_roomId}: No drop pool assigned.");
+                Debug.LogWarning("RoomSpawner " + _roomId + ": No drop pool assigned.");
                 return;
             }
 
