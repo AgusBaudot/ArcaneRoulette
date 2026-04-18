@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace world 
+namespace World 
 {
     public class UntilFailNode : Node
     {

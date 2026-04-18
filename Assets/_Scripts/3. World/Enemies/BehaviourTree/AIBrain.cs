@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using World;
+using static Unity.VisualScripting.Metadata;
 
-namespace world 
+namespace World 
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
@@ -16,6 +17,7 @@ namespace world
         [SerializeField] protected NavMeshAgent _agent;
         [SerializeField] protected LineOfSight _los;
         [Header("Common AI Data")]
+        [SerializeField] protected Blackboard blackboard;
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
@@ -25,11 +27,14 @@ namespace world
             _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _agent.updateRotation = false;
+            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            _agent.avoidancePriority = Random.Range(0, 100);
             _los = GetComponent<LineOfSight>();
-            
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
-            
+
+            var controller = GetComponent<BlackboardController>();
+            blackboard = controller.GetBlackboard();
             tree = BuildTree();
         }
         protected virtual void Update()
@@ -45,10 +50,13 @@ namespace world
             return _los.CheckRange(target) && _los.CheckView(target);
         }
 
+
+
+        /*
         protected virtual bool IsInRange(float attackRange) 
         {
             return Vector3.Distance(transform.position, target.position) <= attackRange;
-        }
+        }*/
     }
 
     public class BehaviourTree : Node
@@ -57,6 +65,13 @@ namespace world
 
         public override NodeState Process()
         {
+
+            if (_children.Count == 0)
+                return NodeState.Failure;
+
+            return _children[0].Process();
+
+            /*
             while (_currentChild < _children.Count) 
             {
                 var status = _children[_currentChild].Process();
@@ -67,8 +82,17 @@ namespace world
                 _currentChild++;
             }
             //Reset(); //solo test
-            return NodeState.Success;
+            Debug.Log("Termino???");
+            return NodeState.Success;*/
         }
+        /*
+        public override NodeState Process()
+        {
+            NodeState status = _children[_currentChild].Process();
+
+            _currentChild = (_currentChild + 1) % _children.Count;
+            return NodeState.Running;
+        }*/
     }
 }
 

@@ -33,6 +33,8 @@ namespace World
         [SerializeField] private bool _canAttack;
         [SerializeField] private int _damageAmount = 10;
 
+        public event Action OnDeath;
+
         private float _fireInterval = 2f;
         private const float _defaultFireInterval = 2f;
         private float _currentHp;
@@ -88,6 +90,7 @@ namespace World
         private void Die()
         {
            //EventBus.Publish(new EnemyDiedEvent()); - wirte this when EventBus is ready
+           OnDeath?.Invoke();
            Destroy(gameObject);
         }
 

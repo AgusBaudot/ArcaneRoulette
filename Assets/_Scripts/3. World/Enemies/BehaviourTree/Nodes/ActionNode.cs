@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace world 
+namespace World 
 {
     public class ActionNode : IStrategy
     {

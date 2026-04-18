@@ -1,17 +1,19 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace world 
+namespace World 
 {
     public class Chase : IStrategy
     {
         readonly Transform _target;
+        readonly Transform _entity;
         readonly NavMeshAgent _agent;
         readonly float _chaseSpeed;
 
-        public Chase(Transform target, NavMeshAgent agent, float chaseSpeed) 
+        public Chase(Transform target, Transform entity ,NavMeshAgent agent, float chaseSpeed) 
         {
             this._target = target;
+            this._entity = entity;
             this._agent = agent;
             this._chaseSpeed = chaseSpeed;
         }
@@ -21,7 +23,10 @@ namespace world
                 return Node.NodeState.Failure;
 
             _agent.speed = _chaseSpeed;
-            _agent.SetDestination(_target.position);
+            Vector3 offset = (_entity.position - _target.position).normalized * 1; //attackRange
+            Vector3 targetPos = _target.position + offset;
+
+            _agent.SetDestination(targetPos);
 
             if (_agent.pathPending)
                 return Node.NodeState.Running;
@@ -31,8 +36,7 @@ namespace world
 
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
-                Debug.Log("SUCCESS");
-                return Node.NodeState.Failure;
+                return Node.NodeState.Failure; 
             }
 
             return Node.NodeState.Running;

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace world { 
+namespace World 
+{ 
 
     public abstract class Node
     {  
