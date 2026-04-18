@@ -90,8 +90,9 @@ public class RoomManager : MonoBehaviour
             _state = RoomState.Cleared;
             Destroy(_door1.gameObject);
             Destroy(_door2.gameObject);
+            EventBus.Publish(new RoomClearEvent { roomId = _roomId });
         }
-        EventBus.Publish(new RoomClearEvent { roomId = _roomId });
+        
     }
 
     public void ExitRoom(Collider playerCollider) 
