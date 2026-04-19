@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 using World;
+using static UnityEngine.EventSystems.EventTrigger;
 using static UnityEngine.GraphicsBuffer;
 
 public class RoomManager : MonoBehaviour
@@ -20,7 +21,7 @@ public class RoomManager : MonoBehaviour
     [SerializeField] private Transform[] _spawnPoints;
     [SerializeField] private RoomDoor _activateDoor;
     [SerializeField] private RoomDoor _ExitDoor;
-    [SerializeField] private RoomDoor _ContinueDoor;
+    [SerializeField] public RoomDoor _ContinueDoor;
     [SerializeField] private GameObject _door1;
     [SerializeField] private GameObject _door2;
     [SerializeField] private RoomState _state;
@@ -31,13 +32,14 @@ public class RoomManager : MonoBehaviour
     [SerializeField] public int _enemyMeleeCount;
     [SerializeField] private GameObject _enemyPrefabRange;
     [SerializeField] public int _enemyRangeCount;
+    [SerializeField] int enemiesAlive = 0;
 
-    int enemiesAlive = 0;
 
+    public Transform GetPlayerSpawnEntry() => _playerSpawnEntry;
+    public Transform GetPlayerSpawnExit() => _playerSpawnExit;
     public RoomState GetRoomState() => _state;
     private void Start()
     {
-        //_player = GameObject.FindGameObjectWithTag("Player");
         _activateDoor.OnPlayerEnter += Activate;
         _ExitDoor.OnPlayerEnter += ExitRoom;
         _ContinueDoor.OnPlayerEnter += ContinueRoom;
@@ -69,8 +71,9 @@ public class RoomManager : MonoBehaviour
             {
                 foreach (var spawnPoint in _spawnPoints)
                 {
-                    Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
+                    var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
                     enemiesAlive++;
+                    enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
                 }
             }
 
