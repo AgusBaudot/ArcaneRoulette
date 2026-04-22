@@ -1,13 +1,14 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using Foundation;
 
 namespace Core
 {
     public class PlayerHealth : MonoBehaviour, IDamageable, IUpdatable
     {
-        public float Current {get; private set;}
+        public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
         
         [SerializeField] private float _hitStopDuration = 0.06f;
@@ -21,22 +22,23 @@ namespace Core
         
         private PlayerStats _stats;
         private float _iFrameTimer;
-
         public void Initialize(PlayerStats stats)
         {
             _stats = stats;
-            Current = stats.BaseHp;
-            
-            PopulateHUD();
+            GameStateManager.RunState.SetMaxHp(_stats.BaseHp);
+            GameStateManager.RunState.SetHp(_stats.BaseHp);
+            UpdateUI();
         }
 
         private void OnEnable()
         {
             UpdateManager.Instance.Register(this);
+            GameStateManager.RunState.OnHpChanged += OnHpChanged;
         }
 
         private void OnDisable()
         {
+            GameStateManager.RunState.OnHpChanged -= OnHpChanged;
             UpdateManager.Instance?.Unregister(this);
         }
 
@@ -50,22 +52,14 @@ namespace Core
         {
             if (IsInvincible) return;
 
-            Current = Mathf.Max(0f, Current - amount);
+            float newHp = GameStateManager.RunState.CurrentHp - amount;
+            GameStateManager.RunState.SetHp(newHp);
             _iFrameTimer = _stats.IFrameDuration;
-            
-            if (_heartsContainer.transform.childCount > Current)
-            {
-                for (int i = 0; i < _heartsContainer.transform.childCount; i++)
-                {
-                    // If the index is less than Current, it stays on. Otherwise, it turns off.
-                    _heartsContainer.transform.GetChild(i).gameObject.SetActive(i < Current);
-                }
-            }
 
             StopAllCoroutines();
             StartCoroutine(IFrameFlash());
 
-            if (Current <= 0f) Die();
+            if (GameStateManager.RunState.CurrentHp <= 0f) Die();
         }
         
         private IEnumerator IFrameFlash()
@@ -91,11 +85,29 @@ namespace Core
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
         }
 
-        private void PopulateHUD()
+        private void OnHpChanged(float current, float max)
         {
-            for (int i = 0; i < Current; i++)
+            UpdateUI();
+        }
+        
+        private void UpdateUI()
+        {
+            float current = GameStateManager.RunState.CurrentHp;
+            float max = GameStateManager.RunState.MaxHp;
+            for(int i = 0; i < _heartsContainer.childCount; i++)
             {
-                _heartsContainer.transform.GetChild(i).gameObject.SetActive(true);
+                Transform child = _heartsContainer.GetChild(i);
+                bool active = i < max;
+                child.gameObject.SetActive(active);
+                if (active)
+                {
+                    Image img = child.GetComponent<Image>();
+                    if (img != null)
+                    {
+                        float fill = Mathf.Clamp01(current - i);
+                        img.fillAmount = fill;
+                    }
+                }
             }
         }
     }
