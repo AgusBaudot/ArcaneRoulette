@@ -33,14 +33,14 @@ public class FloorManager : MonoBehaviour
         SetDificult();
     }
 
-    private void StartRun()
+    private void StartRun(Collider other)
     {
         _currentRoom = CreateAndAddRoom();
         TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
         BindRoom(_currentRoom);
     }
 
-    private void ContinueRoom()
+    private void ContinueRoom(Collider other)
     {
         if(_roomIndex >= MaxRooms) 
         {
