@@ -24,10 +24,16 @@ namespace Foundation
             StartCoroutine(DoFlash());
         }
 
-        private IEnumerator DoFlash()
+        public void Flash(float duration)
+        {
+            StopAllCoroutines();
+            StartCoroutine(DoFlash());
+        }
+
+        private IEnumerator DoFlash(float duration = 0)
         {
             foreach (var r in _renderers) r.color = _flashColor;
-            yield return new WaitForSecondsRealtime(_duration); // real time - survives hitstop
+            yield return new WaitForSecondsRealtime(duration == 0 ? _duration : duration); // real time - survives hitstop
             for (int i = 0; i < _renderers.Length; i++)
                 _renderers[i].color = _originalColors[i];
         }

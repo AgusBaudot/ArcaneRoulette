@@ -37,10 +37,7 @@ namespace Core
                     break;
                 
                 // _target.TakeDamage(_damagePerTick, _element);
-                DamageSystem.Deal(_target, _damagePerTick, _element);
-                
-                if (TryGetComponent<DamageFlash>(out var flash))
-                    flash.Flash();
+                DamageSystem.Deal(_target, gameObject, _damagePerTick, _element);
             }
             
             _tickRoutine = null;

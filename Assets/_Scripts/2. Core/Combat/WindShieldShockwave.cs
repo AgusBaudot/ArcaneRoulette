@@ -55,9 +55,6 @@ namespace Core
                     
                     _enemiesHit.Add(damageable);
                     // damageable.TakeDamage(2, ElementType.Wind);
-
-                    if (other.TryGetComponent<DamageFlash>(out var flash))
-                        flash.Flash();
                     
                     Debug.Log("Might want to check separately to see if knockbackable is not damageable");
                     if (other.TryGetComponent<IKnockbackable>(out var kb))

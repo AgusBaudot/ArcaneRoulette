@@ -49,10 +49,6 @@ namespace Core
         public void TakeDamage(int amount, ElementType elementType)
         {
             if (IsInvincible) return;
-            
-            //Juice
-            CameraShake.AddTrauma(_cameraTrauma);
-            HitStop.Apply(_hitStopDuration);
 
             Current = Mathf.Max(0f, Current - amount);
             _iFrameTimer = _stats.IFrameDuration;

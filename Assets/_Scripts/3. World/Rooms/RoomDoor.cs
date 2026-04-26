@@ -5,12 +5,12 @@ namespace World
 {
     public class RoomDoor : MonoBehaviour
     {
-        public event Action OnPlayerEnter;
+        public event Action<Collider> OnPlayerEnter;
         
         private void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player"))
-                OnPlayerEnter?.Invoke();
+                OnPlayerEnter?.Invoke(other);
         }
     }
 }

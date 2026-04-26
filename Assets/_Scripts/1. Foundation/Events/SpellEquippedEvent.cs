@@ -1,13 +1,11 @@
-using Core;
-
 namespace Foundation
 {
     public struct SpellEquippedEvent
     {
         public readonly SlotIndex Slot;
-        public readonly SpellInstance Instance;
+        public readonly ISpellSlot Instance;
 
-        public SpellEquippedEvent(SlotIndex slot, SpellInstance instance)
+        public SpellEquippedEvent(SlotIndex slot, ISpellSlot instance)
         {
             Slot = slot;
             Instance = instance;

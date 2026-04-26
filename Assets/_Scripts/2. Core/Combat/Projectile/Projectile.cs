@@ -69,12 +69,6 @@ namespace Core
             // damageable.TakeDamage(_baseDamage, element);
             DamageSystem.Deal(damageable, damageableGo, _baseDamage, _source?.SpellElement ?? ElementType.Neutral);
 
-            if (other.TryGetComponent<DamageFlash>(out var flash))
-                flash.Flash();
-
-            HitStop.Apply(_hitStopDuration);
-            CameraShake.AddTrauma(_cameraTrauma);
-
             _source?.TriggerOnHit(
                 transform.position,
                 damageableGo,

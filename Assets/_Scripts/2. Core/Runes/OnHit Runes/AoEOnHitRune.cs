@@ -35,9 +35,6 @@ namespace Core
 
                 DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement);
                 
-                if (hit.TryGetComponent<DamageFlash>(out var flash))
-                    flash.Flash();
-                
                 Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
                 if (pushDir == Vector3.zero)
                 {
@@ -51,8 +48,6 @@ namespace Core
             }
 
             _isExpanding = false;
-
-            CameraShake.AddTrauma(0.2f);
         }
     }
 }
