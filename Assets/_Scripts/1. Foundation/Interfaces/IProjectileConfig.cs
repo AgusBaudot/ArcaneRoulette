@@ -5,5 +5,6 @@ namespace Foundation
         int PierceCount { set; }
         int BounceCount { set; }
         float SizeMultiplier { set; }
+        int HomingCount { set; }
     }
 }

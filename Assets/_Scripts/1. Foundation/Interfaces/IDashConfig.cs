@@ -8,5 +8,6 @@ namespace Foundation
         int BounceCount { set; }
         int ReflectCount { set; }
         float ReflectSpread { set; }
+        int HomingCount { set; }
     }
 }

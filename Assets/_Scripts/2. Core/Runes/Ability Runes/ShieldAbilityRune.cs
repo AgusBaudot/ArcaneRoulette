@@ -21,6 +21,7 @@ namespace Core
         bool IShieldConfig.ReflectsProjectiles { set => _activeReflectsProjectiles = value; }
         int IShieldConfig.ReflectCount { set => _activeReflectCount = value; }
         float IShieldConfig.ReflectSpread { set => _activeReflectSpread = value; }
+        int IShieldConfig.HomingCount { set => _activeHomingCount = value; }
         
         //Private backing fields - written by cast runes via the interface
         private float _activeRadiusMultiplier;
@@ -28,6 +29,7 @@ namespace Core
         private bool _activeReflectsProjectiles;
         private int _activeReflectCount;
         private float _activeReflectSpread;
+        private int _activeHomingCount = 0;
         
         //One visual per HoldSpellInstance - keyed by ISpellSource identity
         //Cleared on eun end when SpellInstances are dismantled
@@ -84,6 +86,9 @@ namespace Core
                 damageZone.Active = _activeAllowEnemyThrough;
             
             visual.SetActive(true);
+
+            if (_activeHomingCount > 0)
+                SpawnHomingFromShield(ctx);
         }
 
         public override void StartHold(SpellContext ctx)
@@ -133,6 +138,7 @@ namespace Core
             _activeReflectsProjectiles = false;
             _activeReflectCount = 0;
             _activeReflectSpread = 0f;
+            _activeHomingCount = 0;
         }
 
         public override void Activate(SpellContext ctx)
@@ -145,6 +151,29 @@ namespace Core
             if (_visuals.TryGetValue(source, out var visual) && visual != null)
                 Destroy(visual);
             _visuals.Remove(source);
+        }
+
+        private void SpawnHomingFromShield(SpellContext ctx)
+        {
+            if (ctx.Source is not SpellInstance si)
+                return;
+            
+            Vector3 dir = ctx.Runner.transform.forward;
+
+            foreach (var castRune in si.Recipe.CastRunes())
+            {
+                if (castRune is not HomingCastRune homing)
+                    continue;
+                
+                homing.SpawnHomingProjectiles(
+                    _activeHomingCount,
+                    ctx.Runner.transform.position,
+                    dir,
+                    ctx.Source.SpellElement,
+                    ctx.Runner);
+
+                break;
+            }
         }
     }
 }

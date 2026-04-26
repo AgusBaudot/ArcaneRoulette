@@ -7,5 +7,6 @@ namespace Foundation
         bool ReflectsProjectiles { set; }
         int ReflectCount { set; }
         float ReflectSpread { set; }
+        int HomingCount { set; }
     }
 }

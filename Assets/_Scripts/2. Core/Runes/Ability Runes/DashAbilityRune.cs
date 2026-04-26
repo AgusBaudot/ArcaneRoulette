@@ -15,6 +15,7 @@ namespace Core
         int IDashConfig.BounceCount { set =>  _activeBounceCount = value; }
         int IDashConfig.ReflectCount { set => _activeReflectCount = value; }
         float IDashConfig.ReflectSpread { set => _activeReflectSpread = value; }
+        int IDashConfig.HomingCount { set => _activeHomingCount = value; }
         
         [SerializeField] private float _dashSpeed = 20f;
         [SerializeField] private float _baseDashDuration = 0.2f;
@@ -37,6 +38,7 @@ namespace Core
         private int _activeBounceCount;
         private int _activeReflectCount;
         private float _activeReflectSpread;
+        private int _activeHomingCount;
 
         public override void Activate(SpellContext ctx)
         {
@@ -59,6 +61,10 @@ namespace Core
             float elapsed = 0f;
 
             var hitEnemies = new HashSet<GameObject>();
+            
+            //Spawn homing projectiles before dash begins
+            if (_activeHomingCount > 0)
+                SpawnHomingFromDash(ctx, dir);
             
             while (elapsed < duration)
             {
@@ -99,6 +105,27 @@ namespace Core
             player.Rigidbody.velocity = Vector3.zero;
             player.SetCanMove(true);
             player.Hurtbox.SetActive(true);
+        }
+
+        private void SpawnHomingFromDash(SpellContext ctx, Vector3 dir)
+        {
+            if (ctx.Source is not SpellInstance si)
+                return;
+
+            foreach (var castRune in si.Recipe.CastRunes())
+            {
+                if (castRune is not HomingCastRune homing)
+                    continue;
+                
+                homing.SpawnHomingProjectiles(
+                    _activeHomingCount,
+                    ctx.Runner.transform.position,
+                    dir,
+                    ctx.Source.SpellElement,
+                    ctx.Runner);
+
+                break;
+            }
         }
 
         private void ReflectNearbyProjectiles(PlayerController player, Vector3 dashDir, SpellContext ctx,
@@ -153,6 +180,7 @@ namespace Core
             _activeBounceCount = 0;
             _activeReflectCount = 0;
             _activeReflectSpread = 0;
+            _activeHomingCount = 0;
         }
 
         public override void StartHold(SpellContext ctx)

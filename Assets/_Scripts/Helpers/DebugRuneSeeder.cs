@@ -13,16 +13,19 @@ public sealed class DebugRuneSeeder : MonoBehaviour
     [SerializeField] private ElementRuneSO _fireRune;
     [SerializeField] private ElementRuneSO _waterRune;
     [SerializeField] private ElementRuneSO _lightningRune;
+    [SerializeField] private ElementRuneSO _earthRune;
 
     [Header("Cast Runes")]
     [SerializeField] private PiercingCastRune _piercingRune;
     [SerializeField] private BounceCastRune _bounceRune;
     [SerializeField] private AmplifyCastRune _amplifyRune;
+    [SerializeField] private HomingCastRune _homingRune;
 
     [Header("OnHit Runes")] 
     [SerializeField] private AoEOnHitRune _aoeRune;
     [SerializeField] private KnockbackOnHitRune _knockbackRune;
     [SerializeField] private DoTOnHitRune _dotRune;
+    [SerializeField] private DebuffOnHitRune _debuffRune;
 
     [Header("Inventory Seed Count")]
     [SerializeField] private int _runeInventoryCount = 9;
@@ -105,16 +108,19 @@ public sealed class DebugRuneSeeder : MonoBehaviour
         s.AddRune(_fireRune, _runeInventoryCount);
         s.AddRune(_waterRune, _runeInventoryCount);
         s.AddRune(_lightningRune, _runeInventoryCount);
+        s.AddRune(_earthRune, _runeInventoryCount);
         
         // Cast runes
         s.AddRune(_piercingRune, _runeInventoryCount);
         s.AddRune(_bounceRune, _runeInventoryCount);
         s.AddRune(_amplifyRune, _runeInventoryCount);
+        s.AddRune(_homingRune, _runeInventoryCount);
 
         // OnHit runes
         s.AddRune(_aoeRune, _runeInventoryCount);
         s.AddRune(_knockbackRune, _runeInventoryCount);
         s.AddRune(_dotRune, _runeInventoryCount);
+        s.AddRune(_debuffRune, _runeInventoryCount);
     }
 
     // ── Slot crafting ────────────────────────────────────────────────────────

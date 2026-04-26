@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
 
@@ -23,11 +24,13 @@ namespace Core
         int IProjectileConfig.PierceCount {set => _activePierceCount = value;}
         int IProjectileConfig.BounceCount {set => _activeBounceCount = value;}
         float IProjectileConfig.SizeMultiplier {set => _activeSizeMultiplier = value;}
+        int IProjectileConfig.HomingCount {set => _activeHomingCount = value;}
         
         //Private backing fields - written by cast runes via the interface
         private int _activePierceCount = 0;
         private int _activeBounceCount = 0;
         private float _activeSizeMultiplier = 1f;
+        private int _activeHomingCount = 0;
         
         public override void Activate(SpellContext ctx)
         {
@@ -76,8 +79,30 @@ namespace Core
                 if (col != null)
                     col.radius *= _activeSizeMultiplier / 2;
             }
+
+            if (_activeHomingCount > 0)
+                SpawnHomingProjectiles(ctx, dir);
         }
-        
+
+        private void SpawnHomingProjectiles(SpellContext ctx, Vector3 dir)
+        {
+            if (ctx.Source is not SpellInstance si) return;
+
+            foreach (var castRune in si.Recipe.CastRunes())
+            {
+                if (castRune is not HomingCastRune homing) continue;
+
+                homing.SpawnHomingProjectiles(
+                    _activeHomingCount,
+                    ctx.Runner.transform.position,
+                    dir,
+                    ctx.Source.SpellElement,
+                    ctx.Runner);
+                
+                break;
+            }
+        }
+
         //Reset must happen at the start of every Activate so stale values
         //never carry over between casts. Called before FireCastRunes
         public override void ResetActiveConfig()
@@ -85,6 +110,7 @@ namespace Core
             _activePierceCount = 0;
             _activeBounceCount = 0;
             _activeSizeMultiplier = 1f;
+            _activeHomingCount = 0;
         }
 
         //Hold lifecycle - never called, Projectile is not a hold ability
