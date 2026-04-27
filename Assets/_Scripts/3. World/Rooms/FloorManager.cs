@@ -18,7 +18,6 @@ public class FloorManager : MonoBehaviour
     [SerializeField] private int MaxRooms;
     [SerializeField] private RoomManager _roomPrefab;
     [SerializeField] private RoomDoor _startRoom;
-    [SerializeField] private NavMeshSurface navMeshSurface;
     [SerializeField] private RunDificult rundificult;
     private int extraenemies;
     private RoomManager _currentRoom;
@@ -54,7 +53,6 @@ public class FloorManager : MonoBehaviour
             _currentRoom._enemyRangeCount = _roomIndex + extraenemies;
             TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
             BindRoom(_currentRoom);
-            navMeshSurface.transform.position = _currentRoom.transform.position;
         }   
     }
 

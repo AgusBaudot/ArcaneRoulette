@@ -11,7 +11,7 @@ namespace World
 
         private void Start()
         {
-            _doorCollider.OnPlayerEnter += OnPlayerEnter;
+            //_doorCollider.OnPlayerEnter += OnPlayerEnter;
         }
 
         private void Update()
