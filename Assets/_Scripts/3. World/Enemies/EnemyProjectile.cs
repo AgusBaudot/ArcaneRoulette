@@ -7,6 +7,7 @@ namespace World
     public sealed class EnemyProjectile : BaseProjectile, IEnemyProjectile
     {
         public override bool IsEnemy => true;
+        public override ElementType SpellElement => _element;
         public int Damage => _damage;
         public ElementType Element => _element;
         public GameObject Owner => _owner;

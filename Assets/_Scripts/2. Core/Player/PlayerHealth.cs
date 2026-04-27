@@ -5,7 +5,7 @@ using Foundation;
 
 namespace Core
 {
-    public class PlayerHealth : MonoBehaviour, IDamageable, IUpdatable
+    public class PlayerHealth : MonoBehaviour, IUpdatable
     {
         public float Current {get; private set;}
         public bool IsInvincible => _iFrameTimer > 0f;

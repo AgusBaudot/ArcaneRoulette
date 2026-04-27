@@ -15,6 +15,16 @@ namespace Core
         public PlayerHealth Health => _health;
         public PlayerEnergy Energy => _energy;
         public GameObject Hurtbox => _hurtBox;
+        //True when a HoldSpellInstance with an active ShieldState is the last-pressed hold.
+        public bool IsShielding
+        {
+            get
+            {
+                if (_heldHoldSlots.Count == 0) return false;
+                var slot = _spellSlots[_heldHoldSlots[^1]];
+                return slot?.ShieldState?.Active == true;
+            }
+        }
         
         //IUpdatable
         public int UpdatePriority => Foundation.UpdatePriority.Player;
@@ -188,6 +198,8 @@ namespace Core
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
+        
+        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
 
         //Protect against IndexOutOfRange
         public SpellInstance GetSlot(int index)
@@ -196,6 +208,24 @@ namespace Core
                 return null;
             
             return _spellSlots[index];
+        }
+
+        /// <summary>
+        /// Force-stops the active shield any fully deplete energy.
+        /// Called by world hazards. Does not resume any suspended hold spells - intentional.
+        /// </summary>
+        public void ForceDestroyActiveShield()
+        {
+            if (_heldHoldSlots.Count == 0)
+                return;
+
+            if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
+            {
+                hold.StopHold(this);
+                _heldHoldSlots.Remove(_heldHoldSlots[^1]);
+            }
+
+            _energy.ForceDeplete();
         }
     }
 }

@@ -67,6 +67,16 @@ namespace Core
             return true;
         }
 
+        /// <summary>
+        /// Bypasses normal drain flow, immediately breaks the shield.
+        /// </summary>
+        public void ForceDeplete()
+        {
+            Current = 0f;
+            IsBroken = true;
+            _isDraining = false;
+        }
+
         public void StopDrain() => _isDraining = false;
     }
 }

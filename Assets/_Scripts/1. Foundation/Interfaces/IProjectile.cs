@@ -6,5 +6,6 @@ namespace Foundation
     {
         Rigidbody Rb { get; }
         bool IsEnemy { get; } //false for player projectiles
+        ElementType SpellElement { get; }
     }
 }

@@ -8,6 +8,7 @@ namespace Core
     public class HomingProjectile : BaseProjectile
     {
         public override bool IsEnemy => false;
+        public override ElementType SpellElement => _element;
 
         [SerializeField] private float _seekRadius = 20f;
         [SerializeField] private float _turnSpeed = 6f; //Degrees interpolation per second.

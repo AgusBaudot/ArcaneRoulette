@@ -7,7 +7,8 @@ namespace Core
     public sealed class Projectile : BaseProjectile
     {
         public override bool IsEnemy => false;
-        
+        public override ElementType SpellElement => _source?.SpellElement ?? ElementType.Neutral;
+
         private SpellInstance _source;
         private MonoBehaviour _runner;
 
