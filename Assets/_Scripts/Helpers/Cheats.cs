@@ -58,6 +58,11 @@ public class Cheats : MonoBehaviour
                 return;
             SceneManager.LoadScene("Room Testing");
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(0);
+        }
     }
 
     private void RespawnEnemies()
