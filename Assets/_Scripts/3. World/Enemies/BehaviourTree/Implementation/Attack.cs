@@ -3,33 +3,45 @@ using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 
-namespace world 
+namespace World
 {
     public class Attack : IStrategy
     {
         private readonly Animator _animator;
-        bool isAttacking;
+        private readonly float _cooldown;
 
+        private bool _isAttacking;
+        private float _nextAttackTime;
 
-        public Attack(Animator animator)
+        public Attack(Animator animator, float cooldown)
         {
             _animator = animator;
+            _cooldown = cooldown;
         }
 
         public Node.NodeState Process()
         {
-            if (isAttacking)
-            {
-                if (IsAnimationPlaying())
-                    return Node.NodeState.Running;
+            //  Cooldown
+            if (Time.time < _nextAttackTime)
+                return Node.NodeState.Failure;
 
-                return Node.NodeState.Success;
+            //  Si todavía no empezó el ataque
+            if (!_isAttacking)
+            {
+                _animator.SetTrigger("Attack");
+                _isAttacking = true;
+                return Node.NodeState.Running;
             }
 
-            _animator.SetTrigger("Attack");
-            isAttacking = true;
+            //  Mientras la animación está corriendo
+            if (IsAnimationPlaying())
+                return Node.NodeState.Running;
 
-            return Node.NodeState.Running;
+            //  Terminó el ataque
+            _isAttacking = false;
+            _nextAttackTime = Time.time + _cooldown;
+
+            return Node.NodeState.Success;
         }
 
         bool IsAnimationPlaying()
@@ -40,7 +52,7 @@ namespace world
 
         public void Reset()
         {
-            isAttacking = false;
+            _isAttacking = false;
         }
     }
 }

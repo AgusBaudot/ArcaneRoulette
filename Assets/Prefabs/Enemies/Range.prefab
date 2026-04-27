@@ -197,6 +197,7 @@ GameObject:
   - component: {fileID: 8315647127352888111}
   - component: {fileID: 7237747099332007944}
   - component: {fileID: 8541311600494996712}
+  - component: {fileID: 1377099399045734002}
   m_Layer: 7
   m_Name: Range
   m_TagString: Untagged
@@ -391,15 +392,13 @@ MonoBehaviour:
   target: {fileID: 0}
   _behaviourTreeName: AIRange
   attackRange: 14
+  exitAttackRange: 0
+  _cooldown: 2
   chaseSpeed: 5
   patrolSpeed: 1
-  waypoints:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _cooldown: 2
   projectilePrefab: {fileID: 264925598622609369, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
     type: 3}
+  waypoints: []
 --- !u!95 &8541311600494996712
 Animator:
   serializedVersion: 5
@@ -421,6 +420,19 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1377099399045734002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858020494119549465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcae5ae23a6ea1644b775abbbd043926, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blackboardData: {fileID: 0}
 --- !u!1 &8847464373245427413
 GameObject:
   m_ObjectHideFlags: 0

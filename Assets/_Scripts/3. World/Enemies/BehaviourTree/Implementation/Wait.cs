@@ -1,37 +1,41 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using world;
 
-public class Wait : IStrategy
+namespace World 
 {
-    private readonly float _duration;
-    private float _timer;
-    private bool _started;
-
-    public Wait(float time)
+    public class Wait : IStrategy
     {
-        _duration = time;
-    }
+        private readonly float _duration;
+        private float _timer;
+        private bool _started;
 
-    public Node.NodeState Process()
-    {
-        if (!_started)
+        public Wait(float time)
         {
-            _timer = _duration;
-            _started = true;
+            _duration = time;
         }
-        _timer -= Time.deltaTime;
 
-        if (_timer > 0f)
-            return Node.NodeState.Running;
+        public Node.NodeState Process()
+        {
+            if (!_started)
+            {
+                _timer = _duration;
+                _started = true;
+            }
+            _timer -= Time.deltaTime;
 
-        return Node.NodeState.Success;
-    }
+            if (_timer > 0f)
+                return Node.NodeState.Running;
 
-    public void Reset()
-    {
-        _started = false;
-        _timer = 0f;
+            return Node.NodeState.Success;
+        }
+
+        public void Reset()
+        {
+            _started = false;
+            _timer = 0f;
+        }
     }
 }
+
+

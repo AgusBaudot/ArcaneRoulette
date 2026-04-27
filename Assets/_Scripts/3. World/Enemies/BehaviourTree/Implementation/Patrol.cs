@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace world 
+namespace World 
 {
     public class Patrol : IStrategy
     {
