@@ -95,6 +95,8 @@ public class FloorManager : MonoBehaviour
         _player.transform.position = teleport.position;
     }
 
+    public int MaximumRooms => MaxRooms;
+
     private void SetDificult() 
     {
         switch (rundificult) 
