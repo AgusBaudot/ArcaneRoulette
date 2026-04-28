@@ -1,6 +1,7 @@
 using UnityEngine;
 using Foundation;
 using Core;
+using TMPro;
 
 namespace UI
 {
@@ -11,6 +12,8 @@ namespace UI
         public int Amount = 1;
         public bool DestroyOnPick = true;
 
+        [SerializeField] private TMP_Text _pickupLabel;
+
         private VolatileRunState RunState => GameStateManager.RunState;
 
         private void Awake()
@@ -19,6 +22,27 @@ namespace UI
             {
                 col.isTrigger = true;
             }
+
+            if (_pickupLabel == null)
+                _pickupLabel = GetComponentInChildren<TMP_Text>();
+
+            UpdateLabelText();
+        }
+
+        private void OnValidate()
+        {
+            if (_pickupLabel == null)
+                _pickupLabel = GetComponentInChildren<TMP_Text>();
+
+            UpdateLabelText();
+        }
+
+        private void UpdateLabelText()
+        {
+            if (_pickupLabel == null)
+                return;
+
+            _pickupLabel.text = RuneDefinition != null ? RuneDefinition.name : "Unknown";
         }
 
         private void OnTriggerEnter(Collider other)

@@ -32,17 +32,18 @@ public class FloorManager : MonoBehaviour
         SetDificult();
     }
 
-    private void StartRun()
+    private void StartRun(Collider other)
     {
         _currentRoom = CreateAndAddRoom();
         TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
         BindRoom(_currentRoom);
     }
 
-    private void ContinueRoom()
+    private void ContinueRoom(Collider other)
     {
         if(_roomIndex >= MaxRooms) 
         {
+            UnbindRoom(_currentRoom);
             Debug.Log("Termino la run");
         }
         else 
@@ -93,6 +94,8 @@ public class FloorManager : MonoBehaviour
     {
         _player.transform.position = teleport.position;
     }
+
+    public int MaximumRooms => MaxRooms;
 
     private void SetDificult() 
     {
