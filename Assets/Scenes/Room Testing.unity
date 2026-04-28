@@ -5049,6 +5049,7 @@ GameObject:
   - component: {fileID: 1364292778}
   - component: {fileID: 1364292780}
   - component: {fileID: 1364292779}
+  - component: {fileID: 1364292781}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -5147,6 +5148,22 @@ MonoBehaviour:
   _cameraTrauma: 0.85
   _heartsContainer: {fileID: 765010328}
   _spriteRenderer: {fileID: 305272800}
+--- !u!114 &1364292781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1364292774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68eba762d8cee6d438990f71f2dc2a79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _roomId: 0
+  _dropPool: {fileID: 11400000, guid: 7f04c5bf6927877479a01c674828c44b, type: 2}
+  _pickupCount: 3
+  _dropRadius: 3
 --- !u!1 &1387410854
 GameObject:
   m_ObjectHideFlags: 0
