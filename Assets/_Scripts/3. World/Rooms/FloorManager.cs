@@ -43,6 +43,7 @@ public class FloorManager : MonoBehaviour
     {
         if(_roomIndex >= MaxRooms) 
         {
+            UnbindRoom(_currentRoom);
             Debug.Log("Termino la run");
         }
         else 
