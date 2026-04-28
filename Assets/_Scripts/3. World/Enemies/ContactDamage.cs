@@ -6,15 +6,12 @@ namespace World
 {
     public class ContactDamage : MonoBehaviour
     {
-        [SerializeField] private int _amount = 10;
-        [SerializeField] private ElementType _element = ElementType.Neutral;
-
         private void OnTriggerEnter(Collider other)
         {
             if (!other.TryGetComponent<IDamageable>(out var damageable))
                 return;
             
-            damageable.TakeDamage(_amount, _element);
+            DamageSystem.Deal(damageable, (damageable as Component)?.gameObject, Helpers.Combat.BaseContactDamage, ElementType.Neutral, DamageJuice.Heavy);
         }
     }
 }

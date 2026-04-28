@@ -70,13 +70,14 @@ namespace World
             );
         }
 
-        public void TakeDamage(int amount, ElementType elementType)
+        public bool TakeDamage(int amount, ElementType elementType)
         {
             _currentHp = Mathf.Max(0f, _currentHp - amount);
             if (_hpFill != null)
                 _hpFill.fillAmount = _currentHp / _maxHp;
 
             if (_currentHp <= 0f) Die();
+            return true;
         }
 
         private void Fire()

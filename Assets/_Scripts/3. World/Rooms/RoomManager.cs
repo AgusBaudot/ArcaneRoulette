@@ -1,11 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 using World;
-using static UnityEngine.EventSystems.EventTrigger;
-using static UnityEngine.GraphicsBuffer;
 
 public class RoomManager : MonoBehaviour
 {
@@ -18,8 +13,15 @@ public class RoomManager : MonoBehaviour
         Unlocked
     }
 
-    [SerializeField] private Transform[] _spawnPoints;
-    [SerializeField] private RoomDoor _activateDoor;
+    [Header("Room spawn settings")] [SerializeField]
+    private Transform[] _spawnMelee;
+
+    [SerializeField] private Transform[] _spawnRanged;
+    [SerializeField] private Transform[] _spawnHealer;
+
+    [Header("Room Settings")] [SerializeField]
+    private RoomDoor _activateDoor;
+
     [SerializeField] private RoomDoor _ExitDoor;
     [SerializeField] public RoomDoor _ContinueDoor;
     [SerializeField] private GameObject _door1;
@@ -31,6 +33,7 @@ public class RoomManager : MonoBehaviour
     [SerializeField] private GameObject _enemyPrefabMelee;
     [SerializeField] public int _enemyMeleeCount;
     [SerializeField] private GameObject _enemyPrefabRange;
+    [SerializeField] private GameObject _enemyPrefabHealer;
     [SerializeField] public int _enemyRangeCount;
     [SerializeField] int enemiesAlive = 0;
 
@@ -38,6 +41,7 @@ public class RoomManager : MonoBehaviour
     public Transform GetPlayerSpawnEntry() => _playerSpawnEntry;
     public Transform GetPlayerSpawnExit() => _playerSpawnExit;
     public RoomState GetRoomState() => _state;
+
     private void Start()
     {
         _activateDoor.OnPlayerEnter += Activate;
@@ -50,31 +54,38 @@ public class RoomManager : MonoBehaviour
     {
         public int roomId;
     }
+
     private void Activate()
     {
-        
-        if(_state == RoomState.Idle) 
+        if (_state == RoomState.Idle)
         {
             _state = RoomState.Active;
-            //_player.transform.position = _playerSpawn.position; //TeleportPlayer
-
-            for (int i = 0; i < _enemyMeleeCount; i++)
+            var player = GameObject.FindWithTag("Player").transform;
+            foreach (var spawnPoint in _spawnMelee)
             {
-                foreach (var spawnPoint in _spawnPoints)
-                {
-                    var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
-                    enemiesAlive++;
-                    enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
-                }
+                var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation,
+                    transform);
+                enemiesAlive++;
+                enemy.GetComponent<BaseEnemy>()?.Init(player);
+                enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
+                // enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
             }
-            for (int i = 0; i < _enemyRangeCount; i++)
+
+            foreach (var spawnPoint in _spawnRanged)
             {
-                foreach (var spawnPoint in _spawnPoints)
-                {
-                    var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
-                    enemiesAlive++;
-                    enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
-                }
+                var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation,
+                    transform);
+                enemiesAlive++;
+                enemy.GetComponent<BaseEnemy>()?.Init(player);
+                enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
+            }
+
+            foreach (var spawnPoint in _spawnHealer)
+            {
+                var enemy = Instantiate(_enemyPrefabHealer,  spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
+                enemiesAlive++;
+                enemy.GetComponent<BaseEnemy>()?.Init(player);
+                enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
             }
 
             Destroy(_activateDoor.gameObject);
@@ -82,26 +93,26 @@ public class RoomManager : MonoBehaviour
             _door2.SetActive(true);
             //Destroy(spawnPoint.gameObject);
         }
-
     }
 
-    private void OnEnemyDeath() 
+    private void OnEnemyDeath()
     {
         enemiesAlive--;
-        if (enemiesAlive <= 0) 
+        if (enemiesAlive <= 0)
         {
             _state = RoomState.Cleared;
             Destroy(_door1.gameObject);
             Destroy(_door2.gameObject);
         }
+
         EventBus.Publish(new RoomClearEvent { roomId = _roomId });
     }
 
-    public void ExitRoom() 
+    public void ExitRoom()
     {
-       
     }
-    public void ContinueRoom() 
+
+    public void ContinueRoom()
     {
         _state = RoomState.Unlocked;
     }

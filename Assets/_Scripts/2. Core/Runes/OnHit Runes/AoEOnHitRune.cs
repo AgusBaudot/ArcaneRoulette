@@ -33,7 +33,7 @@ namespace Core
                 if (!hit.TryGetComponent<IDamageable>(out var dmg))
                     continue;
 
-                DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement);
+                DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement, DamageJuice.Light);
                 
                 Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
                 if (pushDir == Vector3.zero)

@@ -276,10 +276,10 @@ GameObject:
   - component: {fileID: 3930094897064471857}
   - component: {fileID: 1465302191535233975}
   - component: {fileID: 388715065253394482}
-  - component: {fileID: 7876302217647707039}
   - component: {fileID: 5696518918068243819}
+  - component: {fileID: -4234166665805752385}
   m_Layer: 7
-  m_Name: Ranged Enemy
+  m_Name: Advanced Ranged Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -388,26 +388,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7876302217647707039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5074450012340611960}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cb02f019d114887862cd2d4da6fe225, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _moveSpeed: 4
-  _attackDamage: 2
-  _attackCooldown: 2
-  _safeDistance: 6
-  _aggroRange: 30
-  _projectilePrefab: {fileID: -584952015612557093, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
-    type: 3}
-  _projectileSpeed: 16
 --- !u!136 &5696518918068243819
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -431,6 +411,28 @@ CapsuleCollider:
   m_Height: 3
   m_Direction: 1
   m_Center: {x: 0.5, y: 0.85, z: -0.16}
+--- !u!114 &-4234166665805752385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074450012340611960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f217896c29cf4c53b623c3dd9050c8f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _moveSpeed: 8.5
+  _attackDamage: 2
+  _attackCooldown: 2
+  _aggroRange: 30
+  _attackRange: 20
+  _safeDistance: 10
+  _projectilePrefab: {fileID: -584952015612557093, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
+    type: 3}
+  _projectileSpeed: 8
+  _spreadAngle: 30
 --- !u!1 &5816246274215580647
 GameObject:
   m_ObjectHideFlags: 0

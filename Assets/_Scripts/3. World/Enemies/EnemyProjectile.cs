@@ -31,7 +31,8 @@ namespace World
 
         protected override void OnHitDamageable(Collider other)
         {
-            other.GetComponent<IDamageable>().TakeDamage(_damage, _element);
+            var dmg = other.GetComponent<IDamageable>();
+            DamageSystem.Deal(dmg, (dmg as Component).gameObject, _damage, ElementType.Neutral, DamageJuice.Heavy);
             Destroy(gameObject);
         }
 

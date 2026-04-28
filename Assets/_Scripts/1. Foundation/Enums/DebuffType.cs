@@ -5,6 +5,6 @@ namespace Foundation
         ATK,
         Speed,
         AttackSpeed,
-        MaxHP
+        AntiHeal
     }
 }

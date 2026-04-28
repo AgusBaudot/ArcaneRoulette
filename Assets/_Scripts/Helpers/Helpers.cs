@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using Core;
 using UnityEngine;
 //using DG.Tweening;
 
 public static class Helpers
 {
     private static Camera MainCamera;
+    private static CombatSettings _combatSettings;
     
     public static Camera GetCamera()
     {
@@ -23,6 +25,21 @@ public static class Helpers
             lookUp[wait] = new WaitForSeconds(wait);
 
         return lookUp[wait];
+    }
+
+    public static CombatSettings Combat
+    {
+        get
+        {
+            if (_combatSettings == null)
+            {
+                _combatSettings = Resources.Load<CombatSettings>("CombatSettings");
+                if (_combatSettings == null)
+                    Debug.LogError("CRITICAL: Could not find CombatSettings in Resources folder!");
+            }
+
+            return _combatSettings;
+        }
     }
     
     /*

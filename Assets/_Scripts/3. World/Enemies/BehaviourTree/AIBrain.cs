@@ -1,16 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using World;
-using static Unity.VisualScripting.Metadata;
+using Foundation;
 
 namespace World 
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
-    public abstract class AIBrain : MonoBehaviour
+    public abstract class AIBrain : MonoBehaviour, IDebuffReceiver
     {
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
@@ -21,6 +18,8 @@ namespace World
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
+
+        protected IDebuffReadable _debuffs;
 
         protected virtual void Awake()
         {
@@ -49,14 +48,10 @@ namespace World
             if (_los == null || target == null) return false;
             return _los.CheckRange(target) && _los.CheckView(target);
         }
-
-
-
-        /*
-        protected virtual bool IsInRange(float attackRange) 
-        {
-            return Vector3.Distance(transform.position, target.position) <= attackRange;
-        }*/
+        
+        //IDebuffReceiver Implementation ------------
+        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
+        public void UnregisterDebuff() => _debuffs = null;
     }
 
     public class BehaviourTree : Node

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6632945873714229180}
   m_Layer: 0
-  m_Name: SpawnPoint (1)
+  m_Name: Melee Spawnpoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 18598218087806264}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 18.6, y: 0, z: 4.7}
+  m_LocalPosition: {x: 18.6, y: 0, z: -11.599999}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 428041292249577092}
   m_Layer: 0
-  m_Name: SpawnPoint (2)
+  m_Name: Melee Spawnpoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 676722646010751560}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -23.5, y: 0, z: 4.7}
+  m_LocalPosition: {x: -23.5, y: 0, z: -11.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -167,6 +167,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1408854854298668085
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3857048670316897077}
+  m_Layer: 0
+  m_Name: Ranged Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3857048670316897077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1408854854298668085}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -23.5, y: 0, z: -11.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2838032712675512540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1431354026260528849
 GameObject:
   m_ObjectHideFlags: 0
@@ -384,10 +415,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 081eba74ff35eb14db6869e5ce1f1c4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spawnPoints:
+  _spawnMelee:
   - {fileID: 5192729929424404789}
   - {fileID: 6632945873714229180}
   - {fileID: 428041292249577092}
+  _spawnRanged:
+  - {fileID: 131278126140567048}
+  - {fileID: 6650813241630726536}
+  - {fileID: 3857048670316897077}
+  _spawnHealer:
+  - {fileID: 484904346187471366}
+  - {fileID: 3128053862814803755}
   _activateDoor: {fileID: 8152500816716365144}
   _ExitDoor: {fileID: 4487060500383242916}
   _ContinueDoor: {fileID: 8175001638174291884}
@@ -397,10 +435,12 @@ MonoBehaviour:
   _playerSpawnEntry: {fileID: 8377291830625963667}
   _playerSpawnExit: {fileID: 0}
   _roomId: 0
-  _enemyPrefabMelee: {fileID: 1326220217148487278, guid: a19954ee9fbc62041bc19ad0fa4678f5,
+  _enemyPrefabMelee: {fileID: 9072896501681865280, guid: 35e991413fab3be4faab93cab2d587e2,
     type: 3}
   _enemyMeleeCount: 1
-  _enemyPrefabRange: {fileID: 1858020494119549465, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
+  _enemyPrefabRange: {fileID: 5074450012340611960, guid: fcdc72cbc59c16f4cbeb3a9b2eaa0bf7,
+    type: 3}
+  _enemyPrefabHealer: {fileID: 9072896501681865280, guid: f72697eb7e5a89c429b6185475ab64db,
     type: 3}
   _enemyRangeCount: 1
   enemiesAlive: 0
@@ -1026,6 +1066,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c6464c7b3ce4830bc81c5732b9bbbfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4074711498581909253
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 131278126140567048}
+  m_Layer: 0
+  m_Name: Ranged Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &131278126140567048
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4074711498581909253}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -3, y: 0, z: -1.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2838032712675512540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4462406293039658942
 GameObject:
   m_ObjectHideFlags: 0
@@ -1067,7 +1138,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5192729929424404789}
   m_Layer: 0
-  m_Name: SpawnPoint
+  m_Name: Melee Spawnpoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1082,7 +1153,38 @@ Transform:
   m_GameObject: {fileID: 4498797589709035452}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3, y: 0, z: 8.3}
+  m_LocalPosition: {x: -3, y: 0, z: -1.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2838032712675512540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4715723495733655060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6650813241630726536}
+  m_Layer: 0
+  m_Name: Ranged Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6650813241630726536
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4715723495733655060}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 18.6, y: 0, z: -11.599999}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1453,6 +1555,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &6410957454075473741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3128053862814803755}
+  m_Layer: 0
+  m_Name: Healer Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3128053862814803755
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6410957454075473741}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 12, y: 0, z: 7.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2838032712675512540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6913753958148994489
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,8 +1826,13 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5192729929424404789}
+  - {fileID: 131278126140567048}
   - {fileID: 6632945873714229180}
+  - {fileID: 6650813241630726536}
   - {fileID: 428041292249577092}
+  - {fileID: 3857048670316897077}
+  - {fileID: 484904346187471366}
+  - {fileID: 3128053862814803755}
   m_Father: {fileID: 3443860399909635550}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7430423027155799776
@@ -2143,6 +2281,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &8810549628795914348
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 484904346187471366}
+  m_Layer: 0
+  m_Name: Healer Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &484904346187471366
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8810549628795914348}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -18, y: 0, z: 7.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2838032712675512540}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9050724190189675533
 GameObject:
   m_ObjectHideFlags: 0

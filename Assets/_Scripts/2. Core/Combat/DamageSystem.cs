@@ -39,7 +39,8 @@ namespace Core
             //float multiplier = GetResistance(attackerElement, GetDefenderElement(targetObject));
             //int final = Mathf.Max(1, Mathf.RoundToInt(baseDamage * multiplier));
 
-            target.TakeDamage((int)finalDamage, attackerElement);
+            if (!target.TakeDamage((int)finalDamage, attackerElement))
+                return;
 
             CameraShake.AddTrauma(juice.CameraShake);
             HitStop.Apply(juice.HitStop);

@@ -46,9 +46,10 @@ namespace Core
                 _iFrameTimer -= dt;
         }
 
-        public void TakeDamage(int amount, ElementType elementType)
+        public bool TakeDamage(int amount, ElementType elementType)
         {
-            if (IsInvincible) return;
+            if (IsInvincible)
+                return false;
 
             Current = Mathf.Max(0f, Current - amount);
             _iFrameTimer = _stats.IFrameDuration;
@@ -66,6 +67,7 @@ namespace Core
             StartCoroutine(IFrameFlash());
 
             if (Current <= 0f) Die();
+            return true;
         }
         
         private IEnumerator IFrameFlash()

@@ -103,7 +103,7 @@ namespace Core
                     continue;
 
                 // dmg.TakeDamage(Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
-                DamageSystem.Deal(dmg, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
+                DamageSystem.Deal(dmg, (dmg as Component)?.gameObject, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral, DamageJuice.Light);
             }
         }
 
