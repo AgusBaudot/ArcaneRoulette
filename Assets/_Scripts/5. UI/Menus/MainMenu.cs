@@ -5,9 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField]private SceneController _sceneController;
    public void StartGame() 
    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(1);
+        _sceneController.LoadScene("Room Testing");
    }
 
    public void QuitGame() 

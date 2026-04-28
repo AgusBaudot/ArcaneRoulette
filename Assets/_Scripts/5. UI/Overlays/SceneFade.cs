@@ -10,7 +10,7 @@ public class SceneFade : MonoBehaviour
         _fadeImage = GetComponent<Image>();
     }
 
-    private IEnumerator FadeIn(float duration)
+    public IEnumerator FadeIn(float duration)
     {
         Color startColor = new Color(_fadeImage.color.r, _fadeImage.color.g, _fadeImage.color.b, 1f);
         Color endColor = new Color(_fadeImage.color.r, _fadeImage.color.g, _fadeImage.color.b, 0f);
@@ -20,7 +20,7 @@ public class SceneFade : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private IEnumerator FadeOut(float duration)
+    public IEnumerator FadeOut(float duration)
     {
         
         Color startColor = new Color(_fadeImage.color.r, _fadeImage.color.g, _fadeImage.color.b, 0f);

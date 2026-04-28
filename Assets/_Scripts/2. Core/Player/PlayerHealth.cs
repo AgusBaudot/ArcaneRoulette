@@ -8,6 +8,7 @@ namespace Core
 {
     public class PlayerHealth : MonoBehaviour, IDamageable, IUpdatable
     {
+        public event Action OnDeath;
         public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
         
@@ -81,7 +82,7 @@ namespace Core
         
         private void Die()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            OnDeath?.Invoke();
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
         }
 
