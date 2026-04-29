@@ -22,6 +22,7 @@ namespace World
         
         private float _currentHp;
         private IDebuffReadable _debuffs;
+        private bool _isDead;
 
         public ElementType Element => _element;
 
@@ -72,6 +73,11 @@ namespace World
 
         private void Die()
         {
+            if (_isDead)
+                return;
+
+            _isDead = true;
+            
             OnDeath?.Invoke();
             Destroy(gameObject);
         }

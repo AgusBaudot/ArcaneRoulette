@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.AI.Navigation;
 using UnityEngine;
 using World;
-using static RoomManager;
 
 public class FloorManager : MonoBehaviour
 {
@@ -13,20 +9,24 @@ public class FloorManager : MonoBehaviour
         medium,
         hard
     }
-    [SerializeField] private RoomManager[] _rooms;
-    [SerializeField] private int _roomIndex;
-    [SerializeField] private int MaxRooms;
-    [SerializeField] private RoomManager _roomPrefab;
+    
+    [Header("Room Sequence")]
+    [Tooltip("Place your room prefabs here in the exact order they should spawn.")]
+    [SerializeField] private RoomManager[] _roomPrefabs; 
+    
+    [Header("Settings")]
     [SerializeField] private RoomDoor _startRoom;
     [SerializeField] private RunDificult rundificult;
+    
+    private int _roomIndex = 0;
     private int extraenemies;
     private RoomManager _currentRoom;
     private GameObject _player;
-
+    
+    public int MaximumRooms => _roomPrefabs.Length;
 
     private void Start()
     {
-        _rooms = new RoomManager[MaxRooms];
         _player = GameObject.FindGameObjectWithTag("Player");
         _startRoom.OnPlayerEnter += StartRun;
         SetDificult();
@@ -34,6 +34,12 @@ public class FloorManager : MonoBehaviour
 
     private void StartRun(Collider other)
     {
+        if (_roomPrefabs == null || _roomPrefabs.Length == 0)
+        {
+            Debug.LogError("FloorManager has no room prefabs assigned in the Inspector!");
+            return;
+        }
+
         _currentRoom = CreateAndAddRoom();
         TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
         BindRoom(_currentRoom);
@@ -41,48 +47,40 @@ public class FloorManager : MonoBehaviour
 
     private void ContinueRoom(Collider other)
     {
-        if(_roomIndex >= MaxRooms) 
+        UnbindRoom(_currentRoom);
+        
+        if(_roomIndex >= _roomPrefabs.Length) 
         {
-            UnbindRoom(_currentRoom);
             Debug.Log("Termino la run");
+            return;
         }
-        else 
-        {
-            UnbindRoom(_currentRoom);
-            _currentRoom = CreateAndAddRoom();
-            _currentRoom._enemyMeleeCount = _roomIndex + extraenemies;
-            _currentRoom._enemyRangeCount = _roomIndex + extraenemies;
-            TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
-            BindRoom(_currentRoom);
-        }   
+        
+        _currentRoom = CreateAndAddRoom();
+        
+        _currentRoom._enemyMeleeCount = _roomIndex + extraenemies;
+        _currentRoom._enemyRangeCount = _roomIndex + extraenemies;
+        
+        TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
+        BindRoom(_currentRoom);
     }
 
     private void BindRoom(RoomManager room)
-    {
-        room._ContinueDoor.OnPlayerEnter += ContinueRoom;
-    }
+        => room._ContinueDoor.OnPlayerEnter += ContinueRoom;
 
     private void UnbindRoom(RoomManager room)
     {
-        room._ContinueDoor.OnPlayerEnter -= ContinueRoom;
+        if (room != null)
+            room._ContinueDoor.OnPlayerEnter -= ContinueRoom;
     }
 
     private RoomManager CreateAndAddRoom()
     {
-        RoomManager newRoom = Instantiate(_roomPrefab);
+        // Grab the prefab from the array using our current index
+        RoomManager prefabToSpawn = _roomPrefabs[_roomIndex];
+        
+        RoomManager newRoom = Instantiate(prefabToSpawn);
 
-        if (_roomIndex == 0)
-        {
-            newRoom.transform.position = new Vector3(0, 0, 0);
-        }
-        else
-        {
-            RoomManager previousRoom = _rooms[_roomIndex - 1];
-            newRoom.transform.position =
-                previousRoom.transform.position + new Vector3(0, 0, 100);
-        }
-
-        _rooms[_roomIndex] = newRoom;
+        newRoom.transform.position = new Vector3(0, 0, _roomIndex * 100f);
         newRoom._roomId = _roomIndex;
 
         _roomIndex++;
@@ -92,24 +90,17 @@ public class FloorManager : MonoBehaviour
 
     private void TeleportPlayer(Transform teleport) 
     {
-        _player.transform.position = teleport.position;
+        if (_player != null && teleport != null)
+            _player.transform.position = teleport.position;
     }
-
-    public int MaximumRooms => MaxRooms;
 
     private void SetDificult() 
     {
         switch (rundificult) 
         {
-            case RunDificult.easy:
-                extraenemies = 1;
-                break;
-            case RunDificult.medium:
-                extraenemies = 2;
-                break;
-            case RunDificult.hard:
-                extraenemies = 3;
-                break;
+            case RunDificult.easy: extraenemies = 1; break;
+            case RunDificult.medium: extraenemies = 2; break;
+            case RunDificult.hard: extraenemies = 3; break;
         }
     }
 }

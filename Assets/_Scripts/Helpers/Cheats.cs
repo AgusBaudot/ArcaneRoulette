@@ -8,35 +8,9 @@ public class Cheats : MonoBehaviour
     [SerializeField] private List<Transform> _enemyShooting = new();
     [SerializeField] private List<Transform> _enemyIdle = new();
     [SerializeField] private DummyEnemy _enemyPrefab;
-
-    private void Start()
-    {
-        if (SceneManager.GetActiveScene().name != "Prototype")
-            return;
-        
-        foreach (Transform t in _enemyShooting)
-        {
-            if (t.childCount > 0)
-                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
-                {
-                    e.Reset();
-                    continue;
-                }
-            var enemy = Instantiate(_enemyPrefab, t.position, t.rotation, t);
-            enemy.CanAttack = true;
-        }
-
-        foreach (Transform t in _enemyIdle)
-        {
-            if (t.childCount > 0)
-                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
-                {
-                    e.Reset();
-                    continue;
-                }
-            Instantiate(_enemyPrefab, t.position, t.rotation, t);
-        }
-    }
+    
+    private string _scene1 = "Core loop";
+    private string _scene2 = "Hardcore room";
 
     private void Update()
     {
@@ -47,16 +21,16 @@ public class Cheats : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            if (SceneManager.GetActiveScene().name == "Prototype")
+            if (SceneManager.GetActiveScene().name == _scene1)
                 return;
-            SceneManager.LoadScene("Prototype");
+            SceneManager.LoadScene(_scene1);
         }
         
         if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            if (SceneManager.GetActiveScene().name == "Room Testing")
+            if (SceneManager.GetActiveScene().name == _scene2)
                 return;
-            SceneManager.LoadScene("Room Testing");
+            SceneManager.LoadScene(_scene2);
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -67,33 +41,6 @@ public class Cheats : MonoBehaviour
 
     private void RespawnEnemies()
     {
-        if (SceneManager.GetActiveScene().name == "Room Testing")
-            SceneManager.LoadScene("Room Testing");
-        
-        if (SceneManager.GetActiveScene().name != "Prototype")
-            return;
-        
-        foreach (Transform t in _enemyShooting)
-        {
-            if (t.childCount > 0)
-                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
-                {
-                    e.Reset();
-                    continue;
-                }
-            var enemy = Instantiate(_enemyPrefab, t.position, t.rotation, t);
-            enemy.CanAttack = true;
-        }
-
-        foreach (Transform t in _enemyIdle)
-        {
-            if (t.childCount > 0)
-                if (t.GetChild(0).TryGetComponent<DummyEnemy>(out var e))
-                {
-                    e.Reset();
-                    continue;
-                }
-            Instantiate(_enemyPrefab, t.position, t.rotation, t);
-        }
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

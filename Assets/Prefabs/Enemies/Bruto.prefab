@@ -376,6 +376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _drag: 12
+  _maxKnockbackDuration: 2
 --- !u!114 &3415579662829176277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,8 +389,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _amount: 2
-  _element: 5
 --- !u!114 &1788442533233594985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -448,10 +447,17 @@ MonoBehaviour:
   _behaviourTreeName: 
   attackRange: 0
   exitAttackRange: 0
+  attackRadius: 0
+  _damage: 0
+  _element: 4
   _cooldown: 0
   chaseSpeed: 0
   patrolSpeed: 0
-  projectilePrefab: {fileID: 0}
+  FVXPrefab: {fileID: 0}
+  vfxDuration: 1
+  damageMask:
+    serializedVersion: 2
+    m_Bits: 0
   waypoints: []
 --- !u!114 &4584940593510640468
 MonoBehaviour:

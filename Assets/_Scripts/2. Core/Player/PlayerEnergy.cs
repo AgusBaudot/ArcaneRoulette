@@ -63,6 +63,8 @@ namespace Core
             if (IsBroken || Current <= 0f)
                 return false;
 
+            Current -= Max * _stats._drainOnStart;
+
             _isDraining = true;
             return true;
         }

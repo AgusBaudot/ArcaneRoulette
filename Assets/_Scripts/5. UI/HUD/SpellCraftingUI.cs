@@ -95,6 +95,12 @@ namespace UI
 
             if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
                 CloseCraftingUI();
+
+            if (Input.GetKeyDown(KeyCode.A))
+                OnLeftArrow();
+
+            if (Input.GetKeyDown(KeyCode.D))
+                OnRightArrow();
         }
 
         // ── Open / Close ─────────────────────────────────────────────────────

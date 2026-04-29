@@ -11,11 +11,16 @@ namespace Core
     public sealed class HoldSpellInstance : SpellInstance, IHoldAbility
     {
         public override ShieldInstanceState ShieldState { get; } = new ShieldInstanceState();
+        public override float DisplayProgress => _energy != null ? _energy.Current / _energy.Max : 1f;
+
+        private PlayerEnergy _energy;
 
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 
         public void StartHold(MonoBehaviour runner)
         {
+            _energy = ((PlayerController)runner).Energy;
+            
             var ctx = BuildCastContext(runner);
             
             FireCastRunes(ctx); //Cast runes apply on hold start.

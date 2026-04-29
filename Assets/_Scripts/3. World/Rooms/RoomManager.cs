@@ -62,7 +62,7 @@ public class RoomManager : MonoBehaviour
             var player = playerCollider.transform;
             foreach (var spawnPoint in _spawnMelee)
             {
-                var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation,
+                var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation,
                     transform);
                 enemiesAlive++;
                 enemy.GetComponent<BaseEnemy>()?.Init(player);
@@ -72,7 +72,7 @@ public class RoomManager : MonoBehaviour
 
             foreach (var spawnPoint in _spawnRanged)
             {
-                var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation,
+                var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation,
                     transform);
                 enemiesAlive++;
                 enemy.GetComponent<BaseEnemy>()?.Init(player);
