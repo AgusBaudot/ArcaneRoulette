@@ -13,9 +13,18 @@ MonoBehaviour:
   m_Name: Normal Shield
   m_EditorClassIdentifier: 
   ID: 0
-  Name: Wind shield
+  Name: Shield
+  Type: Cast
   Icon: {fileID: 21300000, guid: 69c45055bf0011842975ce2007fefafa, type: 3}
-  Description: 
+  Description: When the player activates the assigned ability, they generate a shield
+    that reduces incoming damage. The ability is sustained by holding down the input
+    and ends when the key is released. While the shield is active, an energy bar
+    is displayed and gradually depletes over time. Once the energy bar is fully depleted,
+    the shield disappears and cannot be activated again until the bar has completely
+    recharged. The energy bar refills passively while the shield is not in use. The
+    player cannot use multiple shields simultaneously. To activate a different shield,
+    the current one must be released first. Each shield has its own independent energy
+    bar. When the shield touches an enemy or their projectiles, an Impact is triggered.
   _shieldVisualPrefab: {fileID: 3647493217451500633, guid: 890723a485fcdc347bd77ca9ee3eae2e,
     type: 3}
   _shockwavePrefab: {fileID: 4761967986793294931, guid: 5e67dd9b9851cdb49a66f80ef971aea0,

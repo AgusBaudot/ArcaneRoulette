@@ -12,7 +12,7 @@ namespace UI
     /// Init once, Refresh whenever state changes. No drag, no drop.
     /// </summary>
     [RequireComponent(typeof(Button))]
-    public sealed class RuneTileUI : MonoBehaviour, IPointerClickHandler
+    public sealed class RuneTileUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [SerializeField] private Image _icon;
         [SerializeField] private TextMeshProUGUI _countText;
@@ -20,6 +20,8 @@ namespace UI
 
         private Button _button;
         private Action<PointerEventData.InputButton> _onClick;
+
+        private RuneDefinitionSO _currentRune;
 
         private void Awake()
         {
@@ -39,11 +41,26 @@ namespace UI
             _onClick?.Invoke(eventData.button);
         }
 
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (_currentRune == null)
+                return;
+            
+            TooltipSystem.Instance?.Show(_currentRune, GetComponent<RectTransform>());
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            TooltipSystem.Instance?.Hide();
+        }
+
         /// <summary>
         /// Call whenever the tile's represented rune or state changes.
         /// </summary>
         public void Refresh(RuneDefinitionSO rune, bool highlighted)
         {
+            _currentRune = rune;
+            
             bool hasRune = rune != null;
 
             _icon.sprite = hasRune ? rune.Icon : null;
