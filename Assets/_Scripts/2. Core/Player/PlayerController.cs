@@ -188,7 +188,7 @@ namespace Core
         {
             if (_spriteTransform == null) return;
             _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? -1f : 1f, 1f, 1f);
+                _facingDirection.x < 0f ? -0.75f : 0.75f, 0.75f, 0.75f);
         }
 
         private void OnSpellEquipped(SpellEquippedEvent evt)
