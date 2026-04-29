@@ -6,7 +6,9 @@ namespace Foundation
     {
         public int ID;
         public string Name;
+        public string Type;
         public Sprite Icon;
+        [TextArea]
         public string Description;
     }
 }

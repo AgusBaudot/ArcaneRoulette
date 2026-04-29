@@ -20,7 +20,7 @@ namespace UI
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
 
             // Slider starts full — no spell equipped yet means nothing on cooldown
-            SetSliderFull();
+            SetSliderNull();
         }
 
         private void OnDestroy()
@@ -32,7 +32,7 @@ namespace UI
         {
             if (_instance == null)
             {
-                SetSliderFull();
+                SetSliderNull();
                 return;
             }
 
@@ -52,6 +52,6 @@ namespace UI
             //     _abilityIcon.sprite = _instance?.;  // null-safe — clears icon on dismantle
         }
 
-        private void SetSliderFull() => _cooldownSlider.value = 1f;
+        private void SetSliderNull() => _cooldownSlider.value = 0f;
     }
 }

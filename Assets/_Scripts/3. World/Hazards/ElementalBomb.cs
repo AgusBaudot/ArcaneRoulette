@@ -19,14 +19,19 @@ namespace World
 
         private void OnTriggerEnter(Collider other)
         {
-            if (_triggered) return;
+            if (_triggered) 
+                return;
 
             // Only player projectiles (IProjectile, not enemy) set off the bomb.
-            if (!other.TryGetComponent<IProjectile>(out var projectile)) return;
-            if (projectile.IsEnemy) return;
+            if (!other.TryGetComponent<IProjectile>(out var projectile)) 
+                return;
+            
+            if (projectile.IsEnemy)
+                return;
 
             // Element must match the bomb's pre-imbued element.
-            if (projectile.SpellElement != _element) return;
+            if (projectile.SpellElement != _element)
+                return;
 
             _triggered = true;
             StartCoroutine(Explode());

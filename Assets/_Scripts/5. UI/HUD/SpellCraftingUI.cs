@@ -42,6 +42,10 @@ namespace UI
         [Header("Carousel Animation")] 
         [SerializeField] private float _animDuration = 0.35f;
         [SerializeField] private Ease _animEase = Ease.OutCubic;
+        
+        [Header("Tooltip")]
+        [SerializeField] private TooltipSystem _tooltip;
+        
 
         // ── Carousel layout constants ────────────────────────────────────────
         // Center
@@ -65,7 +69,7 @@ namespace UI
         private static bool _isOpen;
         private int _centerIndex; // which _slotPanels[] index is currently centered
         private RuneFilter _currentFilter = RuneFilter.All;
-
+        
         // ── Unity ────────────────────────────────────────────────────────────
 
         private void Awake()
@@ -96,11 +100,14 @@ namespace UI
             if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
                 CloseCraftingUI();
 
-            if (Input.GetKeyDown(KeyCode.A))
+            if (Input.GetKeyDown(KeyCode.A) && _isOpen)
                 OnLeftArrow();
 
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.D) && _isOpen)
                 OnRightArrow();
+
+            if (Input.GetKeyDown(KeyCode.I))
+                _tooltip.ToggleEnabled();
         }
 
         // ── Open / Close ─────────────────────────────────────────────────────
@@ -133,6 +140,7 @@ namespace UI
             foreach (var panel in _slotPanels)
                 panel.TryApply(_spellCrafter);
 
+            _tooltip.Hide();
             _craftingPanel.SetActive(false);
             Time.timeScale = 1f;
         }
@@ -229,7 +237,7 @@ namespace UI
                     .SetUpdate(true);
             }
 
-            // 3. EXACTLY preserve your sibling order logic on the PANEL roots, not the VisualRoots.
+            // 3. EXACTLY preserve sibling order logic on the PANEL roots, not the VisualRoots.
             if (_dimOverlay != null)
             {
                 // Back panels first (arbitrary order), then overlay, then center on top.
