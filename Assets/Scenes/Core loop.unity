@@ -4268,9 +4268,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1058081503}
-  - component: {fileID: 1058081506}
   - component: {fileID: 1058081505}
   - component: {fileID: 1058081504}
+  - component: {fileID: 1058081506}
   m_Layer: 0
   m_Name: Visualizer
   m_TagString: Untagged
@@ -4326,7 +4326,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1058081502}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fada2e80a55a45f0bd1d92b20f32f2f1, type: 3}
+  m_Script: {fileID: 11500000, guid: 5dddf9e5066f30a419e646d4acba80b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _projectileRune: {fileID: 11400000, guid: 0872d9446f72b494e868792c9faf5d67, type: 2}
@@ -4344,31 +4344,8 @@ MonoBehaviour:
   _knockbackRune: {fileID: 11400000, guid: 9b3a62f73784e214198332621844c77f, type: 2}
   _dotRune: {fileID: 11400000, guid: a14c44913d1affb47bcb747f23fde620, type: 2}
   _debuffRune: {fileID: 11400000, guid: 57b8036df6bc07741a07036cc38ec828, type: 2}
-  _runeInventoryCount: 5
-  _slot0:
-    Ability: 2
-    Element: 0
-    Modifier0: 0
-    Modifier1: 0
-    Modifier2: 0
-    Modifier3: 0
-    Modifier4: 0
-  _slot1:
-    Ability: 3
-    Element: 2
-    Modifier0: 4
-    Modifier1: 6
-    Modifier2: 0
-    Modifier3: 0
-    Modifier4: 0
-  _slot2:
-    Ability: 0
-    Element: 3
-    Modifier0: 6
-    Modifier1: 4
-    Modifier2: 5
-    Modifier3: 1
-    Modifier4: 2
+  _abilityRuneCount: 1
+  _otherRuneCount: 10
 --- !u!1 &1090402686
 GameObject:
   m_ObjectHideFlags: 0
