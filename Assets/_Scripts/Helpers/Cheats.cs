@@ -16,7 +16,7 @@ public class Cheats : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
-            RespawnEnemies();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -37,10 +37,5 @@ public class Cheats : MonoBehaviour
         {
             SceneManager.LoadScene(0);
         }
-    }
-
-    private void RespawnEnemies()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

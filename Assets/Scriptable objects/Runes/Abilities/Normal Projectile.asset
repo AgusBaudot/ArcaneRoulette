@@ -16,10 +16,8 @@ MonoBehaviour:
   Name: Projectile
   Type: Cast
   Icon: {fileID: 21300000, guid: 100e44d15a893054abda3b45d5523b27, type: 3}
-  Description: When the player uses the assigned ability, they create a projectile
-    that moves forward to the direction the cursor was pointing. This projectile
-    is destroyed when it collides with a wall or a solid object. If it collides with
-    an enemy instead, it triggers an Impact.
+  Description: Creates a projectile that damages enemies. When hitting an enemy,
+    it triggers an Impact.
   _projectilePrefab: {fileID: 2321494586330979713, guid: aa20f08dba10ebb4aae6ae925e0bbc36,
     type: 3}
   _projectileSpeed: 18

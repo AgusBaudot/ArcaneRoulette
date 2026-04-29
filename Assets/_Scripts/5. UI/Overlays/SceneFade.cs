@@ -36,7 +36,7 @@ public class SceneFade : MonoBehaviour
         while (elapsedTime < duration)
         {
             _fadeImage.color = Color.Lerp(startColor, endColor, elapsedTime / duration);
-            elapsedTime += Time.deltaTime;
+            elapsedTime += Time.unscaledDeltaTime;
             yield return null;
         }
         _fadeImage.color = endColor;
