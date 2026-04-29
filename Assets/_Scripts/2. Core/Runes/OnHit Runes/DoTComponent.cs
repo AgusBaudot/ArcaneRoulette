@@ -37,7 +37,7 @@ namespace Core
                     break;
                 
                 // _target.TakeDamage(_damagePerTick, _element);
-                DamageSystem.Deal(_target, gameObject, _damagePerTick, _element);
+                DamageSystem.Deal(_target, gameObject, _damagePerTick, _element, DamageJuice.Light);
             }
             
             _tickRoutine = null;

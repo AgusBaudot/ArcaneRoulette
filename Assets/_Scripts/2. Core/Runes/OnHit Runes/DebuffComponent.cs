@@ -21,12 +21,20 @@ namespace Core
         {
             // Notify the enemy that a debuff component is now active.
             // EnemyAI (or handler) caches this reference — no GetComponent needed.
-            GetComponent<IDebuffReceiver>()?.RegisterDebuff(this);
+            var receivers = GetComponents<IDebuffReceiver>();
+            foreach (var receiver in receivers)
+            {
+                receiver.RegisterDebuff(this);
+            }
         }
 
         private void OnDisable()
         {
-            GetComponent<IDebuffReceiver>()?.UnregisterDebuff();
+            var receivers = GetComponents<IDebuffReceiver>();
+            foreach (var receiver in receivers)
+            {
+                receiver.UnregisterDebuff();
+            }
         }
         
         // ── IDebuffable ──────────────────────────────────────────────────────────
@@ -58,7 +66,7 @@ namespace Core
 
                 // Tick all entries — collect expired types to remove after iteration
                 var toRemove = new List<DebuffType>();
-                foreach (var type in _active.Keys)
+                foreach (var type in new List<DebuffType>(_active.Keys))
                 {
                     var entry = _active[type];
                     entry.Remaining -= 0.1f;

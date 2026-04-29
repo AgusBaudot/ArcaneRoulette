@@ -49,18 +49,22 @@ namespace Core
                 _iFrameTimer -= dt;
         }
 
-        public void TakeDamage(int amount, ElementType elementType)
+        public bool TakeDamage(int amount, ElementType elementType)
         {
-            if (IsInvincible) return;
+            if (IsInvincible)
+                return false;
 
-            float newHp = GameStateManager.RunState.CurrentHp - amount;
+            float newHp = Current - amount;
             GameStateManager.RunState.SetHp(newHp);
             _iFrameTimer = _stats.IFrameDuration;
 
             StopAllCoroutines();
             StartCoroutine(IFrameFlash());
-
-            if (GameStateManager.RunState.CurrentHp <= 0f) Die();
+            
+            if (Current <= 0f)
+                Die();
+                
+            return true;
         }
         
         private IEnumerator IFrameFlash()
@@ -93,7 +97,7 @@ namespace Core
         
         private void UpdateUI()
         {
-            float current = GameStateManager.RunState.CurrentHp;
+            float current = Current;
             float max = GameStateManager.RunState.MaxHp;
             for(int i = 0; i < _heartsContainer.childCount; i++)
             {

@@ -10,7 +10,6 @@ namespace Core
 
         private void Awake()
         {
-            //Avoid misconfiguration in the prefab
             gameObject.layer = LayerMask.NameToLayer("PlayerHurtBox");
             GetComponent<Collider>().isTrigger = true;
         }
@@ -18,9 +17,9 @@ namespace Core
         public void Initialize(PlayerHealth health) => _health = health;
 
 
-        public void TakeDamage(int amount, ElementType elementType)
+        public bool TakeDamage(int amount, ElementType elementType)
         {
-            _health.TakeDamage(amount, elementType);
+            return _health.TakeDamage(amount, elementType);
         }
     }
 }

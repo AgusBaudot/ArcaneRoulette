@@ -1,11 +1,12 @@
 using System.Collections;
+using Core;
 using UnityEngine;
 using Foundation;
 
 namespace World
 {
     [RequireComponent(typeof(Rigidbody), typeof(KnockbackHandler), typeof(EnemyHealth))]
-    public class BasicMeleeEnemy : MonoBehaviour
+    public class BasicMeleeEnemy : BaseEnemy, IDebuffReceiver
     {
         [Header("Stats")]
         [SerializeField] private float _moveSpeed = 5f;
@@ -16,14 +17,23 @@ namespace World
 
         private Rigidbody _rb;
         private KnockbackHandler _knockback;
-        private Transform _playerTarget;
         
         private float _lastAttackTime;
         private bool _isAttacking;
 
-        public void Init(Transform playerTarget)
+        private IDebuffReadable _debuffs;
+        
+        private float EffectiveAttackSpeed
         {
-            _playerTarget = playerTarget;
+            get
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.AttackSpeed))
+                {
+                    return Mathf.Max(0.1f, 1f - _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+                }
+
+                return 1f;
+            }
         }
 
         private void Awake()
@@ -45,11 +55,15 @@ namespace World
 
             if (distanceToPlayer > _meleeRange)
             {
+                float finalSpeed = _moveSpeed;
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
+                    finalSpeed *= 1f - _debuffs.GetDebuffStrength(DebuffType.Speed);
+                
                 // Chase Player
                 Vector3 dir = (GetFlatPos(_playerTarget.position) - GetFlatPos(transform.position)).normalized;
-                _rb.velocity = dir * _moveSpeed;
+                _rb.velocity = dir * finalSpeed;
             }
-            else if (Time.time >= _lastAttackTime + _attackCooldown)
+            else if (Time.time >= _lastAttackTime + _attackCooldown / EffectiveAttackSpeed)
             {
                 // In range and ready to attack
                 _rb.velocity = Vector3.zero;
@@ -73,8 +87,13 @@ namespace World
                     var playerDamageable = _playerTarget.GetComponent<IDamageable>();
                     if (playerDamageable != null)
                     {
+                        int finalDamage = _attackDamage;
+                        if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.ATK))
+                            finalDamage = Mathf.RoundToInt(finalDamage * (1f - _debuffs.GetDebuffStrength(DebuffType.ATK)));
+                        
                         // Melee is usually physical/neutral
-                        playerDamageable.TakeDamage(_attackDamage, ElementType.Neutral); 
+                        // playerDamageable.TakeDamage(_attackDamage, ElementType.Neutral); 
+                        DamageSystem.Deal(playerDamageable, _playerTarget.gameObject, finalDamage, ElementType.Neutral);
                     }
                 }
             }
@@ -85,5 +104,9 @@ namespace World
 
         // Helper to ensure we stay strictly on the XZ plane for distance calculations
         private Vector3 GetFlatPos(Vector3 pos) => new Vector3(pos.x, 0f, pos.z);
+        
+        //IDebuffReceiver Implementation --------------------------
+        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
+        public void UnregisterDebuff() => _debuffs = null;
     }
 }

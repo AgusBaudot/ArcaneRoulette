@@ -10,15 +10,15 @@ namespace Core
 
         [Header("Strength per Stack (index 0 = 1 stack, index 3 = 4 stacks)")]
         [Tooltip("Per-stack strength table - index 0  = 1 stack, index 4 = 5 stacks")]
-        [SerializeField] private float[] _fireStrengthPerStack      = { 0.20f, 0.30f, 0.40f, 0.50f };
+        [SerializeField] private float[] _fireStrengthPerStack      = {0.10f, 0.20f, 0.30f, 0.40f, 0.50f };
         [Tooltip("Per-stack strength table - index 0  = 1 stack, index 4 = 5 stacks")]
-        [SerializeField] private float[] _waterStrengthPerStack     = { 0.30f, 0.35f, 0.40f, 0.45f };
+        [SerializeField] private float[] _waterStrengthPerStack     = { 0.30f, 0.35f, 0.40f, 0.45f, 0.50f };
         [Tooltip("Per-stack strength table - index 0  = 1 stack, index 4 = 5 stacks")]
-        [SerializeField] private float[] _electricStrengthPerStack = { 0.20f, 0.30f, 0.40f, 0.50f };
+        [SerializeField] private float[] _electricStrengthPerStack = { 0.10f, 0.20f, 0.30f, 0.40f, 0.50f };
         [Tooltip("Per-stack strength table - index 0  = 1 stack, index 4 = 5 stacks")]
-        [SerializeField] private float[] _earthStrengthPerStack     = { 0.05f, 0.10f, 0.15f, 0.20f };
+        [SerializeField] private float[] _earthStrengthPerStack     = { 0.2f, 0.4f, 0.6f, 0.8f, 1f };
         [Tooltip("Per-stack strength table - index 0  = 1 stack, index 4 = 5 stacks")]
-        [SerializeField] private float[] _neutralStrengthPerStack   = { 0.05f, 0.10f, 0.15f, 0.20f };
+        [SerializeField] private float[] _neutralStrengthPerStack   = { 0.05f, 0.10f, 0.15f, 0.20f, 0.25f };
 
 
         public override void Apply(SpellContext ctx, int stackCount)
@@ -41,7 +41,7 @@ namespace Core
                 ElementType.Fire => DebuffType.ATK,
                 ElementType.Water => DebuffType.Speed,
                 ElementType.Electric => DebuffType.AttackSpeed,
-                ElementType.Earth => DebuffType.MaxHP,
+                ElementType.Earth => DebuffType.AntiHeal,
                 _ => GetRandomDebuffType()
             };
 
