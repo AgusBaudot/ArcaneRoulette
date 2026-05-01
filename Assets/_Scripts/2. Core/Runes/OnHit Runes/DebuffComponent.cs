@@ -62,7 +62,7 @@ namespace Core
         {
             while (_active.Count > 0)
             {
-                yield return Helpers.GetWait(0.1f);
+                yield return CoroutineUtils.GetWait(0.1f);
 
                 // Tick all entries — collect expired types to remove after iteration
                 var toRemove = new List<DebuffType>();

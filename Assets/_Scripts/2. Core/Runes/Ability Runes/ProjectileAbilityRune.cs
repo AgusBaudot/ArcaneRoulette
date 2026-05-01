@@ -40,13 +40,13 @@ namespace Core
 
         private IEnumerator WindUpThenFire(SpellContext ctx)
         {
-            yield return Helpers.GetWait(_windupDuration);
+            yield return CoroutineUtils.GetWait(_windupDuration);
             Fire(ctx);
         }
 
         private void Fire(SpellContext ctx)
         {
-            Ray ray = Helpers.GetCamera().ScreenPointToRay(Input.mousePosition);
+            Ray ray = CameraUtils.GetCamera().ScreenPointToRay(Helpers.Input.MousePosition);
 
             if (!Physics.Raycast(ray, out var hit, 200f, LayerMask.GetMask("Floor")))
             {

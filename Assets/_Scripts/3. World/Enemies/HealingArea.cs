@@ -28,7 +28,7 @@ namespace World
 
             while (elapsedTime < lifetime)
             {
-                yield return Helpers.GetWait(frequency);
+                yield return CoroutineUtils.GetWait(frequency);
                 elapsedTime += frequency;
                 
                 Collider[] hits = Physics.OverlapSphere(transform.position, _radius, _allyMask);

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
-using UI;
 
 namespace Core
 {
@@ -10,6 +9,8 @@ namespace Core
     [RequireComponent(typeof(PlayerEnergy))]
     public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable
     {
+        #region Properties
+
         public PlayerStats Stats => _playerStats;
         public Rigidbody Rigidbody => _rb;
         public PlayerHealth Health => _health;
@@ -33,7 +34,11 @@ namespace Core
         //Last intentional input direction - used by DashAbilityRune for dash direction.
         //Falls back to facing direction when stick/WASD is neutral.
         public Vector2 LastInputDirection => _input.sqrMagnitude > 0.01f ? _input : _facingDirection;
+        #endregion
         
+        #region Variables & State
+        
+        [Header("Dependencies")]
         [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private Transform _spriteTransform;
         [SerializeField] private GameObject _hurtBox;
@@ -51,14 +56,19 @@ namespace Core
         private Vector3 _velocity;
         private Vector2 _facingDirection = Vector2.right;
         private bool _canMove = true;
+        private PlayerInputActions _inputActions;
+
+        #endregion
+
+        #region Unity Lifecycle
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = false;
             _rb.constraints = RigidbodyConstraints.FreezePositionY
-                            | RigidbodyConstraints.FreezeRotation;
-
+                              | RigidbodyConstraints.FreezeRotation;
+            
             _health = GetComponent<PlayerHealth>();
             _energy = GetComponent<PlayerEnergy>();
             _health.Initialize(_playerStats);
@@ -76,15 +86,40 @@ namespace Core
 
         private void OnEnable()
         {
+            //Update Manager
             UpdateManager.Instance.Register((IUpdatable)this);
             UpdateManager.Instance.Register((IFixedUpdatable)this);
+            
+            //Input
+            Helpers.Input.OnSlot0Started += HandleSlot0Press;
+            Helpers.Input.OnSlot1Started += HandleSlot1Press;
+            Helpers.Input.OnSlot2Started += HandleSlot2Press;
+            
+            Helpers.Input.OnSlot0Canceled += HandleSlot0Release;
+            Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
+            Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
         }
 
         private void OnDisable()
         {
+            //Update Manager
             UpdateManager.Instance?.Unregister((IUpdatable)this);
             UpdateManager.Instance?.Unregister((IFixedUpdatable)this);
+            
+            //Input
+            //Input
+            Helpers.Input.OnSlot0Started -= HandleSlot0Press;
+            Helpers.Input.OnSlot1Started -= HandleSlot1Press;
+            Helpers.Input.OnSlot2Started -= HandleSlot2Press;
+            
+            Helpers.Input.OnSlot0Canceled -= HandleSlot0Release;
+            Helpers.Input.OnSlot1Canceled -= HandleSlot1Release;
+            Helpers.Input.OnSlot2Canceled -= HandleSlot2Release;
         }
+
+        #endregion
+
+        #region Update Loops (IUpdatable)
 
         public void Tick(float dt)
         {
@@ -97,76 +132,125 @@ namespace Core
             if (!_canMove) return;
             HandleMovement();
         }
-
-        private void TickSpells()
-        {
-            foreach (var spell in _spellSlots)
-                spell?.Tick(Time.deltaTime);
-        }
+        
+        #endregion
+        
+        #region Input Handling
 
         private void ReadInput()
         {
-            _input = new Vector2(
-                Input.GetAxisRaw("Horizontal"),
-                Input.GetAxisRaw("Vertical")).normalized;
+            _input = Helpers.Input.MoveDirection.normalized;
 
             if (_input.sqrMagnitude > 0.01f)
                 _facingDirection = _input;
-
-            for (int i = 0; i < _spellSlots.Length; i++)
-                HandleSlotInput(i, _playerStats.SlotKeys[i], _spellSlots[i]);
         }
+        
+        //Delegate Wrappers
+        private void HandleSlot0Press() => HandleSlotPress(0);
+        private void HandleSlot1Press() => HandleSlotPress(1);
+        private void HandleSlot2Press() => HandleSlotPress(2);
+        
+        private void HandleSlot0Release() => HandleSlotRelease(0);
+        private void HandleSlot1Release() => HandleSlotRelease(1);
+        private void HandleSlot2Release() => HandleSlotRelease(2);
 
-        private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
+        private void HandleSlotPress(int slotIndex)
         {
-            //If time is 0, game is paused. Ignore input.
-            if (spell == null || Time.deltaTime == 0) 
+            ISpellSlot spell  = _spellSlots[slotIndex];
+            if (spell == null || Time.deltaTime == 0)
                 return;
 
             if (spell is IHoldAbility hold)
             {
-                if (Input.GetKeyDown(key))
-                {
-                    //Suspend currently active hold (last in list) if different slot
-                    if (_heldHoldSlots.Count > 0)
-                    {
-                        int activeSlot = _heldHoldSlots[^1];
-                        if (activeSlot != slotIndex && _spellSlots[activeSlot] is IHoldAbility activeHold)
-                            activeHold.StopHold(this);
-                    }
-
-                    _heldHoldSlots.Remove(slotIndex); //Safety - shouldn't be present
-                    _heldHoldSlots.Add(slotIndex);
-                    hold.StartHold(this);
-                }
+                if (_heldHoldSlots.Count > 0)
+                    if (_heldHoldSlots[^1] != slotIndex && _spellSlots[_heldHoldSlots[^1]] is IHoldAbility activeHold)
+                        activeHold.StopHold(this);
                 
-                //Only tick the last-pressed (active) hold
-                if (Input.GetKey(key) && _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex)
-                {
-                    hold.HoldTick(Time.deltaTime, this);
-                }
-
-                if (Input.GetKeyUp(key))
-                {
-                    bool wasActive = _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex;
-
-                    hold.StopHold(this);
-                    _heldHoldSlots.Remove(slotIndex);
-                    
-                    //If the released slot was active and another is still held, resume it
-                    if (wasActive && _heldHoldSlots.Count > 0)
-                    {
-                        if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
-                            resumeHold.StartHold(this);
-                    }
-                }
+                _heldHoldSlots.Remove(slotIndex);
+                _heldHoldSlots.Add(slotIndex);
+                hold.StartHold(this);
             }
             else if (spell is IAbility ability)
             {
-                if (Input.GetKeyDown(key))
-                    ability.Activate(this);
+                ability.Activate(this);
             }
         }
+
+        private void HandleSlotRelease(int slotIndex)
+        {
+            ISpellSlot spell = _spellSlots[slotIndex];
+            if (spell == null || Time.deltaTime == 0)
+                return;
+
+            if (spell is IHoldAbility hold)
+            {
+                bool wasActive = _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex;
+
+                hold.StopHold(this);
+                _heldHoldSlots.Remove(slotIndex);
+
+                if (wasActive && _heldHoldSlots.Count > 0)
+                {
+                    if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
+                        resumeHold.StartHold(this);
+                }
+            }
+        }
+        
+        #endregion
+
+        // private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
+        // {
+        //     //If time is 0, game is paused. Ignore input.
+        //     if (spell == null || Time.deltaTime == 0) 
+        //         return;
+        //
+        //     if (spell is IHoldAbility hold)
+        //     {
+        //         if (Input.GetKeyDown(key))
+        //         {
+        //             //Suspend currently active hold (last in list) if different slot
+        //             if (_heldHoldSlots.Count > 0)
+        //             {
+        //                 int activeSlot = _heldHoldSlots[^1];
+        //                 if (activeSlot != slotIndex && _spellSlots[activeSlot] is IHoldAbility activeHold)
+        //                     activeHold.StopHold(this);
+        //             }
+        //
+        //             _heldHoldSlots.Remove(slotIndex); //Safety - shouldn't be present
+        //             _heldHoldSlots.Add(slotIndex);
+        //             hold.StartHold(this);
+        //         }
+        //         
+        //         //Only tick the last-pressed (active) hold
+        //         if (Input.GetKey(key) && _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex)
+        //         {
+        //             hold.HoldTick(Time.deltaTime, this);
+        //         }
+        //
+        //         if (Input.GetKeyUp(key))
+        //         {
+        //             bool wasActive = _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex;
+        //
+        //             hold.StopHold(this);
+        //             _heldHoldSlots.Remove(slotIndex);
+        //             
+        //             //If the released slot was active and another is still held, resume it
+        //             if (wasActive && _heldHoldSlots.Count > 0)
+        //             {
+        //                 if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
+        //                     resumeHold.StartHold(this);
+        //             }
+        //         }
+        //     }
+        //     else if (spell is IAbility ability)
+        //     {
+        //         if (Input.GetKeyDown(key))
+        //             ability.Activate(this);
+        //     }
+        // }
+
+        #region Handle Movement & Physics
 
         private void HandleMovement()
         {
@@ -190,6 +274,28 @@ namespace Core
             _spriteTransform.localScale = new Vector3(
                 _facingDirection.x < 0f ? -0.75f : 0.75f, 0.75f, 0.75f);
         }
+        
+        public void SetCanMove(bool canMove) => _canMove = canMove;
+        
+        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
+        
+        #endregion
+        
+        #region Spell & Combat State
+        
+        private void TickSpells()
+        {
+            foreach (var spell in _spellSlots)
+                spell?.Tick(Time.deltaTime);
+
+            if (_heldHoldSlots.Count > 0)
+            {
+                if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
+                {
+                    hold.HoldTick(Time.deltaTime, this);
+                }
+            }
+        }
 
         private void OnSpellEquipped(SpellEquippedEvent evt)
         {
@@ -197,10 +303,6 @@ namespace Core
                 _spellSlots[(int)evt.Slot] = evt.Instance as SpellInstance;
         }
         
-        public void SetCanMove(bool canMove) => _canMove = canMove;
-        
-        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
-
         //Protect against IndexOutOfRange
         public SpellInstance GetSlot(int index)
         {
@@ -227,5 +329,7 @@ namespace Core
 
             _energy.ForceDeplete();
         }
+        
+        #endregion
     }
 }

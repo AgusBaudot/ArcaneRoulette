@@ -42,7 +42,7 @@ namespace World
             if (_windupVFX != null)
                 Instantiate(_windupVFX, transform.position, Quaternion.identity);
 
-            yield return Helpers.GetWait(_windupExplosion);
+            yield return CoroutineUtils.GetWait(_windupExplosion);
             
             if (_explosionVFX != null)
                 Instantiate(_explosionVFX, transform.position, Quaternion.identity);
