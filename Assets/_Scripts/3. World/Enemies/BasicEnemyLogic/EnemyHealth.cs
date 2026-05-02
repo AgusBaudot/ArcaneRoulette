@@ -5,8 +5,10 @@ using Foundation;
 
 namespace World
 {
-    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable
+    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable, IUpdatable
     {
+        public int UpdatePriority => Foundation.UpdatePriority.UI;
+
         [Header("Stats")]
         [SerializeField] private float _maxHp = 12f; // Switched to float for clean UI division
         [SerializeField] private ElementType _element = ElementType.Neutral;
@@ -31,7 +33,10 @@ namespace World
             _currentHp = _maxHp;
         }
 
-        private void Update()
+        private void OnEnable() => UpdateManager.Instance.Register(this);
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
+        public void Tick(float deltaTime)
         {
             if (_ghostFill == null || _hpFill == null) return;
             

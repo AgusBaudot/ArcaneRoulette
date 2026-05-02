@@ -1,9 +1,9 @@
-using System.Collections.Generic;
+using System;
+using Core;
+using Foundation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Foundation;
-using Core;
 
 namespace UI
 {
@@ -13,9 +13,11 @@ namespace UI
     /// - Updates cooldown progress every frame via CooldownRemaining
     /// - Shows ability, element, and modifier rune icons for each slot
     /// </summary>
-    public sealed class ActionBarHUD : MonoBehaviour
+    public sealed class ActionBarHUD : MonoBehaviour, IUpdatable
     {
-        [System.Serializable]
+        public int UpdatePriority => Foundation.UpdatePriority.UI;
+        
+        [Serializable]
         public class SlotDisplay
         {
             [Header("Slot References")]
@@ -159,6 +161,7 @@ namespace UI
         {
             // Subscribe to spell equipped events
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
+            UpdateManager.Instance.Register(this);
             
             // Initialize current spells from RunState
             if (_runState == null)
@@ -181,9 +184,10 @@ namespace UI
         private void OnDisable()
         {
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
+            UpdateManager.Instance?.Unregister(this);
         }
-
-        private void Update()
+        
+        public void Tick(float dt)
         {
             // Update cooldown progress for all slots every frame
             for (int i = 0; i < 3; i++)

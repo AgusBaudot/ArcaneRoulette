@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Foundation;
@@ -5,8 +6,10 @@ using Core;
 
 namespace UI
 {
-    public sealed class SlotDisplay : MonoBehaviour
+    public sealed class SlotDisplay : MonoBehaviour, IUpdatable
     {
+        public int UpdatePriority => Foundation.UpdatePriority.UI;
+        
         [SerializeField] private int _slotIndex;
         [SerializeField] private Image _abilityIcon;         // optional — spell icon
 
@@ -28,7 +31,11 @@ namespace UI
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
         }
 
-        private void Update()
+        private void OnEnable() => UpdateManager.Instance.Register(this);
+        
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
+        public void Tick(float dt)
         {
             if (_instance == null)
             {

@@ -28,7 +28,7 @@ namespace Core
         }
         
         //IUpdatable
-        public int UpdatePriority => Foundation.UpdatePriority.Player;
+        public int UpdatePriority => Foundation.UpdatePriority.Input;
         public int FixedUpdatePriority => Foundation.UpdatePriority.Player;
 
         //Last intentional input direction - used by DashAbilityRune for dash direction.

@@ -1,11 +1,13 @@
+using System;
 using UnityEngine;
 
 namespace Foundation
 {
-    public class CameraShake : MonoBehaviour
+    public class CameraShake : MonoBehaviour, IUpdatable
     {
         public static CameraShake Instance { get; private set; }
-        
+        public int UpdatePriority => Foundation.UpdatePriority.Camera;
+            
         [SerializeField] private float _maxOffset = 0.25f;
         [SerializeField] private float _traumaDecay = 2.2f;
         [SerializeField] private float _noiseFrequency = 20f;
@@ -26,6 +28,9 @@ namespace Foundation
             _originLocalPos = transform.localPosition;
         }
 
+        private void OnEnable() => UpdateManager.Instance.Register(this);
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
         /// <summary>
         /// Trauma is clamped 0-1. Shake intensity = trauma^2. Stack additive calls.
         /// </summary>
@@ -36,7 +41,7 @@ namespace Foundation
             Instance._trauma = Mathf.Clamp01(Instance._trauma + amount);
         }
 
-        private void LateUpdate()
+        public void Tick(float deltaTime)
         {
             if (_trauma <= 0f) return;
 

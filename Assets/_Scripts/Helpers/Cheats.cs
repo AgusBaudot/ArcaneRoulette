@@ -1,12 +1,19 @@
+using Foundation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class Cheats : MonoBehaviour
+public class Cheats : MonoBehaviour, IUpdatable
 {
-    private string _scene1 = "Core loop";
-    private string _scene2 = "Hardcore room";
+    public int UpdatePriority => Foundation.UpdatePriority.Input;
+    
+    private readonly string _scene1 = "Core loop";
+    private readonly string _scene2 = "Hardcore room";
+    
+    private void OnEnable() => UpdateManager.Instance.Register(this);
 
-    private void Update()
+    private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
+    public void Tick(float dt)
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
