@@ -27,12 +27,6 @@ public class AIBruto : AIBrain
         base.Awake();
         waypoints.Add(target);
     }
-    protected override void Update()
-    {
-        base.Update();
-        if (IsInLos())
-            blackboard.SetValue(hasSeenPlayerKey, true);
-    }
 
     bool IsInAttackRangeStable()
     {

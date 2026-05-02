@@ -12,10 +12,7 @@ namespace World
 
         void Awake()
         {
-            /*
-             * ServiceLocator.Global.Register(this);
-             */
-            //blackboardData.SetValuesOnBlackboard(blackboard);
+            blackboardData.SetValuesOnBlackboard(blackboard);
             blackboard.debug();
         }
 
