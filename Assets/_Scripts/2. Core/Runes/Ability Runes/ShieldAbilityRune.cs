@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -5,7 +6,7 @@ using Foundation;
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Shield")]
-    public class ShieldAbilityRune : AbilityRuneSO, IShieldConfig
+    public class ShieldAbilityRune : AbilityRuneSO
     {
         [SerializeField] private GameObject _shieldVisualPrefab;
         [SerializeField] private GameObject _shockwavePrefab;
@@ -14,28 +15,21 @@ namespace Core
         public override AbilityType Type => AbilityType.Shield;
         public override bool IsHoldAbility => true;
         public override float CooldownDuration => 0f;
-        
-        //IShieldConfig
-        float IShieldConfig.RadiusMultiplier { set => _activeRadiusMultiplier = value; }
-        bool IShieldConfig.AllowEnemyThrough { set => _activeAllowEnemyThrough = value; }
-        bool IShieldConfig.ReflectsProjectiles { set => _activeReflectsProjectiles = value; }
-        int IShieldConfig.ReflectCount { set => _activeReflectCount = value; }
-        float IShieldConfig.ReflectSpread { set => _activeReflectSpread = value; }
-        int IShieldConfig.HomingCount { set => _activeHomingCount = value; }
-        
-        //Private backing fields - written by cast runes via the interface
-        private float _activeRadiusMultiplier;
-        private bool _activeAllowEnemyThrough;
-        private bool _activeReflectsProjectiles;
-        private int _activeReflectCount;
-        private float _activeReflectSpread;
-        private int _activeHomingCount = 0;
+
+        public event Action<ShieldActivationArgs> OnBeforeStartHold;
         
         //One visual per HoldSpellInstance - keyed by ISpellSource identity
         //Cleared on eun end when SpellInstances are dismantled
         private readonly Dictionary<ISpellSource, GameObject> _visuals = new();
+        
+        public override void StartHold(SpellContext ctx)
+        {
+            var args = new ShieldActivationArgs();
+            OnBeforeStartHold?.Invoke(args);
+            ConfigureAndStartHold(ctx, ctx.Source as SpellInstance, args);
+        }
 
-        internal void ConfigureAndStartHold(SpellContext ctx, SpellInstance source)
+        internal void ConfigureAndStartHold(SpellContext ctx, SpellInstance source, ShieldActivationArgs args)
         {
             var player = (PlayerController)ctx.Runner;
             if (!player.Energy.TryStartDrain())
@@ -71,35 +65,32 @@ namespace Core
                 source.TriggerOnHit(pos, target, ctx.Runner);
             
             // ── Update collider properties every activation ──────────────────────
-            visual.transform.localScale = Vector3.one * _activeRadiusMultiplier;
+            visual.transform.localScale = Vector3.one * args.RadiusMultiplier;
             
-            shield.ReflectsProjectiles = _activeReflectsProjectiles;
-            shield.ReflectCount = _activeReflectCount;
-            shield.ReflectSpread = _activeReflectSpread;
+            shield.ReflectsProjectiles = args.ReflectsProjectiles;
+            shield.ReflectCount = args.ReflectCount;
+            shield.ReflectSpread = args.ReflectSpread;
             
             //Piercing toggles trigger mode - update every activation
             var col = visual.GetComponent<Collider>();
-            col.isTrigger = _activeAllowEnemyThrough;
+            col.isTrigger = args.AllowEnemyThrough;
 
             var damageZone = visual.GetComponent<ShieldDamageZone>();
+            
             if (damageZone != null)
-                damageZone.Active = _activeAllowEnemyThrough;
+                damageZone.Active = args.AllowEnemyThrough;
             
             visual.SetActive(true);
 
-            if (_activeHomingCount > 0)
-                SpawnHomingFromShield(ctx);
-        }
-
-        public override void StartHold(SpellContext ctx)
-        {
-            ConfigureAndStartHold(ctx, ctx.Source as SpellInstance);
+            if (args.HomingCount > 0)
+                SpawnHomingFromShield(ctx, args.HomingCount);
         }
 
         public override void HoldTick(SpellContext ctx, float deltaTime)
         {
             var state = ctx.Source.ShieldState;
-            if (!state.Active) return;
+            if (!state.Active) 
+                return;
             
             var player = (PlayerController)ctx.Runner;
 
@@ -113,10 +104,7 @@ namespace Core
 
             state.TimeHeld += deltaTime;
             if (state.TimeHeld >= _abilityThreshold)
-            {
-                //Fire ability here. No abilities yet.
                 state.TimeHeld -= _abilityThreshold;
-            }
         }
 
         public override void StopHold(SpellContext ctx)
@@ -131,29 +119,16 @@ namespace Core
                 visual.SetActive(false);
         }
 
-        public override void ResetActiveConfig()
-        {
-            _activeRadiusMultiplier = 1f;
-            _activeAllowEnemyThrough = false;
-            _activeReflectsProjectiles = false;
-            _activeReflectCount = 0;
-            _activeReflectSpread = 0f;
-            _activeHomingCount = 0;
-        }
-
-        public override void Activate(SpellContext ctx)
-        {
-        }
-
         //Called by SpellCrafter.Dismantle - cleans up the visual for this instance
         public void CleanupInstance(ISpellSource source)
         {
             if (_visuals.TryGetValue(source, out var visual) && visual != null)
                 Destroy(visual);
+            
             _visuals.Remove(source);
         }
 
-        private void SpawnHomingFromShield(SpellContext ctx)
+        private void SpawnHomingFromShield(SpellContext ctx, int count)
         {
             if (ctx.Source is not SpellInstance si)
                 return;
@@ -166,7 +141,7 @@ namespace Core
                     continue;
                 
                 homing.SpawnHomingProjectiles(
-                    _activeHomingCount,
+                    count,
                     ctx.Runner.transform.position,
                     dir,
                     ctx.Source.SpellElement,
@@ -174,6 +149,10 @@ namespace Core
 
                 break;
             }
+        }
+        
+        public override void Activate(SpellContext ctx)
+        {
         }
     }
 }

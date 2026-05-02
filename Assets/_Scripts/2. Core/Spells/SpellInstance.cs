@@ -20,6 +20,11 @@ namespace Core
         private readonly List<OnHitRuneSO> _onHitRunes;
         private readonly int[] _castCounts;
         private readonly int[] _onHitCounts;
+        
+        //Cast rune unsubscription closures - populates by SubscribeRunes(),
+        //drained by Cleanup(). Each Action removes exactly one delegate
+        //from one ability hook event.
+        private readonly List<Action> _cleanupActions = new();
 
         private float _cooldownRemaining;
 
@@ -45,37 +50,55 @@ namespace Core
             BuildDedupedLists(recipe,
                 out _castRunes, out _castCounts,
                 out _onHitRunes, out _onHitCounts);
+            
+            //Subscribe cast runes once for this instance's lifetime.
+            //Hooks fire inside each ability's Activate/StartHold.
+            SubscribeRunes();
         }
         
-        //Tick: called by PlayerController every Update
-
+        // ── Rune subscription ────────────────────────────────────────────────
+        private void SubscribeRunes()
+        {
+            for (int i = 0; i < _castRunes.Count; i++)
+                _castRunes[i].Subscribe(_recipe.Ability, _castCounts[i], _cleanupActions);
+        }
+ 
+        // Called by SpellCrafter.Dismantle before slot deallocation.
+        // Drains _cleanupActions — each closure unsubscribes one delegate.
+        // Safe to call more than once (list is cleared after drain).
+        internal void Cleanup()
+        {
+            foreach (var action in _cleanupActions) action();
+            _cleanupActions.Clear();
+        }
+        
+        // ── Tick ─────────────────────────────────────────────────────────────
+        
         public void Tick(float dt)
         {
             if (_cooldownRemaining > 0f)
                 _cooldownRemaining -= dt;
         }
-
-        //IAbility
-
+ 
+        // ── IAbility ─────────────────────────────────────────────────────────
+        
         public void Activate(MonoBehaviour runner)
         {
             if (!IsReady) return;
             
-            //Fresh modifiers allocated inside ForCast - cast runes write, ability reads.
+            //Cast rune hooks were subscribed at construction and fire inside 
+            //the ability's Activate via the args object it allocates.
             var ctx = BuildCastContext(runner);
             
-            FireCastRunes(ctx); //runes write to ability via ctx.Ability interfaces
-            _recipe.Ability.Activate(ctx); //ability reads its own fields, ctx.Souce available
+            _recipe.Ability.Activate(ctx); //ability reads its own fields, ctx.Source available
 
             _cooldownRemaining = _recipe.Ability.CooldownDuration;
         }
-
-        //OnHit trigger (called by projectile/contact on impact)
+        
+        // ── OnHit pipeline ────────────────────────────────────────
 
         public void TriggerOnHit(Vector3 position, GameObject target, MonoBehaviour runner)
-        {
-            TriggerOnHit(position, target, runner, _recipe.Ability.Type);
-        }
+            => TriggerOnHit(position, target, runner, _recipe.Ability.Type);
 
         // For cases where the physical object triggering OnHit should be treated as another ability type
         // (e.g. shield-reflected projectiles should behave like Projectile hits).
@@ -119,29 +142,13 @@ namespace Core
             FireOnHitRunes(ctx);
         }
 
-        //Shared helpers (used by HoldSpellInstance)
+        // ── Shared helpers ───────────────────────────────────────────────────
 
-        //Exposes a cast-phase context without leaking the raw count arrays.
+        //Constructs SpellContext for Activate/StartHold.
         protected SpellContext BuildCastContext(MonoBehaviour runner)
-        {
-            //Reset ability config before every cast = stale values must never carry over
-            _recipe.Ability.ResetActiveConfig();
-
-            return SpellContext.ForCast(
-                _recipe.Ability.Type,
-                _castCounts,
-                _onHitCounts,
-                runner,
-                SpellElement,
-                _recipe.Ability,
-                this);
-        }
-        
-        protected void FireCastRunes(SpellContext ctx)
-        {
-            for (int i = 0; i < _castRunes.Count; i++)
-                _castRunes[i].Apply(ctx, _castCounts[i]);
-        }
+            => SpellContext.ForCast(
+                _recipe.Ability.Type, _castCounts, _onHitCounts,
+                runner, SpellElement, _recipe.Ability, this);
 
         protected void FireOnHitRunes(SpellContext ctx)
         {
@@ -149,7 +156,7 @@ namespace Core
                 _onHitRunes[i].Apply(ctx, _onHitCounts[i]);
         }
 
-        //Rune list construction
+        // ── Rune list construction ────────────────────────────────────────────
 
         // Deduplicates modifier slots by SO reference (same asset = same rune).
         // Slot order is irrelevant per spec; only identity and count matter.
@@ -167,6 +174,7 @@ namespace Core
 
                 if (modifier is CastRuneSO cast)
                     castDict[cast] = castDict.TryGetValue(cast, out var cc) ? cc + 1 : 1;
+                
                 else if (modifier is OnHitRuneSO onHit)
                     onHitDict[onHit] = onHitDict.TryGetValue(onHit, out var oc) ? oc + 1 : 1;
             }

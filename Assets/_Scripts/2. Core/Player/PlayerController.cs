@@ -107,7 +107,6 @@ namespace Core
             UpdateManager.Instance?.Unregister((IFixedUpdatable)this);
             
             //Input
-            //Input
             Helpers.Input.OnSlot0Started -= HandleSlot0Press;
             Helpers.Input.OnSlot1Started -= HandleSlot1Press;
             Helpers.Input.OnSlot2Started -= HandleSlot2Press;
@@ -198,57 +197,6 @@ namespace Core
         }
         
         #endregion
-
-        // private void HandleSlotInput(int slotIndex, KeyCode key, ISpellSlot spell)
-        // {
-        //     //If time is 0, game is paused. Ignore input.
-        //     if (spell == null || Time.deltaTime == 0) 
-        //         return;
-        //
-        //     if (spell is IHoldAbility hold)
-        //     {
-        //         if (Input.GetKeyDown(key))
-        //         {
-        //             //Suspend currently active hold (last in list) if different slot
-        //             if (_heldHoldSlots.Count > 0)
-        //             {
-        //                 int activeSlot = _heldHoldSlots[^1];
-        //                 if (activeSlot != slotIndex && _spellSlots[activeSlot] is IHoldAbility activeHold)
-        //                     activeHold.StopHold(this);
-        //             }
-        //
-        //             _heldHoldSlots.Remove(slotIndex); //Safety - shouldn't be present
-        //             _heldHoldSlots.Add(slotIndex);
-        //             hold.StartHold(this);
-        //         }
-        //         
-        //         //Only tick the last-pressed (active) hold
-        //         if (Input.GetKey(key) && _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex)
-        //         {
-        //             hold.HoldTick(Time.deltaTime, this);
-        //         }
-        //
-        //         if (Input.GetKeyUp(key))
-        //         {
-        //             bool wasActive = _heldHoldSlots.Count > 0 && _heldHoldSlots[^1] == slotIndex;
-        //
-        //             hold.StopHold(this);
-        //             _heldHoldSlots.Remove(slotIndex);
-        //             
-        //             //If the released slot was active and another is still held, resume it
-        //             if (wasActive && _heldHoldSlots.Count > 0)
-        //             {
-        //                 if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
-        //                     resumeHold.StartHold(this);
-        //             }
-        //         }
-        //     }
-        //     else if (spell is IAbility ability)
-        //     {
-        //         if (Input.GetKeyDown(key))
-        //             ability.Activate(this);
-        //     }
-        // }
 
         #region Handle Movement & Physics
 

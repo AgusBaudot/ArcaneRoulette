@@ -1,26 +1,38 @@
-using Foundation;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Foundation;
 
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Cast/Piercing")]
     public sealed class PiercingCastRune : CastRuneSO
     {
-        public override void Apply(SpellContext ctx, int stackCount)
+        public override void Subscribe(AbilityRuneSO ability, int stackCount, List<Action> cleanup)
         {
-            switch (ctx.Ability)
+            switch (ability)
             {
-                case IProjectileConfig proj:
-                    proj.PierceCount = 3 * stackCount;
+                case ProjectileAbilityRune proj:
+                {
+                    Action<ProjectileFireArgs> h = args => args.PierceCount = 3 * stackCount;
+                    proj.OnBeforeFire += h;
+                    cleanup.Add(() => proj.OnBeforeFire -= h);
                     break;
-                
-                case IDashConfig dash:
-                    dash.DamagesOnDash = true;
+                }
+                case DashAbilityRune dash:
+                {
+                    Action<DashActivationArgs> h = args => args.DamagesOnDash = true;
+                    dash.OnBeforeActivate += h;
+                    cleanup.Add(() => dash.OnBeforeActivate -= h);
                     break;
-                
-                case IShieldConfig shield:
-                    shield.AllowEnemyThrough = true;
+                }
+                case ShieldAbilityRune shield:
+                {
+                    Action<ShieldActivationArgs> h = args => args.AllowEnemyThrough = true;
+                    shield.OnBeforeStartHold += h;
+                    cleanup.Add(() => shield.OnBeforeStartHold -= h);
                     break;
+                }
             }
         }
     }

@@ -1,50 +1,45 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Foundation;
+using UnityEngine;
 
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Projectile")]
-    public class ProjectileAbilityRune : AbilityRuneSO, IProjectileConfig
+    public class ProjectileAbilityRune : AbilityRuneSO
     {
         [SerializeField] private Projectile _projectilePrefab;
         [SerializeField] private float _projectileSpeed = 18f;
         [SerializeField] private int _baseDamage = 10;
         [SerializeField] private float _windupDuration = 0.08f;
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
-        [SerializeField] private float _hitStopDuration = 0.06f;
-        [SerializeField] private float _cameraTrauma = 0.5f;
 
         public override AbilityType Type => AbilityType.Projectile;
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
         
-        //IProjectileConfig - cast runes write here
-        int IProjectileConfig.PierceCount {set => _activePierceCount = value;}
-        int IProjectileConfig.BounceCount {set => _activeBounceCount = value;}
-        float IProjectileConfig.SizeMultiplier {set => _activeSizeMultiplier = value;}
-        int IProjectileConfig.HomingCount {set => _activeHomingCount = value;}
-        
-        //Private backing fields - written by cast runes via the interface
-        private int _activePierceCount = 0;
-        private int _activeBounceCount = 0;
-        private float _activeSizeMultiplier = 1f;
-        private int _activeHomingCount = 0;
+        // ── Hook event ───────────────────────────────────────────────────────
+        // Cast runes subscribe at SpellInstance construction.
+        // Invoked once per Activate with a fresh ProjectileFireArgs.
+        // NOTE: Shared SO state — deferred concern identical to mutable SO
+        //   fields on Dash/Shield. Safe for single-player prototype.
+        //   Fix: move event to per-instance state bag when multiplayer lands.
+        public event Action<ProjectileFireArgs> OnBeforeFire;
         
         public override void Activate(SpellContext ctx)
         {
-            //Cast runes already ran - active config is populated
-            ctx.Runner.StartCoroutine(WindUpThenFire(ctx));
+            var args = new ProjectileFireArgs(); //Default values = baseline.
+            OnBeforeFire?.Invoke(args); //Cast runes write into args.
+            ctx.Runner.StartCoroutine(WindUpThenFire(ctx, args));
         }
 
-        private IEnumerator WindUpThenFire(SpellContext ctx)
+        private IEnumerator WindUpThenFire(SpellContext ctx, ProjectileFireArgs args)
         {
             yield return CoroutineUtils.GetWait(_windupDuration);
-            Fire(ctx);
+            Fire(ctx, args);
         }
 
-        private void Fire(SpellContext ctx)
+        private void Fire(SpellContext ctx, ProjectileFireArgs args)
         {
             Ray ray = CameraUtils.GetCamera().ScreenPointToRay(Helpers.Input.MousePosition);
 
@@ -54,7 +49,7 @@ namespace Core
                 return;
             }
 
-            Vector3 dir = (hit.point - ctx.Runner.transform.position);
+            Vector3 dir = hit.point - ctx.Runner.transform.position;
             dir.y = 0f;
             dir.Normalize();
             
@@ -64,36 +59,39 @@ namespace Core
                 return;
             }
 
-            var go = Instantiate(_projectilePrefab, ctx.Runner.transform.position, Quaternion.LookRotation(dir));
-            go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
-            go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, _baseDamage, _hitStopDuration, _cameraTrauma,
-                ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
-            go.SetPierceCount(_activePierceCount);
-            go.SetBounceCount(_activeBounceCount);
+            Vector3 spawnPos = ctx.Runner.transform.position + dir;
             
-            if (_activeSizeMultiplier != 1f)
+            var go = Instantiate(_projectilePrefab, spawnPos, Quaternion.LookRotation(dir));
+            go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
+            go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, _baseDamage,
+                ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
+            go.SetPierceCount(args.PierceCount);
+            go.SetBounceCount(args.BounceCount);
+            
+            if (args.SizeMultiplier != 1f)
             {
-                go.transform.GetChild(0).localScale = Vector3.one * _activeSizeMultiplier;
+                go.transform.GetChild(0).localScale = Vector3.one * args.SizeMultiplier;
                 
                 var col = go.GetComponent<SphereCollider>();
                 if (col != null)
-                    col.radius *= _activeSizeMultiplier / 2;
+                    col.radius *= args.SizeMultiplier / 2;
             }
 
-            if (_activeHomingCount > 0)
-                SpawnHomingProjectiles(ctx, dir);
+            if (args.HomingCount > 0)
+                SpawnHomingProjectiles(ctx, dir, args.HomingCount);
         }
 
-        private void SpawnHomingProjectiles(SpellContext ctx, Vector3 dir)
+        private void SpawnHomingProjectiles(SpellContext ctx, Vector3 dir, int count)
         {
             if (ctx.Source is not SpellInstance si) return;
 
             foreach (var castRune in si.Recipe.CastRunes())
             {
-                if (castRune is not HomingCastRune homing) continue;
+                if (castRune is not HomingCastRune homing) 
+                    continue;
 
                 homing.SpawnHomingProjectiles(
-                    _activeHomingCount,
+                    count,
                     ctx.Runner.transform.position,
                     dir,
                     ctx.Source.SpellElement,
@@ -101,16 +99,6 @@ namespace Core
                 
                 break;
             }
-        }
-
-        //Reset must happen at the start of every Activate so stale values
-        //never carry over between casts. Called before FireCastRunes
-        public override void ResetActiveConfig()
-        {
-            _activePierceCount = 0;
-            _activeBounceCount = 0;
-            _activeSizeMultiplier = 1f;
-            _activeHomingCount = 0;
         }
 
         //Hold lifecycle - never called, Projectile is not a hold ability

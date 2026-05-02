@@ -1,5 +1,6 @@
+using System;
+using System.Collections.Generic;
 using Foundation;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Core
@@ -15,19 +16,41 @@ namespace Core
         [Tooltip("Radius of the spawn formation around the player.")] [SerializeField]
         private float _spawnOffset = 0.5f;
 
-        public override void Apply(SpellContext ctx, int stackCount)
+        // ── Subscribe ────────────────────────────────────────────────────────
+        // Only sets args.HomingCount. Ability runes read the count and call
+        // SpawnHomingProjectiles themselves — they need this SO instance for
+        // the prefab reference and designer fields, which they reach by
+        // iterating Recipe.CastRunes() and breaking on the first HomingCastRune.
+        public override void Subscribe(AbilityRuneSO ability, int stackCount,
+            List<Action> cleanup)
         {
-            if (ctx.Ability is IProjectileConfig projCfg)
-                projCfg.HomingCount = stackCount;
-
-            if (ctx.Ability is IDashConfig dashCfg)
-                dashCfg.HomingCount = stackCount;
-
-            if (ctx.Ability is IShieldConfig shieldCfg)
-                shieldCfg.HomingCount = stackCount;
+            switch (ability)
+            {
+                case ProjectileAbilityRune proj:
+                {
+                    Action<ProjectileFireArgs> h = args => args.HomingCount = stackCount;
+                    proj.OnBeforeFire += h;
+                    cleanup.Add(() => proj.OnBeforeFire -= h);
+                    break;
+                }
+                case DashAbilityRune dash:
+                {
+                    Action<DashActivationArgs> h = args => args.HomingCount = stackCount;
+                    dash.OnBeforeActivate += h;
+                    cleanup.Add(() => dash.OnBeforeActivate -= h);
+                    break;
+                }
+                case ShieldAbilityRune shield:
+                {
+                    Action<ShieldActivationArgs> h = args => args.HomingCount = stackCount;
+                    shield.OnBeforeStartHold += h;
+                    cleanup.Add(() => shield.OnBeforeStartHold -= h);
+                    break;
+                }
+            }
         }
 
-        // 
+        // ── SpawnHomingProjectiles ───────────────────────────────────────────
         /// <summary>
         /// Called by all three ability runes after their activation.
         /// Damage is 30% if base damage - consistent across abilities.

@@ -14,8 +14,6 @@ namespace Core
 
         private int _baseDamage;
         private int _pierceCount;
-        private float _hitStopDuration;
-        private float _cameraTrauma;
         private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
         private bool _excludeBounceCastRuneForOnHitContext;
 
@@ -27,8 +25,6 @@ namespace Core
             Vector3 direction,
             float speed,
             int baseDamage,
-            float hitStopDuration,
-            float cameraTrauma,
             MonoBehaviour runner,
             AbilityType abilityTypeForOnHit,
             bool excludeBounceCastRuneForOnHitContext)
@@ -36,8 +32,6 @@ namespace Core
             _source = source;
             _runner = runner;
             _baseDamage = baseDamage;
-            _hitStopDuration = hitStopDuration;
-            _cameraTrauma = cameraTrauma;
             _abilityTypeForOnHit = abilityTypeForOnHit;
             _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
 

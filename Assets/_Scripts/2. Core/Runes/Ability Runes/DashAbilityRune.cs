@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,17 +7,8 @@ using Foundation;
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
-    public sealed class DashAbilityRune : AbilityRuneSO, IDashConfig
+    public sealed class DashAbilityRune : AbilityRuneSO
     {
-        //IDashConfig
-        float IDashConfig.DurationMultiplier { set => _activeDurationMultiplier = value; }
-        bool IDashConfig.DamagesOnDash { set => _activeDamagesOnDash = value; }
-        bool IDashConfig.ReflectsProjectiles { set => _activeReflectsProjectiles = value; }
-        int IDashConfig.BounceCount { set =>  _activeBounceCount = value; }
-        int IDashConfig.ReflectCount { set => _activeReflectCount = value; }
-        float IDashConfig.ReflectSpread { set => _activeReflectSpread = value; }
-        int IDashConfig.HomingCount { set => _activeHomingCount = value; }
-        
         [SerializeField] private float _dashSpeed = 20f;
         [SerializeField] private float _baseDashDuration = 0.2f;
         [SerializeField] private float _cooldownDuration = 0.8f;
@@ -24,47 +16,41 @@ namespace Core
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
-        [SerializeField] private float _reflectHitStop = 0.06f;
-        [SerializeField] private float _reflectTrauma = 0.8f;
-        
 
         public override AbilityType Type => AbilityType.Dash;
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
 
-        private float _activeDurationMultiplier;
-        private bool _activeDamagesOnDash;
-        private bool _activeReflectsProjectiles;
-        private int _activeBounceCount;
-        private int _activeReflectCount;
-        private float _activeReflectSpread;
-        private int _activeHomingCount;
+        public event Action<DashActivationArgs> OnBeforeActivate;
 
         public override void Activate(SpellContext ctx)
         {
+            var args = new DashActivationArgs();
+            OnBeforeActivate?.Invoke(args);
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
-                _baseDashDuration * _activeDurationMultiplier));
+                _baseDashDuration * args.DurationMultiplier, args));
         }
 
-        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration)
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args)
         {
             // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
             Vector3 dir = new Vector3(raw.x, 0f, raw.y).normalized;
-            if (dir == Vector3.zero) dir = player.transform.forward;
+            
+            if (dir == Vector3.zero) 
+                dir = player.transform.forward;
 
             // Invincibility — distinct from IFrames per locked decisions
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
-
-            int bouncesLeft = _activeBounceCount;
-            float elapsed = 0f;
-
-            var hitEnemies = new HashSet<GameObject>();
             
+            var hitEnemies = new HashSet<GameObject>();
+
             //Spawn homing projectiles before dash begins
-            if (_activeHomingCount > 0)
-                SpawnHomingFromDash(ctx, dir);
+            if (args.HomingCount > 0)
+                SpawnHomingFromDash(ctx, dir, args.HomingCount);
+            
+            float elapsed = 0f;
             
             while (elapsed < duration)
             {
@@ -81,7 +67,7 @@ namespace Core
                         continue;
 
                     // Damage only if PiercingCastRune is slotted
-                    if (_activeDamagesOnDash)
+                    if (args.DamagesOnDash)
                     {
                         DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.Source.SpellElement);
                     }
@@ -92,9 +78,9 @@ namespace Core
                 }
 
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
-                if (_activeReflectCount > 0 && _reflectedProjectilePrefab != null)
+                if (args.ReflectCount > 0 && _reflectedProjectilePrefab != null)
                 {
-                    ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance);
+                    ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance, args);
                 }
                 
                 player.Rigidbody.velocity = dir * _dashSpeed;
@@ -107,7 +93,7 @@ namespace Core
             player.Hurtbox.SetActive(true);
         }
 
-        private void SpawnHomingFromDash(SpellContext ctx, Vector3 dir)
+        private void SpawnHomingFromDash(SpellContext ctx, Vector3 dir, int count)
         {
             if (ctx.Source is not SpellInstance si)
                 return;
@@ -118,7 +104,7 @@ namespace Core
                     continue;
                 
                 homing.SpawnHomingProjectiles(
-                    _activeHomingCount,
+                    count,
                     ctx.Runner.transform.position,
                     dir,
                     ctx.Source.SpellElement,
@@ -129,7 +115,7 @@ namespace Core
         }
 
         private void ReflectNearbyProjectiles(PlayerController player, Vector3 dashDir, SpellContext ctx,
-            SpellInstance source)
+            SpellInstance source, DashActivationArgs args)
         {
             //Detect enemy projectiles in dash radius
             var cols = Physics.OverlapSphere(player.transform.position, _dashHitRadius * 2f);
@@ -138,6 +124,7 @@ namespace Core
             {
                 if (!col.TryGetComponent<IProjectile>(out var proj))
                     continue;
+                
                 if (!proj.IsEnemy)
                     continue;
 
@@ -148,17 +135,17 @@ namespace Core
                 
                 SpawnReflectedSpread(
                     col.transform.position, reflectBase,
-                    proj.Rb.velocity.magnitude, ctx, source);
+                    proj.Rb.velocity.magnitude, ctx, source, args);
                 
                 Destroy(col.gameObject);
             }
         }
 
         private void SpawnReflectedSpread(Vector3 origin, Vector3 baseDir, float speed, SpellContext ctx,
-            SpellInstance source)
+            SpellInstance source, DashActivationArgs args)
         {
             var dirs = ReflectionUtils.GetSpreadDirections(
-                baseDir, _activeReflectCount, _activeReflectSpread);
+                baseDir, args.ReflectCount, args.ReflectSpread);
 
             foreach (var d in dirs)
             {
@@ -166,21 +153,10 @@ namespace Core
                     _reflectedProjectilePrefab, origin, Quaternion.LookRotation(d));
                 
                 //Reflected projectiles inherit all OnHit runes, no BounceCastRune context
-                go.Init(source, d, speed, _baseDamage, _reflectHitStop, _reflectTrauma, ctx.Runner, AbilityType.Projectile, true);
+                go.Init(source, d, speed, _baseDamage, ctx.Runner, AbilityType.Projectile, true);
                 go.SetPierceCount(0);
                 go.SetBounceCount(0);
             }
-        }
-
-        public override void ResetActiveConfig()
-        {
-            _activeDurationMultiplier = 01f;
-            _activeDamagesOnDash = false;
-            _activeReflectsProjectiles = false;
-            _activeBounceCount = 0;
-            _activeReflectCount = 0;
-            _activeReflectSpread = 0;
-            _activeHomingCount = 0;
         }
 
         public override void StartHold(SpellContext ctx)

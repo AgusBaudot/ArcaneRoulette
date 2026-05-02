@@ -8,8 +8,6 @@ namespace Core
     public sealed class ShieldCollider : MonoBehaviour
     {
         [SerializeField] private Projectile _reflectedProjectilePrefab;
-        [SerializeField] private float _reflectHitStop   = 0.05f;
-        [SerializeField] private float _reflectTrauma    = 0.1f;
 
         public bool ReflectsProjectiles { get; set; }
         public int ReflectCount { get; set; } //set by BounceCastRune stack count
@@ -74,7 +72,7 @@ namespace Core
                 foreach (var d in dirs)
                 {
                     var go = Instantiate(_reflectedProjectilePrefab, other.transform.position, Quaternion.LookRotation(d));
-                    go.Init(_boundInstance, d, speed, enemy.Damage, _reflectHitStop, _reflectTrauma, _runner, AbilityType.Projectile, true);
+                    go.Init(_boundInstance, d, speed, enemy.Damage, _runner, AbilityType.Projectile, true);
                     go.SetPierceCount(0);
                     go.SetBounceCount(0);
                 }

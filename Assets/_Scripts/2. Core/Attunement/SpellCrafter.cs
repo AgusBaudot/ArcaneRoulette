@@ -97,6 +97,8 @@ namespace Core
             if (current == null)
                 return;
             
+            current.Cleanup();
+            
             //Deallocate every rune in its recipe
             var recipe = current.Recipe;
 
