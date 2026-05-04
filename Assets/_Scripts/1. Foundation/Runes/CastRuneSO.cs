@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Foundation
 {
     /// <summary>
@@ -18,6 +21,7 @@ namespace Foundation
     public abstract class CastRuneSO : ModifierRuneSO
     {
         /// <param name="ability">The ability rune this spell is built around.</param>
+        /// <param name="source">Instance of event.</param>
         /// <param name="stackCount">Number of times this rune appears in the recipe.</param>
         /// <param name="cleanupList">
         /// List owned by the SpellInstance. Push one Action per subscribed
@@ -25,7 +29,8 @@ namespace Foundation
         /// </param>
         public abstract void Subscribe(
             AbilityRuneSO ability,
+            ISpellEventSource source,
             int stackCount,
-            System.Collections.Generic.List<System.Action> cleanupList);
+            List<Action> cleanupList);
     }
 }

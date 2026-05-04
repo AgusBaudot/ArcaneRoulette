@@ -13,7 +13,7 @@ namespace Core
 
     //SpellCrafter is the only factory. Never construct directly.
     //For hold abilities SpellCrafter produces HoldSpellInstance instead.
-    public class SpellInstance : IAbility, ISpellSlot, ISpellSource
+    public class SpellInstance : IAbility, ISpellSlot, ISpellSource, ISpellEventSource
     {
         private readonly SpellRecipe _recipe;
         private readonly List<CastRuneSO> _castRunes;
@@ -34,6 +34,11 @@ namespace Core
             ? 1f - (_cooldownRemaining / CooldownDuration)
             : 1f;
         
+        //ISpellEventSource implementation
+        public event Action<ProjectileFireArgs> OnBeforeFire;
+        public event Action<DashActivationArgs> OnBeforeActivate;
+        public event Action<ShieldActivationArgs> OnBeforeStartHold;
+
         public SpellRecipe Recipe => _recipe;
         public AbilityType AbilityType => _recipe.Ability.Type;
         public bool IsHoldAbility => false;
@@ -60,7 +65,7 @@ namespace Core
         private void SubscribeRunes()
         {
             for (int i = 0; i < _castRunes.Count; i++)
-                _castRunes[i].Subscribe(_recipe.Ability, _castCounts[i], _cleanupActions);
+                _castRunes[i].Subscribe(_recipe.Ability, this, _castCounts[i], _cleanupActions);
         }
  
         // Called by SpellCrafter.Dismantle before slot deallocation.
@@ -74,7 +79,7 @@ namespace Core
         
         // ── Tick ─────────────────────────────────────────────────────────────
         
-        public void Tick(float dt)
+        public virtual void Tick(float dt)
         {
             if (_cooldownRemaining > 0f)
                 _cooldownRemaining -= dt;
@@ -189,5 +194,11 @@ namespace Core
             for (int i = 0; i < onHitRunes.Count; i++)
                 onHitCounts[i] = onHitDict[onHitRunes[i]];
         }
+        
+        public void RaiseBeforeFire(ProjectileFireArgs args) => OnBeforeFire?.Invoke(args);
+
+        public void RaiseBeforeActivate(DashActivationArgs args) => OnBeforeActivate?.Invoke(args);
+
+        public void RaiseBeforeStartHold(ShieldActivationArgs args) => OnBeforeStartHold?.Invoke(args);
     }
 }

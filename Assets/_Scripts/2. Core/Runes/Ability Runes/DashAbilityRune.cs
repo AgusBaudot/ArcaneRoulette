@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Foundation;
+using UnityEngine;
 
 namespace Core
 {
@@ -21,12 +20,10 @@ namespace Core
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
 
-        public event Action<DashActivationArgs> OnBeforeActivate;
-
         public override void Activate(SpellContext ctx)
         {
             var args = new DashActivationArgs();
-            OnBeforeActivate?.Invoke(args);
+            (ctx.Source as ISpellEventSource)?.RaiseBeforeActivate(args);
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
                 _baseDashDuration * args.DurationMultiplier, args));
         }

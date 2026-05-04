@@ -3,16 +3,19 @@ using UnityEngine;
 
 namespace Core
 {
-    // Produced by SpellCrafter for hold abilities (Shield).
-    // Inherits SubscribeRunes and Cleanup from SpellInstance —
-    // no additional subscription logic needed here.
+    /// <summary>
+    /// Produced by SpellCrafter for hold abilities (Shield).
+    /// Owns an EnergyPool constructed from Helpers.Stats - one independent
+    /// pool per instance. Two shield slots therefore have two separate pools
+    /// with separate drain/broken/restore state.
+    /// </summary>
     public sealed class HoldSpellInstance : SpellInstance, IHoldAbility
     {
+        public EnergyPool Energy { get; } = new(Helpers.PlayerStats);
+        
         public override ShieldInstanceState ShieldState { get; } = new();
-        public override float DisplayProgress => _energy != null ? _energy.Current / _energy.Max : 1f;
-
-        private PlayerEnergy _energy;
-
+        public override float DisplayProgress => Energy.Current / Energy.Max;
+        
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 
         // ── IHoldAbility ─────────────────────────────────────────────────────
@@ -21,7 +24,6 @@ namespace Core
         {
             // Hook (OnBeforeStartHold) fires inside ShieldAbilityRune.StartHold
             // against freshly allocated ShieldActivationArgs.
-            _energy = ((PlayerController)runner).Energy;
             var ctx = BuildCastContext(runner);
             Recipe.Ability.StartHold(ctx);
         }
@@ -30,6 +32,12 @@ namespace Core
         {
             var ctx = BuildCastContext(runner);
             Recipe.Ability.StopHold(ctx);
+        }
+
+        public override void Tick(float dt)
+        {
+            Energy.Tick(dt);
+            base.Tick(dt);
         }
  
         public void HoldTick(float deltaTime, MonoBehaviour runner)

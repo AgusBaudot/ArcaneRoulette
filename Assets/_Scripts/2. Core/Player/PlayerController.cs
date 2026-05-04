@@ -6,7 +6,6 @@ namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PlayerHealth))]
-    [RequireComponent(typeof(PlayerEnergy))]
     public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable
     {
         #region Properties
@@ -14,7 +13,6 @@ namespace Core
         public PlayerStats Stats => _playerStats;
         public Rigidbody Rigidbody => _rb;
         public PlayerHealth Health => _health;
-        public PlayerEnergy Energy => _energy;
         public GameObject Hurtbox => _hurtBox;
         //True when a HoldSpellInstance with an active ShieldState is the last-pressed hold.
         public bool IsShielding
@@ -50,7 +48,6 @@ namespace Core
 
         private Rigidbody _rb;
         private PlayerHealth _health;
-        private PlayerEnergy _energy;
 
         private Vector2 _input;
         private Vector3 _velocity;
@@ -70,9 +67,7 @@ namespace Core
                               | RigidbodyConstraints.FreezeRotation;
             
             _health = GetComponent<PlayerHealth>();
-            _energy = GetComponent<PlayerEnergy>();
             _health.Initialize(_playerStats);
-            _energy.Initialize(_playerStats);
             
             GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
             
@@ -271,11 +266,10 @@ namespace Core
 
             if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
             {
+                (_spellSlots[_heldHoldSlots[^1]] as HoldSpellInstance)?.Energy.ForceDeplete();
                 hold.StopHold(this);
                 _heldHoldSlots.Remove(_heldHoldSlots[^1]);
             }
-
-            _energy.ForceDeplete();
         }
         
         #endregion

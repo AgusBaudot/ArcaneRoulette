@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -15,8 +14,6 @@ namespace Core
         public override AbilityType Type => AbilityType.Shield;
         public override bool IsHoldAbility => true;
         public override float CooldownDuration => 0f;
-
-        public event Action<ShieldActivationArgs> OnBeforeStartHold;
         
         //One visual per HoldSpellInstance - keyed by ISpellSource identity
         //Cleared on eun end when SpellInstances are dismantled
@@ -25,23 +22,27 @@ namespace Core
         public override void StartHold(SpellContext ctx)
         {
             var args = new ShieldActivationArgs();
-            OnBeforeStartHold?.Invoke(args);
-            ConfigureAndStartHold(ctx, ctx.Source as SpellInstance, args);
+            (ctx.Source as ISpellEventSource)?.RaiseBeforeStartHold(args);
+            ConfigureAndStartHold(ctx, ctx.Source as HoldSpellInstance, args);
         }
 
-        internal void ConfigureAndStartHold(SpellContext ctx, SpellInstance source, ShieldActivationArgs args)
+        internal void ConfigureAndStartHold(SpellContext ctx, HoldSpellInstance source, ShieldActivationArgs args)
         {
-            var player = (PlayerController)ctx.Runner;
-            if (!player.Energy.TryStartDrain())
+            if (source == null)
+                return;
+            
+            if (!source.Energy.TryStartDrain())
                 return;
 
-            var state = ctx.Source.ShieldState;
+            var state = source.ShieldState;
             state.Active = true;
             state.TimeHeld = 0f;
 
             // ── Instantiate once per source instance ────────────────────────────
-            if (!_visuals.TryGetValue(ctx.Source, out var visual) || visual == null)
+            if (!_visuals.TryGetValue(source, out var visual) || visual == null)
             {
+                var player = (PlayerController)ctx.Runner;
+                
                 visual = Instantiate(
                     _shieldVisualPrefab,
                     player.transform.position + new Vector3(-0.2f, 1f, 1f),
@@ -49,7 +50,7 @@ namespace Core
                     player.transform);
 
                 visual.SetActive(false); // prevent events during setup
-                _visuals[ctx.Source] = visual;
+                _visuals[source] = visual;
             }
             
             // ── Wire every activation — source may have changed ─────────────────
@@ -88,15 +89,17 @@ namespace Core
 
         public override void HoldTick(SpellContext ctx, float deltaTime)
         {
-            var state = ctx.Source.ShieldState;
-            if (!state.Active) 
+            var source = ctx.Source as HoldSpellInstance;
+            if (source == null)
                 return;
             
-            var player = (PlayerController)ctx.Runner;
+            var state = source.ShieldState;
+            if (!state.Active)
+                return;
 
             //PlayerEnergy.Tick() already handles draining at stats rate.
             //Shield just watches for depletion and reacts.
-            if (player.Energy.IsBroken)
+            if (source.Energy.IsBroken)
             {
                 StopHold(ctx);
                 return;
@@ -109,13 +112,17 @@ namespace Core
 
         public override void StopHold(SpellContext ctx)
         {
+            var source = ctx.Source as HoldSpellInstance;
+            if (source == null)
+                return;
+            
             var state = ctx.Source.ShieldState;
             state.Active = false;
             state.TimeHeld = 0f;
             
-            ((PlayerController)ctx.Runner).Energy.StopDrain();
+            source.Energy.StopDrain();
             
-            if (_visuals.TryGetValue(ctx.Source, out var visual) && visual != null)
+            if (_visuals.TryGetValue(source, out var visual) && visual != null)
                 visual.SetActive(false);
         }
 

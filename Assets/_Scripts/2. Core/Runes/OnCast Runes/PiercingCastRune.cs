@@ -8,29 +8,29 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Cast/Piercing")]
     public sealed class PiercingCastRune : CastRuneSO
     {
-        public override void Subscribe(AbilityRuneSO ability, int stackCount, List<Action> cleanup)
+        public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount, List<Action> cleanup)
         {
             switch (ability)
             {
-                case ProjectileAbilityRune proj:
+                case ProjectileAbilityRune:
                 {
                     Action<ProjectileFireArgs> h = args => args.PierceCount = 3 * stackCount;
-                    proj.OnBeforeFire += h;
-                    cleanup.Add(() => proj.OnBeforeFire -= h);
+                    source.OnBeforeFire += h;
+                    cleanup.Add(() => source.OnBeforeFire -= h);
                     break;
                 }
-                case DashAbilityRune dash:
+                case DashAbilityRune:
                 {
                     Action<DashActivationArgs> h = args => args.DamagesOnDash = true;
-                    dash.OnBeforeActivate += h;
-                    cleanup.Add(() => dash.OnBeforeActivate -= h);
+                    source.OnBeforeActivate += h;
+                    cleanup.Add(() => source.OnBeforeActivate -= h);
                     break;
                 }
-                case ShieldAbilityRune shield:
+                case ShieldAbilityRune:
                 {
                     Action<ShieldActivationArgs> h = args => args.AllowEnemyThrough = true;
-                    shield.OnBeforeStartHold += h;
-                    cleanup.Add(() => shield.OnBeforeStartHold -= h);
+                    source.OnBeforeStartHold += h;
+                    cleanup.Add(() => source.OnBeforeStartHold -= h);
                     break;
                 }
             }

@@ -10,19 +10,19 @@ namespace Core
     {
         [SerializeField] private float _spread = 60f; //Total arc in degrees across all stacks
  
-        public override void Subscribe(AbilityRuneSO ability, int stackCount,
+        public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount,
             List<Action> cleanup)
         {
             switch (ability)
             {
-                case ProjectileAbilityRune proj:
+                case ProjectileAbilityRune:
                 {
                     Action<ProjectileFireArgs> h = args => args.BounceCount = 3 * stackCount;
-                    proj.OnBeforeFire += h;
-                    cleanup.Add(() => proj.OnBeforeFire -= h);
+                    source.OnBeforeFire += h;
+                    cleanup.Add(() => source.OnBeforeFire -= h);
                     break;
                 }
-                case DashAbilityRune dash:
+                case DashAbilityRune:
                 {
                     // Capture _spread at subscribe time — same SO, same value,
                     // but closure is explicit for correctness.
@@ -34,11 +34,11 @@ namespace Core
                         args.ReflectSpread       = spread;
                         args.BounceCount         = stackCount;
                     };
-                    dash.OnBeforeActivate += h;
-                    cleanup.Add(() => dash.OnBeforeActivate -= h);
+                    source.OnBeforeActivate += h;
+                    cleanup.Add(() => source.OnBeforeActivate -= h);
                     break;
                 }
-                case ShieldAbilityRune shield:
+                case ShieldAbilityRune:
                 {
                     float spread = _spread;
                     Action<ShieldActivationArgs> h = args =>
@@ -47,8 +47,8 @@ namespace Core
                         args.ReflectCount        = stackCount;
                         args.ReflectSpread       = spread;
                     };
-                    shield.OnBeforeStartHold += h;
-                    cleanup.Add(() => shield.OnBeforeStartHold -= h);
+                    source.OnBeforeStartHold += h;
+                    cleanup.Add(() => source.OnBeforeStartHold -= h);
                     break;
                 }
             }

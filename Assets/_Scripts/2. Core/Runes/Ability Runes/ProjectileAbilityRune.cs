@@ -18,18 +18,10 @@ namespace Core
         public override bool IsHoldAbility => false;
         public override float CooldownDuration => _cooldownDuration;
         
-        // ── Hook event ───────────────────────────────────────────────────────
-        // Cast runes subscribe at SpellInstance construction.
-        // Invoked once per Activate with a fresh ProjectileFireArgs.
-        // NOTE: Shared SO state — deferred concern identical to mutable SO
-        //   fields on Dash/Shield. Safe for single-player prototype.
-        //   Fix: move event to per-instance state bag when multiplayer lands.
-        public event Action<ProjectileFireArgs> OnBeforeFire;
-        
         public override void Activate(SpellContext ctx)
         {
             var args = new ProjectileFireArgs(); //Default values = baseline.
-            OnBeforeFire?.Invoke(args); //Cast runes write into args.
+            (ctx.Source as ISpellEventSource)?.RaiseBeforeFire(args); //Cast runes write into args.
             ctx.Runner.StartCoroutine(WindUpThenFire(ctx, args));
         }
 

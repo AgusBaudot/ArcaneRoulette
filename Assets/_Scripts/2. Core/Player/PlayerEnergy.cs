@@ -3,74 +3,76 @@ using UnityEngine;
 
 namespace Core
 {
-    public class PlayerEnergy : MonoBehaviour, IUpdatable
+    /// <summary>
+    /// Self-contained energy pool. Owned by HoldSPellInstance - one pool
+    /// per equipped hold spell, ticked by HoldSpellInstance.HoldTick.
+    /// </summary>
+    public sealed class EnergyPool
     {
         public float Current { get; private set; }
-        public float Max => _stats.MaxEnergy;
+        public float Max { get; }
         public bool IsBroken { get; private set; } //true = depleted, must fully restore.
-        
-        //IUpdatable
-        public int UpdatePriority => Foundation.UpdatePriority.Player;
 
-        private PlayerStats _stats;
+        private readonly float _drainRate;
+        private readonly float _restoreRate;
+        private readonly float _drainOnStart;
+        
         private bool _isDraining;
 
-        public void Initialize(PlayerStats stats)
+        public EnergyPool(PlayerStats stats)
         {
-            _stats = stats;
-            Current = stats.MaxEnergy;
+            Max = stats.MaxEnergy;
+            _drainRate = stats.EnergyDrainRate;
+            _restoreRate = stats.EnergyRestoreRate;
+            _drainOnStart = stats.DrainOnStart;
+            Current = Max;
         }
-        
-        private void OnEnable()
-        {
-            UpdateManager.Instance.Register(this);
-        }
-
-        private void OnDisable()
-        {
-            UpdateManager.Instance?.Unregister(this);
-        }
-
         public void Tick(float dt)
         {
             if (_isDraining)
             {
-                Current = Mathf.Max(0f, Current - _stats.EnergyDrainRate * dt);
+                Current -= _drainRate * dt;
 
-                if (Current <= 0f)
-                {
-                    Current = 0f;
-                    IsBroken = true;
-                    _isDraining = false;
-                    //EventBus.Publish(new EnergyDepletedEvent());
-                }
+                if (!(Current <= 0f)) 
+                    return;
+                    
+                Current = 0f;
+                IsBroken = true;
+                _isDraining = false;
             }
             else
             {
-                Current = Mathf.Min(Max, Current + _stats.EnergyRestoreRate * dt);
+                Current += _restoreRate * dt;
+                if (Current > Max)
+                    Current = Max;
 
                 if (IsBroken && Current >= Max)
                     IsBroken = false; //only clears on full restore.
             }
         }
 
-        /// <summary>
-        /// Returns false if broken or empty - shield checks this before activating.
-        /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// False if broken or empty - shield checks this before activating.
+        /// </returns>
         public bool TryStartDrain()
         {
             if (IsBroken || Current <= 0f)
                 return false;
 
-            Current -= Max * _stats._drainOnStart;
+            Current -= Max * _drainOnStart;
 
+            if (Current < 0f)
+                Current = 0f;
+            
             _isDraining = true;
             return true;
         }
 
+        public void StopDrain() => _isDraining = false;
+
         /// <summary>
         /// Bypasses normal drain flow, immediately breaks the shield.
+        /// Used by world hazards.
         /// </summary>
         public void ForceDeplete()
         {
@@ -78,7 +80,5 @@ namespace Core
             IsBroken = true;
             _isDraining = false;
         }
-
-        public void StopDrain() => _isDraining = false;
     }
 }
