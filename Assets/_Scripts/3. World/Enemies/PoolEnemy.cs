@@ -27,25 +27,23 @@ namespace World
                         var pooleable = obj.GetComponent<IPooleable>();
                         return pooleable;
                     },
-                    obj => obj.OnSpawn(),
-                    obj => obj.OnDespawn()
-                    );
-
-
+                    obj => obj.OnSpawn(), obj => obj.OnDespawn(), obj => Destroy(((MonoBehaviour)obj).gameObject), /*Cambiar esto*/ true, poolConfig._initialSize, poolConfig._maxSize );
+                /*
                 for (int i = 0; i < poolConfig._initialSize; i++)
                 {
                     var obj = pool.Get();
                     pool.Release(obj);
                 }
-
-
+                */
                 _pools.Add(poolConfig._id, pool);
             }
         }
-        public IPooleable Get(EnemyType enemyType)
+        public IPooleable Get(EnemyType enemyType, Vector3 position)
         {
             _pools.TryGetValue(enemyType, out var pool);
-            return pool.Get();
+            var entity = pool.Get() as AIBrain;
+            entity.transform.position = position;
+            return entity;
         }
         public void Release(EnemyType enemyType, IPooleable obj)
         {
@@ -60,5 +58,6 @@ namespace World
         public EnemyType _id;
         public GameObject _enemy;
         public int _initialSize;
+        public int _maxSize;
     }
 }

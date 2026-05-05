@@ -21,13 +21,11 @@ public class AIBruto : AIBrain
     [SerializeField] private float vfxDuration = 1f;
     [SerializeField] private LayerMask damageMask;
     [SerializeField] private List<Transform> waypoints;
-    BlackboardKey hasSeenPlayerKey;
     protected override void Awake()
     {
         base.Awake();
         waypoints.Add(target);
     }
-
     bool IsInAttackRangeStable()
     {
         float distance = Vector3.Distance(transform.position, target.position);
@@ -39,7 +37,6 @@ public class AIBruto : AIBrain
         _wasInRange = result;
         return result;
     }
-
     protected override BehaviourTree BuildTree()
     {
         var tree = new BehaviourTree(base._behaviourTreeName);
@@ -68,9 +65,6 @@ public class AIBruto : AIBrain
 
         return tree;
     }
-
-
-
     void PlayAttackVFX()
     {
         Vector3 dir = (target.position - transform.position).normalized;
@@ -90,7 +84,5 @@ public class AIBruto : AIBrain
             }
         }
     }
-
-
 }
 

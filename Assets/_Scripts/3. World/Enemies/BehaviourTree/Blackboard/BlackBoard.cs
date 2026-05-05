@@ -72,7 +72,6 @@ namespace World
         public static bool operator ==(BlackboardKey lhs, BlackboardKey rhs) => lhs.hashedKey == rhs.hashedKey;
         public static bool operator !=(BlackboardKey lhs, BlackboardKey rhs) => !(lhs == rhs);
     }
-
     public class BlackboardEntry<T> 
     {
         public BlackboardKey Key { get; }
@@ -89,7 +88,6 @@ namespace World
         public override bool Equals(object obj) => obj is BlackboardEntry<T> other && other.Key.Equals(Key);
         public override int GetHashCode() => Key.GetHashCode(); 
     }
-
     public class Blackboard
     {
         Dictionary<string, BlackboardKey> keyRegistry = new();

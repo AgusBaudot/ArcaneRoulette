@@ -13,7 +13,7 @@ namespace World
 
         void Awake()
         {
-            //blackboardData.SetValuesOnBlackboard(blackboard);
+            blackboardData.SetValuesOnBlackboard(blackboard);
             blackboard.debug();
         }
         public void RegisterExpert(IExpert expert) => arbiter.RegisterExpert(expert);

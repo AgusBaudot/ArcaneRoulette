@@ -14,7 +14,6 @@ namespace World
         protected override void Awake()
         {
             base.Awake();
-           
         }
         protected override BehaviourTree BuildTree() 
         {
