@@ -80,9 +80,13 @@ namespace Core
 
             Vector3[] offsets = GetFormationOffsets(count, _spawnOffset);
             
+            float baseRadius = 0.5f; 
+            if (_homingPrefab.TryGetComponent<SphereCollider>(out var prefabCol))
+                baseRadius = prefabCol.radius;
+            
             for (int i = 0; i < count; i++)
             {
-                var go = Instantiate(_homingPrefab, spawnPosition + offsets[i], Quaternion.LookRotation(initialDirection));
+                var go = Helpers.ProjFactory.Spawn(_homingPrefab, spawnPosition + offsets[i], Quaternion.LookRotation(initialDirection));
                 go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
 
                 // Scale sprite child, not root — same pattern as ProjectileAbilityRune
@@ -92,7 +96,7 @@ namespace Core
 
                     var col = go.GetComponent<SphereCollider>();
                     if (col != null)
-                        col.radius *= _sizeMultiplier / 2f;
+                        col.radius = baseRadius * (_sizeMultiplier / 2f);
                 }
 
                 go.Init(initialDirection, _homingSpeed, damage, element);

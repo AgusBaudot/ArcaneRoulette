@@ -1,4 +1,5 @@
 using Core;
+using Foundation;
 using UnityEngine;
 
 public static class Helpers
@@ -6,6 +7,7 @@ public static class Helpers
     private static CombatSettings _combatSettings;
     private static InputReader _input;
     private static PlayerStats _playerStats;
+    private static ProjectilePrefabFactory _projectilePrefabFactory;
 
     public static CombatSettings Combat
     {
@@ -51,6 +53,22 @@ public static class Helpers
             }
             
             return _playerStats;
+        }
+    }
+
+    public static ProjectilePrefabFactory ProjFactory
+    {
+        get
+        {
+            if (_projectilePrefabFactory == null)
+            {
+                _projectilePrefabFactory = ProjectilePrefabFactory.Instance;
+                
+                if (_projectilePrefabFactory == null)
+                    Debug.LogError($"CRITICAL: Instance of {nameof(ProjectilePrefabFactory)} is null!");
+            }
+            
+            return _projectilePrefabFactory;
         }
     }
 }

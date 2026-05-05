@@ -51,6 +51,7 @@ namespace Core
             // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
             var damageable = other.GetComponentInParent<IDamageable>(true)
                               ?? other.GetComponent<IDamageable>();
+            
             if (damageable == null)
                 return;
 
@@ -74,7 +75,7 @@ namespace Core
 
             if (_pierceCount <= 0)
             {
-                Destroy(gameObject);
+                Helpers.ProjFactory.Despawn(gameObject);
                 return;
             }
 
@@ -85,10 +86,19 @@ namespace Core
         protected override void OnHitWall(Collider other)
         {
             if (!TryBounce())
-                Destroy(gameObject);
+                Helpers.ProjFactory.Despawn(gameObject);
             // On bounce, _hitTargets is intentionally NOT cleared —
             // a bounced projectile can't re-hit an enemy it already pierced through.
-            // Designers can revisit this if needed.
+        }
+
+        public override void OnDespawn()
+        {
+            base.OnDespawn(); //Halts physics.
+            
+            //Prevent memory leaks
+            _source = null;
+            _runner = null;
+            _hitTargets.Clear();
         }
     }
 }

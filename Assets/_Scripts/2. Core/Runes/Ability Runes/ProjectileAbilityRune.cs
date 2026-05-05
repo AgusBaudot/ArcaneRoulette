@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using Foundation;
 using UnityEngine;
@@ -53,7 +52,7 @@ namespace Core
 
             Vector3 spawnPos = ctx.Runner.transform.position + dir;
             
-            var go = Instantiate(_projectilePrefab, spawnPos, Quaternion.LookRotation(dir));
+            var go = Helpers.ProjFactory.Spawn(_projectilePrefab, spawnPos, Quaternion.LookRotation(dir));
             go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
             go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, _baseDamage,
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);

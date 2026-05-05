@@ -29,7 +29,10 @@ namespace Core
             _damage = damage;
             _element = element;
             _speed = speed;
-            _enemyLayerMask = LayerMask.GetMask("Enemy");
+            
+            //Only perform the string lookup once per game execution
+            if (_enemyLayerMask == -1)
+                _enemyLayerMask = LayerMask.GetMask("Enemy");
 
             SetVelocity(initialDirection, speed);
             PlayParticles();
@@ -113,13 +116,20 @@ namespace Core
             // No OnHit runes, no pierce, no bounce — just damage and destroy.
             // DamageSystem.Deal without DamageJuice uses Default internally.
             DamageSystem.Deal(damageable, other.gameObject, _damage, _element, DamageJuice.Light);
-            Destroy(gameObject);
+            Helpers.ProjFactory.Despawn(gameObject);
         }
 
         protected override void OnHitWall(Collider other)
         {
             // Homing projectiles don't bounce — destroy on wall contact.
-            Destroy(gameObject);
+            Helpers.ProjFactory.Despawn(gameObject);
+        }
+
+        public override void OnDespawn()
+        {
+            base.OnDespawn();
+
+            _currentTarget = null;
         }
     }
 }
