@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace World 
 { 
-
     public abstract class Node
     {  
         public enum NodeState

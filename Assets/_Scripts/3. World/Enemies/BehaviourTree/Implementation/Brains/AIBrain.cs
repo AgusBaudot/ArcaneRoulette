@@ -8,13 +8,8 @@ namespace World
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
-    public abstract class AIBrain : MonoBehaviour, IEnemyUpdate ,IDebuffReceiver
+    public abstract class AIBrain : MonoBehaviour ,IDebuffReceiver
     {
-        // ---- Custom Update Enemy Manager ----
-        public float interval { get; set; }
-        public float timer { get; set; }
-
-
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
         [SerializeField] protected NavMeshAgent _agent;
@@ -32,54 +27,40 @@ namespace World
 
         protected IDebuffReadable _debuffs;
         protected abstract BehaviourTree BuildTree();
-        protected virtual bool IsInLos()
-        {
-            if (target == null)
-                target = GameObject.FindGameObjectWithTag("Player").transform;
-            if (_los == null || target == null) return false;
-            return _los.CheckRange(target) && _los.CheckView(target);
-        }
-
-        bool LineOfSight()
-        {
-            if (blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
-                return true;
-
-            bool hasLOS = IsInLos();
-            if (hasLOS)
-                blackboard.SetValue(hasSeenPlayerKey, true);
-
-            return hasLOS;
-        }
-
-
-
-
         protected virtual void Awake()
         {
+
             _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _los = GetComponent<LineOfSight>();
-            _waypoints.Add(target);
             _agent.updateRotation = false;
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
+
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
+            _waypoints.Add(target);
 
-
-
-            var controller = GetComponent<BlackboardController>();
-            blackboard = controller.GetBlackboard();
             tree = BuildTree();
+
+            Debug.Log(_agent.isOnNavMesh);
         }
         public void Tick() 
         {
             tree?.Process();
-            UpdateTick();
         }
+        protected virtual bool IsInLos()
+        {
+            if (blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
+                return true;
 
-        protected virtual void UpdateTick() { }
+            if (target == null)
+                target = GameObject.FindGameObjectWithTag("Player").transform;
+
+            bool hasLOS = _los.CheckRange(target) && _los.CheckView(target);
+            blackboard.SetValue(hasSeenPlayerKey, hasLOS);
+            return hasLOS;
+        }
 
         //------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;

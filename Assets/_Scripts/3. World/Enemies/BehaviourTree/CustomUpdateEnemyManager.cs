@@ -13,8 +13,11 @@ namespace World
 
         private List<IEnemyUpdate> _enemyUpdatables = new List<IEnemyUpdate>();
 
+        public void Awake()
+        {
+            Instance = this;
+        }
         // ---- Register & UnRegister from UpdateManager ----
-
         public void OnEnable()
         {
             UpdateManager.Instance?.Register(this);
@@ -30,7 +33,7 @@ namespace World
             if (_enemyUpdatables.Contains(enemy)) 
                 return;
             //Esto lo puedo cambiar por un parametro que (si el enemigo es mas importante) actualice mas rapido o mas lento segun el intervalo.
-            enemy.interval = Random.Range(0.2f,0.5f);
+            enemy.interval = Random.Range(0,0);
             _enemyUpdatables.Add(enemy);
         }
         public void Unregister(IEnemyUpdate enemy)
@@ -45,7 +48,7 @@ namespace World
         }
         public void TickEnemies()
         {
-            for (int i = 0; _enemyUpdatables.Count > 0; i++) 
+            for (int i = 0; i <_enemyUpdatables.Count; i++) 
             {
                 float dt = Time.deltaTime;
                 _enemyUpdatables[i].timer += dt;

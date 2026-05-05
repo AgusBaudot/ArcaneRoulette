@@ -30,8 +30,7 @@ namespace World
         {
             _currentHp = _maxHp;
         }
-
-        private void Update()
+        public void Tick()
         {
             if (_ghostFill == null || _hpFill == null) return;
             
@@ -42,7 +41,6 @@ namespace World
                 _ghostSpeed * Time.deltaTime
             );
         }
-
         public bool TakeDamage(int amount, ElementType elementType)
         {
             _currentHp = Mathf.Max(0f, _currentHp - amount);
@@ -51,7 +49,6 @@ namespace World
             if (_currentHp <= 0f) Die();
             return true;
         }
-
         public void Heal(float amount)
         {
             if (_currentHp <= 0f)
@@ -64,13 +61,11 @@ namespace World
             _currentHp = Mathf.Min(_maxHp, _currentHp + finalHealth);
             UpdateUI();
         }
-
         private void UpdateUI()
         {
             if (_hpFill != null)
                 _hpFill.fillAmount = _currentHp / _maxHp;
         }
-
         private void Die()
         {
             if (_isDead)

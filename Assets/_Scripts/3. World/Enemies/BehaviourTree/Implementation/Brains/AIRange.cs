@@ -13,7 +13,6 @@ namespace World
         [SerializeField] private float chaseSpeed;
         [SerializeField] private float patrolSpeed;
         [SerializeField] private GameObject projectilePrefab;
-        BlackboardKey hasSeenPlayerKey;
         protected override void Awake()
         {
             base.Awake();
@@ -31,7 +30,7 @@ namespace World
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
-            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => LineOfSight())));
+            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, chaseSpeed)));
 
             // --- Patrol ---
@@ -45,18 +44,6 @@ namespace World
             tree.AddChild(root);
 
             return tree;
-        }
-
-        bool LineOfSight()
-        {
-            if (blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
-                return true;
-
-            bool hasLOS = IsInLos();
-            if (hasLOS)
-                blackboard.SetValue(hasSeenPlayerKey, true);
-
-            return hasLOS;
         }
         bool IsInAttackRangeStable()
         {

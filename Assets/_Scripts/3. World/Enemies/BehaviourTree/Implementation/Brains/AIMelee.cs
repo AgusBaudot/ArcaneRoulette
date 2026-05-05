@@ -9,16 +9,13 @@ namespace World
         [SerializeField] private float attackRange;
         [SerializeField] private float chaseSpeed;
         [SerializeField] private float patrolSpeed;
-
-        
         [SerializeField] private float _cooldown;
-        BlackboardKey hasSeenPlayerKey;
 
         protected override void Awake()
         {
             base.Awake();
+           
         }
-
         protected override BehaviourTree BuildTree() 
         {
             var tree = new BehaviourTree(base._behaviourTreeName);
@@ -26,7 +23,7 @@ namespace World
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase",1);
-            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => LineOfSight())));
+            chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform ,_agent, chaseSpeed)));
             chaseSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
@@ -40,17 +37,6 @@ namespace World
             tree.AddChild(root);
 
             return tree;
-        }
-        bool LineOfSight()
-        {
-            if (blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
-                return true;
-
-            bool hasLOS = IsInLos();
-            if (hasLOS)
-                blackboard.SetValue(hasSeenPlayerKey, true);
-
-            return hasLOS;
         }
     }
 }
