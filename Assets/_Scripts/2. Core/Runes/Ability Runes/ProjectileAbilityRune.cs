@@ -12,6 +12,7 @@ namespace Core
         [SerializeField] private int _baseDamage = 10;
         [SerializeField] private float _windupDuration = 0.08f;
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
+        [SerializeField] private float _offset = 2f;
 
         public override AbilityType Type => AbilityType.Projectile;
         public override bool IsHoldAbility => false;
@@ -50,7 +51,7 @@ namespace Core
                 return;
             }
 
-            Vector3 spawnPos = ctx.Runner.transform.position + dir;
+            Vector3 spawnPos = ctx.Runner.transform.position + dir * _offset;
             
             var go = Helpers.ProjFactory.Spawn(_projectilePrefab, spawnPos, Quaternion.LookRotation(dir));
             go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
