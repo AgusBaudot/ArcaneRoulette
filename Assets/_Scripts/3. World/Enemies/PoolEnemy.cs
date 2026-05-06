@@ -41,7 +41,7 @@ namespace World
         public IPooleable Get(EnemyType enemyType, Vector3 position)
         {
             _pools.TryGetValue(enemyType, out var pool);
-            var entity = pool.Get() as AIBrain;
+            var entity = pool.Get() as EnemyController;
             entity.transform.position = position;
             return entity;
         }

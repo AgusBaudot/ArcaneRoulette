@@ -9,7 +9,7 @@ namespace World
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
-    public abstract class AIBrain : MonoBehaviour ,IEnemyUpdate ,IPooleable, IDebuffReceiver
+    public abstract class AIBrain : MonoBehaviour ,IEnemyUpdate, IDebuffReceiver
     {
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
@@ -70,24 +70,6 @@ namespace World
         //------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
         public void UnregisterDebuff() => _debuffs = null;
-
-        public void OnSpawn()
-        {
-            gameObject.SetActive(true);
-            CustomUpdateEnemyManager.Instance.Register(this);
-        }
-
-        private void OnEnable()
-        {
-            CustomUpdateEnemyManager.Instance.Register(this); // SOLO PARA TESTEO
-        }
-
-        public void OnDespawn()
-        {
-            gameObject.SetActive(false);
-            //Reset State & Blackboard
-            CustomUpdateEnemyManager.Instance?.Unregister(this);
-        }
     }
 }
 

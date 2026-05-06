@@ -4,7 +4,6 @@ using UnityEngine;
 using World;
 
 [RequireComponent(typeof(BlackboardController))]
-[RequireComponent(typeof(AIBrain))]
 [RequireComponent(typeof(EnemyHealth))]
 public class EnemyController : MonoBehaviour, IEnemyUpdate, IPooleable
 {
@@ -24,11 +23,13 @@ public class EnemyController : MonoBehaviour, IEnemyUpdate, IPooleable
     }
     public void OnDespawn()
     {
+        gameObject.SetActive(false);
         CustomUpdateEnemyManager.Instance?.Unregister(this);
     }
 
     public void OnSpawn()
     {
+        gameObject.SetActive(true);
         CustomUpdateEnemyManager.Instance.Register(this);
     }
 
