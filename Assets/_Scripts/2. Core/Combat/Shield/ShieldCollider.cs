@@ -18,6 +18,7 @@ namespace Core
         //Situation 2 has no event - reflected projectile fires OnHit when it hits enemy
         public event Action<Vector3, GameObject> OnProjectileAbsorbed;
         public event Action<Vector3, GameObject> OnEnemyBodyContact;
+        public event Action OnShieldDamaged;
 
         private SpellInstance  _boundInstance;
         private MonoBehaviour  _runner;
@@ -41,15 +42,20 @@ namespace Core
         {
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
-                Debug.Log("Enemy touch");
                 //Situation 3 - enemy body contact
                 //Bounce has no meaning here per designer spec - fire all OnHit runes
                 if (other.TryGetComponent<IDamageable>(out _))
+                {
                     OnEnemyBodyContact?.Invoke(contactPoint, other.gameObject);
+                    OnShieldDamaged?.Invoke();
+                }
                 return;
             }
 
-            if (!projectile.IsEnemy) return;
+            if (!projectile.IsEnemy)
+                return;
+
+            OnShieldDamaged?.Invoke();
 
             other.TryGetComponent<IEnemyProjectile>(out var enemy);
             
@@ -100,6 +106,7 @@ namespace Core
         {
             OnProjectileAbsorbed = null;
             OnEnemyBodyContact = null;
+            OnShieldDamaged = null;
         }
     }
 }

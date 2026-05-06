@@ -38,11 +38,11 @@ namespace Core
             state.Active = true;
             state.TimeHeld = 0f;
 
+            var player = (PlayerController)ctx.Runner;
+
             // ── Instantiate once per source instance ────────────────────────────
             if (!_visuals.TryGetValue(source, out var visual) || visual == null)
             {
-                var player = (PlayerController)ctx.Runner;
-                
                 visual = Instantiate(
                     _shieldVisualPrefab,
                     player.transform.position + new Vector3(-0.2f, 1f, 1f),
@@ -55,7 +55,7 @@ namespace Core
             
             // ── Wire every activation — source may have changed ─────────────────
             var shield = visual.GetComponent<ShieldCollider>();
-            shield.Bind(source, ctx.Runner);
+            shield.Bind(source, ctx.Runner);         
 
             // Unsubscribe previous listeners before re-subscribing.
             shield.UnsubscribeListeners();
@@ -64,6 +64,7 @@ namespace Core
                 source.TriggerOnHit(pos, target, ctx.Runner);
             shield.OnEnemyBodyContact += (pos, target) =>
                 source.TriggerOnHit(pos, target, ctx.Runner);
+            shield.OnShieldDamaged += player.DamageShield;
             
             // ── Update collider properties every activation ──────────────────────
             visual.transform.localScale = Vector3.one * args.RadiusMultiplier;

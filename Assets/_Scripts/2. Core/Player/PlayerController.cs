@@ -213,9 +213,12 @@ namespace Core
 
         private void UpdateSpriteFlip()
         {
-            if (_spriteTransform == null) return;
+            if (_spriteTransform == null) 
+                return;
+
+            var size = _spriteTransform.localScale.y;
             _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? -0.75f : 0.75f, 0.75f, 0.75f);
+                _facingDirection.x < 0f ? -size : size, size, size);
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
@@ -270,6 +273,11 @@ namespace Core
                 hold.StopHold(this);
                 _heldHoldSlots.Remove(_heldHoldSlots[^1]);
             }
+        }
+
+        public void DamageShield()
+        {
+            (_spellSlots[_heldHoldSlots[^1]] as HoldSpellInstance)?.Energy.DrainOnHit();
         }
         
         #endregion

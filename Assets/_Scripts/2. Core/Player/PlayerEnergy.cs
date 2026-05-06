@@ -16,6 +16,7 @@ namespace Core
         private readonly float _drainRate;
         private readonly float _restoreRate;
         private readonly float _drainOnStart;
+        private readonly float _drainOnHit;
         
         private bool _isDraining;
 
@@ -25,6 +26,7 @@ namespace Core
             _drainRate = stats.EnergyDrainRate;
             _restoreRate = stats.EnergyRestoreRate;
             _drainOnStart = stats.DrainOnStart;
+            _drainOnHit = stats.EnergyDepletedOnHit;
             Current = Max;
         }
         public void Tick(float dt)
@@ -50,6 +52,8 @@ namespace Core
                     IsBroken = false; //only clears on full restore.
             }
         }
+
+        public void DrainOnHit() => Current -= Max * _drainOnHit;
 
         /// <returns>
         /// False if broken or empty - shield checks this before activating.

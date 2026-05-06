@@ -49,6 +49,8 @@ namespace Core
         public float EnergyDrainRate = 20f;
         [Tooltip("Normalized between 0 and 1. 0.5 = 50%")] [Range(0, 1)]
         public float DrainOnStart = 0.2f;
+        [Tooltip("How much the energy depletes when receiving damage. Normalized as 'DrainOnStart'")] [Range(0, 1)]
+        public float EnergyDepletedOnHit = 0.1f;
         [Tooltip("The rate at which the energy increases when shield is not being used.")]
         public float EnergyRestoreRate = 15f;
         [Tooltip("Percentage of damage blocked")]
