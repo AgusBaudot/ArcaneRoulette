@@ -5,8 +5,10 @@ using Foundation;
 
 namespace World
 {
-    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable
+    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable, IUpdatable
     {
+        public int UpdatePriority => Foundation.UpdatePriority.UI;
+
         [Header("Stats")]
         [SerializeField] private float _maxHp = 12f; // Switched to float for clean UI division
         [SerializeField] private ElementType _element = ElementType.Neutral;
@@ -30,6 +32,17 @@ namespace World
         {
             _currentHp = _maxHp;
         }
+
+        private void OnEnable()
+        {
+            UpdateManager.Instance.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            UpdateManager.Instance?.Unregister(this);
+        }
+
         public void Tick(float deltaTime)
         {
             if (_ghostFill == null || _hpFill == null) return;
@@ -41,6 +54,7 @@ namespace World
                 _ghostSpeed * Time.deltaTime
             );
         }
+        
         public bool TakeDamage(int amount, ElementType elementType)
         {
             _currentHp = Mathf.Max(0f, _currentHp - amount);
@@ -49,6 +63,7 @@ namespace World
             if (_currentHp <= 0f) Die();
             return true;
         }
+        
         public void Heal(float amount)
         {
             if (_currentHp <= 0f)
@@ -61,11 +76,13 @@ namespace World
             _currentHp = Mathf.Min(_maxHp, _currentHp + finalHealth);
             UpdateUI();
         }
+        
         private void UpdateUI()
         {
             if (_hpFill != null)
                 _hpFill.fillAmount = _currentHp / _maxHp;
         }
+        
         private void Die()
         {
             if (_isDead)

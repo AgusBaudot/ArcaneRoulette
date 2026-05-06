@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34d3c8af466f6ce4d96ace87b170d5f4, type: 3}
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
-  BaseSpeed: 8
+  BaseSpeed: 12
   Acceleration: 20
   Deceleration: 25
   BaseHp: 12
@@ -25,7 +25,8 @@ MonoBehaviour:
   Windup: 0
   MaxEnergy: 100
   EnergyDrainRate: 20
-  _drainOnStart: 0.3
+  DrainOnStart: 0.2
+  EnergyDepletedOnHit: 0.1
   EnergyRestoreRate: 15
   Blckage: 100
   Slot1: 323

@@ -84,7 +84,7 @@ namespace Core
         //Subclasses never override this - they implement the two semantic methods above instead. 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.layer == _shieldLayer || other.isTrigger)
+            if (other.gameObject.layer == _shieldLayer)
                 return;
             
             if (other.TryGetComponent<IDamageable>(out _))
