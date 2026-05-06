@@ -17,9 +17,17 @@ namespace Core
         private ElementType _element;
         private float _speed;
         private Transform _currentTarget;
+        private float _baseColliderRadius;
         
         //Layer mask cached once - avoids string lookup every FixedUpdate
-        private static int _enemyLayerMask;
+        private static int _enemyLayerMask = -1;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            
+            _baseColliderRadius = GetComponent<SphereCollider>().radius;
+        }
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
         private void OnDisable() => UpdateManager.Instance?.Unregister(this);
@@ -130,6 +138,13 @@ namespace Core
             base.OnDespawn();
 
             _currentTarget = null;
+            
+            if (transform.childCount > 0)
+                transform.GetChild(0).localScale = Vector3.one;
+
+            var col = GetComponent<SphereCollider>();
+            if (col != null)
+                col.radius = _baseColliderRadius;
         }
     }
 }
