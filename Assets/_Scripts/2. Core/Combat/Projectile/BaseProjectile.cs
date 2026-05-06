@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
-    public abstract class BaseProjectile : MonoBehaviour, IProjectile
+    public abstract class BaseProjectile : MonoBehaviour, IProjectile, IPoolable
     {
         public Rigidbody Rb { get; private set; }
         public abstract bool IsEnemy { get; }
@@ -80,6 +80,20 @@ namespace Core
                 OnHitDamageable(other);
             else
                 OnHitWall(other);
+        }
+
+        public virtual void OnSpawn()
+        {
+            
+        }
+
+        public virtual void OnDespawn()
+        {
+            if (Rb != null)
+            {
+                Rb.velocity = Vector3.zero;
+                Rb.angularVelocity = Vector3.zero;
+            }
         }
     }
 }

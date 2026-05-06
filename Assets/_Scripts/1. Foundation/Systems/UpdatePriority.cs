@@ -14,5 +14,6 @@ namespace Foundation
         public const int AI = 500; //Enemies react after projectiles move
         public const int FX = 600; //Visual feedback last
         public const int UI = 700; //UI reads everything else's final state
+        public const int Camera = 800; //Camera renders and draw calls are called last
     }
 }

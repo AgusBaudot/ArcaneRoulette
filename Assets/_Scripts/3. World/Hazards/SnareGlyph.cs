@@ -47,7 +47,7 @@ namespace World
             player.SetCanMove(false);
             player.SetVelocity(Vector3.zero);
 
-            yield return Helpers.GetWait(_snareDuration);
+            yield return CoroutineUtils.GetWait(_snareDuration);
 
             // Null check — player could have died during the snare duration.
             if (player != null)

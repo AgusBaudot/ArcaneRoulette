@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace World
 {
-    public class RoomSpawner : MonoBehaviour
+    public class LootSpawner : MonoBehaviour
     {
         [SerializeField] private int _roomId;
         [SerializeField] private PickupDropPool _dropPool;

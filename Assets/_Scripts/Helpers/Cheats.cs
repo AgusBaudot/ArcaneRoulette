@@ -1,18 +1,19 @@
-using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using World;
 
-public class Cheats : MonoBehaviour
+public class Cheats : MonoBehaviour, IUpdatable
 {
-    [SerializeField] private List<Transform> _enemyShooting = new();
-    [SerializeField] private List<Transform> _enemyIdle = new();
-    [SerializeField] private DummyEnemy _enemyPrefab;
+    public int UpdatePriority => Foundation.UpdatePriority.Input;
     
-    private string _scene1 = "Core loop";
-    private string _scene2 = "Hardcore room";
+    private readonly string _scene1 = "Core loop";
+    private readonly string _scene2 = "Hardcore room";
+    
+    private void OnEnable() => UpdateManager.Instance.Register(this);
 
-    private void Update()
+    private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
+    public void Tick(float dt)
     {
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -31,11 +32,6 @@ public class Cheats : MonoBehaviour
             if (SceneManager.GetActiveScene().name == _scene2)
                 return;
             SceneManager.LoadScene(_scene2);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            SceneManager.LoadScene(0);
         }
     }
 }

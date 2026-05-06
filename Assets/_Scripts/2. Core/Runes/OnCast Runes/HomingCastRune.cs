@@ -1,5 +1,6 @@
+using System;
+using System.Collections.Generic;
 using Foundation;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Core
@@ -15,19 +16,41 @@ namespace Core
         [Tooltip("Radius of the spawn formation around the player.")] [SerializeField]
         private float _spawnOffset = 0.5f;
 
-        public override void Apply(SpellContext ctx, int stackCount)
+        // ── Subscribe ────────────────────────────────────────────────────────
+        // Only sets args.HomingCount. Ability runes read the count and call
+        // SpawnHomingProjectiles themselves — they need this SO instance for
+        // the prefab reference and designer fields, which they reach by
+        // iterating Recipe.CastRunes() and breaking on the first HomingCastRune.
+        public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount,
+            List<Action> cleanup)
         {
-            if (ctx.Ability is IProjectileConfig projCfg)
-                projCfg.HomingCount = stackCount;
-
-            if (ctx.Ability is IDashConfig dashCfg)
-                dashCfg.HomingCount = stackCount;
-
-            if (ctx.Ability is IShieldConfig shieldCfg)
-                shieldCfg.HomingCount = stackCount;
+            switch (ability)
+            {
+                case ProjectileAbilityRune:
+                {
+                    Action<ProjectileFireArgs> h = args => args.HomingCount = stackCount;
+                    source.OnBeforeFire += h;
+                    cleanup.Add(() => source.OnBeforeFire -= h);
+                    break;
+                }
+                case DashAbilityRune:
+                {
+                    Action<DashActivationArgs> h = args => args.HomingCount = stackCount;
+                    source.OnBeforeActivate += h;
+                    cleanup.Add(() => source.OnBeforeActivate -= h);
+                    break;
+                }
+                case ShieldAbilityRune:
+                {
+                    Action<ShieldActivationArgs> h = args => args.HomingCount = stackCount;
+                    source.OnBeforeStartHold += h;
+                    cleanup.Add(() => source.OnBeforeStartHold -= h);
+                    break;
+                }
+            }
         }
 
-        // 
+        // ── SpawnHomingProjectiles ───────────────────────────────────────────
         /// <summary>
         /// Called by all three ability runes after their activation.
         /// Damage is 30% if base damage - consistent across abilities.
@@ -57,9 +80,13 @@ namespace Core
 
             Vector3[] offsets = GetFormationOffsets(count, _spawnOffset);
             
+            float baseRadius = 0.5f; 
+            if (_homingPrefab.TryGetComponent<SphereCollider>(out var prefabCol))
+                baseRadius = prefabCol.radius;
+            
             for (int i = 0; i < count; i++)
             {
-                var go = Instantiate(_homingPrefab, spawnPosition + offsets[i], Quaternion.LookRotation(initialDirection));
+                var go = Helpers.ProjFactory.Spawn(_homingPrefab, spawnPosition + offsets[i], Quaternion.LookRotation(initialDirection));
                 go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
 
                 // Scale sprite child, not root — same pattern as ProjectileAbilityRune
@@ -69,7 +96,7 @@ namespace Core
 
                     var col = go.GetComponent<SphereCollider>();
                     if (col != null)
-                        col.radius *= _sizeMultiplier / 2f;
+                        col.radius = baseRadius * (_sizeMultiplier / 2f);
                 }
 
                 go.Init(initialDirection, _homingSpeed, damage, element);

@@ -1,5 +1,7 @@
+using System;
 using Foundation;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Core
 {
@@ -47,7 +49,7 @@ namespace Core
 
         private static DebuffType GetRandomDebuffType()
         {
-            var values = (DebuffType[])System.Enum.GetValues(typeof(DebuffType));
+            var values = (DebuffType[])Enum.GetValues(typeof(DebuffType));
             return values[Random.Range(0, values.Length)];
         }
 

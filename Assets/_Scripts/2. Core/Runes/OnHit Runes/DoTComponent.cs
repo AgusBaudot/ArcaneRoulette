@@ -30,7 +30,7 @@ namespace Core
         {
             while (_remainingDuration > 0f)
             {
-                yield return Helpers.GetWait(_interval);
+                yield return CoroutineUtils.GetWait(_interval);
                 _remainingDuration -= _interval;
 
                 if (_target == null)

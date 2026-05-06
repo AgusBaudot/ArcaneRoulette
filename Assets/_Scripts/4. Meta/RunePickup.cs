@@ -62,7 +62,7 @@ namespace UI
                 $"RunePickup: picked up {Amount}x {RuneDefinition.name} -> now available {RunState.AvailableCount(RuneDefinition)}");
 
             // Update crafting UI inventory display if exists
-            var craftingUI = FindObjectOfType<SpellCraftingUI>();
+            // var craftingUI = FindObjectOfType<SpellCraftingUI>();
             // if (craftingUI != null)
             //     craftingUI.RefreshInventoryDisplay();
 

@@ -55,7 +55,10 @@ namespace Foundation
                     _pendingAddUpdatable.Add(updatable);
                 return;
             }
-            if (_updatables.Contains(updatable)) return;
+            
+            if (_updatables.Contains(updatable)) 
+                return;
+            
             _updatables.Add(updatable);
             _updatablesDirty = true;
         }
@@ -68,6 +71,7 @@ namespace Foundation
                     _pendingRemoveUpdatable.Add(updatable);
                 return;
             }
+            
             _updatables.Remove(updatable);
         }
 
@@ -106,8 +110,9 @@ namespace Foundation
 
             float dt = Time.deltaTime;
             _isUpdating = true;
-            for (int i = 0; i < _updatables.Count; i++)
-                _updatables[i].Tick(dt);
+            foreach (var t in _updatables)
+                t.Tick(dt);
+
             _isUpdating = false;
 
             FlushPendingUpdatable();

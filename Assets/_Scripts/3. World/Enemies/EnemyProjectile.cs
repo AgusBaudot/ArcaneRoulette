@@ -33,13 +33,20 @@ namespace World
         {
             var dmg = other.GetComponent<IDamageable>();
             DamageSystem.Deal(dmg, (dmg as Component).gameObject, _damage, ElementType.Neutral, DamageJuice.Heavy);
-            Destroy(gameObject);
+            Helpers.ProjFactory.Despawn(gameObject);
         }
 
         protected override void OnHitWall(Collider other)
         {
             if (!TryBounce())
-                Destroy(gameObject);
+                Helpers.ProjFactory.Despawn(gameObject);
+        }
+        
+        public override void OnDespawn()
+        {
+            base.OnDespawn();
+
+            _owner = null;
         }
     }
 }

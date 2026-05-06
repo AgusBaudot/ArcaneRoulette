@@ -11,8 +11,6 @@ namespace UI
 {
     public sealed class SpellCraftingUI : MonoBehaviour
     {
-        public static bool IsUIOpen => _isOpen;
-        
         [Header("Panel")]
         [SerializeField] private GameObject _craftingPanel;
         [SerializeField] private KeyCode _toggleKey = KeyCode.Tab;
@@ -72,8 +70,15 @@ namespace UI
         
         // ── Unity ────────────────────────────────────────────────────────────
 
+        #region Unity
+
         private void Awake()
         {
+            // Reset stale scene state after a scene reload so UI toggle behaves correctly.
+            _isOpen = false;
+            Time.timeScale = 1f;
+            Helpers.Input.EnablePlayerInput();
+
             _spellCrafter = FindObjectOfType<SpellCrafter>();
 
             _inventoryPanel.Init(this);
@@ -89,37 +94,46 @@ namespace UI
             _craftingPanel.SetActive(false);
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            if (Input.GetKeyDown(_toggleKey))
-            {
-                if (_isOpen) CloseCraftingUI();
-                else OpenCraftingUI();
-            }
-
-            if (Input.GetKeyDown(KeyCode.Escape) && _isOpen)
-                CloseCraftingUI();
-
-            if (Input.GetKeyDown(KeyCode.A) && _isOpen)
-                OnLeftArrow();
-
-            if (Input.GetKeyDown(KeyCode.D) && _isOpen)
-                OnRightArrow();
-
-            if (Input.GetKeyDown(KeyCode.I))
-                _tooltip.ToggleEnabled();
+            //Listen for the player wanting to open the menu
+            Helpers.Input.OnCraftingMenuPressed += OpenCraftingUI;
+            
+            //Listen for UI interactions
+            Helpers.Input.OnCloseCrafting += CloseCraftingUI;
+            Helpers.Input.OnCarouselLeft += OnLeftArrow;
+            Helpers.Input.OnCarouselRight += OnRightArrow;
+            Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
         }
+
+        private void OnDisable()
+        {
+            Helpers.Input.OnCraftingMenuPressed -= OpenCraftingUI;
+            
+            Helpers.Input.OnCloseCrafting -= CloseCraftingUI;
+            Helpers.Input.OnCarouselLeft -= OnLeftArrow;
+            Helpers.Input.OnCarouselRight -= OnRightArrow;
+            Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
+        }
+
+        #endregion
 
         // ── Open / Close ─────────────────────────────────────────────────────
 
         private void OpenCraftingUI()
         {
+            if (_isOpen)
+                return;
+            
             _isOpen = true;
             _pendingRune = null;
             _pendingRuneIndex = -1;
 
             _craftingPanel.SetActive(true);
             Time.timeScale = 0f;
+            
+            //Switch to Input Map
+            Helpers.Input.EnableUIInput();
 
             foreach (var panel in _slotPanels)
                 panel.PopulateFromRunState();
@@ -133,6 +147,9 @@ namespace UI
 
         private void CloseCraftingUI()
         {
+            if (!_isOpen)
+                return;
+            
             _isOpen = false;
             _pendingRune = null;
             _pendingRuneIndex = -1;
@@ -143,12 +160,14 @@ namespace UI
             _tooltip.Hide();
             _craftingPanel.SetActive(false);
             Time.timeScale = 1f;
+            
+            //Switch to Player Map
+            Helpers.Input.EnablePlayerInput();
         }
 
         // ── Arrow navigation ─────────────────────────────────────────────────
 
         // Right arrow: the right back slot comes to center.
-        // [A, B, C] center=B → right pressed → center=C → visual order: B(left), C(center), A(right)
         private void OnRightArrow()
         {
             _centerIndex = (_centerIndex + 1) % _slotPanels.Length;

@@ -36,7 +36,7 @@ namespace World
         private IEnumerator TrapRoutine()
         {
             // Windup — spikes partially emerge, telegraphs the hit
-            yield return Helpers.GetWait(_windupDuration);
+            yield return CoroutineUtils.GetWait(_windupDuration);
 
             // Spikes fully emerge — damage fires exactly here, one OverlapSphere
             if (_spikesVisual != null) 
@@ -45,11 +45,11 @@ namespace World
             ApplyDamage();
 
             // Spikes stay visible briefly for readability, then retract
-            yield return Helpers.GetWait(_spikeDisplayDuration);
+            yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
             if (_spikesVisual != null) _spikesVisual.SetActive(false);
 
             // Cooldown before trap can activate again
-            yield return Helpers.GetWait(_cooldownDuration);
+            yield return CoroutineUtils.GetWait(_cooldownDuration);
 
             _isIdle = true;
         }

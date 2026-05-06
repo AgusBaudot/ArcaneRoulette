@@ -14,8 +14,6 @@ namespace Core
 
         private int _baseDamage;
         private int _pierceCount;
-        private float _hitStopDuration;
-        private float _cameraTrauma;
         private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
         private bool _excludeBounceCastRuneForOnHitContext;
 
@@ -27,8 +25,6 @@ namespace Core
             Vector3 direction,
             float speed,
             int baseDamage,
-            float hitStopDuration,
-            float cameraTrauma,
             MonoBehaviour runner,
             AbilityType abilityTypeForOnHit,
             bool excludeBounceCastRuneForOnHitContext)
@@ -36,8 +32,6 @@ namespace Core
             _source = source;
             _runner = runner;
             _baseDamage = baseDamage;
-            _hitStopDuration = hitStopDuration;
-            _cameraTrauma = cameraTrauma;
             _abilityTypeForOnHit = abilityTypeForOnHit;
             _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
 
@@ -57,6 +51,7 @@ namespace Core
             // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
             var damageable = other.GetComponentInParent<IDamageable>(true)
                               ?? other.GetComponent<IDamageable>();
+            
             if (damageable == null)
                 return;
 
@@ -80,7 +75,7 @@ namespace Core
 
             if (_pierceCount <= 0)
             {
-                Destroy(gameObject);
+                Helpers.ProjFactory.Despawn(gameObject);
                 return;
             }
 
@@ -91,10 +86,19 @@ namespace Core
         protected override void OnHitWall(Collider other)
         {
             if (!TryBounce())
-                Destroy(gameObject);
+                Helpers.ProjFactory.Despawn(gameObject);
             // On bounce, _hitTargets is intentionally NOT cleared —
             // a bounced projectile can't re-hit an enemy it already pierced through.
-            // Designers can revisit this if needed.
+        }
+
+        public override void OnDespawn()
+        {
+            base.OnDespawn(); //Halts physics.
+            
+            //Prevent memory leaks
+            _source = null;
+            _runner = null;
+            _hitTargets.Clear();
         }
     }
 }

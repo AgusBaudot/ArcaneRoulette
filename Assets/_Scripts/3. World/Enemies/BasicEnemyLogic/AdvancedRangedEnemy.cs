@@ -114,7 +114,7 @@ namespace World
 
         private void SpawnProjectile(Vector3 direction, int damage)
         {
-            var proj = Instantiate(_projectilePrefab, transform.position, Quaternion.LookRotation(direction));
+            var proj = Helpers.ProjFactory.Spawn(_projectilePrefab, transform.position, Quaternion.LookRotation(direction));
             proj.Init(direction, _projectileSpeed, damage, ElementType.Neutral, gameObject);
         }
 

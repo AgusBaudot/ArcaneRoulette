@@ -1,12 +1,12 @@
-using System;
 using Foundation;
 using UnityEngine;
 
 namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class HomingProjectile : BaseProjectile
+    public class HomingProjectile : BaseProjectile, IFixedUpdatable
     {
+        public int FixedUpdatePriority => UpdatePriority.Projectile;
         public override bool IsEnemy => false;
         public override ElementType SpellElement => _element;
 
@@ -21,18 +21,24 @@ namespace Core
         //Layer mask cached once - avoids string lookup every FixedUpdate
         private static int _enemyLayerMask;
 
+        private void OnEnable() => UpdateManager.Instance.Register(this);
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
         public void Init(Vector3 initialDirection, float speed, int damage, ElementType element)
         {
             _damage = damage;
             _element = element;
             _speed = speed;
-            _enemyLayerMask = LayerMask.GetMask("Enemy");
+            
+            //Only perform the string lookup once per game execution
+            if (_enemyLayerMask == -1)
+                _enemyLayerMask = LayerMask.GetMask("Enemy");
 
             SetVelocity(initialDirection, speed);
             PlayParticles();
         }
 
-        private void FixedUpdate()
+        public void FixedTick(float deltaTime)
         {
             AcquireOrRevalidateTarget();
 
@@ -110,13 +116,20 @@ namespace Core
             // No OnHit runes, no pierce, no bounce — just damage and destroy.
             // DamageSystem.Deal without DamageJuice uses Default internally.
             DamageSystem.Deal(damageable, other.gameObject, _damage, _element, DamageJuice.Light);
-            Destroy(gameObject);
+            Helpers.ProjFactory.Despawn(gameObject);
         }
 
         protected override void OnHitWall(Collider other)
         {
             // Homing projectiles don't bounce — destroy on wall contact.
-            Destroy(gameObject);
+            Helpers.ProjFactory.Despawn(gameObject);
+        }
+
+        public override void OnDespawn()
+        {
+            base.OnDespawn();
+
+            _currentTarget = null;
         }
     }
 }

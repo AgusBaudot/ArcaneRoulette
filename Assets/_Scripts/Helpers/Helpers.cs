@@ -1,31 +1,13 @@
-using System.Collections.Generic;
 using Core;
+using Foundation;
 using UnityEngine;
-//using DG.Tweening;
 
 public static class Helpers
 {
-    private static Camera MainCamera;
     private static CombatSettings _combatSettings;
-    
-    public static Camera GetCamera()
-    {
-        MainCamera = Camera.main;
-        if (MainCamera == null)
-            Debug.LogError("CRITICAL: Camera.main is null! The scene is missing one.");
-        
-        return MainCamera;
-    }
-
-    private static Dictionary<float, WaitForSeconds> lookUp = new();
-
-    public static WaitForSeconds GetWait(float wait)
-    {
-        if (!lookUp.ContainsKey(wait))
-            lookUp[wait] = new WaitForSeconds(wait);
-
-        return lookUp[wait];
-    }
+    private static InputReader _input;
+    private static PlayerStats _playerStats;
+    private static ProjectilePrefabFactory _projectilePrefabFactory;
 
     public static CombatSettings Combat
     {
@@ -41,19 +23,52 @@ public static class Helpers
             return _combatSettings;
         }
     }
-    
-    /*
-     AFTER IMPORTING DOTWEEN
-     
-     
-     public static void FadeIn(CanvasGroup canvasGroup, float fadeTime, float fadeTo = 1f)
-     {
-        canvasGroup.DOFade(fadeTo, fadeTime);
-     }
-     
-     public static void FadeOut(CanvasGroup canvasGroup, float fadeTime, float fadeTo = 0f)
-     {
-        canvasGroup.DOFade(fadeTo, fadeTime);
-     }
-     */
+
+    public static InputReader Input
+    {
+        get
+        {
+            if (_input == null)
+            {
+                _input = Resources.Load<InputReader>("InputReader");
+                
+                if (_input == null)
+                    Debug.LogError("CRITICAL: Could not find InputReader in Resources folder!");
+            }
+
+            return _input;
+        }
+    }
+
+    public static PlayerStats PlayerStats
+    {
+        get
+        {
+            if (_playerStats == null)
+            {
+                _playerStats = Resources.Load<PlayerStats>("PlayerStats");
+                
+                if (_input == null)
+                    Debug.LogError("CRITICAL: Could not find PlayerStats in Resources folder!");
+            }
+            
+            return _playerStats;
+        }
+    }
+
+    public static ProjectilePrefabFactory ProjFactory
+    {
+        get
+        {
+            if (_projectilePrefabFactory == null)
+            {
+                _projectilePrefabFactory = ProjectilePrefabFactory.Instance;
+                
+                if (_projectilePrefabFactory == null)
+                    Debug.LogError($"CRITICAL: Instance of {nameof(ProjectilePrefabFactory)} is null!");
+            }
+            
+            return _projectilePrefabFactory;
+        }
+    }
 }

@@ -7,6 +7,8 @@ namespace Core
     public sealed class KnockbackOnHitRune : OnHitRuneSO
     {
         [SerializeField] private float _baseForce = 8f;
+        [Tooltip("Count is modified by this scaling factor (count^scaling) * base")]
+        [SerializeField] private float _scaling = 0.5f;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
@@ -32,7 +34,7 @@ namespace Core
                 }
             }
             
-            kb.ApplyKnockback(dir, _baseForce * stackCount);
+            kb.ApplyKnockback(dir, _baseForce * (Mathf.Pow(stackCount, _scaling)));
         }
     }
 }

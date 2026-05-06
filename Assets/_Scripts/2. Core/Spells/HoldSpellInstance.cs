@@ -3,36 +3,47 @@ using UnityEngine;
 
 namespace Core
 {
-    //Produced by SpellCrafter when recipe.Ability.IsHoldAbility == true.
-    //PlayerController routes hold input via 'spell is IHoldAbility'.
-    //Cast runes fire on StartHold (coincides with activation for hold spells).
-    //StopHold/HoldTick delegate to the ability rune only - timing of any
-    //secondary effects (e.g. AoE on dash end) is owned by the ability rune impl.
+    /// <summary>
+    /// Produced by SpellCrafter for hold abilities (Shield).
+    /// Owns an EnergyPool constructed from Helpers.Stats - one independent
+    /// pool per instance. Two shield slots therefore have two separate pools
+    /// with separate drain/broken/restore state.
+    /// </summary>
     public sealed class HoldSpellInstance : SpellInstance, IHoldAbility
     {
-        public override ShieldInstanceState ShieldState { get; } = new ShieldInstanceState();
-        public override float DisplayProgress => _energy != null ? _energy.Current / _energy.Max : 1f;
-
-        private PlayerEnergy _energy;
-
+        public EnergyPool Energy { get; } = new(Helpers.PlayerStats);
+        
+        public override ShieldInstanceState ShieldState { get; } = new();
+        public override float DisplayProgress => Energy.Current / Energy.Max;
+        
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 
+        // ── IHoldAbility ─────────────────────────────────────────────────────
+ 
         public void StartHold(MonoBehaviour runner)
         {
-            _energy = ((PlayerController)runner).Energy;
-            
+            // Hook (OnBeforeStartHold) fires inside ShieldAbilityRune.StartHold
+            // against freshly allocated ShieldActivationArgs.
             var ctx = BuildCastContext(runner);
-            
-            FireCastRunes(ctx); //Cast runes apply on hold start.
             Recipe.Ability.StartHold(ctx);
         }
-
+ 
         public void StopHold(MonoBehaviour runner)
-            => Recipe.Ability.StopHold(BuildCastContext(runner));
+        {
+            var ctx = BuildCastContext(runner);
+            Recipe.Ability.StopHold(ctx);
+        }
 
-        //Calling BuildCastContext() every tick. It's allocation free (struct + array refs already exist)
-        //If profiling ever shows it's hot, cache the cast context as a field and invalidate on recipe change.
+        public override void Tick(float dt)
+        {
+            Energy.Tick(dt);
+            base.Tick(dt);
+        }
+ 
         public void HoldTick(float deltaTime, MonoBehaviour runner)
-            => Recipe.Ability.HoldTick(BuildCastContext(runner), deltaTime);
+        {
+            var ctx = BuildCastContext(runner);
+            Recipe.Ability.HoldTick(ctx, deltaTime);
+        }
     }
 }
