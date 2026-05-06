@@ -20,7 +20,6 @@ namespace World
         {
             if(expert != null) experts.Add(expert);
         }
-
         public void DeregisterExpert(IExpert expert)
         {
             if(expert != null) experts.Remove(expert);
@@ -73,7 +72,6 @@ namespace World
         public static bool operator ==(BlackboardKey lhs, BlackboardKey rhs) => lhs.hashedKey == rhs.hashedKey;
         public static bool operator !=(BlackboardKey lhs, BlackboardKey rhs) => !(lhs == rhs);
     }
-
     public class BlackboardEntry<T> 
     {
         public BlackboardKey Key { get; }
@@ -90,13 +88,11 @@ namespace World
         public override bool Equals(object obj) => obj is BlackboardEntry<T> other && other.Key.Equals(Key);
         public override int GetHashCode() => Key.GetHashCode(); 
     }
-
     public class Blackboard
     {
         Dictionary<string, BlackboardKey> keyRegistry = new();
         Dictionary<BlackboardKey, object> entries = new();
         public List<Action> PassedActions { get; } = new();
-        
         public void AddAction(Action action) 
         {
             if(action != null) 
@@ -104,9 +100,7 @@ namespace World
                 PassedActions.Add(action);
             }
         }
-
         public void ClearActions() => PassedActions.Clear();
-
         public void debug() 
         {
             foreach (var entry in entries) 
@@ -155,20 +149,6 @@ namespace World
         public bool ContainsKey(BlackboardKey key) => entries.ContainsKey(key);
 
         public void Remove(BlackboardKey key) => entries.Remove(key);
-    }
-
-    [CreateAssetMenu(fileName = "New Blackboard Data", menuName = "Blackboard/Blackboard Data")]
-    public class BlackboardData : ScriptableObject 
-    {
-        public List<BlackboardEntryData> entries = new();
-
-        public void SetValuesOnBlackboard(Blackboard blackboard) 
-        {
-             foreach (var entry in entries) 
-            {
-                entry.SetValueOnBlackboard(blackboard);
-            }
-        }
     }
 
     [SerializeField]
