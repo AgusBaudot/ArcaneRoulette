@@ -52,7 +52,6 @@ namespace World
             {
                 float dt = Time.deltaTime;
                 _enemyUpdatables[i].timer += dt;
-
                     if (_enemyUpdatables[i].timer >= _enemyUpdatables[i].interval)
                     {
                         _enemyUpdatables[i].timer = 0f;

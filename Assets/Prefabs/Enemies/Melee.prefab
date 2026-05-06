@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4344011616943220090}
   - component: {fileID: 9162736739425250761}
-  - component: {fileID: 6871906274915986749}
   - component: {fileID: 2671222585452926215}
   - component: {fileID: 6436529255393830803}
   - component: {fileID: 6609402721532654236}
@@ -21,13 +20,14 @@ GameObject:
   - component: {fileID: 3785297136978254722}
   - component: {fileID: 6147265720480183938}
   - component: {fileID: -6449085107029152613}
+  - component: {fileID: 9054429380081942084}
   m_Layer: 7
   m_Name: Melee
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4344011616943220090
 Transform:
   m_ObjectHideFlags: 0
@@ -72,27 +72,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 36
   m_CollisionDetection: 0
---- !u!114 &6871906274915986749
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326220217148487278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1b6ad0848e5414c839dbc782010da89, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxHp: 100
-  _element: 0
-  _hpFill: {fileID: 4551938549804360321}
-  _ghostFill: {fileID: 5323846457958892274}
-  _stateText: {fileID: 0}
-  _ghostSpeed: 2.5
-  _enemyProjectilePrefab: {fileID: 0}
-  _canAttack: 0
-  _damageAmount: 10
 --- !u!114 &2671222585452926215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,15 +189,14 @@ MonoBehaviour:
   _animator: {fileID: 0}
   _agent: {fileID: 0}
   _los: {fileID: 0}
+  _bbController: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: MeleeBasico
+  _waypoints: []
   attackRange: 0.1
   chaseSpeed: 6
   patrolSpeed: 1
-  waypoints: []
   _cooldown: 2
-  projectilePrefab: {fileID: 264925598622609369, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
-    type: 3}
 --- !u!95 &3785297136978254722
 Animator:
   serializedVersion: 5
@@ -252,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcae5ae23a6ea1644b775abbbd043926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blackboardData: {fileID: 0}
+  blackboardData: {fileID: 11400000, guid: 69ec98f8a5f683e4e9fa0ce98f0f0023, type: 2}
 --- !u!114 &-6449085107029152613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -270,6 +248,18 @@ MonoBehaviour:
   _hpFill: {fileID: 4551938549804360321}
   _ghostFill: {fileID: 5323846457958892274}
   _ghostSpeed: 2.5
+--- !u!114 &9054429380081942084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f978e6d4306c5f7438f3a50b4ce5b424, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2923573856263322213
 GameObject:
   m_ObjectHideFlags: 0
