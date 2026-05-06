@@ -30,7 +30,7 @@ namespace World
         {
             _currentHp = _maxHp;
         }
-        public void Tick()
+        public void Tick(float deltaTime)
         {
             if (_ghostFill == null || _hpFill == null) return;
             
