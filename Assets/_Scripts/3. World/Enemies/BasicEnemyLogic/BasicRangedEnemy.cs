@@ -83,7 +83,7 @@ namespace World
             Vector3 fireDir = (playerPos - GetFlatPos(transform.position)).normalized;
             if (fireDir == Vector3.zero) fireDir = transform.forward;
 
-            var proj = Instantiate(_projectilePrefab, transform.position, Quaternion.LookRotation(fireDir));
+            var proj = Helpers.ProjFactory.Spawn(_projectilePrefab, transform.position, Quaternion.LookRotation(fireDir));
             
             // Note: Bypassing DamageSystem for now per instructions, passing Neutral
             proj.Init(fireDir, _projectileSpeed, finalDamage, ElementType.Neutral, gameObject);

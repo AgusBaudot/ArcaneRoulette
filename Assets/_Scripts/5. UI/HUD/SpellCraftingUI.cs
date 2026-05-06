@@ -11,8 +11,6 @@ namespace UI
 {
     public sealed class SpellCraftingUI : MonoBehaviour
     {
-        public static bool IsUIOpen => _isOpen;
-        
         [Header("Panel")]
         [SerializeField] private GameObject _craftingPanel;
         [SerializeField] private KeyCode _toggleKey = KeyCode.Tab;

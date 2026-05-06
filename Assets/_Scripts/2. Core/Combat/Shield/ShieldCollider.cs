@@ -8,8 +8,6 @@ namespace Core
     public sealed class ShieldCollider : MonoBehaviour
     {
         [SerializeField] private Projectile _reflectedProjectilePrefab;
-        [SerializeField] private float _reflectHitStop   = 0.05f;
-        [SerializeField] private float _reflectTrauma    = 0.1f;
 
         public bool ReflectsProjectiles { get; set; }
         public int ReflectCount { get; set; } //set by BounceCastRune stack count
@@ -20,6 +18,7 @@ namespace Core
         //Situation 2 has no event - reflected projectile fires OnHit when it hits enemy
         public event Action<Vector3, GameObject> OnProjectileAbsorbed;
         public event Action<Vector3, GameObject> OnEnemyBodyContact;
+        public event Action OnShieldDamaged;
 
         private SpellInstance  _boundInstance;
         private MonoBehaviour  _runner;
@@ -43,15 +42,20 @@ namespace Core
         {
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
-                Debug.Log("Enemy touch");
                 //Situation 3 - enemy body contact
                 //Bounce has no meaning here per designer spec - fire all OnHit runes
                 if (other.TryGetComponent<IDamageable>(out _))
+                {
                     OnEnemyBodyContact?.Invoke(contactPoint, other.gameObject);
+                    OnShieldDamaged?.Invoke();
+                }
                 return;
             }
 
-            if (!projectile.IsEnemy) return;
+            if (!projectile.IsEnemy)
+                return;
+
+            OnShieldDamaged?.Invoke();
 
             other.TryGetComponent<IEnemyProjectile>(out var enemy);
             
@@ -74,7 +78,7 @@ namespace Core
                 foreach (var d in dirs)
                 {
                     var go = Instantiate(_reflectedProjectilePrefab, other.transform.position, Quaternion.LookRotation(d));
-                    go.Init(_boundInstance, d, speed, enemy.Damage, _reflectHitStop, _reflectTrauma, _runner, AbilityType.Projectile, true);
+                    go.Init(_boundInstance, d, speed, enemy.Damage, _runner, AbilityType.Projectile, true);
                     go.SetPierceCount(0);
                     go.SetBounceCount(0);
                 }
@@ -102,6 +106,7 @@ namespace Core
         {
             OnProjectileAbsorbed = null;
             OnEnemyBodyContact = null;
+            OnShieldDamaged = null;
         }
     }
 }
