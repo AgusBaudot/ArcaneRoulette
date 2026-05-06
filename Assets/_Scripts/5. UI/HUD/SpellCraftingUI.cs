@@ -76,6 +76,11 @@ namespace UI
 
         private void Awake()
         {
+            // Reset stale scene state after a scene reload so UI toggle behaves correctly.
+            _isOpen = false;
+            Time.timeScale = 1f;
+            Helpers.Input.EnablePlayerInput();
+
             _spellCrafter = FindObjectOfType<SpellCrafter>();
 
             _inventoryPanel.Init(this);
