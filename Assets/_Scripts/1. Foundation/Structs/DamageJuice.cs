@@ -1,24 +1,28 @@
+using System;
+
 namespace Foundation
 {
+	/// <summary>
+	/// Describes the global screen feedback for one attack. Passed to DamageBatch.Commit()
+	///
+	/// CameraShake: trauma added to CameraShake (0-1, stacks additively).
+	/// HitStop: duration in second Time.timeScale is frozen.
+	/// </summary>
+	[Serializable]
 	public struct DamageJuice
 	{
-		//HitStop amount
-		public readonly float HitStop;
-		//Camera shake
-		public readonly float CameraShake;
-		//Sprite flash
-		public readonly float FlashDuration;
+		public float HitStop;
+		public float CameraShake;
 
-		public DamageJuice(float hitStop, float cameraShake, float flashDuration)
+		public DamageJuice(float hitStop, float cameraShake)
 		{
 			HitStop = hitStop;
 			CameraShake = cameraShake;
-			FlashDuration = flashDuration;
 		}
 		
-		public static DamageJuice Default => new DamageJuice(0.06f, 0.5f, 0.07f);
-		public static DamageJuice Heavy => new DamageJuice(0.15f, 1f, 0.15f);
-		public static DamageJuice Light => new DamageJuice(0f, 0.0f, 0.07f);
-		public static DamageJuice None => new DamageJuice(0f, 0f, 0f);
+		/// <summary>
+		/// Zero juice. Commit() with this is a legal no-op.
+		/// </summary>
+		public static DamageJuice None => default;
 	}
 }

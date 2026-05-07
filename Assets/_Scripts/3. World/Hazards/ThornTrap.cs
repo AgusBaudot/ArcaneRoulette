@@ -59,6 +59,8 @@ namespace World
             var hits = Physics.OverlapBox(transform.position, _boxSize);
             var processed = new HashSet<IDamageable>();
 
+            var batch = new DamageBatch();
+
             foreach (var hit in hits)
             {
                 var damageable = hit.GetComponentInParent<IDamageable>()
@@ -81,9 +83,11 @@ namespace World
                         continue;
                     }
                 }
-
-                DamageSystem.Deal(damageable, go, _damage, ElementType.Neutral);
+                
+                batch.Deal(damageable, go, _damage, ElementType.Neutral);
             }
+            
+            batch.Commit(Helpers.Combat.BigDMG);
         }
 
         private void OnDrawGizmosSelected()

@@ -1,11 +1,13 @@
 using UnityEngine;
 using Foundation;
+using UnityEditor.ShaderGraph;
 
 namespace Core
 {
     /// <summary>
-    /// Single point of damage resolution for prototype.
-    /// Post-prototype: replace hardcoded table with ElementalResistanceMap per enemy
+    /// Single point of damage resolution.
+    /// Resolves elemental resistance and applies TakeDamage.
+    /// 
     /// Post-prototype: fire VolatileRunState.FireDamageOut / FireDamageIn pipeline here.
     /// </summary>
     public static class DamageSystem
@@ -15,53 +17,45 @@ namespace Core
         private const float MULTIPLIER_RESISTANT = 0.7f;
         private const float MULTIPLIER_IMMUNE = 0.0f;
 
-        public static void Deal(
+        public static DamageResult Deal(
             IDamageable target,
             GameObject targetObject,
             int baseDamage,
-            ElementType attackerElement,
-            DamageJuice juice)
+            ElementType attackerElement)
         {
             if (target == null)
-                return;
+                return DamageResult.None;
 
+            Effectiveness effectiveness = Effectiveness.Neutral;
             float finalDamage = baseDamage;
 
             if (target is MonoBehaviour mb && mb.TryGetComponent(out IElementalResistance resistance))
             {
-                Effectiveness effectiveness = resistance.GetEffectiveness(attackerElement);
+                effectiveness = resistance.GetEffectiveness(attackerElement);
                 finalDamage = CalculateElementalDamage(baseDamage, effectiveness);
-
-                //Maybe trigger specific juice based on effectiveness level?
-                //e.g. larger flash and heavier hit-stop if attack is WEAK.
             }
+            
+            int clampedDamage = effectiveness == Effectiveness.Immune
+                ? 0
+                : Mathf.Max(1, (int)finalDamage);
 
-            //float multiplier = GetResistance(attackerElement, GetDefenderElement(targetObject));
-            //int final = Mathf.Max(1, Mathf.RoundToInt(baseDamage * multiplier));
-
-            if (!target.TakeDamage((int)finalDamage, attackerElement))
-                return;
-
-            CameraShake.AddTrauma(juice.CameraShake);
-            HitStop.Apply(juice.HitStop);
-            if (targetObject.TryGetComponent<DamageFlash>(out var flash))
-                flash.Flash(juice.FlashDuration);
+            if (!target.TakeDamage(clampedDamage, attackerElement))
+                return DamageResult.None;
+            
+            return new DamageResult(true, clampedDamage, effectiveness);
         }
         
-        public static void Deal(IDamageable target, GameObject targetObject, int baseDamage, ElementType attackerElement)
-            => Deal(target, targetObject, baseDamage, attackerElement, DamageJuice.Default);
-
         /// <summary>
-        /// Overload for callers that already have IDamageable and no GameObject needed
+        /// Overload for callers without an explicit GameObject reference.
+        /// Resolves the GO from the IDamageable MoonBehaviour so the resistance
+        /// check still runs.
         /// </summary>
         /// <param name="target"></param>
         /// <param name="baseDamage"></param>
         /// <param name="attackerElement"></param>
-        public static void Deal(
-            IDamageable target,
-            int baseDamage,
-            ElementType attackerElement)
-            => Deal(target, null, baseDamage, attackerElement, DamageJuice.Default);
+        /// <returns></returns>
+        public static DamageResult Deal(IDamageable target, int baseDamage, ElementType attackerElement)
+        => Deal(target, (target as MonoBehaviour)?.gameObject, baseDamage, attackerElement);
 
         private static float CalculateElementalDamage(float baseDamage, Effectiveness tier)
         {

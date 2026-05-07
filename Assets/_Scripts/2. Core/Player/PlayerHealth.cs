@@ -12,8 +12,6 @@ namespace Core
         public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
         
-        [SerializeField] private float _hitStopDuration = 0.06f;
-        [SerializeField] private float _cameraTrauma = 0.85f;
         [SerializeField] private Transform _heartsContainer;
         [Tooltip("0 = 1/4, 1 = 1/2, 2 = 3/4, 3 = Full")]
         [SerializeField] private Sprite[] _heartSprites;

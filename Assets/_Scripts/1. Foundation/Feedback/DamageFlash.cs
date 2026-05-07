@@ -17,23 +17,29 @@ namespace Foundation
             for (int i = 0; i < _renderers.Length; i++)
                 _originalColors[i] = _renderers[i].color;
         }
+        
+        /// <summary>
+        /// Flash using the component's serialized duration.
+        /// </summary>
+        public void Flash() => Flash(_duration);
 
-        public void Flash()
-        {
-            StopAllCoroutines();
-            StartCoroutine(DoFlash());
-        }
-
+        /// <summary>
+        /// Flash with an explicit override duration.
+        /// </summary>
+        /// <param name="duration"></param>
         public void Flash(float duration)
         {
             StopAllCoroutines();
-            StartCoroutine(DoFlash());
+            StartCoroutine(DoFlash(duration));
         }
 
-        private IEnumerator DoFlash(float duration = 0)
+        private IEnumerator DoFlash(float duration)
         {
-            foreach (var r in _renderers) r.color = _flashColor;
-            yield return new WaitForSecondsRealtime(duration == 0 ? _duration : duration); // real time - survives hitstop
+            foreach (var r in _renderers)
+                r.color = _flashColor;
+            
+            yield return new WaitForSecondsRealtime(duration); // real time - survives hitstop
+            
             for (int i = 0; i < _renderers.Length; i++)
                 _renderers[i].color = _originalColors[i];
         }

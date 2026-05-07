@@ -24,6 +24,7 @@ namespace Core
             Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
 
             _isExpanding = true;
+            var batch = new DamageBatch();
 
             foreach (var hit in hits)
             {
@@ -32,8 +33,8 @@ namespace Core
                 
                 if (!hit.TryGetComponent<IDamageable>(out var dmg))
                     continue;
-
-                DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement, DamageJuice.Light);
+                
+                batch.Deal(dmg, hit.gameObject, _baseDamage, ctx.AttackerElement);
                 
                 Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
                 if (pushDir == Vector3.zero)
@@ -47,6 +48,7 @@ namespace Core
                 ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, pushDir);
             }
 
+            batch.Commit(Helpers.Combat.BigDMG);
             _isExpanding = false;
         }
     }

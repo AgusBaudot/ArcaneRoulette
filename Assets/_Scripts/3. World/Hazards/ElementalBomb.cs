@@ -51,6 +51,8 @@ namespace World
             var hits = Physics.OverlapSphere(new Vector3(transform.position.x, 0, transform.position.z), _explosionRadius);
             var processed = new HashSet<IDamageable>();
 
+            var batch = new DamageBatch();
+            
             foreach (var hit in hits)
             {
                 var damageable = hit.GetComponentInParent<IDamageable>()
@@ -78,11 +80,12 @@ namespace World
                         continue;
                     }
                 }
-
+                
                 // Friendly fire enabled — player takes elemental damage if not dashing/shielding.
-                DamageSystem.Deal(damageable, go, _damage, _element);
+                batch.Deal(damageable, go, _damage, _element);
             }
 
+            batch.Commit(Helpers.Combat.BombExplosion);
             Destroy(gameObject);
         }
 
