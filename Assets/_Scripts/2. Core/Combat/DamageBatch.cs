@@ -55,8 +55,7 @@ namespace Core
             if (!_anyHit)
                 return;
 
-            CameraShake.AddTrauma(juice.CameraShake);
-            HitStop.Apply(juice.HitStop);
+            GameFeelSystem.PlayJuice(juice);
         }
 
         /// <summary>

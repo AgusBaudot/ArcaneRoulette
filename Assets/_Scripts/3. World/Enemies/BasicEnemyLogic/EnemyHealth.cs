@@ -25,12 +25,14 @@ namespace World
         private float _currentHp;
         private IDebuffReadable _debuffs;
         private bool _isDead;
+        private DamageFlash _flashComponent;
 
         public ElementType Element => _element;
 
         private void Awake()
         {
             _currentHp = _maxHp;
+            _flashComponent = GetComponent<DamageFlash>();
         }
 
         private void OnEnable()
@@ -59,8 +61,12 @@ namespace World
         {
             _currentHp = Mathf.Max(0f, _currentHp - amount);
             UpdateUI();
+
+            _flashComponent.Flash();
             
-            if (_currentHp <= 0f) Die();
+            if (_currentHp <= 0f)
+                Die();
+
             return true;
         }
         
