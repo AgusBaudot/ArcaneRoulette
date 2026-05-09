@@ -41,8 +41,8 @@ public class FloorManager : MonoBehaviour
         }
 
         _currentRoom = CreateAndAddRoom();
-        TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
-        BindRoom(_currentRoom);
+        //TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
+        //BindRoom(_currentRoom);
     }
 
     private void ContinueRoom(Collider other)
@@ -60,17 +60,16 @@ public class FloorManager : MonoBehaviour
         _currentRoom._enemyMeleeCount = _roomIndex + extraenemies;
         _currentRoom._enemyRangeCount = _roomIndex + extraenemies;
         
-        TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
-        BindRoom(_currentRoom);
+        //TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
+        //BindRoom(_currentRoom);
     }
 
-    private void BindRoom(RoomManager room)
-        => room._ContinueDoor.OnPlayerEnter += ContinueRoom;
+    //private void BindRoom(RoomManager room) => room._ContinueDoor.OnPlayerEnter += ContinueRoom;
 
     private void UnbindRoom(RoomManager room)
     {
-        if (room != null)
-            room._ContinueDoor.OnPlayerEnter -= ContinueRoom;
+        if (room != null) { }
+           // room._ContinueDoor.OnPlayerEnter -= ContinueRoom;
     }
 
     private RoomManager CreateAndAddRoom()
@@ -81,7 +80,7 @@ public class FloorManager : MonoBehaviour
         RoomManager newRoom = Instantiate(prefabToSpawn);
 
         newRoom.transform.position = new Vector3(0, 0, _roomIndex * 100f);
-        newRoom._roomId = _roomIndex;
+
 
         _roomIndex++;
 

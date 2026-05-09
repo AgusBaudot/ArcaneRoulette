@@ -1,15 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static RoomManager;
 
-public class Cell : MonoBehaviour
+namespace World 
 {
-    public int index, value;
-
-    public GameObject cellBox;
-
-    public void SetSpecialRoomMaterial(Material color) 
+    public class Cell : MonoBehaviour
     {
-        cellBox.GetComponent<Renderer>().material = color;
+        public int index, value;
+        public RoomType roomType;
+
+        public GameObject cellBox;
+
+        public void SetSpecialRoomMaterial(Material color)
+        {
+            cellBox.GetComponent<Renderer>().material = color;
+        }
+
+        public void SetRoomType(RoomType newRoomType) 
+        {
+            roomType = newRoomType;
+        }
     }
 }
+

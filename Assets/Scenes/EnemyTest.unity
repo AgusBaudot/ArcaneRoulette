@@ -3034,6 +3034,7 @@ GameObject:
   m_Component:
   - component: {fileID: 785835199}
   - component: {fileID: 785835200}
+  - component: {fileID: 785835201}
   m_Layer: 0
   m_Name: MapGenerator
   m_TagString: Untagged
@@ -3068,12 +3069,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c471c322bc223d4da0d06582ce29bb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellPrefab: {fileID: 1617534123079603125, guid: 472154d6e80b66047964915f6c55827c,
+--- !u!114 &785835201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 785835198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f66eb87149bdf214693d20f3237854bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RegularRoomPrefab: {fileID: 9135434938086072485, guid: 12cfde9eb9df58f41bfa058487b24d9b,
     type: 3}
-  item: {fileID: 2100000, guid: bc1fb50b1aeff894b90abcbe91182d9f, type: 2}
-  shop: {fileID: 2100000, guid: 12273a110b58ebc46b39c7630c9dfe00, type: 2}
-  boss: {fileID: 2100000, guid: ec84caf2f357e864589505dc030eafae, type: 2}
-  secret: {fileID: 2100000, guid: 8cd013c65613e234d9c0d5db93920e69, type: 2}
+  ItemRoomPrefab: {fileID: 8028540733356528894, guid: d4745e8ac599a3440b9fbba10148abde,
+    type: 3}
+  ShopRoomPrefab: {fileID: 3681977686036752898, guid: 8b30f94692854d24c80fc57a08dbd0c0,
+    type: 3}
+  BossRoomPrefab: {fileID: 2022864353071147915, guid: cee7a1d64e3f6904ba426c27ff455d0a,
+    type: 3}
+  SecretRoomPrefab: {fileID: 7855714958828746795, guid: 986bff6aecfdd2d4a8a6566fc8ffcb94,
+    type: 3}
 --- !u!1 &795062772
 GameObject:
   m_ObjectHideFlags: 0
