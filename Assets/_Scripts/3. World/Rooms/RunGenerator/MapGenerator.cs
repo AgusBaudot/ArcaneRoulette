@@ -52,7 +52,6 @@ namespace World
             _spawnedCellsInfo = new List<RoomInfo>();
             SetupDungeon();
         }
-
         public void Update()
         {
             if (Input.GetKeyDown(KeyCode.M))
@@ -117,7 +116,7 @@ namespace World
                 return;
             }
 
-            SpawnRoom(secretRoomIndex);
+            SaveRoomInfo(secretRoomIndex);
 
             UpdateSpecialRoomVisual();
         }
@@ -209,11 +208,11 @@ namespace World
             floorPlan[index] = 1; // = 1
             floorPlanCount++;
 
-            SpawnRoom(index);
+            SaveRoomInfo(index);
 
             return true;
         }
-        private void SpawnRoom(int index)
+        private void SaveRoomInfo(int index)
         {
             RoomInfo newRoomInfo = new RoomInfo();
             newRoomInfo.value = 1;

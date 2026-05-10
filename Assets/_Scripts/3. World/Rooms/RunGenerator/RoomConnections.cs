@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World 
+namespace World
 {
     public class RoomConnections : MonoBehaviour
     {
@@ -21,6 +21,8 @@ namespace World
         float _offsetSpawn = 5f;
         private Vector3 _playerSpawnBottom, _playerSpawnUp, _playerSpawnLeft, _playerSpawnRight;
 
+        public event Action<EdgeDirection> OnDoorActivated;
+
         public Vector3 GetPlayerSpawnBottom() => _playerSpawnBottom;
         public Vector3 GetPlayerSpawnUp() => _playerSpawnUp;
         public Vector3 GetPlayerSpawnLeft() => _playerSpawnLeft;
@@ -29,34 +31,32 @@ namespace World
         public void Start()
         {
             CalculateSpawnsEntry();
-            if (_bottom != null) _bottom.OnPlayerEnter += EnterBottomDoor;
-            if (_up != null)     _up.OnPlayerEnter += EnterUpmDoor;
-            if (_left != null)   _left.OnPlayerEnter += EnterLeftmDoor;
-            if (_right != null)  _right.OnPlayerEnter += EnterRightmDoor;
+        }
+        public void EnableConnections()
+        {
+            if (_bottom != null) _bottom.OnPlayerEnter += EnterDoor;
+            if (_up != null) _up.OnPlayerEnter += EnterDoor;
+            if (_left != null) _left.OnPlayerEnter += EnterDoor;
+            if (_right != null) _right.OnPlayerEnter += EnterDoor;
+        }
+        private void DisableConnections()
+        {
+            _bottom.OnPlayerEnter -= EnterDoor;
+            _up.OnPlayerEnter -= EnterDoor;
+            _left.OnPlayerEnter -= EnterDoor;
+            _right.OnPlayerEnter -= EnterDoor;
         }
         private void CalculateSpawnsEntry()
         {
             _playerSpawnBottom = _bottomDoor.transform.position + new Vector3(0, 0, _offsetSpawn);
-            _playerSpawnUp     = _upDoor.transform.position + new Vector3(0, 0, - _offsetSpawn);
-            _playerSpawnLeft   = _leftDoor.transform.position + new Vector3(_offsetSpawn, 0, 0);
-            _playerSpawnRight  = _rightDoor.transform.position + new Vector3( - _offsetSpawn, 0, 0);
+            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, 0, -_offsetSpawn);
+            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, 0, 0);
+            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, 0, 0);
         }
-        public void EnterBottomDoor(Collider playerCollider)
+        private void EnterDoor(EdgeDirection direction)
         {
+            OnDoorActivated?.Invoke(direction);
         }
-        public void EnterUpmDoor(Collider playerCollider)
-        {
-           
-        }
-        public void EnterLeftmDoor(Collider playerCollider)
-        {
-            
-        }
-        public void EnterRightmDoor(Collider playerCollider)
-        {
-            
-        }
-
     }
 }
 

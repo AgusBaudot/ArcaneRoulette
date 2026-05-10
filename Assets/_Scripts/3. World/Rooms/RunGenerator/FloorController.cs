@@ -7,17 +7,17 @@ namespace World
 {
     public class FloorController : MonoBehaviour
     {
-        [SerializeField] GameObject RegularRoomPrefab;
-        [SerializeField] GameObject ItemRoomPrefab;
-        [SerializeField] GameObject ShopRoomPrefab;
-        [SerializeField] GameObject BossRoomPrefab;
-        [SerializeField] GameObject SecretRoomPrefab;
+        [SerializeField] RoomManager RegularRoomPrefab;
+        [SerializeField] RoomManager ItemRoomPrefab;
+        [SerializeField] RoomManager ShopRoomPrefab;
+        [SerializeField] RoomManager BossRoomPrefab;
+        [SerializeField] RoomManager SecretRoomPrefab;
         private int roomSpaceBetween = 15; // Espacio entre rooms
-        List<GameObject> spawnedRooms;
+        List<RoomManager> spawnedRooms;
 
         public void Awake()
         {
-            spawnedRooms = new List<GameObject>();
+            spawnedRooms = new List<RoomManager>();
         }
         public void Update()
         {
@@ -41,37 +41,54 @@ namespace World
         }
         public void SpawnRooms(int index, RoomType roomType) 
         {
-            int x = index % 10; // Posiciones
+            int x = index % 10;
             int z = index / 10;
 
-            Vector3 position = new Vector3(x * roomSpaceBetween, 0, -z * roomSpaceBetween);
+            Vector3 position =
+                new Vector3(x * roomSpaceBetween, 0, -z * roomSpaceBetween);
 
-            GameObject prefab = null;
-            switch (roomType) 
+            RoomManager prefab = null;
+
+            switch (roomType)
             {
                 case RoomType.Regular:
                     prefab = RegularRoomPrefab;
                     break;
+
                 case RoomType.Boss:
                     prefab = BossRoomPrefab;
                     break;
+
                 case RoomType.Item:
                     prefab = ItemRoomPrefab;
                     break;
+
                 case RoomType.Secret:
                     prefab = SecretRoomPrefab;
                     break;
+
                 case RoomType.Shop:
                     prefab = ShopRoomPrefab;
                     break;
             }
-            GameObject newRoom = Instantiate(prefab, position, Quaternion.identity);
-            spawnedRooms.Add(newRoom); //Lista de todas las rooms creadas
+
+            RoomManager newRoom =
+                Instantiate(prefab, position, Quaternion.identity);
+
+            RoomInfo info = new RoomInfo();
+
+            info.index = index;
+            info.value = 1;
+            info.roomType = roomType;
+
+            newRoom.Init(info);
+
+            spawnedRooms.Add(newRoom);
 
         }
-        public void SetUpDoors(List<GameObject> spawnedRooms) 
+        public void SetUpDoors(List<RoomManager> spawnedRooms) 
         {
-            foreach (GameObject rooms in spawnedRooms) 
+            foreach (RoomManager rooms in spawnedRooms) 
             {
                 
             }

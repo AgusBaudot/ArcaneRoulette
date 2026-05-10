@@ -11,93 +11,74 @@ namespace World
         Reward,
         Unlocked
     }
-    public class RoomManager : MonoBehaviour , IRoom
+
+    [RequireComponent(typeof(RoomConnections))]
+    [RequireComponent(typeof(EntityController))]
+    public class RoomManager : MonoBehaviour
     {
-        public int Index => throw new System.NotImplementedException();
-        public int Value => throw new System.NotImplementedException();
-        public RoomType RoomType => throw new System.NotImplementedException();
-        public RoomState State => throw new System.NotImplementedException();
-
-        [Header("Room spawn settings")]
-        [SerializeField]
-        private Transform[] _spawnMelee;
-
-        [SerializeField] private Transform[] _spawnRanged;
-        [SerializeField] private Transform[] _spawnHealer;
-
-        
-
+        //Serializado solo para testeo, luego lo saco
+        [SerializeField] private int _index;
+        [SerializeField] private int _value;
+        [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
-        [SerializeField] private GameObject _enemyPrefabMelee;
-        [SerializeField] public int _enemyMeleeCount;
-        [SerializeField] private GameObject _enemyPrefabRange;
-        [SerializeField] private GameObject _enemyPrefabHealer;
-        [SerializeField] public int _enemyRangeCount;
-        [SerializeField] int enemiesAlive = 0;
 
-        
+        private RoomConnections _roomConnections;
+        private EntityController _entityController;
 
-        
-
-
-        private void Start()
+        public void Init(RoomInfo info)
         {
+            _index = info.index;
+            _value = info.value;
+            _roomType = info.roomType;
             _state = RoomState.Idle;
         }
-
-        private void Activate(Collider playerCollider)
+        public void EnableRoom() 
         {
-            if (_state == RoomState.Idle)
-            {
-                _state = RoomState.Active;
-                var player = playerCollider.transform;
-                foreach (var spawnPoint in _spawnMelee)
-                {
-                    var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation,
-                        transform);
-                    enemiesAlive++;
-                    enemy.GetComponent<BaseEnemy>()?.Init(player);
-                    enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
-                    // enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
-                }
-
-                foreach (var spawnPoint in _spawnRanged)
-                {
-                    var enemy = Instantiate(_enemyPrefabRange, spawnPoint.transform.position, spawnPoint.transform.rotation,
-                        transform);
-                    enemiesAlive++;
-                    enemy.GetComponent<BaseEnemy>()?.Init(player);
-                    enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
-                }
-
-                foreach (var spawnPoint in _spawnHealer)
-                {
-                    var enemy = Instantiate(_enemyPrefabHealer, spawnPoint.transform.position, spawnPoint.transform.rotation, transform);
-                    enemiesAlive++;
-                    enemy.GetComponent<BaseEnemy>()?.Init(player);
-                    enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
-                }
-                //Destroy(spawnPoint.gameObject);
-            }
+            _roomConnections.EnableConnections();
         }
 
-        private void OnEnemyDeath()
+        public void Awake()
         {
-            enemiesAlive--;
-            if (enemiesAlive <= 0)
-            {
-                _state = RoomState.Cleared;
-                Destroy(_door1.gameObject);
-                Destroy(_door2.gameObject);
-                //EventBus.Publish(new RoomClearEvent { roomId = _roomId });
-            }
+            _roomConnections = GetComponent<RoomConnections>();
+            _entityController = GetComponent<EntityController>();
 
+            _roomConnections.OnDoorActivated += HandleDoorTransition;
+            _entityController.RoomIsClear += FireEventBusEvent;
         }
+
+        private void FireEventBusEvent() 
+        {
+            _state = RoomState.Cleared;
+            EventBus.Publish(new RoomClearEvent { roomId = _index });
+        }
+        public struct RoomClearEvent
+    {
+        public int roomId;
+        //alguna otra info para enviar...
+    }
+
+        private void HandleDoorTransition(EdgeDirection direction)
+        {
+            //FloorManager.Instance.Cambio_de_Room(direction, this);
+        }
+
     }
 }
 
-            //EventBus.Publish(new RoomClearEvent { roomId = _roomId });
-        //public struct RoomClearEvent
-        //{
-        //    public int roomId;
-        //}
+//switch (direction)
+//{
+//    case EdgeDirection.up:
+//        Debug.Log("Entro Arriba");
+//        break;
+
+//    case EdgeDirection.down:
+//        Debug.Log("Entro Abajo");
+//        break;
+
+//    case EdgeDirection.left:
+//        Debug.Log("Entro Izquierda");
+//        break;
+
+//    case EdgeDirection.right:
+//        Debug.Log("Entro Derecha");
+//        break;

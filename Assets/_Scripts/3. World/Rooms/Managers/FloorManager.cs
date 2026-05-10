@@ -57,8 +57,8 @@ public class FloorManager : MonoBehaviour
         
         _currentRoom = CreateAndAddRoom();
         
-        _currentRoom._enemyMeleeCount = _roomIndex + extraenemies;
-        _currentRoom._enemyRangeCount = _roomIndex + extraenemies;
+        //_currentRoom._enemyMeleeCount = _roomIndex + extraenemies;
+        //_currentRoom._enemyRangeCount = _roomIndex + extraenemies;
         
         //TeleportPlayer(_currentRoom.GetPlayerSpawnEntry());
         //BindRoom(_currentRoom);

@@ -10,14 +10,14 @@ namespace World
     public class RoomDoor : MonoBehaviour
     {
         [SerializeField] private EdgeDirection _direction;
-        public event Action<EdgeDirection, Collider> OnPlayerEnter;
+        public event Action<EdgeDirection> OnPlayerEnter;
 
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player"))
                 return;
 
-            OnPlayerEnter?.Invoke(_direction, other);
+            OnPlayerEnter?.Invoke(_direction);
         }
     }
 }
