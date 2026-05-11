@@ -5,9 +5,8 @@ using UnityEngine;
 
 namespace World 
 {
-    public class EntityController
+    public class EntityController : MonoBehaviour
     {
-
         [Header("Room spawn settings")]
         [SerializeField] private Transform[] _enemySpawns;
 

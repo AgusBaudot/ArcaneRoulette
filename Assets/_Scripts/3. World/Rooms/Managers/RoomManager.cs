@@ -22,6 +22,10 @@ namespace World
         [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
 
+        public int Index => _index;
+        public int Value => _value;
+        public RoomType Type => _roomType;
+
         private RoomConnections _roomConnections;
         private EntityController _entityController;
 
@@ -32,12 +36,15 @@ namespace World
             _roomType = info.roomType;
             _state = RoomState.Idle;
         }
+        public void InitDoors(AllDoorsInfo info)
+        {
+            _roomConnections.SetDoorColors(info);
+        }
         public void EnableRoom() 
         {
             _roomConnections.EnableConnections();
         }
-
-        public void Awake()
+        public void Start()
         {
             _roomConnections = GetComponent<RoomConnections>();
             _entityController = GetComponent<EntityController>();
@@ -51,17 +58,16 @@ namespace World
             _state = RoomState.Cleared;
             EventBus.Publish(new RoomClearEvent { roomId = _index });
         }
-        public struct RoomClearEvent
-    {
-        public int roomId;
-        //alguna otra info para enviar...
-    }
-
         private void HandleDoorTransition(EdgeDirection direction)
         {
+            _roomConnections.DisableConnections();
             //FloorManager.Instance.Cambio_de_Room(direction, this);
         }
-
+        public struct RoomClearEvent
+        {
+            public int roomId;
+            //alguna otra info para enviar...
+        }
     }
 }
 
@@ -82,3 +88,5 @@ namespace World
 //    case EdgeDirection.right:
 //        Debug.Log("Entro Derecha");
 //        break;
+
+// return RoomManager.instance.doors.FirstOrDefault(x => x.roomType == roomType);

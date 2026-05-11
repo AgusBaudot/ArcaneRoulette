@@ -639,6 +639,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6931434276597959979}
+  - component: {fileID: -166008163780184881}
+  - component: {fileID: 3992994631664303790}
+  - component: {fileID: -4603583050371147331}
   m_Layer: 0
   m_Name: ShopRoom
   m_TagString: Untagged
@@ -667,6 +670,59 @@ Transform:
   - {fileID: 1262653691095613813}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-166008163780184881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3681977686036752898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 868934c4e708a83409b8498c936662a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _bottom: {fileID: 0}
+  _up: {fileID: 0}
+  _left: {fileID: 0}
+  _right: {fileID: 0}
+  _bottomDoor: {fileID: 4318928283997678070}
+  _upDoor: {fileID: 7724509672772113708}
+  _leftDoor: {fileID: 1070850981276636616}
+  _rightDoor: {fileID: 7226123874049428424}
+--- !u!114 &3992994631664303790
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3681977686036752898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f624a7a63b3761145a3e1fa22d7f4761, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _enemySpawns: []
+  _enemyPrefabMelee: {fileID: 0}
+  _enemyMeleeCount: 0
+  _enemyPrefabRange: {fileID: 0}
+  _enemyRangeCount: 0
+--- !u!114 &-4603583050371147331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3681977686036752898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081eba74ff35eb14db6869e5ce1f1c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _index: 0
+  _value: 0
+  _roomType: 0
+  _state: 0
 --- !u!1 &4318928283997678070
 GameObject:
   m_ObjectHideFlags: 0

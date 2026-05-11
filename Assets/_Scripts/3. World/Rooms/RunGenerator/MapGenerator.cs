@@ -7,7 +7,7 @@ namespace World
 {
     public enum RoomType
     {
-        Regular, Item, Shop, Boss, Secret
+        Regular, Item, Shop, Boss, Secret, none
     }
     public struct RoomInfo 
     {
@@ -37,9 +37,7 @@ namespace World
 
         private Queue<int> cellQueue; // cola de generacion de rooms
 
-        //private List<Cell> spawnedCells; //Guardar las habitaciones creadas
         private List<RoomInfo> _spawnedCellsInfo;
-        //public List<Cell> getSpawnedCells => spawnedCells;
         public List<RoomInfo> getSpawnedCellsInfo => _spawnedCellsInfo;
 
         public static MapGenerator instance;
@@ -189,6 +187,7 @@ namespace World
 
                 if (neighbours >= 3 || (attempt > 300 && neighbours >= 2) || (attempt > 600 && neighbours >= 1))
                 {
+                    floorPlan[index] = 1;
                     return index;
                 }
             }

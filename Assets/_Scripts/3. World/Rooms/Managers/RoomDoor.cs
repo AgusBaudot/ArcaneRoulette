@@ -11,7 +11,6 @@ namespace World
     {
         [SerializeField] private EdgeDirection _direction;
         public event Action<EdgeDirection> OnPlayerEnter;
-
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag("Player"))

@@ -39,7 +39,14 @@ namespace World
             if (_left != null) _left.OnPlayerEnter += EnterDoor;
             if (_right != null) _right.OnPlayerEnter += EnterDoor;
         }
-        private void DisableConnections()
+        public void SetDoorColors(AllDoorsInfo info) 
+        {
+            _bottomDoor.GetComponent<Renderer>().material = info.down.material;
+            _upDoor.GetComponent<Renderer>().material = info.up.material;
+            _leftDoor.GetComponent<Renderer>().material = info.left.material;
+            _rightDoor.GetComponent<Renderer>().material = info.right.material;
+        }
+        public void DisableConnections()
         {
             _bottom.OnPlayerEnter -= EnterDoor;
             _up.OnPlayerEnter -= EnterDoor;
