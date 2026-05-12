@@ -9,6 +9,7 @@ namespace World
     {
         [Header("Room spawn settings")]
         [SerializeField] private Transform[] _enemySpawns;
+        private RoomEncounterData _encounterData;
 
         private RoomState _state;
         [SerializeField] private GameObject _enemyPrefabMelee;
@@ -18,10 +19,13 @@ namespace World
         int enemiesAlive = 0;
 
         public event Action RoomIsClear;
-        private void Activate(Collider playerCollider)
+        public void SaveEnemiesData(RoomEncounterData encounterData) 
         {
-            if (_state == RoomState.Idle)
-            {
+            _encounterData = encounterData;
+        }
+        private void SpawnEnemies(RoomEncounterData data)
+        {
+            
                 /*
                 _state = RoomState.Active;
                 var player = playerCollider.transform;
@@ -35,7 +39,7 @@ namespace World
                     // enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
                 }
                 */
-            }
+            
         }
 
         private void OnEnemyDeath()

@@ -7,15 +7,15 @@ namespace World
 {
     public struct DoorInfo
     {
-        public bool unlockOnClear;
-        public Material material;
+        public bool UnlockOnClear;
+        public Material Material;
     }
     public struct AllDoorsInfo
     {
-        public DoorInfo up;
-        public DoorInfo down;
-        public DoorInfo left;
-        public DoorInfo right;
+        public DoorInfo Up;
+        public DoorInfo Down;
+        public DoorInfo Left;
+        public DoorInfo Right;
     }
 
     public class MapSpawner : MonoBehaviour
@@ -28,51 +28,43 @@ namespace World
 
         [SerializeField] DoorScriptable[] doorsMaterials;
         private Dictionary<RoomType, Material> _doorLookup;
+        private Dictionary<int, RoomManager> _roomLookup;
+        public Dictionary<int, RoomManager> RoomLookup => _roomLookup;
 
-        private int roomSpaceBetween = 15; // Espacio entre rooms
-        private List<RoomManager> spawnedRooms;
+        private int _spaceBetweenRooms = 90;
 
         public void Awake()
         {
-            spawnedRooms = new List<RoomManager>();
             _doorLookup = new Dictionary<RoomType, Material>();
+            _roomLookup = new Dictionary<int, RoomManager>();
 
             foreach (DoorScriptable door in doorsMaterials)
             {
                 _doorLookup.Add(door.roomType, door.materialDoor);
             }
         }
-        public void Update()
+        public void SetUpRooms(List<RoomInfo> rooms, int[] floorPlan)
         {
-            if (Input.GetKeyDown(KeyCode.N))
+            foreach (RoomManager room in _roomLookup.Values)
             {
-                Debug.Log("SetUpRooms");
-                SetUpRooms(MapGenerator.instance.getSpawnedCellsInfo);
+                Destroy(room.gameObject);
             }
-            if (Input.GetKeyDown(KeyCode.B)) 
-            {
-                SetUpDoors(spawnedRooms, MapGenerator.instance.getFloorPlan);
-            }
-        }
-        public void SetUpRooms(List<RoomInfo> rooms)
-        {
-            for (int i = 0; i < spawnedRooms.Count; i++) //borra la generacion anterior
-            {
-                Destroy(spawnedRooms[i].gameObject);
-            }
-            spawnedRooms.Clear();
+            _roomLookup.Clear();
+
             foreach (RoomInfo room in rooms) 
             {
                 SpawnRooms(room.index, room.roomType);
             }
-            
+
+            SetUpDoors(floorPlan);
+            SetAllActiveFalse();
         }
-        public void SpawnRooms(int index, RoomType roomType) 
+        private void SpawnRooms(int index, RoomType roomType) 
         {
             int x = index % 10;
             int z = index / 10;
 
-            Vector3 position = new Vector3(x * roomSpaceBetween, 0, -z * roomSpaceBetween);
+            Vector3 position = new Vector3(x * _spaceBetweenRooms, 0, -z * _spaceBetweenRooms);
 
             RoomManager prefab = null;
 
@@ -109,18 +101,13 @@ namespace World
 
             newRoom.Init(info);
 
-            spawnedRooms.Add(newRoom);
+            _roomLookup.Add(index,newRoom);
+            //spawnedRooms.Add(newRoom);
         }
-        public void SetUpDoors(List<RoomManager> spawnedRooms, int[] floorPlan) //Un proceso bastante caro deberia hacerse en una pantalla de carga
+        public void SetUpDoors(int[] floorPlan)
         {
-            foreach (RoomManager rooms in spawnedRooms) 
+            foreach (RoomManager rooms in _roomLookup.Values) 
             {
-                // create info for each door
-                DoorInfo upInfo = new DoorInfo(); 
-                DoorInfo downInfo = new DoorInfo();
-                DoorInfo leftInfo = new DoorInfo();
-                DoorInfo rightInfo = new DoorInfo();
-
                 // save index of neighbours
                 int upIndex = rooms.Index - 10;
                 int downIndex = rooms.Index + 10;
@@ -134,72 +121,40 @@ namespace World
                 bool hasLeftBounds = x > 0;
                 bool hasRightBounds = x < 9;
 
-                // ---- Up Door ----
-                if (hasUpBounds && floorPlan[upIndex] != 0)
-                {
-                    RoomManager upRoom = spawnedRooms.Find(x => x.Index == upIndex);
-                    Material doorMaterial = _doorLookup[upRoom.Type];
-                    upInfo.unlockOnClear = true;
-                    upInfo.material = doorMaterial;
-                }
-                else 
-                {
-                    Material doorMaterial = _doorLookup[RoomType.none];
-                    upInfo.unlockOnClear= false;
-                    upInfo.material = doorMaterial;
-                }
-                // ---- Down Door ----
-                if (hasDownBounds && floorPlan[rooms.Index + 10] != 0)
-                {
-                    RoomManager downRoom = spawnedRooms.Find(x => x.Index == downIndex);
-                    Material doorMaterial = _doorLookup[downRoom.Type];
-                    downInfo.unlockOnClear = true;
-                    downInfo.material = doorMaterial;
-                }
-                else 
-                {
-                    Material doorMaterial = _doorLookup[RoomType.none];
-                    downInfo.unlockOnClear = false;
-                    downInfo.material = doorMaterial;
-                }
-                // ---- Left Door ----
-                if (hasLeftBounds && floorPlan[rooms.Index - 1] != 0)
-                {
-                    RoomManager leftRoom = spawnedRooms.Find(x => x.Index == leftIndex);
-                    Material doorMaterial = _doorLookup[leftRoom.Type];
-                    leftInfo.unlockOnClear = true;
-                    leftInfo.material = doorMaterial;
-                }
-                else 
-                {
-                    Material doorMaterial = _doorLookup[RoomType.none];
-                    leftInfo.unlockOnClear = false;
-                    leftInfo.material = doorMaterial;
-                }
-                // ---- Right Door ----
-                if (hasRightBounds && floorPlan[rooms.Index + 1] != 0)
-                {
-                    RoomManager rightRoom = spawnedRooms.Find(x => x.Index == rightIndex);
-                    Material doorMaterial = _doorLookup[rightRoom.Type];
-                    rightInfo.unlockOnClear = true;
-                    rightInfo.material = doorMaterial;
-                }
-                else 
-                {
-                    Material doorMaterial = _doorLookup[RoomType.none];
-                    rightInfo.unlockOnClear = false;
-                    rightInfo.material = doorMaterial;
-                }
-
                 // ---- Send Info to Room Manager ----
                 AllDoorsInfo doorInfo = new AllDoorsInfo();
-                doorInfo.up = upInfo;
-                doorInfo.down = downInfo;
-                doorInfo.left = leftInfo;
-                doorInfo.right = rightInfo;
+                doorInfo.Up = CreateDoorInfo(hasUpBounds, upIndex, floorPlan);
+                doorInfo.Down = CreateDoorInfo(hasDownBounds, downIndex, floorPlan);
+                doorInfo.Left = CreateDoorInfo(hasLeftBounds, leftIndex, floorPlan);
+                doorInfo.Right = CreateDoorInfo(hasRightBounds, rightIndex, floorPlan);
 
                 rooms.InitDoors(doorInfo);
             }
+        }
+        public void SetAllActiveFalse()
+        {
+            foreach (RoomManager rooms in _roomLookup.Values)
+            {
+                rooms.gameObject.SetActive(false);
+            }
+        }
+        private DoorInfo CreateDoorInfo(bool hasBounds, int neighbourIndex, int[] floorPlan)
+        {
+            DoorInfo info = new DoorInfo();
+
+            if (hasBounds && floorPlan[neighbourIndex] != 0)
+            {
+                RoomManager room = _roomLookup[neighbourIndex];
+                info.UnlockOnClear = true;
+                info.Material = _doorLookup[room.Type];
+            }
+            else
+            {
+                info.UnlockOnClear = false;
+                info.Material = _doorLookup[RoomType.None];
+            }
+
+            return info;
         }
     }
 }

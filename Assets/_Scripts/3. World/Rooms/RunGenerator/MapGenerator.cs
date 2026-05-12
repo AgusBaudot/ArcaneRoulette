@@ -7,7 +7,7 @@ namespace World
 {
     public enum RoomType
     {
-        Regular, Item, Shop, Boss, Secret, none
+        Regular, Item, Shop, Boss, Secret, None
     }
     public struct RoomInfo 
     {
@@ -38,27 +38,14 @@ namespace World
         private Queue<int> cellQueue; // cola de generacion de rooms
 
         private List<RoomInfo> _spawnedCellsInfo;
-        public List<RoomInfo> getSpawnedCellsInfo => _spawnedCellsInfo;
 
-        public static MapGenerator instance;
-
-        public void Start()
+        public void Awake()
         {
-            instance = this;
             minRooms = 7;
             maxRooms = 15;
             _spawnedCellsInfo = new List<RoomInfo>();
-            SetupDungeon();
         }
-        public void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                Debug.Log("SetUpDungeon");
-                SetupDungeon();
-            }
-        }
-        private void SetupDungeon()
+        public List<RoomInfo> SetupDungeon()
         {
             _spawnedCellsInfo.Clear(); //limpia la lista
             floorPlan = new int[100]; //Grid 10 x 10
@@ -68,6 +55,8 @@ namespace World
 
             VisitCell(45); // Centro del mapa
             GenerateDungeon();
+
+            return _spawnedCellsInfo;
         }
         private void GenerateDungeon()
         {

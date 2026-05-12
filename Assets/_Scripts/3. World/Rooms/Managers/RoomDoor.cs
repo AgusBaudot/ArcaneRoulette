@@ -5,7 +5,7 @@ namespace World
 {
     public enum EdgeDirection 
     {
-        up, down, left, right
+        Up, Down, Left, Right
     }
     public class RoomDoor : MonoBehaviour
     {
