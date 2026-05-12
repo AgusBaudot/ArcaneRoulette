@@ -13,6 +13,8 @@ namespace Core
         protected float Speed { get; private set; }
         protected int BounceCount;
 
+        private static int _shieldLayer = -1;
+
         protected virtual void Awake()
         {
             Rb = GetComponent<Rigidbody>();
@@ -20,6 +22,9 @@ namespace Core
             Rb.interpolation = RigidbodyInterpolation.Interpolate;
             Rb.constraints = RigidbodyConstraints.FreezePositionY
                              | RigidbodyConstraints.FreezeRotation;
+            
+            if (_shieldLayer == -1)
+                _shieldLayer = LayerMask.NameToLayer("Shield");
         }
 
         protected void SetVelocity(Vector3 direction, float speed)
@@ -36,13 +41,19 @@ namespace Core
                 ps.Clear();
                 ps.Play();
             }
+            
+            foreach (var trail in GetComponentsInChildren<TrailRenderer>())
+            {
+                trail.Clear();
+            }
         }
 
         //Returns true if the projectile bounced and should keep living.
         //Returns false if no bounces remain - called should Destroy.
         protected bool TryBounce()
         {
-            if (BounceCount <= 0) return false;
+            if (BounceCount <= 0) 
+                return false;
             
             //Step back half a unit along velocity so the ray starts before the surface
             Vector3 rayOrigin = transform.position - Rb.velocity.normalized * 0.5f + Vector3.up;
@@ -73,7 +84,7 @@ namespace Core
         //Subclasses never override this - they implement the two semantic methods above instead. 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject.layer == LayerMask.NameToLayer("Shield"))
+            if (other.gameObject.layer == _shieldLayer)
                 return;
             
             if (other.TryGetComponent<IDamageable>(out _))
@@ -84,7 +95,12 @@ namespace Core
 
         public virtual void OnSpawn()
         {
+            if (Rb == null)
+                return;
             
+            Rb.position = transform.position;
+            Rb.rotation = transform.rotation;
+            Rb.interpolation = RigidbodyInterpolation.Interpolate;
         }
 
         public virtual void OnDespawn()
@@ -93,6 +109,7 @@ namespace Core
             {
                 Rb.velocity = Vector3.zero;
                 Rb.angularVelocity = Vector3.zero;
+                Rb.interpolation = RigidbodyInterpolation.None;
             }
         }
     }

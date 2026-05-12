@@ -44,6 +44,7 @@ namespace Foundation
 
             instance.transform.SetPositionAndRotation(position, rotation);
             instance.OnSpawn(); // Triggers interface
+            instance.gameObject.SetActive(true);
 
             return instance;
         }
@@ -71,7 +72,8 @@ namespace Foundation
             pool = new ObjectPool<T>(
                 createFunc: () =>
                 {
-                    T instance = Instantiate(prefab, _poolRoot);
+                    T instance = Instantiate(prefab, Vector3.zero, Quaternion.identity, _poolRoot);
+                    instance.gameObject.SetActive(false);
                     
                     // Attach the link so the instance knows how to return home
                     var link = instance.gameObject.AddComponent<PoolLink>();
@@ -83,7 +85,7 @@ namespace Foundation
                     
                     return instance;
                 },
-                actionOnGet: (instance) => instance.gameObject.SetActive(true),
+                actionOnGet: (instance) => { },
                 actionOnRelease: (instance) => instance.gameObject.SetActive(false),
                 actionOnDestroy: (instance) => Destroy(instance.gameObject),
                 collectionCheck: false,
