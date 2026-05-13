@@ -15,7 +15,7 @@ namespace World
         [SerializeField] private GameObject _explosionVFX;
         [SerializeField] private float _windupExplosion;
 
-        private bool _isActive = false;
+        private bool _isActive = true;
 
         private bool _triggered;
 
@@ -99,7 +99,8 @@ namespace World
 
         public void Disable()
         {
-            _isActive = true;
+            Debug.Log("Esto cuando se llama?");
+            _isActive = false;
         }
     }
 }
