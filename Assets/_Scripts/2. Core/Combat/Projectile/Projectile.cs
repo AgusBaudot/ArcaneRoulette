@@ -61,9 +61,10 @@ namespace Core
             // Already hit this target this flight — ignore
             if (!_hitTargets.Add(damageableGo)) return;
 
-            // var element = _source?.Element ?? ElementType.Neutral;
-            // damageable.TakeDamage(_baseDamage, element);
-            DamageSystem.Deal(damageable, damageableGo, _baseDamage, _source?.SpellElement ?? ElementType.Neutral);
+            var batch = new DamageBatch();
+            batch.Deal(damageable, damageableGo, _baseDamage, _source.SpellElement);
+            batch.Commit(Helpers.Combat.NormalDMG);
+            
 
             _source?.TriggerOnHit(
                 transform.position,

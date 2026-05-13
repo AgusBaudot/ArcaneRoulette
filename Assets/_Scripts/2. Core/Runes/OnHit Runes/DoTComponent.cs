@@ -36,8 +36,9 @@ namespace Core
                 if (_target == null)
                     break;
                 
-                // _target.TakeDamage(_damagePerTick, _element);
-                DamageSystem.Deal(_target, gameObject, _damagePerTick, _element, DamageJuice.Light);
+                var batch = new DamageBatch();
+                batch.Deal(_target, gameObject, _damagePerTick, _element);
+                batch.Commit(Helpers.Combat.NoFeedback);
             }
             
             _tickRoutine = null;

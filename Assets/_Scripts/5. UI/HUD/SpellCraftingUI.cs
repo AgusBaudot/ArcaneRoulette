@@ -13,7 +13,6 @@ namespace UI
     {
         [Header("Panel")]
         [SerializeField] private GameObject _craftingPanel;
-        [SerializeField] private KeyCode _toggleKey = KeyCode.Tab;
 
         [Header("Slot Panels — assign First, Second, Third in fixed order")] 
         [SerializeField] private SpellSlotPanel[] _slotPanels; // always length 3

@@ -18,7 +18,7 @@ namespace Core
 
 
         public bool TakeDamage(int amount, ElementType elementType)
-        {
+        {   
             return _health.TakeDamage(amount, elementType);
         }
     }

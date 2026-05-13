@@ -122,8 +122,10 @@ namespace Core
             if (damageable == null) return;
 
             // No OnHit runes, no pierce, no bounce — just damage and destroy.
-            // DamageSystem.Deal without DamageJuice uses Default internally.
-            DamageSystem.Deal(damageable, other.gameObject, _damage, _element, DamageJuice.Light);
+            var batch = new DamageBatch();
+            batch.Deal(damageable, other.gameObject, _damage, _element);
+            batch.Commit(Helpers.Combat.SmallDMG);
+            
             Helpers.ProjFactory.Despawn(gameObject);
         }
 

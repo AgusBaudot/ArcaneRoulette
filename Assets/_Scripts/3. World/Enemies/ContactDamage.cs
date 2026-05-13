@@ -11,7 +11,9 @@ namespace World
             if (!other.TryGetComponent<IDamageable>(out var damageable))
                 return;
             
-            DamageSystem.Deal(damageable, (damageable as Component)?.gameObject, Helpers.Combat.BaseContactDamage, ElementType.Neutral, DamageJuice.Heavy);
+            var batch = new DamageBatch();
+            batch.Deal(damageable, Helpers.Combat.BaseContactDamage, ElementType.Neutral);
+            batch.Commit(Helpers.Combat.PlayerDamage);
         }
     }
 }

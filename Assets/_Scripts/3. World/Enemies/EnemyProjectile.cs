@@ -32,7 +32,11 @@ namespace World
         protected override void OnHitDamageable(Collider other)
         {
             var dmg = other.GetComponent<IDamageable>();
-            DamageSystem.Deal(dmg, (dmg as Component).gameObject, _damage, ElementType.Neutral, DamageJuice.Heavy);
+            
+            var batch = new DamageBatch();
+            batch.Deal(dmg, _damage, ElementType.Neutral);
+            batch.Commit(Helpers.Combat.PlayerDamage);
+            
             Helpers.ProjFactory.Despawn(gameObject);
         }
 

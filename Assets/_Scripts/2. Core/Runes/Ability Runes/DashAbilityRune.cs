@@ -11,7 +11,6 @@ namespace Core
         [SerializeField] private float _dashSpeed = 20f;
         [SerializeField] private float _baseDashDuration = 0.2f;
         [SerializeField] private float _cooldownDuration = 0.8f;
-        [SerializeField] private float _cameraTrauma = 0.5f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
@@ -55,6 +54,8 @@ namespace Core
                 var enemies = Physics.OverlapSphere(
                     player.transform.position, _dashHitRadius, player.Stats.EnemyLayerMask);
 
+                var batch = new DamageBatch();
+
                 foreach (var hit in enemies)
                 {
                     if (!hitEnemies.Add(hit.gameObject))
@@ -66,13 +67,15 @@ namespace Core
                     // Damage only if PiercingCastRune is slotted
                     if (args.DamagesOnDash)
                     {
-                        DamageSystem.Deal(dmg, hit.gameObject, _baseDamage, ctx.Source.SpellElement);
+                        batch.Deal(dmg, hit.gameObject, _baseDamage, ctx.Source.SpellElement);
                     }
 
                     // OnHit runes always fire per enemy touched regardless of damage
                     ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
                         AbilityType.Dash, false, dir);
                 }
+                
+                batch.Commit(Helpers.Combat.NormalDMG);
 
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
                 if (args.ReflectCount > 0 && _reflectedProjectilePrefab != null)

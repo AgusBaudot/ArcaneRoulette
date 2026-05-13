@@ -61,7 +61,7 @@ namespace UI
             // Force layout rebuild so _panelRect.sizeDelta is accurate before clamping
             UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRect);
 
-            PositionTooltip(tileRect);
+            //PositionTooltip(tileRect);
         }
 
         // Called by RuneTileUI.OnPointerExit

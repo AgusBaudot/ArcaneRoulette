@@ -37,7 +37,7 @@ namespace Core
 
             if (!Physics.Raycast(ray, out var hit, 200f, LayerMask.GetMask("Floor")))
             {
-                Debug.LogError($"{nameof(ProjectileAbilityRune)}: Raycast Failed");
+                Debug.LogError($"{nameof(ProjectileAbilityRune)}: Raycast failed, no floor found.");
                 return;
             }
 

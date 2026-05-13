@@ -102,8 +102,12 @@ namespace Core
                 if (dmg == null)
                     continue;
 
-                // dmg.TakeDamage(Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
-                DamageSystem.Deal(dmg, (dmg as Component)?.gameObject, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral, DamageJuice.Light);
+                var batch = new DamageBatch();
+                batch.Deal(dmg, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
+                batch.Commit(Helpers.Combat.SmallDMG);
+#if UNITY_EDITOR
+                Debug.LogError($"{nameof(ShieldDamageZone)} doesn't change elements. Always neutral, wire propperly.");
+#endif
             }
         }
 
