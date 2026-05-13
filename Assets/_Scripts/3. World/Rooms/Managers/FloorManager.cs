@@ -5,12 +5,6 @@ using UnityEngine;
 
 namespace World 
 {
-    public enum RunDificult
-    {
-        Easy,
-        Medium,
-        Hard
-    }
     [RequireComponent(typeof(MapGenerator))]
     [RequireComponent(typeof(MapSpawner))]
     public class FloorManager : MonoBehaviour
@@ -18,7 +12,6 @@ namespace World
         [Header("Settings")]
         [SerializeField] private RoomDoor _startRoom;
         [SerializeField] private RoomDoor _generateFloor;
-        [SerializeField] private RunDificult rundificult;
 
         [Header("MapMaker")]
         private MapGenerator _mapGenerator;
@@ -101,17 +94,6 @@ namespace World
                 _currentRoom.EnableRoom();
                 _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
             }
-        }
-        private void SetDifficulty()
-        {
-            /*
-            switch (rundificult)
-            {
-                case RunDificult.easy: extraenemies = 1; break;
-                case RunDificult.medium: extraenemies = 2; break;
-                case RunDificult.hard: extraenemies = 3; break;
-            }
-            */
         }
     }
 }

@@ -3,10 +3,6 @@ using UnityEngine;
 
 namespace World
 {
-    public enum EdgeDirection 
-    {
-        Up, Down, Left, Right
-    }
     public class RoomDoor : MonoBehaviour
     {
         [SerializeField] private EdgeDirection _direction;

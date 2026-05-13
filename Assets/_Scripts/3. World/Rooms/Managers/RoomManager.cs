@@ -3,15 +3,6 @@ using UnityEngine;
 
 namespace World 
 {
-    public enum RoomState
-    {
-        Idle,
-        Active,
-        Cleared,
-        Reward,
-        Unlocked
-    }
-
     [RequireComponent(typeof(RoomConnections))]
     [RequireComponent(typeof(EntityController))]
     public class RoomManager : MonoBehaviour

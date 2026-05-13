@@ -25,7 +25,6 @@ namespace World
         [Header("BB Shared Data")]
         [SerializeField] protected List<Transform> _waypoints;
         protected BlackboardKey hasSeenPlayerKey;
-
         protected IDebuffReadable _debuffs;
         public virtual void Init(EnemyController bb) 
         {
