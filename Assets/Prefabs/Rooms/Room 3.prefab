@@ -1994,8 +1994,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: -1.7, y: -0.45, z: 4.6}
-  m_LocalScale: {x: 1.4157848, y: 1.4157848, z: 1.4157848}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.6637186, y: 0.6637186, z: 0.6637186}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 2663201349000784983}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
@@ -2045,7 +2045,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 100, y: 100}
+  m_Size: {x: 150, y: 150}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -5759,6 +5759,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: PilarConFuego_Blocking
       objectReference: {fileID: 0}
+    - target: {fileID: 6640108327627180468, guid: 6f7fb461a0098e8469966f17d1ed67e9,
+        type: 3}
+      propertyPath: m_Layer
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 8637355215663421953, guid: 6f7fb461a0098e8469966f17d1ed67e9,
+        type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: a8cf2a543d416384ea667f7eeda74ef5, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
