@@ -6,7 +6,7 @@ using Core;
 
 namespace World
 {
-    public sealed class ElementalBomb : MonoBehaviour
+    public sealed class ElementalBomb : MonoBehaviour , IHazard
     {
         [SerializeField] private ElementType _element;
         [SerializeField] private int _damage = 25;
@@ -15,10 +15,15 @@ namespace World
         [SerializeField] private GameObject _explosionVFX;
         [SerializeField] private float _windupExplosion;
 
+        private bool _isActive = false;
+
         private bool _triggered;
 
         private void OnTriggerEnter(Collider other)
         {
+            if(!_isActive) 
+                return;
+
             if (_triggered) 
                 return;
 
@@ -93,6 +98,11 @@ namespace World
         {
             Gizmos.color = Color.black;
             Gizmos.DrawWireSphere(new Vector3(transform.position.x, 0, transform.position.z), _explosionRadius);
+        }
+
+        public void Disable()
+        {
+            _isActive = true;
         }
     }
 }

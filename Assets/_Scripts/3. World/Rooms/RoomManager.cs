@@ -1,3 +1,4 @@
+using Core;
 using Foundation;
 using UnityEngine;
 using World;
@@ -41,7 +42,7 @@ public class RoomManager : MonoBehaviour
     public Transform GetPlayerSpawnEntry() => _playerSpawnEntry;
     public Transform GetPlayerSpawnExit() => _playerSpawnExit;
     public RoomState GetRoomState() => _state;
-
+    
     private void Start()
     {
         _activateDoor.OnPlayerEnter += Activate;
@@ -54,8 +55,10 @@ public class RoomManager : MonoBehaviour
     {
         public int roomId;
     }
-    private void Activate(Collider playerCollider)
+    private void Activate(EdgeDirection _)
     {
+        var playerCollider = FindObjectOfType<PlayerController>().GetComponent<Collider>();
+        
         if (_state == RoomState.Idle)
         {
             _state = RoomState.Active;
@@ -107,12 +110,12 @@ public class RoomManager : MonoBehaviour
         
     }
 
-    public void ExitRoom(Collider playerCollider)
+    public void ExitRoom(EdgeDirection _)
     {
         EventBus.Publish(new RoomClearEvent { roomId = _roomId });
     }
     
-    public void ContinueRoom(Collider playerCollider) 
+    public void ContinueRoom(EdgeDirection _) 
     {
         _state = RoomState.Unlocked;
     }

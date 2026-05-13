@@ -188,7 +188,6 @@ GameObject:
   m_Component:
   - component: {fileID: 5759070158376047239}
   - component: {fileID: 218429281478136524}
-  - component: {fileID: 2185140193482219146}
   - component: {fileID: 8864939927046795387}
   - component: {fileID: 3274759088611625184}
   - component: {fileID: 2763947448225636823}
@@ -198,13 +197,15 @@ GameObject:
   - component: {fileID: 7237747099332007944}
   - component: {fileID: 8541311600494996712}
   - component: {fileID: 1377099399045734002}
+  - component: {fileID: 7409860762524679816}
+  - component: {fileID: 4052374247525716162}
   m_Layer: 7
   m_Name: Range
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5759070158376047239
 Transform:
   m_ObjectHideFlags: 0
@@ -249,27 +250,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 36
   m_CollisionDetection: 0
---- !u!114 &2185140193482219146
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1858020494119549465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1b6ad0848e5414c839dbc782010da89, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxHp: 100
-  _element: 0
-  _hpFill: {fileID: 6404179438862409173}
-  _ghostFill: {fileID: 8966464827908273630}
-  _stateText: {fileID: 0}
-  _ghostSpeed: 2.5
-  _enemyProjectilePrefab: {fileID: 0}
-  _canAttack: 0
-  _damageAmount: 10
 --- !u!114 &8864939927046795387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -387,8 +367,10 @@ MonoBehaviour:
   _animator: {fileID: 0}
   _agent: {fileID: 0}
   _los: {fileID: 0}
+  _bbController: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: AIRange
+  _waypoints: []
   attackRange: 14
   exitAttackRange: 0
   _cooldown: 2
@@ -396,7 +378,6 @@ MonoBehaviour:
   patrolSpeed: 1
   projectilePrefab: {fileID: 264925598622609369, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
     type: 3}
-  waypoints: []
 --- !u!95 &8541311600494996712
 Animator:
   serializedVersion: 5
@@ -430,7 +411,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcae5ae23a6ea1644b775abbbd043926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blackboardData: {fileID: 0}
+  blackboardData: {fileID: 11400000, guid: 005b041b140fdb243a9f8fbc07af2bde, type: 2}
+--- !u!114 &7409860762524679816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858020494119549465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 515282509256477c8872197c862a5a07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxHp: 12
+  _element: 4
+  _hpFill: {fileID: 0}
+  _ghostFill: {fileID: 0}
+  _ghostSpeed: 2.5
+--- !u!114 &4052374247525716162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858020494119549465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f978e6d4306c5f7438f3a50b4ce5b424, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8847464373245427413
 GameObject:
   m_ObjectHideFlags: 0

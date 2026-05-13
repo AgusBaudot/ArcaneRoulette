@@ -4,12 +4,19 @@ using Core;
 
 namespace World
 {
-    public sealed class SnareGlyph : MonoBehaviour
+    public sealed class SnareGlyph : MonoBehaviour , IHazard
     {
         [SerializeField] private float _snareDuration = 3f;
         [SerializeField] private GameObject _activateObject;
 
+        private bool _isActive = true;
+
         private Collider _collider;
+
+        public void Disable()
+        {
+            _isActive = true;
+        }
 
         private void Awake()
         {
@@ -18,6 +25,9 @@ namespace World
 
         private void OnTriggerEnter(Collider other)
         {
+            if (!_isActive)
+                return;
+
             // Only the player triggers this glyph.
             var player = other.GetComponentInParent<PlayerController>();
             if (player == null) return;

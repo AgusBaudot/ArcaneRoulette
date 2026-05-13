@@ -97,7 +97,7 @@ namespace World
             _isDead = true;
             
             OnDeath?.Invoke();
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
         
         //IDebuffReceiver Implementation------------------------

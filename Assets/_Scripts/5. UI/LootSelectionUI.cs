@@ -1,80 +1,150 @@
-using System;
 using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using Foundation;
 
 namespace UI
 {
-    /// <summary>
-    /// Manages the "Boon" style selection screen. 
-    /// Displays a pool of runes and handles the player's selection.
-    /// </summary>
-    public class LootSelectionUI : MonoBehaviour
+    public sealed class LootSelectionUI : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private Transform _optionsContainer;
-        [SerializeField] private GameObject _lootOptionPrefab;
+        [Header("Panel")]
+        [SerializeField] private GameObject _panel;
 
-        // Keep track of instantiated options to clear them when the window closes
-        private readonly List<GameObject> _spawnedOptions = new();
+        [Header("Rune Display")]
+        [SerializeField] private Transform _runeContainer;
+        [SerializeField] private LootOptionUI _lootOptionPrefab;
 
-        /// <summary>
-        /// Populates the UI with a pool of runes and displays the selection screen.
-        /// </summary>
-        /// <param name="runePool">The runes available to choose from.</param>
-        /// <param name="onOptionSelected">Callback executed when the player makes a choice.</param>
-        public void ShowOptions(List<RuneDefinitionSO> runePool, Action<RuneDefinitionSO> onOptionSelected)
+        [Header("Confirm")]
+        [SerializeField] private Button _confirmButton;
+
+        [Header("Settings — designer-tunable")]
+        [Tooltip("How many runes to show (n).")]
+        [SerializeField] private int _runesToShow = 3;
+
+        [Tooltip("How many the player may keep (m). Clamped to n at runtime.")]
+        [SerializeField] private int _runesToSelect = 1;
+
+        [Header("Drop Pool")]
+        [SerializeField] private World.PickupDropPool _dropPool;
+
+        // ── Runtime ──────────────────────────────────────────────────────────
+
+        private LootOptionUI[] _options;
+
+        // Ordered by selection time — index 0 is the oldest (first to be evicted).
+        private readonly List<int> _selectionOrder = new();
+
+        // Effective m, clamped to actual rune count each Show().
+        private int _effectiveMax;
+
+        private bool _isShowing;
+
+        // ── Unity ────────────────────────────────────────────────────────────
+
+        private void Awake()
         {
-            ClearOptions();
-            gameObject.SetActive(true);
+            _confirmButton.onClick.AddListener(OnConfirm);
+            _panel.SetActive(false);
+        }
 
-            foreach (var rune in runePool)
+        private void OnEnable()
+        {
+            EventBus.Subscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+        }
+
+        private void OnDisable()
+        {
+            EventBus.Unsubscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+        }
+
+        // ── Event handler ─────────────────────────────────────────────────────
+
+        private void OnRoomCleared(RoomManager.RoomClearEvent evt)
+        {
+            if (_isShowing)
+                return;
+
+            Show();
+        }
+
+        // ── Show / Hide ───────────────────────────────────────────────────────
+
+        private void Show()
+        {
+            if (_dropPool == null)
             {
-                GameObject optionGo = Instantiate(_lootOptionPrefab, _optionsContainer);
-                _spawnedOptions.Add(optionGo);
-
-                // Ideally, you'll have a specific component for the Boon panel (e.g. LootOptionUI)
-                // If you are temporarily reusing RuneTileUI, it would look like this:
-                if (optionGo.TryGetComponent<LootOptionUI>(out var lootOption))
-                {
-                    lootOption.Init(rune, () =>
-                    {
-                        HandleSelection(rune, onOptionSelected);
-                    });
-                }
+                Debug.LogWarning("[LootSelectionUI] No PickupDropPool assigned.");
+                return;
             }
-        }
 
-        /// <summary>
-        /// Handles the click event from an individual loot option.
-        /// </summary>
-        private void HandleSelection(RuneDefinitionSO selectedRune, Action<RuneDefinitionSO> callback)
-        {
-            // 1. Notify the system (Inventory/Attunement) about the chosen rune
-            callback?.Invoke(selectedRune);
+            _isShowing = true;
+            _selectionOrder.Clear();
 
-            // 2. Clean up and hide the UI
-            Close();
-        }
+            RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
+            _effectiveMax = Mathf.Min(_runesToSelect, runes.Length);
 
-        public void Close()
-        {
-            ClearOptions();
-            gameObject.SetActive(false);
-        }
+            // Clear any previously spawned option tiles.
+            foreach (Transform child in _runeContainer)
+                Destroy(child.gameObject);
 
-        private void ClearOptions()
-        {
-            foreach (var option in _spawnedOptions)
+            _options = new LootOptionUI[runes.Length];
+
+            for (int i = 0; i < runes.Length; i++)
             {
-                if (option != null)
-                {
-                    Destroy(option);
-                }
+                int captured = i;
+                LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
+                option.Init(runes[i], () => OnOptionClicked(captured));
+                _options[i] = option;
             }
-            _spawnedOptions.Clear();
+
+            _panel.SetActive(true);
+            Time.timeScale = 0f;
+            Helpers.Input.EnableUIInput();
+        }
+
+        private void Hide()
+        {
+            _panel.SetActive(false);
+            _selectionOrder.Clear();
+            _isShowing = false;
+            Time.timeScale = 1f;
+            Helpers.Input.EnablePlayerInput();
+        }
+
+        // ── Selection logic ───────────────────────────────────────────────────
+
+        private void OnOptionClicked(int index)
+        {
+            if (_selectionOrder.Contains(index))
+            {
+                // Already selected — deselect and remove from the order queue.
+                _selectionOrder.Remove(index);
+            }
+            else
+            {
+                // If at capacity, evict the oldest selection before adding the new one.
+                if (_selectionOrder.Count >= _effectiveMax)
+                {
+                    int evicted = _selectionOrder[0];
+                    _selectionOrder.RemoveAt(0);
+                    _options[evicted].SetSelected(false);
+                }
+
+                _selectionOrder.Add(index);
+            }
+
+            _options[index].SetSelected(_selectionOrder.Contains(index));
+        }
+
+        // ── Confirm ───────────────────────────────────────────────────────────
+
+        private void OnConfirm()
+        {
+            // 0 selected is a valid no-op — loop simply doesn't execute.
+            foreach (int index in _selectionOrder)
+                GameStateManager.RunState.AddRune(_options[index].Rune);
+
+            Hide();
         }
     }
 }

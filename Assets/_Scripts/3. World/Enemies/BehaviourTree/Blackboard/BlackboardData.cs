@@ -5,7 +5,7 @@ using World;
 
 namespace World 
 {
-    [CreateAssetMenu(fileName = "New Blackboard Data", menuName = "Blackboard/Blackboard Data")]
+    [CreateAssetMenu(fileName = "New Blackboard Data", menuName = "World/Blackboard/Blackboard Data")]
     public class BlackboardData : ScriptableObject
     {
         public List<BlackboardEntryData> entries = new();

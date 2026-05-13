@@ -16,6 +16,7 @@ namespace Core
         private float _sphereCastRadius = 0.5f;
         [Tooltip("Offset to aim the the player's chest rather than their feet.")] [SerializeField]
         private Vector3 _targetOffset = new(0f, 1f, 0f);
+        [SerializeField] [Range(0, 1)] private float _alpha = 0.5f;
 
         public int UpdatePriority => Foundation.UpdatePriority.Camera;
 
@@ -53,7 +54,8 @@ namespace Core
 
                     if (!_hiddenRenderers.Contains(hitRenderer))
                     {
-                        hitRenderer.enabled = false;
+                        Color c = hitRenderer.material.GetColor("_BaseColor");
+                        hitRenderer.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, _alpha));
                         _hiddenRenderers.Add(hitRenderer);
                     }
                 }
@@ -65,7 +67,8 @@ namespace Core
                 {
                     if (renderer != null)
                     {
-                        renderer.enabled = true;
+                        Color c = renderer.material.GetColor("_BaseColor");
+                        renderer.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1));
                     }
 
                     return true;
@@ -80,7 +83,10 @@ namespace Core
             foreach (Renderer r in _hiddenRenderers)
             {
                 if (r != null)
-                    r.enabled = true;
+                {
+                    Color c = r.material.GetColor("_BaseColor");
+                    r.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1));
+                }
             }
             _hiddenRenderers.Clear();
         }

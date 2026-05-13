@@ -9,16 +9,15 @@ namespace World
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
-    public abstract class AIBrain : MonoBehaviour ,IEnemyUpdate, IDebuffReceiver
+    public abstract class AIBrain : MonoBehaviour, IDebuffReceiver
     {
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
         [SerializeField] protected NavMeshAgent _agent;
         [SerializeField] protected LineOfSight _los;
-        [SerializeField] protected BlackboardController _bbController;
 
         [Header("Basic AI Data")]
-        [SerializeField] protected Blackboard blackboard;
+        [SerializeField] protected EnemyController _bbController;
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
@@ -28,42 +27,39 @@ namespace World
         protected BlackboardKey hasSeenPlayerKey;
 
         protected IDebuffReadable _debuffs;
-
-        public float interval { get; set; }
-        public float timer { get; set; }
-        protected abstract BehaviourTree BuildTree();
+        public virtual void Init(EnemyController bb) 
+        {
+            _bbController = bb;
+            tree = BuildTree();
+        }
         protected virtual void Awake()
         {
             _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _los = GetComponent<LineOfSight>();
-            _bbController = GetComponent<BlackboardController>();
 
-            blackboard = _bbController.GetBlackboard();
             _agent.updateRotation = false;
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
             _waypoints.Add(target);
-
-            tree = BuildTree();
         }
-
         public void Tick()
         {
             tree?.Process();
         }
+        protected abstract BehaviourTree BuildTree();
         protected virtual bool IsInLos()
         {
-            if (blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
+            if (_bbController.Blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
                 return true;
 
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
 
             bool hasLOS = _los.CheckRange(target) && _los.CheckView(target);
-            blackboard.SetValue(hasSeenPlayerKey, hasLOS);
+            _bbController.Blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
 
