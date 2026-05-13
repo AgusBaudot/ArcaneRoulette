@@ -15,13 +15,13 @@ namespace World
         [SerializeField] private GameObject _explosionVFX;
         [SerializeField] private float _windupExplosion;
 
-        private bool _isDisable = false;
+        private bool _isActive = false;
 
         private bool _triggered;
 
         private void OnTriggerEnter(Collider other)
         {
-            if(!_isDisable) 
+            if(!_isActive) 
                 return;
 
             if (_triggered) 
@@ -99,7 +99,7 @@ namespace World
 
         public void Disable()
         {
-            _isDisable = true;
+            _isActive = true;
         }
     }
 }

@@ -90,7 +90,7 @@ namespace World
         private void RoomClearedEvent() 
         {
             _entityController.RoomIsClear -= RoomClearedEvent;
-
+            _entityController.DisableAllHazards();
             _cleared = true;
             _state = RoomState.Cleared;
 

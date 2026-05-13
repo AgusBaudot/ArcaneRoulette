@@ -16,13 +16,15 @@ namespace World
         [SerializeField] private Vector3 _boxSize;
         [SerializeField] private GameObject _spikesVisual;
 
-        private bool _isDisable = false;
+        private bool _isActive = false;
         private bool _isIdle = true;
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!_isDisable)
+            if (!_isActive)
                 return;
+            Debug.Log("cuando se activa? ");
+
             if (!_isIdle) return;
 
             // Only players and enemies (IDamageable entities) activate the trap.
@@ -91,7 +93,7 @@ namespace World
 
         public void Disable()
         {
-            _isDisable = true;
+            _isActive = true;
         }
 
         private void OnDrawGizmosSelected()

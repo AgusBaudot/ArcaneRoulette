@@ -57,6 +57,7 @@ MonoBehaviour:
   _value: 0
   _roomType: 0
   _state: 0
+  _cleared: 0
 --- !u!114 &596779301402567425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -90,6 +91,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enemySpawns: []
+  hazards:
+  - {fileID: 6175434583385517484}
+  - {fileID: 6616144809121232764}
   _enemyPrefabMelee: {fileID: 0}
   _enemyMeleeCount: 0
   _enemyPrefabRange: {fileID: 0}
@@ -2925,6 +2929,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9cdbd3992c3157247846332da0dac211, type: 3}
+--- !u!114 &6175434583385517484 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1200210699752095456, guid: 9cdbd3992c3157247846332da0dac211,
+    type: 3}
+  m_PrefabInstance: {fileID: 4979728076838769484}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4045bb1af8f43909d279aa7a9937a8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8451129546961732613 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3482405943859599177, guid: 9cdbd3992c3157247846332da0dac211,
@@ -3239,6 +3255,18 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9cdbd3992c3157247846332da0dac211, type: 3}
+--- !u!114 &6616144809121232764 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1200210699752095456, guid: 9cdbd3992c3157247846332da0dac211,
+    type: 3}
+  m_PrefabInstance: {fileID: 5438454869850556828}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4045bb1af8f43909d279aa7a9937a8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8875108474189143765 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3482405943859599177, guid: 9cdbd3992c3157247846332da0dac211,

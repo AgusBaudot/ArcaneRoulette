@@ -56,7 +56,7 @@ namespace World
         public void Tick()
         {
             _aiBrain.Tick();
-            _enemyHealth.Tick();
+            //_enemyHealth.Tick();
         }
     }
 }
