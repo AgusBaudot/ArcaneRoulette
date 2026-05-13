@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace World
 {
-    public sealed class ThornTrap : MonoBehaviour
+    public sealed class ThornTrap : MonoBehaviour , IHazard
     {
         [SerializeField] private int _damage = 15;
         [SerializeField] private float _windupDuration = 0.5f;
@@ -16,10 +16,13 @@ namespace World
         [SerializeField] private Vector3 _boxSize;
         [SerializeField] private GameObject _spikesVisual;
 
+        private bool _isDisable = false;
         private bool _isIdle = true;
 
         private void OnTriggerEnter(Collider other)
         {
+            if (!_isDisable)
+                return;
             if (!_isIdle) return;
 
             // Only players and enemies (IDamageable entities) activate the trap.
@@ -84,6 +87,11 @@ namespace World
 
                 DamageSystem.Deal(damageable, go, _damage, ElementType.Neutral);
             }
+        }
+
+        public void Disable()
+        {
+            _isDisable = true;
         }
 
         private void OnDrawGizmosSelected()

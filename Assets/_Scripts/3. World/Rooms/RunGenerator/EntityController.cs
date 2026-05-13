@@ -10,8 +10,12 @@ namespace World
         [Header("Room spawn settings")]
         [SerializeField] private Transform[] _enemySpawns;
         private RoomEncounterData _encounterData;
-
         private RoomState _state;
+
+        [Header("Hazards")]
+        [SerializeField] MonoBehaviour[] hazards; //overkill me quedo sin tiempo xd
+
+
         [SerializeField] private GameObject _enemyPrefabMelee;
         [SerializeField] public int _enemyMeleeCount;
         [SerializeField] private GameObject _enemyPrefabRange;
@@ -22,6 +26,14 @@ namespace World
         public void SaveEnemiesData(RoomEncounterData encounterData) 
         {
             _encounterData = encounterData;
+        }
+        public void DisableAllHazards() 
+        {
+            for (int i = 0; i < hazards.Length; i++)
+            {
+                if (hazards[i] is IHazard hazard)
+                    hazard.Disable();
+            }
         }
         private void SpawnEnemies(RoomEncounterData data)
         {
