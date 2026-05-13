@@ -1,6 +1,5 @@
 using UnityEngine;
 using Foundation;
-using UnityEditor.ShaderGraph;
 
 namespace Core
 {

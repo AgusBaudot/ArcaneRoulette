@@ -31,7 +31,6 @@ namespace UI
 
         private LootOptionUI[] _options;
 
-        // Ordered by selection time — index 0 is the oldest (first to be evicted).
         private readonly List<int> _selectionOrder = new();
 
         // Effective m, clamped to actual rune count each Show().
@@ -117,12 +116,10 @@ namespace UI
         {
             if (_selectionOrder.Contains(index))
             {
-                // Already selected — deselect and remove from the order queue.
                 _selectionOrder.Remove(index);
             }
             else
             {
-                // If at capacity, evict the oldest selection before adding the new one.
                 if (_selectionOrder.Count >= _effectiveMax)
                 {
                     int evicted = _selectionOrder[0];
