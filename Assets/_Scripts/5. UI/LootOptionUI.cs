@@ -7,47 +7,60 @@ using Foundation;
 
 namespace UI
 {
-    /// <summary>
-    /// Represents a single selectable "Boon" option in the LootSelectionUI.
-    /// </summary>
     [RequireComponent(typeof(Button))]
-    public class LootOptionUI : MonoBehaviour, IPointerClickHandler
+    public sealed class LootOptionUI : MonoBehaviour, IPointerClickHandler
     {
         [Header("UI Elements")]
         [SerializeField] private Image _runeIcon;
         [SerializeField] private TextMeshProUGUI _runeNameText;
         [SerializeField] private TextMeshProUGUI _runeDescriptionText;
 
+        [Header("Selection Feedback")]
+        [SerializeField] private GameObject _selectedHighlight;
+
+        public RuneDefinitionSO Rune { get; private set; }
+
         private Button _button;
-        private Action _onSelected;
+        private Action _onClicked;
 
         private void Awake()
         {
             _button = GetComponent<Button>();
+            if (_selectedHighlight != null)
+                _selectedHighlight.SetActive(false);
         }
 
-        public void Init(RuneDefinitionSO rune, Action onSelected)
+        public void Init(RuneDefinitionSO rune, Action onClicked)
         {
-            _onSelected = onSelected;
+            Rune = rune;
+            _onClicked = onClicked;
 
-            // Update visuals based on the rune data
-            if (rune != null)
-            {
+            if (rune == null)
+                return;
+
+            if (_runeIcon != null)
                 _runeIcon.sprite = rune.Icon;
-                _runeNameText.text = rune.name; // O el campo de nombre que uses en tu SO
-                // _runeDescriptionText.text = rune.Description; 
-            }
+
+            if (_runeNameText != null)
+                _runeNameText.text = rune.Name;
+
+            if (_runeDescriptionText != null)
+                _runeDescriptionText.text = rune.Description;
+        }
+
+        public void SetSelected(bool selected)
+        {
+            if (_selectedHighlight != null)
+                _selectedHighlight.SetActive(selected);
         }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_button != null && !_button.interactable) return;
+            if (_button != null && !_button.interactable)
+                return;
 
-            // Only trigger on Left Click
             if (eventData.button == PointerEventData.InputButton.Left)
-            {
-                _onSelected?.Invoke();
-            }
+                _onClicked?.Invoke();
         }
     }
 }
