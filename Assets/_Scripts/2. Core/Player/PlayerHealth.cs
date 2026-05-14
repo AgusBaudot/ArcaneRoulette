@@ -66,6 +66,9 @@ namespace Core
                 
             return true;
         }
+
+        public void Heal(int amount)
+            => GameStateManager.RunState.SetHp(Current + amount);
         
         private IEnumerator IFrameFlash()
         {
