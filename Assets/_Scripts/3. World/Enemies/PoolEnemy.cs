@@ -5,10 +5,6 @@ using UnityEngine.Pool;
 
 namespace World 
 {
-    public enum EnemyType
-    {
-        melee, range, bruto
-    }
     public class PoolEnemy : MonoBehaviour
     {
         [SerializeField] private List<PoolConfig> _poolConfigs;

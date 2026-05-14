@@ -1,26 +1,12 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 
 namespace World 
 {
-    public struct DoorInfo
-    {
-        public bool UnlockOnClear;
-        public Material Material;
-    }
-    public struct AllDoorsInfo
-    {
-        public DoorInfo Up;
-        public DoorInfo Down;
-        public DoorInfo Left;
-        public DoorInfo Right;
-    }
-
     public class MapSpawner : MonoBehaviour
     {
-        [SerializeField] RoomManager RegularRoomPrefab;
+        [SerializeField] RoomManager[] RegularRoomPrefab;
         [SerializeField] RoomManager ItemRoomPrefab;
         [SerializeField] RoomManager ShopRoomPrefab;
         [SerializeField] RoomManager BossRoomPrefab;
@@ -71,7 +57,8 @@ namespace World
             switch (roomType)
             {
                 case RoomType.Regular:
-                    prefab = RegularRoomPrefab;
+                    int rand = Random.Range(0, RegularRoomPrefab.Length);
+                    prefab = RegularRoomPrefab[rand];
                     break;
 
                 case RoomType.Boss:

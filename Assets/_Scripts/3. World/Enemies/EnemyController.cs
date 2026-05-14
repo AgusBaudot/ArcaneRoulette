@@ -36,23 +36,18 @@ namespace World
             gameObject.SetActive(true);
             CustomUpdateEnemyManager.Instance.Register(this);
         }
-
         public void OnEnable() //TESTEO
         {
             CustomUpdateEnemyManager.Instance.Register(this);
         }
-
         public void OnDisable() // TESTEO
         {
             CustomUpdateEnemyManager.Instance?.Unregister(this);
         }
-
         public void DeathEvent() //TESTEO
         {
             gameObject.SetActive(false);
         }
-
-
         public void Tick()
         {
             _aiBrain.Tick();

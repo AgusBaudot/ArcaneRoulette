@@ -5,19 +5,6 @@ using UnityEngine;
 
 namespace World 
 {
-    public enum RoomType
-    {
-        Regular, Item, Shop, Boss, Secret, None
-    }
-    public struct RoomInfo 
-    {
-        public RoomType roomType;
-        public int index, value;
-        public void SetRoomType(RoomType newRoomType) => roomType = newRoomType;
-        public void SetIndex(int newIndex) => index = newIndex;
-        public void SetValue(int newValue) => value = newValue;
-        
-    }
     public class MapGenerator : MonoBehaviour
     {
         private int[] floorPlan; //Grid

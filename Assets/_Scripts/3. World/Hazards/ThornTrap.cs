@@ -16,14 +16,13 @@ namespace World
         [SerializeField] private Vector3 _boxSize;
         [SerializeField] private GameObject _spikesVisual;
 
-        private bool _isActive = false;
+        private bool _isActive = true;
         private bool _isIdle = true;
 
         private void OnTriggerEnter(Collider other)
         {
             if (!_isActive)
                 return;
-            Debug.Log("cuando se activa? ");
 
             if (!_isIdle) return;
 
@@ -97,7 +96,7 @@ namespace World
 
         public void Disable()
         {
-            _isActive = true;
+            _isActive = false;
         }
 
         private void OnDrawGizmosSelected()

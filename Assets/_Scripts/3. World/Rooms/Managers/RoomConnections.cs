@@ -37,7 +37,6 @@ namespace World
         }
         public void EnableConnections()
         {
-            Debug.Log("Connections Enable");
             if (_bottom != null) _bottom.OnPlayerEnter += EnterDoor;
             if (_up != null) _up.OnPlayerEnter += EnterDoor;
             if (_left != null) _left.OnPlayerEnter += EnterDoor;
@@ -60,10 +59,10 @@ namespace World
         }
         public void CalculateSpawnsEntry()
         {
-            _playerSpawnDown = _DownDoor.transform.position + new Vector3(0, 0, _offsetSpawn);
-            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, 0, -_offsetSpawn);
-            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, 0, 0);
-            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, 0, 0);
+            _playerSpawnDown = _DownDoor.transform.position + new Vector3(0, -1, _offsetSpawn);
+            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, -1, -_offsetSpawn);
+            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, -1, 0);
+            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, -1, 0);
         }
         private void EnterDoor(EdgeDirection direction)
         {
