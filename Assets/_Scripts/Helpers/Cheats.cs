@@ -6,8 +6,8 @@ public class Cheats : MonoBehaviour, IUpdatable
 {
     public int UpdatePriority => Foundation.UpdatePriority.Input;
     
-    private readonly string _scene1 = "Working Core Loop";
-    private readonly string _scene2 = "Working Hardcore Room";
+    private readonly string _scene1 = "Core Loop";
+    private readonly string _scene2 = "Hardcore Room";
     
     private void OnEnable() => UpdateManager.Instance.Register(this);
 
