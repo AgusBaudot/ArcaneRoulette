@@ -15,7 +15,7 @@ namespace World
 
         public void Disable()
         {
-            _isActive = true;
+            _isActive = false;
         }
 
         private void Awake()
