@@ -275,9 +275,9 @@ namespace UI
 
         public void OnInventoryTileClicked(RuneDefinitionSO rune, int index, PointerEventData.InputButton buttonType)
         {
-            if (buttonType == PointerEventData.InputButton.Right)
+            if (buttonType == PointerEventData.InputButton.Left)
             {
-                //Right click: Auto-assign
+                //Left click: Auto-assign
                 bool autoAssigned = _slotPanels[_centerIndex].TryAutoAssignEmptySlot(rune);
 
                 if (autoAssigned)
@@ -291,7 +291,7 @@ namespace UI
                     }
                 }
             }
-            else if (buttonType == PointerEventData.InputButton.Left)
+            /* else if (buttonType == PointerEventData.InputButton.Left)
             {
                 //Left click: Select/Deselect
                 if (_pendingRuneIndex == index)
@@ -306,7 +306,7 @@ namespace UI
                     _pendingRune = rune;
                     _pendingRuneIndex = index;
                 }
-            }
+            } */
             
             RefreshAll();
             EventSystem.current.SetSelectedGameObject(null);
