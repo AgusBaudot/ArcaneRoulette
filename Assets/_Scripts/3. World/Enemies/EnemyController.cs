@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace World 
+namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
@@ -31,40 +31,66 @@ namespace World
             _aiBrain.Init(this);
             _enemyHealth.OnDeath += DeathEvent;
         }
+
         public void OnDespawn()
         {
             gameObject.SetActive(false);
             CustomUpdateEnemyManager.Instance?.Unregister(this);
         }
+
         public void OnSpawn()
         {
             gameObject.SetActive(true);
-            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1f, NavMesh.AllAreas)) 
-            {
-                transform.position = hit.position;
-                _aiBrain.Agent.enabled = true;
-                _aiBrain.Agent.Warp(transform.position);
-                Debug.LogWarning(_aiBrain.Agent.isOnNavMesh);
-            }
-            CustomUpdateEnemyManager.Instance.Register(this);
+
+            StartCoroutine(WaitForNavMeshAndBindRoutine());
         }
-        public void OnEnable() 
+
+        private IEnumerator WaitForNavMeshAndBindRoutine()
         {
-            gameObject.SetActive(true);
-            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1f, NavMesh.AllAreas))
+            yield return new WaitForEndOfFrame();
+
+            int maxAttempts = 10;
+            int attempts = 0;
+            bool boundSuccessfully = false;
+
+            while (attempts < maxAttempts && !boundSuccessfully)
             {
-                transform.position = hit.position;
-                _aiBrain.Agent.enabled = true;
-                _aiBrain.Agent.Warp(transform.position);
-                Debug.LogWarning(_aiBrain.Agent.isOnNavMesh);
+                if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+                {
+                    Vector3 safePosition = new Vector3(hit.position.x, transform.position.y, hit.position.z);
+                    transform.position = safePosition;
+
+                    _aiBrain.Agent.enabled = true;
+                    _aiBrain.Agent.Warp(safePosition);
+
+                    Debug.Log(
+                        $"<color=green>SUCCESS:</color> Bound {gameObject.name} to NavMesh on attempt {attempts + 1}. Agent is on NavMesh: {_aiBrain.Agent.isOnNavMesh}");
+                    
+                    boundSuccessfully = true;
+                    
+                    CustomUpdateEnemyManager.Instance.Register(this);
+                }
+                else
+                {
+                    attempts++;
+                    yield return null;
+                }
             }
-            CustomUpdateEnemyManager.Instance.Register(this);
+
+            if (!boundSuccessfully)
+            {
+                Debug.LogError(
+                    $"<color=red>FATAL ERROR:</color> {gameObject.name} could not find the NavMesh after {maxAttempts} frames. " +
+                    $"Position: {transform.position}. Ensure the Room's NavMeshSurface has completely finished building before spawning this enemy!");
+            }
         }
+
         public void DeathEvent()
         {
             OnDeath?.Invoke(this);
             OnDeath = null;
         }
+
         public void Tick()
         {
             _aiBrain.Tick();
@@ -72,5 +98,3 @@ namespace World
         }
     }
 }
-
-
