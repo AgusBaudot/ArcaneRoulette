@@ -26,7 +26,7 @@ namespace World
 
         private List<RoomInfo> _spawnedCellsInfo;
 
-        public void Awake()
+        public void Init()
         {
             minRooms = 7;
             maxRooms = 15;

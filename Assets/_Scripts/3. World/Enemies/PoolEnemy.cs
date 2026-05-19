@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Pool;
 
 namespace World 
@@ -9,8 +10,11 @@ namespace World
     {
         [SerializeField] private List<PoolConfig> _poolConfigs;
         private Dictionary<EnemyType, ObjectPool<IPooleable>> _pools;
+
+        public static PoolEnemy Instance { get; private set; }
         private void Awake()
         {
+            Instance = this;
             _pools = new Dictionary<EnemyType, ObjectPool<IPooleable>>();
 
             foreach (var poolConfig in _poolConfigs)
@@ -21,9 +25,12 @@ namespace World
                     {
                         var obj = Instantiate(prefab);
                         var pooleable = obj.GetComponent<IPooleable>();
+                        //var pooleable = obj.GetComponent<EnemyController>();
                         return pooleable;
                     },
-                    obj => obj.OnSpawn(), obj => obj.OnDespawn(), obj => Destroy(((MonoBehaviour)obj).gameObject), /*Cambiar esto*/ true, poolConfig._initialSize, poolConfig._maxSize );
+                    obj => obj.OnSpawn(),
+                    obj => obj.OnDespawn(), 
+                    obj => Destroy(((MonoBehaviour)obj).gameObject), /*Cambiar esto*/ true, poolConfig._initialSize, poolConfig._maxSize );
                 /*
                 for (int i = 0; i < poolConfig._initialSize; i++)
                 {
@@ -39,6 +46,7 @@ namespace World
             _pools.TryGetValue(enemyType, out var pool);
             var entity = pool.Get() as EnemyController;
             entity.transform.position = position;
+            //entity.GetComponent<NavMeshAgent>().Warp(position);
             return entity;
         }
         public void Release(EnemyType enemyType, IPooleable obj)

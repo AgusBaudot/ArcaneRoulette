@@ -413,7 +413,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6198314231924131935}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 1
   m_Speed: 3.5
@@ -443,8 +443,10 @@ MonoBehaviour:
   _animator: {fileID: 0}
   _agent: {fileID: 0}
   _los: {fileID: 0}
+  _bbController: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: 
+  _waypoints: []
   attackRange: 0
   exitAttackRange: 0
   attackRadius: 0
@@ -471,7 +473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcae5ae23a6ea1644b775abbbd043926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blackboardData: {fileID: 11400000, guid: 2ff509622fcdcc54a82cbe82faadeaf0, type: 2}
+  blackboardData: {fileID: 11400000, guid: 881c8e07bf1a11544b6a2456f9695af2, type: 2}
 --- !u!95 &6160062026905782466
 Animator:
   serializedVersion: 5

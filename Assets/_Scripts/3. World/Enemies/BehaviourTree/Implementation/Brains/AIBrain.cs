@@ -14,6 +14,7 @@ namespace World
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
         [SerializeField] protected NavMeshAgent _agent;
+        public NavMeshAgent Agent => _agent;
         [SerializeField] protected LineOfSight _los;
 
         [Header("Basic AI Data")]
@@ -36,7 +37,6 @@ namespace World
             _animator = GetComponent<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _los = GetComponent<LineOfSight>();
-
             _agent.updateRotation = false;
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);

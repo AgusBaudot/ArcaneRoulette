@@ -112,7 +112,7 @@ namespace World
                     var valueProperty = entryType.GetProperty("Value");
                     if (valueProperty == null) continue;
                     var value = valueProperty.GetValue(entry.Value);
-                    Debug.Log($"Key: {entry.Key}, Value: {value}");
+                    //Debug.Log($"Key: {entry.Key}, Value: {value}");
                 }
             }
         }

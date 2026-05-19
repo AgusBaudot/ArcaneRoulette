@@ -5,10 +5,8 @@ using Foundation;
 
 namespace World
 {
-    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable, IUpdatable
+    public class EnemyHealth : MonoBehaviour, IDamageable, IElemental, IDebuffReceiver, IHealable
     {
-        public int UpdatePriority => Foundation.UpdatePriority.UI;
-
         [Header("Stats")]
         [SerializeField] private float _maxHp = 12f; // Switched to float for clean UI division
         [SerializeField] private ElementType _element = ElementType.Neutral;
@@ -35,17 +33,7 @@ namespace World
             _flashComponent = GetComponent<DamageFlash>();
         }
 
-        private void OnEnable()
-        {
-            UpdateManager.Instance.Register(this);
-        }
-
-        private void OnDisable()
-        {
-            UpdateManager.Instance?.Unregister(this);
-        }
-
-        public void Tick(float deltaTime)
+        public void Tick()
         {
             if (_ghostFill == null || _hpFill == null) return;
             

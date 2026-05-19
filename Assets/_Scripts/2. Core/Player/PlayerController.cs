@@ -47,6 +47,7 @@ namespace Core
         private readonly List<int> _heldHoldSlots = new(); //Insertion order = press order
 
         private Rigidbody _rb;
+        public Rigidbody Rb => _rb;
         private PlayerHealth _health;
 
         private Vector2 _input;

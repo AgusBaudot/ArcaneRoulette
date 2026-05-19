@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace World 
 {
@@ -10,11 +12,14 @@ namespace World
     {
         public float interval { get; set; }
         public float timer { get; set; }
+        public EnemyType Type { get; set; }
 
         private Blackboard _blackboard;
         public Blackboard Blackboard => _blackboard;
         private EnemyHealth _enemyHealth;
         private AIBrain _aiBrain;
+
+        public event Action<EnemyController> OnDeath;
 
         public void Awake()
         {
@@ -34,24 +39,36 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1f, NavMesh.AllAreas)) 
+            {
+                transform.position = hit.position;
+                _aiBrain.Agent.enabled = true;
+                _aiBrain.Agent.Warp(transform.position);
+                Debug.LogWarning(_aiBrain.Agent.isOnNavMesh);
+            }
             CustomUpdateEnemyManager.Instance.Register(this);
         }
-        public void OnEnable() //TESTEO
+        public void OnEnable() 
         {
+            gameObject.SetActive(true);
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 1f, NavMesh.AllAreas))
+            {
+                transform.position = hit.position;
+                _aiBrain.Agent.enabled = true;
+                _aiBrain.Agent.Warp(transform.position);
+                Debug.LogWarning(_aiBrain.Agent.isOnNavMesh);
+            }
             CustomUpdateEnemyManager.Instance.Register(this);
         }
-        public void OnDisable() // TESTEO
+        public void DeathEvent()
         {
-            CustomUpdateEnemyManager.Instance?.Unregister(this);
-        }
-        public void DeathEvent() //TESTEO
-        {
-            gameObject.SetActive(false);
+            OnDeath?.Invoke(this);
+            OnDeath = null;
         }
         public void Tick()
         {
             _aiBrain.Tick();
-            //_enemyHealth.Tick();
+            _enemyHealth.Tick();
         }
     }
 }

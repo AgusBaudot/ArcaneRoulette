@@ -19,7 +19,7 @@ namespace World
 
         private int _spaceBetweenRooms = 90;
 
-        public void Awake()
+        public void Init()
         {
             _doorLookup = new Dictionary<RoomType, Material>();
             _roomLookup = new Dictionary<int, RoomManager>();
@@ -122,7 +122,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                rooms.gameObject.SetActive(false);
+                //rooms.gameObject.SetActive(false);
             }
         }
         private DoorInfo CreateDoorInfo(bool hasBounds, int neighbourIndex, int[] floorPlan)
