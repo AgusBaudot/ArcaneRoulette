@@ -39,6 +39,9 @@ namespace UI
                 return;
             
             _onClick?.Invoke(eventData.button);
+            
+            // Hide tooltip immediately on click
+            TooltipSystem.Instance?.Hide();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -59,6 +62,12 @@ namespace UI
         /// </summary>
         public void Refresh(RuneDefinitionSO rune, bool highlighted)
         {
+            // If rune is being cleared while tooltip might be showing, hide it
+            if (_currentRune != null && rune == null)
+            {
+                TooltipSystem.Instance?.Hide();
+            }
+
             _currentRune = rune;
             
             bool hasRune = rune != null;
