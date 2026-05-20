@@ -37,7 +37,6 @@ namespace Core
         #region Variables & State
         
         [Header("Dependencies")]
-        [SerializeField] private PlayerStats _playerStats;
         [SerializeField] private Transform _spriteTransform;
         [SerializeField] private GameObject _hurtBox;
 
@@ -48,6 +47,7 @@ namespace Core
 
         private Rigidbody _rb;
         private PlayerHealth _health;
+        private PlayerStats _playerStats;
 
         private Vector2 _input;
         private Vector3 _velocity;
@@ -65,7 +65,9 @@ namespace Core
             _rb.useGravity = false;
             _rb.constraints = RigidbodyConstraints.FreezePositionY
                               | RigidbodyConstraints.FreezeRotation;
-            
+
+            _playerStats = Resources.Load<PlayerStats>("PlayerStats");
+
             _health = GetComponent<PlayerHealth>();
             _health.Initialize(_playerStats);
             
