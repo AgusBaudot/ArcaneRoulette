@@ -15,6 +15,7 @@ namespace World
                 return;
 
             OnPlayerEnter?.Invoke();
+            Destroy(gameObject);
         }
     } 
 }
