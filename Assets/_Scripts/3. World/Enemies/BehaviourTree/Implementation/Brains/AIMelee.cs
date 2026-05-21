@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace World 
 {
-    public class AIMelee : AIBrain
+    public sealed class AIMelee : AIBrain
     {
         [Header("Melee Settings")]
         [SerializeField] private float attackRange;

@@ -24,20 +24,13 @@ namespace World
                     () =>
                     {
                         var obj = Instantiate(prefab);
-                        var pooleable = obj.GetComponent<IPooleable>();
-                        //var pooleable = obj.GetComponent<EnemyController>();
+                        //var pooleable = obj.GetComponent<IPooleable>();
+                        var pooleable = obj.GetComponent<EnemyController>();
                         return pooleable;
                     },
-                    obj => obj.OnSpawn(),
+                    obj => obj.OnSpawn(), // esta es la linea que tira error
                     obj => obj.OnDespawn(), 
                     obj => Destroy(((MonoBehaviour)obj).gameObject), /*Cambiar esto*/ true, poolConfig._initialSize, poolConfig._maxSize );
-                /*
-                for (int i = 0; i < poolConfig._initialSize; i++)
-                {
-                    var obj = pool.Get();
-                    pool.Release(obj);
-                }
-                */
                 _pools.Add(poolConfig._id, pool);
             }
         }

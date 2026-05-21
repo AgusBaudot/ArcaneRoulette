@@ -64,8 +64,8 @@ namespace World
                 _currentRoom = room;
                 _currentIndex = 45;
                 room.gameObject.SetActive(true);
-                room.EnableRoom();
                 SetupRoomEncounter(room);
+                room.EnableRoom();
                 // Reemplazo
                 _player.SetCanMove(false);
                 _player.Rb.velocity = Vector3.zero;
@@ -100,9 +100,14 @@ namespace World
                 _currentRoom.gameObject.SetActive(false);
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
-                SetupRoomEncounter(room); // generar data de enemigos
+                // cambiar esto
+                _player.SetCanMove(false);
+                _player.Rb.velocity = Vector3.zero;
+                _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
+                _player.SetCanMove(true);
+                // hasta aca, por un metodo del player
+                SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
-                _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
             }
         }
         private void SetupRoomEncounter(RoomManager room)

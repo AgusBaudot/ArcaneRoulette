@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Foundation;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 
-namespace World 
+namespace World
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
@@ -18,7 +19,7 @@ namespace World
         [SerializeField] protected LineOfSight _los;
 
         [Header("Basic AI Data")]
-        [SerializeField] protected EnemyController _bbController;
+        [SerializeField] protected Blackboard _blackboard;
         [SerializeField] protected BehaviourTree tree;
         [SerializeField] protected Transform target;
         [SerializeField] protected string _behaviourTreeName;
@@ -26,10 +27,12 @@ namespace World
         [Header("BB Shared Data")]
         [SerializeField] protected List<Transform> _waypoints;
         protected BlackboardKey hasSeenPlayerKey;
+        [SerializeField] protected bool isDeadbool;
         protected IDebuffReadable _debuffs;
-        public virtual void Init(EnemyController bb) 
+        public virtual void Init(Blackboard bb)
         {
-            _bbController = bb;
+            _blackboard = bb;
+            hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayerKey");
             tree = BuildTree();
         }
         protected virtual void Awake()
@@ -51,14 +54,14 @@ namespace World
         protected abstract BehaviourTree BuildTree();
         protected virtual bool IsInLos()
         {
-            if (_bbController.Blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
+            if (_blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
                 return true;
 
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
 
             bool hasLOS = _los.CheckRange(target) && _los.CheckView(target);
-            _bbController.Blackboard.SetValue(hasSeenPlayerKey, hasLOS);
+            _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
 

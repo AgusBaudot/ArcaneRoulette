@@ -25,7 +25,7 @@ namespace World
         [Header("ReferenceToMap")]
         private RoomConnections _roomConnections;
         private EntityController _entityController;
-        private NavMeshSurface _navMeshSurface;
+        //private NavMeshSurface _navMeshSurface;
         public RoomConnections GetRoomConnections => _roomConnections;
 
         // ---- Init a Room ----
@@ -33,7 +33,7 @@ namespace World
         {
             _roomConnections = GetComponent<RoomConnections>();
             _entityController = GetComponent<EntityController>();
-            _navMeshSurface = GetComponentInChildren<NavMeshSurface>();
+            //_navMeshSurface = GetComponentInChildren<NavMeshSurface>();
         }
         public void Init(RoomInfo info)
         {
@@ -97,12 +97,6 @@ namespace World
         private void HandleDoorTransition(EdgeDirection direction)
         {
             FloorManager.instance.TeleportPlayer(direction, Index);
-        }
-        public struct RoomClearEvent
-        {
-            public int roomId;
-            
-            //alguna otra info para enviar...
         }
     }
 }
