@@ -35,6 +35,7 @@ namespace Core
             {
                 receiver.UnregisterDebuff();
             }
+            Destroy(this); // just so the enemy can work on object pooling
         }
         
         // ── IDebuffable ──────────────────────────────────────────────────────────

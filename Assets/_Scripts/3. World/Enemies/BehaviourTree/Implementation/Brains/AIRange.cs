@@ -9,7 +9,7 @@ namespace World
         [SerializeField] private float attackRange;
         [SerializeField] private float exitAttackRange;
         [SerializeField] private float _cooldown;
-        private bool _wasInRange;
+        private bool _wasInRange; // Pasar al blackboard
         [SerializeField] private float chaseSpeed;
         [SerializeField] private float patrolSpeed;
         [SerializeField] private GameObject projectilePrefab;

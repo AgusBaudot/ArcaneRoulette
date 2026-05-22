@@ -325,7 +325,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1761069233465956933
 MonoBehaviour:
@@ -454,6 +454,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 515282509256477c8872197c862a5a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxHp: 0
+  _currentHp: 0
+  _isDead: 0
   _hpFill: {fileID: 588648612782644147}
   _ghostFill: {fileID: 3693668196716813394}
   _ghostSpeed: 2.5
@@ -473,7 +476,7 @@ MonoBehaviour:
   _agent: {fileID: 0}
   _los: {fileID: 0}
   target: {fileID: 0}
-  _behaviourTreeName: 
+  _behaviourTreeName: BTBruto
   _waypoints: []
   isDeadbool: 0
   attackRange: 0

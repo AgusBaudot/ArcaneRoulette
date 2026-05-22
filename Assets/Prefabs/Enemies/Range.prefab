@@ -269,7 +269,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 0.6
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8864939927046795387
 MonoBehaviour:
@@ -398,6 +398,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 515282509256477c8872197c862a5a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxHp: 0
+  _currentHp: 0
+  _isDead: 0
   _hpFill: {fileID: 6404179438862409173}
   _ghostFill: {fileID: 8966464827908273630}
   _ghostSpeed: 2.5
@@ -417,7 +420,7 @@ MonoBehaviour:
   _agent: {fileID: 0}
   _los: {fileID: 0}
   target: {fileID: 0}
-  _behaviourTreeName: AIRange
+  _behaviourTreeName: BTRange
   _waypoints: []
   isDeadbool: 0
   attackRange: 14

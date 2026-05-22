@@ -15,6 +15,7 @@ namespace World
         [SerializeField] private float _maxHp; // Switched to float for clean UI division
         [SerializeField] private float _currentHp;
         [SerializeField] private bool _isDead;
+        public bool IsDead => _isDead;
         //private BlackboardKey isDead;
         private ElementType _element = ElementType.Neutral;
 
@@ -100,11 +101,12 @@ namespace World
             _blackboard.SetValue(isDead, true);
             Debug.Log("Enemigo Muerto");
             */
+
             if (_isDead)
                 return;
-
+            
             _isDead = true;
-
+            Debug.Log("Evento Invocado");
             OnDeath?.Invoke();
         }
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
@@ -120,6 +122,7 @@ namespace World
             //_blackboard.SetValue(isDead, false);
             _isDead = false;
             _currentHp = _maxHp;
+            UpdateUI();
         }
 
         //IDebuffReceiver Implementation------------------------

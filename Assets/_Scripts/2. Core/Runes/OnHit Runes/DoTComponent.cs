@@ -44,5 +44,10 @@ namespace Core
             _tickRoutine = null;
             Destroy(this);
         }
+
+        private void OnDisable() // DOT is not removed when deactivated TEST
+        {
+            Destroy(this);
+        }
     }
 }

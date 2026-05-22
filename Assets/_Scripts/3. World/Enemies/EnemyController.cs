@@ -27,7 +27,7 @@ namespace World
         [SerializeField] private EnemyStats _enemyStats;
         private List<IEnemyComponent> _components = new List<IEnemyComponent>();
 
-        public event Action<EnemyController> OnDeath;
+        public event Action<EnemyController> OnDeathEvent;
 
         public void Awake()
         {
@@ -37,12 +37,10 @@ namespace World
             _enemyHealth = GetComponent<EnemyHealth>();
             _aiBrain = GetComponent<AIBrain>();
 
-            //_components.Add(_aiBrain);
+            _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
-        }
-        public void Start()
-        {
+
             InitSystems();
         }
         private void InitSystems()
@@ -52,7 +50,7 @@ namespace World
                 component.InitComponent(_enemyStats, _blackboard);
             }
             _enemyHealth.OnDeath += DeathEvent;
-            _aiBrain.Init(_blackboard); // aibrain no aplica la interfaz
+            //_aiBrain.Init(_blackboard); // aibrain no aplica la interfaz
         }
         private void RestartSystems()
         {
@@ -69,6 +67,8 @@ namespace World
         }
         public void OnSpawn()
         {
+            _enemyHealth.OnDeath -= DeathEvent;
+            _enemyHealth.OnDeath += DeathEvent;
             gameObject.SetActive(true);
             RestartSystems();
             StartCoroutine(WaitForNavMeshAndBindRoutine());
@@ -114,8 +114,8 @@ namespace World
         }
         public void DeathEvent()
         {
-            OnDeath?.Invoke(this);
-            OnDeath = null;
+            OnDeathEvent?.Invoke(this);
+            OnDeathEvent = null;
         }
         public void Tick()
         {

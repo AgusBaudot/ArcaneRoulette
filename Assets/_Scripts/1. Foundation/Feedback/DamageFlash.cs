@@ -29,6 +29,7 @@ namespace Foundation
         /// <param name="duration"></param>
         public void Flash(float duration)
         {
+            if (!gameObject.activeInHierarchy) return;
             StopAllCoroutines();
             StartCoroutine(DoFlash(duration));
         }

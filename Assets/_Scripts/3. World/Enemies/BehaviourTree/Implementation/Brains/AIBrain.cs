@@ -10,7 +10,7 @@ namespace World
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
-    public abstract class AIBrain : MonoBehaviour, IDebuffReceiver
+    public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
@@ -27,14 +27,7 @@ namespace World
         [Header("BB Shared Data")]
         [SerializeField] protected List<Transform> _waypoints;
         protected BlackboardKey hasSeenPlayerKey;
-        [SerializeField] protected bool isDeadbool;
         protected IDebuffReadable _debuffs;
-        public virtual void Init(Blackboard bb)
-        {
-            _blackboard = bb;
-            hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayerKey");
-            tree = BuildTree();
-        }
         protected virtual void Awake()
         {
             _animator = GetComponent<Animator>();
@@ -46,6 +39,22 @@ namespace World
             if (target == null)
                 target = GameObject.FindGameObjectWithTag("Player").transform;
             _waypoints.Add(target);
+        }
+        public void InitComponent(EnemyStats stats, Blackboard bb)
+        {
+            _blackboard = bb;
+            hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayerKey");
+            tree = BuildTree();
+        }
+
+        public void ResetComponent()
+        {
+            _debuffs = null;
+            tree?.Reset();
+
+            if (_agent == null) return; // solo el agent puede ser null
+            _agent.ResetPath();
+            _agent.velocity = Vector3.zero;
         }
         public void Tick()
         {

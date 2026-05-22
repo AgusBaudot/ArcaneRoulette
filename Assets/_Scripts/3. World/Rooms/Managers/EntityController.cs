@@ -32,7 +32,6 @@ namespace World
             }
             SpawnWave(_currentWave);
         }
-
         private void SpawnWave(int waveIndex)
         {
             EnemySpawnData wave = _encounterData.Waves[waveIndex];
@@ -51,8 +50,9 @@ namespace World
                     // el enemigo avisa cuando muere
                     if (enemy is EnemyController ec)
                     {
-                        ec.Type = type;             
-                        ec.OnDeath += OnEnemyDeath;
+                        ec.Type = type;
+                        ec.OnDeathEvent -= OnEnemyDeath;
+                        ec.OnDeathEvent += OnEnemyDeath;
                     }
 
                     _spawnedEnemies.Add(enemy);
@@ -60,9 +60,9 @@ namespace World
                 }
             }
         }
-
         private void OnEnemyDeath(EnemyController enemy)
         {
+            enemy.OnDeathEvent -= OnEnemyDeath;
             PoolEnemy.Instance.Release(enemy.Type, enemy);
             _enemiesAlive--;
 
