@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 
@@ -9,24 +7,16 @@ namespace World
     public class EnemyStats : ScriptableObject
     {
         [Header("Health")]
-        [SerializeField] private float _maxHp;
-        [SerializeField] private ElementType _type;
+        [SerializeField] public float MaxHp;
+        [SerializeField] public ElementType ElementType;
 
         [Header("Movement")]
-        [SerializeField] private float _chaseSpeed;
-        [SerializeField] private float _patrolSpeed;
+        [SerializeField] public float ChaseSpeed;
+        [SerializeField] public float PatrolSpeed;
 
         [Header("Combat")]
-        [SerializeField] private float _attackDamage;
-        [SerializeField] private float _attackRange;
-        [SerializeField] private float _attackSpeed;
-
-        public float MaxHp => _maxHp;
-        public ElementType Type => _type;
-        public float ChaseSpeed => _chaseSpeed;
-        public float PatrolSpeed => _patrolSpeed;
-        public float AttackDamage => _attackDamage;
-        public float AttackRange => _attackRange;
-        public float AttackSpeed => _attackSpeed;
+        [SerializeField] public float AttackDamage;
+        [SerializeField] public float AttackRange;
+        [SerializeField] public float AttackSpeed;
     }
 }

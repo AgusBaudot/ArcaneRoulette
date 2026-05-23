@@ -32,7 +32,6 @@ namespace World
             }
             SpawnWave(_currentWave);
         }
-
         private void SpawnWave(int waveIndex)
         {
             EnemySpawnData wave = _encounterData.Waves[waveIndex];
@@ -51,8 +50,10 @@ namespace World
                     // el enemigo avisa cuando muere
                     if (enemy is EnemyController ec)
                     {
-                        ec.Type = type;             
-                        ec.OnDeath += OnEnemyDeath;
+                        ec.Type = type;
+                        ec.OnDeathEvent -= OnEnemyDeath;
+                        ec.OnDeathEvent += OnEnemyDeath;
+                        StartCoroutine(VerifySubscription(ec));
                     }
 
                     _spawnedEnemies.Add(enemy);
@@ -60,7 +61,6 @@ namespace World
                 }
             }
         }
-
         private void OnEnemyDeath(EnemyController enemy)
         {
             PoolEnemy.Instance.Release(enemy.Type, enemy);
@@ -82,6 +82,34 @@ namespace World
                 if (hazards[i] is IHazard hazard)
                     hazard.Disable();
             }
+        }
+        private IEnumerator VerifySubscription(EnemyController ec)
+        {
+            int attempts = 0;
+            int maxAttempts = 10;
+
+            while (attempts < maxAttempts)
+            {
+                yield return null; // espera un frame
+
+                if (ec == null || !ec.gameObject.activeSelf) yield break;
+
+                if (!ec.HasDeathListeners())
+                {
+                    Debug.LogWarning($"[VerifySubscription] {ec.name} sin listeners, resuscribiendo. Intento {attempts + 1}");
+                    ec.OnDeathEvent -= OnEnemyDeath;
+                    ec.OnDeathEvent += OnEnemyDeath;
+                }
+                else
+                {
+                    Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
+                    yield break; // todo bien, salir
+                }
+
+                attempts++;
+            }
+
+            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse después de {maxAttempts} intentos");
         }
     }
 

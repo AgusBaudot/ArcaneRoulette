@@ -1,11 +1,7 @@
 using System;
 using Foundation;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.EventSystems.EventTrigger;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace World
 {
@@ -16,7 +12,7 @@ namespace World
         [SerializeField] private float _currentHp;
         [SerializeField] private bool _isDead;
         //private BlackboardKey isDead;
-        private ElementType _element = ElementType.Neutral;
+        private ElementType _element;
 
         [Header("HP Bar UI (Optional)")]
         [SerializeField] private Image _hpFill;
@@ -35,7 +31,6 @@ namespace World
 
         private void Awake()
         {
-            _currentHp = _maxHp;
             _flashComponent = GetComponent<DamageFlash>();
         }
         public void Tick()
@@ -110,7 +105,7 @@ namespace World
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
-            _element = stats.Type;
+            _element = stats.ElementType;
             _blackboard = blackboard;
             //isDead = _blackboard.GetOrRegisterKey("isDead");
             ResetComponent();

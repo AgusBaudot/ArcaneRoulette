@@ -27,7 +27,7 @@ namespace World
         [SerializeField] private EnemyStats _enemyStats;
         private List<IEnemyComponent> _components = new List<IEnemyComponent>();
 
-        public event Action<EnemyController> OnDeath;
+        public event Action<EnemyController> OnDeathEvent;
 
         public void Awake()
         {
@@ -37,7 +37,7 @@ namespace World
             _enemyHealth = GetComponent<EnemyHealth>();
             _aiBrain = GetComponent<AIBrain>();
 
-            //_components.Add(_aiBrain);
+            _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
         }
@@ -51,7 +51,6 @@ namespace World
             {
                 component.InitComponent(_enemyStats, _blackboard);
             }
-            _aiBrain.Init(_blackboard); // aibrain no aplica la interfaz
         }
         private void RestartSystems()
         {
@@ -70,7 +69,7 @@ namespace World
         {
             gameObject.SetActive(true);
             RestartSystems();
-            //_enemyHealth.OnDeath -= DeathEvent;
+            _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;
             StartCoroutine(WaitForNavMeshAndBindRoutine());
         }
@@ -115,13 +114,19 @@ namespace World
         }
         public void DeathEvent()
         {
-            OnDeath?.Invoke(this);
-            OnDeath = null;
+            OnDeathEvent?.Invoke(this);
+            OnDeathEvent = null;
         }
         public void Tick()
         {
             _aiBrain.Tick();
             _enemyHealth.Tick();
+        }
+
+        // ---- Corutina auxiliar ----
+        public bool HasDeathListeners()
+        {
+            return OnDeathEvent != null && OnDeathEvent.GetInvocationList().Length > 0;
         }
     }
 }

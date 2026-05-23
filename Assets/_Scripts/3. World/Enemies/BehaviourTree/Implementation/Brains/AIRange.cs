@@ -6,13 +6,9 @@ namespace World
     public class AIRange : AIBrain
     {
         [Header("Range Settings")]
-        [SerializeField] private float attackRange;
         [SerializeField] private float exitAttackRange;
-        [SerializeField] private float _cooldown;
-        private bool _wasInRange;
-        [SerializeField] private float chaseSpeed;
-        [SerializeField] private float patrolSpeed;
         [SerializeField] private GameObject projectilePrefab;
+        private bool _wasInRange;
         protected override void Awake()
         {
             base.Awake();
@@ -25,16 +21,16 @@ namespace World
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _cooldown)));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "PlaceHolderAnimation")));
             //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, patrolSpeed), 0);
+            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
 
             // --- Estructura ---
             root.AddChild(attackSequence);
@@ -52,7 +48,7 @@ namespace World
             if (_wasInRange)
                 result = distance <= exitAttackRange;
             else
-                result = distance <= attackRange;
+                result = distance <= exitAttackRange;
             _wasInRange = result;
             return result;
         }
