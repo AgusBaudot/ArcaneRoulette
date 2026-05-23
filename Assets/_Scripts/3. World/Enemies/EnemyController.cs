@@ -51,7 +51,6 @@ namespace World
             {
                 component.InitComponent(_enemyStats, _blackboard);
             }
-            _enemyHealth.OnDeath += DeathEvent;
             _aiBrain.Init(_blackboard); // aibrain no aplica la interfaz
         }
         private void RestartSystems()
@@ -71,6 +70,8 @@ namespace World
         {
             gameObject.SetActive(true);
             RestartSystems();
+            //_enemyHealth.OnDeath -= DeathEvent;
+            _enemyHealth.OnDeath += DeathEvent;
             StartCoroutine(WaitForNavMeshAndBindRoutine());
         }
         private IEnumerator WaitForNavMeshAndBindRoutine()

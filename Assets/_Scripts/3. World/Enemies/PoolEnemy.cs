@@ -28,7 +28,7 @@ namespace World
                         var pooleable = obj.GetComponent<EnemyController>();
                         return pooleable;
                     },
-                    obj => obj.OnSpawn(), // esta es la linea que tira error
+                    obj => obj.OnSpawn(),
                     obj => obj.OnDespawn(), 
                     obj => Destroy(((MonoBehaviour)obj).gameObject), /*Cambiar esto*/ true, poolConfig._initialSize, poolConfig._maxSize );
                 _pools.Add(poolConfig._id, pool);
