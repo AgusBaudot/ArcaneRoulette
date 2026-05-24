@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using Core;
 using UnityEngine;
 
-namespace World 
+namespace World
 {
     [RequireComponent(typeof(MapGenerator))]
     [RequireComponent(typeof(MapSpawner))]
-    [RequireComponent (typeof(EncounterGenerator))]
+    [RequireComponent(typeof(EncounterGenerator))]
     public class FloorManager : MonoBehaviour
     {
         [Header("Settings")]
@@ -27,10 +27,10 @@ namespace World
         [Header("RunInfo")]
         [SerializeField] private int _roomsVisited = 0;
 
-        public int EndOfTheFloor;
+        [SerializeField] public int EndOfTheFloor;
         private int _currentIndex; // todavia no se usa pero por las dudas se guarda
-        
-        
+
+
         public static FloorManager instance;
         private void Awake()
         {
@@ -41,22 +41,23 @@ namespace World
             _mapGenerator.Init();
             _mapSpawner.Init();
 
-            EndOfTheFloor = _mapGenerator.BossRoomIndex;
+
         }
         private void Start()
         {
             instance = this;
-            //_player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>(); Esto no se por que no funciona
             _startRoom.OnPlayerEnter += StartRun;
             _generateFloor.OnPlayerEnter += GenerateFloor;
         }
-        private void GenerateFloor(EdgeDirection dir) 
+        private void GenerateFloor(EdgeDirection dir)
         {
             _generateFloor.OnPlayerEnter -= GenerateFloor;
 
             List<RoomInfo> rooms = _mapGenerator.SetupDungeon();
 
             _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan);
+
+            EndOfTheFloor = _mapGenerator.BossRoomIndex;
         }
         private void StartRun(EdgeDirection dir)
         {
@@ -77,10 +78,10 @@ namespace World
             }
         }
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)
-        { 
+        {
             _currentIndex = currentIndexRoom;
             int playerDirection = 0;
-            switch (dir) 
+            switch (dir)
             {
                 case EdgeDirection.Up:
                     playerDirection = -10;
@@ -96,7 +97,7 @@ namespace World
                     break;
             }
 
-            if (_mapSpawner.RoomLookup.TryGetValue(currentIndexRoom + playerDirection, out RoomManager room)) 
+            if (_mapSpawner.RoomLookup.TryGetValue(currentIndexRoom + playerDirection, out RoomManager room))
             {
                 _currentRoom.DisableRoom();
                 _currentRoom.gameObject.SetActive(false);
@@ -108,6 +109,7 @@ namespace World
                 _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
                 _player.SetCanMove(true);
                 // hasta aca, por un metodo del player
+                SetupRoomEncounter(room);
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
             }

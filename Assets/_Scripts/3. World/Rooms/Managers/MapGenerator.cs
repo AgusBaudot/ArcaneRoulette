@@ -93,9 +93,9 @@ namespace World
 
             SaveRoomInfo(secretRoomIndex);
 
-            UpdateSpecialRoomVisual();
+            UpdateSpecialRoomType();
         }
-        private void UpdateSpecialRoomVisual()
+        private void UpdateSpecialRoomType()
         {
             for (int i = 0; i < _spawnedCellsInfo.Count; i++)
             {

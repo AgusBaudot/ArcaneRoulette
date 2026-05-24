@@ -2,7 +2,7 @@ using Foundation;
 using Unity.AI.Navigation;
 using UnityEngine;
 
-namespace World 
+namespace World
 {
     [RequireComponent(typeof(RoomConnections))]
     [RequireComponent(typeof(EntityController))]
@@ -15,6 +15,9 @@ namespace World
         [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
         [SerializeField] private bool _cleared = false;
+
+        //[Header("Has Enemies")]
+        //[SerializeField] public bool generateEncounter = true;
 
         //Getters
         public int Index => _index;
@@ -47,7 +50,7 @@ namespace World
             _roomConnections.SetDoorColors(info);
             _roomConnections.CalculateSpawnsEntry();
         }
-        public void InitEntity(RoomEncounterData data) 
+        public void InitEntity(RoomEncounterData data)
         {
             _entityController.SaveEnemiesData(data);
         }
@@ -60,11 +63,15 @@ namespace World
 
             if (!_cleared)
             {
-                if (_roomType == RoomType.Regular || _roomType == RoomType.Boss)
+                if (_roomType == RoomType.Regular /*|| _roomType == RoomType.Boss*/)
                 {
                     _entityController.RoomIsClear -= RoomClearedEvent;
                     _entityController.RoomIsClear += RoomClearedEvent;
                     _entityController.SpawnEnemies();
+                }
+                else if (_roomType == RoomType.Boss) 
+                {
+                    RoomClearedEvent();
                 }
                 else
                 {
@@ -79,19 +86,20 @@ namespace World
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
         }
-        public void DisableRoom() 
+        public void DisableRoom()
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _entityController.RoomIsClear -= RoomClearedEvent;
             _roomConnections.DisableConnections();
         }
-        private void RoomClearedEvent() 
+        private void RoomClearedEvent()
         {
             _entityController.RoomIsClear -= RoomClearedEvent;
             _entityController.DisableAllHazards();
             _cleared = true;
             _state = RoomState.Cleared;
             _roomConnections.RoomCleared();
+            Debug.Log($"[RoomClearedEvent] Publicando roomId: {_index}");
             EventBus.Publish(new RoomClearEvent { roomId = _index });
         }
         private void HandleDoorTransition(EdgeDirection direction)

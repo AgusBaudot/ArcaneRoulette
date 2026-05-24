@@ -102,7 +102,7 @@ namespace World
                 }
                 else
                 {
-                    Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
+                    //Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
                     yield break; // todo bien, salir
                 }
 

@@ -11618,79 +11618,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1547045954}
   m_CullTransparentMesh: 1
---- !u!1001 &1587230869
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1858020494119549465, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_Name
-      value: Range
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 473.63428
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -452.25598
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5759070158376047239, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7237747099332007944, guid: 89fb3a6690d43134088bfc1e40ec8fa9,
-        type: 3}
-      propertyPath: exitAttackRange
-      value: 15
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 89fb3a6690d43134088bfc1e40ec8fa9, type: 3}
 --- !u!1 &1651863727
 GameObject:
   m_ObjectHideFlags: 0
@@ -12264,7 +12191,7 @@ MonoBehaviour:
   _generateFloor: {fileID: 1247508482}
   _player: {fileID: 1994747163}
   _roomsVisited: 0
-  MaximumRooms: 1
+  EndOfTheFloor: 0
 --- !u!114 &1828579696
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12281,7 +12208,7 @@ MonoBehaviour:
   - {fileID: 8513938931462823758, guid: 5fddbcd5e4e9f0a408231349bec357dd, type: 3}
   - {fileID: 1847170810499673583, guid: 206120fa5ed0db844be0d8b10501e2f6, type: 3}
   - {fileID: 4563979234947723885, guid: 81526037442a244498d829785800a049, type: 3}
-  ItemRoomPrefab: {fileID: -7280167317720112234, guid: d4745e8ac599a3440b9fbba10148abde,
+  ItemRoomPrefab: {fileID: 7020847662515840597, guid: 3aaa583d2a80adb4bbb5f4dca4053c16,
     type: 3}
   ShopRoomPrefab: {fileID: -4603583050371147331, guid: 8b30f94692854d24c80fc57a08dbd0c0,
     type: 3}
@@ -12910,6 +12837,11 @@ PrefabInstance:
         type: 3}
       propertyPath: _mainMenuSceneName
       value: Main menu
+      objectReference: {fileID: 0}
+    - target: {fileID: 437580622221306890, guid: 3b45339c5549cd34f90b2ecbbd3e0b5e,
+        type: 3}
+      propertyPath: _sceneFadeDuration
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6572401906219017484, guid: 3b45339c5549cd34f90b2ecbbd3e0b5e,
         type: 3}
@@ -13911,4 +13843,3 @@ SceneRoots:
   - {fileID: 595364962}
   - {fileID: 1994747161}
   - {fileID: 998070149}
-  - {fileID: 1587230869}

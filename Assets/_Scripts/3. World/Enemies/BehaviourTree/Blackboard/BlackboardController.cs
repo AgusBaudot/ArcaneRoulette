@@ -31,8 +31,8 @@ namespace World
         {
             blackboard.Clear(); // limpiar valores actuales
             blackboardData.SetValuesOnBlackboard(blackboard);
-            Debug.Log("Variables reseteadas");
-            blackboard.debug();
+            //Debug.Log("Variables reseteadas");
+            //blackboard.debug();
         }
     }
 }
