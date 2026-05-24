@@ -27,6 +27,9 @@ namespace UI
         [Header("Drop Pool")]
         [SerializeField] private World.PickupDropPool _dropPool;
 
+        [Header("Tooltip")]
+        [SerializeField] private TooltipSystem _tooltip;
+
         // ── Runtime ──────────────────────────────────────────────────────────
 
         private LootOptionUI[] _options;
@@ -49,11 +52,13 @@ namespace UI
         private void OnEnable()
         {
             EventBus.Subscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+            Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+            Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
         }
 
         // ── Event handler ─────────────────────────────────────────────────────
@@ -106,6 +111,7 @@ namespace UI
             _panel.SetActive(false);
             _selectionOrder.Clear();
             _isShowing = false;
+            _tooltip.Hide();
             Time.timeScale = 1f;
             Helpers.Input.EnablePlayerInput();
         }
