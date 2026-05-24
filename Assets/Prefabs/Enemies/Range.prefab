@@ -245,10 +245,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
+  m_UseGravity: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 36
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!135 &3274759088611625184
 SphereCollider:
@@ -420,7 +420,7 @@ MonoBehaviour:
   _agent: {fileID: 0}
   _los: {fileID: 0}
   target: {fileID: 0}
-  _behaviourTreeName: AIRange
+  _behaviourTreeName: BTRange
   _waypoints: []
   exitAttackRange: 15
   projectilePrefab: {fileID: 264925598622609369, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,

@@ -18,6 +18,7 @@ namespace World
 
         //Guardar el Index de salas especiales
         private int bossRoomIndex;
+        public int BossRoomIndex => bossRoomIndex;
         private int secretRoomIndex;
         private int shopRoomIndex;
         private int itemRoomIndex;

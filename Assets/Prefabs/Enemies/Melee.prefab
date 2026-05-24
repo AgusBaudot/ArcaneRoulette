@@ -67,10 +67,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
+  m_UseGravity: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 36
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!135 &6436529255393830803
 SphereCollider:
@@ -242,15 +242,15 @@ MonoBehaviour:
   _agent: {fileID: 0}
   _los: {fileID: 0}
   target: {fileID: 0}
-  _behaviourTreeName: MeleeBasico
+  _behaviourTreeName: BTMelee
   _waypoints: []
   exitAttackRange: 1
   _hitEffect: {fileID: -6439166545634870568, guid: 8cc8f0aa3e5cea44392d8dc0daaa98c1,
     type: 3}
-  _attackRadius: 100
+  _attackRadius: 4
   _playerLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 256
 --- !u!114 &9054429380081942084
 MonoBehaviour:
   m_ObjectHideFlags: 0

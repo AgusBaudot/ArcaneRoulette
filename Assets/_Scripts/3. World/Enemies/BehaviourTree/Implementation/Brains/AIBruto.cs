@@ -65,7 +65,7 @@ public class AIBruto : AIBrain
     public void DoAreaAttack()
     {
         Vector3 dir = (target.position - transform.position).normalized;
-        Vector3 pos = transform.position + dir * 1.5f;
+        Vector3 pos = transform.position + dir * 3f;
         var explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
         explosion.Init(_radius, _attackDamage, _playerLayer, target, 1);
     }

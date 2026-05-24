@@ -1,7 +1,6 @@
 using Core;
 using Foundation;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 namespace World 
 {

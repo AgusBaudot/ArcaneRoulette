@@ -27,7 +27,7 @@ namespace World
         [Header("RunInfo")]
         [SerializeField] private int _roomsVisited = 0;
 
-        public int MaximumRooms = 1;
+        public int EndOfTheFloor;
         private int _currentIndex; // todavia no se usa pero por las dudas se guarda
         
         
@@ -40,6 +40,8 @@ namespace World
 
             _mapGenerator.Init();
             _mapSpawner.Init();
+
+            EndOfTheFloor = _mapGenerator.BossRoomIndex;
         }
         private void Start()
         {

@@ -72,7 +72,8 @@ namespace UI
             }
             else if (_floorManager != null)
             {
-                isFinalRoom = evt.roomId == _floorManager.MaximumRooms - 1;
+                isFinalRoom = evt.roomId == _floorManager.EndOfTheFloor;
+                Debug.Log("End of the Floor");
             }
 
             if (!isFinalRoom)
