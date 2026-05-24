@@ -25,22 +25,18 @@ namespace World
         {
             //  Cooldown
             if (Time.time < _nextAttackTime)
-                return Node.NodeState.Failure;
+                return Node.NodeState.Running;
 
-            //  Si todavía no empezó el ataque
             if (!_isAttacking)
             {
-                Debug.Log($"[Attack] SetTrigger 'Attack'");
                 _animator.SetTrigger("Attack");
                 _isAttacking = true;
                 return Node.NodeState.Running;
             }
 
-            //  Mientras la animación está corriendo
             if (IsAnimationPlaying())
                 return Node.NodeState.Running;
 
-            //  Terminó el ataque
             _isAttacking = false;
             _nextAttackTime = Time.time + _cooldown;
 

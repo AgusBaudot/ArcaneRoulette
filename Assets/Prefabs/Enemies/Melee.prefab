@@ -166,7 +166,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0.1
+  m_StoppingDistance: 1
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -220,6 +220,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 515282509256477c8872197c862a5a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxHp: 0
+  _currentHp: 0
+  _isDead: 0
   _hpFill: {fileID: 4551938549804360321}
   _ghostFill: {fileID: 5323846457958892274}
   _ghostSpeed: 2.5
@@ -241,11 +244,13 @@ MonoBehaviour:
   target: {fileID: 0}
   _behaviourTreeName: MeleeBasico
   _waypoints: []
-  isDeadbool: 0
-  attackRange: 0.1
-  chaseSpeed: 6
-  patrolSpeed: 1
-  _cooldown: 2
+  exitAttackRange: 1
+  _hitEffect: {fileID: -6439166545634870568, guid: 8cc8f0aa3e5cea44392d8dc0daaa98c1,
+    type: 3}
+  _attackRadius: 100
+  _playerLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!114 &9054429380081942084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,6 +274,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5607029230565609747}
   - component: {fileID: 126608421231771007}
+  - component: {fileID: 9120713198232690082}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -343,6 +349,27 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &9120713198232690082
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2923573856263322213}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4738156652094811581
 GameObject:
   m_ObjectHideFlags: 0

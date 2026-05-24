@@ -6,7 +6,7 @@ namespace World
     public class AIRange : AIBrain
     {
         [Header("Range Settings")]
-        [SerializeField] private float exitAttackRange;
+        [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
         [SerializeField] private GameObject projectilePrefab;
         private bool _wasInRange;
         protected override void Awake()
@@ -48,10 +48,10 @@ namespace World
             if (_wasInRange)
                 result = distance <= exitAttackRange;
             else
-                result = distance <= exitAttackRange;
+                result = distance <= _attackRange;
             _wasInRange = result;
             return result;
-        }
+        }// Change the method for GetIdealRange to make it more accurate
 
         // Reemplazar por una lista de ataques posibles
         public void FireProjectile()

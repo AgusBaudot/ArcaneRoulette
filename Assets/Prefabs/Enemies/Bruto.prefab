@@ -249,8 +249,8 @@ GameObject:
   - component: {fileID: 8977802434921855962}
   - component: {fileID: 3415579662829176277}
   - component: {fileID: 1788442533233594985}
-  - component: {fileID: 4465080897143572717}
   - component: {fileID: 6160062026905782466}
+  - component: {fileID: 4465080897143572717}
   - component: {fileID: 4584940593510640468}
   - component: {fileID: 4847807925829924998}
   - component: {fileID: 3026284640519872340}
@@ -386,6 +386,27 @@ MonoBehaviour:
   obsMask:
     serializedVersion: 2
     m_Bits: 32768
+--- !u!95 &6160062026905782466
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6198314231924131935}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 966c6c4ce1ca11640bc4ef75d2a82bca, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!195 &4465080897143572717
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -400,7 +421,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0.1
+  m_StoppingDistance: 2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -408,27 +429,6 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 1
   m_ObstacleAvoidanceType: 0
---- !u!95 &6160062026905782466
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6198314231924131935}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: e15bcc0405600d243925e3362d0b109d, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!114 &4584940593510640468
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -454,6 +454,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 515282509256477c8872197c862a5a07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxHp: 0
+  _currentHp: 0
+  _isDead: 0
   _hpFill: {fileID: 588648612782644147}
   _ghostFill: {fileID: 3693668196716813394}
   _ghostSpeed: 2.5
@@ -475,21 +478,14 @@ MonoBehaviour:
   target: {fileID: 0}
   _behaviourTreeName: 
   _waypoints: []
-  isDeadbool: 0
-  attackRange: 0
-  exitAttackRange: 0
-  attackRadius: 0
-  _damage: 0
-  _element: 4
-  _cooldown: 0
-  chaseSpeed: 0
-  patrolSpeed: 0
-  FVXPrefab: {fileID: 0}
-  vfxDuration: 1
-  damageMask:
+  exitAttackRange: 2
+  attackRadius: 4
+  _explosionAreaPrefab: {fileID: 4587195883449260889, guid: 7b69d8b868216514daf8299f2df40203,
+    type: 3}
+  _radius: 4
+  _playerLayer:
     serializedVersion: 2
-    m_Bits: 0
-  waypoints: []
+    m_Bits: 64
 --- !u!114 &5494240713707441985
 MonoBehaviour:
   m_ObjectHideFlags: 0

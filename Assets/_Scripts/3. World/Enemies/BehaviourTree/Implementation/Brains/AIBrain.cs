@@ -7,7 +7,7 @@ namespace World
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
-    [RequireComponent(typeof(Animator))]
+    //[RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
     public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
@@ -39,7 +39,7 @@ namespace World
 
         protected virtual void Awake()
         {
-            _animator = GetComponent<Animator>();
+            _animator = GetComponentInChildren<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _los = GetComponent<LineOfSight>();
             _agent.updateRotation = false;
