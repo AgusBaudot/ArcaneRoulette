@@ -66,11 +66,6 @@ namespace World
         {
             _debuffs = null;
             tree?.Reset();
-            
-            if (_agent == null) return; 
-            _agent.ResetPath();
-            _agent.velocity = Vector3.zero;
-            
         }
         public void Tick()
         {
