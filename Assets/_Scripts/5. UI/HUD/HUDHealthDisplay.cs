@@ -6,9 +6,7 @@ namespace UI
 {
     public sealed class HUDHealthDisplay : MonoBehaviour
     {
-        [SerializeField] private Transform _heartsContainer;
-        [Tooltip("0 = 1/4, 1 = 1/2, 2 = 3/4, 3 = Full")]
-        [SerializeField] private Sprite[] _heartSprites;
+        [SerializeField] private RectMask2D _healthFillMask;
 
         private void OnEnable()
         {
@@ -24,27 +22,11 @@ namespace UI
         
         private void UpdateUI(float currentHp, float maxHp)
         {
-            for (int i = 0; i < _heartsContainer.childCount; i++)
-            {
-                Transform child = _heartsContainer.GetChild(i);
-        
-                // Only activate children up to the currently needed visible hearts
-                bool active = i < Mathf.CeilToInt(currentHp / 4);
-                child.gameObject.SetActive(active);
-
-                if (active)
-                {
-                    Image img = child.GetComponent<Image>();
-                    if (img != null)
-                    {
-                        // Calculate how much HP belongs in this specific heart (from 1 to 4)
-                        int hpInThisHeart = Mathf.Clamp((int)currentHp - (i * 4), 1, 4);
-
-                        // Subtract 1 because your array is size 4 (1 HP = index 0, 4 HP = index 3)
-                        img.sprite = _heartSprites[hpInThisHeart - 1];
-                    }
-                }
-            }
+            float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
+            float maskWidth = _healthFillMask.GetComponent<RectTransform>().rect.width;
+            float rightPadding = Mathf.RoundToInt((1f - normalizedHealth) * maskWidth);
+            _healthFillMask.padding = new Vector4(0f, 0f, rightPadding, 0f);
+        }
             
             //IF WE EVER HAVE EMPTY HEARTS ---------------------------------------
             
@@ -73,6 +55,6 @@ namespace UI
             //         }
             //     }
             // }
-        }
     }
+    
 }

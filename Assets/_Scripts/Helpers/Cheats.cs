@@ -1,6 +1,7 @@
 using Foundation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Core;
 
 public class Cheats : MonoBehaviour, IUpdatable
 {
@@ -8,8 +9,14 @@ public class Cheats : MonoBehaviour, IUpdatable
     
     private readonly string _scene1 = "Core Loop";
     private readonly string _scene2 = "Hardcore Room";
+    private PlayerHealth _playerHealth;
+    private const int DebugDamageAmount = 1;
     
-    private void OnEnable() => UpdateManager.Instance.Register(this);
+    private void OnEnable()
+    {
+        UpdateManager.Instance.Register(this);
+        _playerHealth = FindObjectOfType<PlayerHealth>();
+    }
 
     private void OnDisable() => UpdateManager.Instance?.Unregister(this);
 
@@ -32,6 +39,14 @@ public class Cheats : MonoBehaviour, IUpdatable
             if (SceneManager.GetActiveScene().name == _scene2)
                 return;
             SceneManager.LoadScene(_scene2);
+        }
+
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            if (_playerHealth == null)
+                _playerHealth = FindObjectOfType<PlayerHealth>();
+
+            _playerHealth?.TakeDamage(DebugDamageAmount, ElementType.Neutral);
         }
     }
 }
