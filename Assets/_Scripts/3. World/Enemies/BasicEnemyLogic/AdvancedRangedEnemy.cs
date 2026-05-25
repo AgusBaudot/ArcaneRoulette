@@ -42,8 +42,10 @@ namespace World
             }
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+            
             _rb = GetComponent<Rigidbody>();
             _knockback = GetComponent<KnockbackHandler>();
         }

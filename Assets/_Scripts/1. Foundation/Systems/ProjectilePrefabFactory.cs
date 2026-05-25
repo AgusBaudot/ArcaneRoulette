@@ -95,6 +95,12 @@ namespace Foundation
 
             return pool;
         }
+
+        /// <summary>
+        /// Sets the projectile root to the transform passed.
+        /// </summary>
+        /// <param name="container"></param>
+        public void SetContainer(Transform container) => _poolRoot = container;
     }
 
     /// <summary>

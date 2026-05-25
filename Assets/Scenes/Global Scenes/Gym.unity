@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6381,6 +6381,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 2
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &483435597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7703,6 +7705,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 0
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &807360885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8199,6 +8203,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 1
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &846155068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8514,6 +8520,7 @@ MonoBehaviour:
     m_Bits: 32768
   _sphereCastRadius: 0.5
   _targetOffset: {x: 0, y: 0.35, z: 0}
+  _alpha: 0.5
 --- !u!114 &981189313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9611,12 +9618,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f07a67dfd4094d37a84e3b3fbe499157, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _heartsContainer: {fileID: 1995740243}
-  _heartSprites:
-  - {fileID: 21300000, guid: 1de3fb93e57c2e742b2332c9087384d9, type: 3}
-  - {fileID: 21300000, guid: 1e434c58dd841bf4d8cfeca45bcd805d, type: 3}
-  - {fileID: 21300000, guid: 2f2e99b8032ed364fb7675c9ac67bcf1, type: 3}
-  - {fileID: 21300000, guid: 001c59c090a201041b668669a3a85835, type: 3}
   _spriteRenderer: {fileID: 825491832}
 --- !u!114 &1224275910
 MonoBehaviour:
