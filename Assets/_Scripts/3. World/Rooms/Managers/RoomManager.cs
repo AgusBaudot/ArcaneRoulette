@@ -99,7 +99,6 @@ namespace World
             _cleared = true;
             _state = RoomState.Cleared;
             _roomConnections.RoomCleared();
-            Debug.Log($"[RoomClearedEvent] Publicando roomId: {_index}");
             EventBus.Publish(new RoomClearEvent { roomId = _index });
         }
         private void HandleDoorTransition(EdgeDirection direction)

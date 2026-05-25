@@ -7,7 +7,7 @@ namespace World
 {
     [RequireComponent(typeof(LineOfSight))]
     [RequireComponent(typeof(NavMeshAgent))]
-    //[RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
     public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
@@ -66,11 +66,11 @@ namespace World
         {
             _debuffs = null;
             tree?.Reset();
-            /*
+            
             if (_agent == null) return; 
             _agent.ResetPath();
             _agent.velocity = Vector3.zero;
-            */
+            
         }
         public void Tick()
         {

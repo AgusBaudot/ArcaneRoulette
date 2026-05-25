@@ -54,7 +54,6 @@ namespace World
     {
         readonly string name;
         readonly int hashedKey;
-        public string Name => name; // quitar
 
         public BlackboardKey(string name)
         {

@@ -28,7 +28,6 @@ namespace UI
 
         private void OnEnable()
         {
-            Debug.Log($"[SceneController] Suscribiendo a {typeof(RoomClearEvent).FullName}");
             EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
         }
 

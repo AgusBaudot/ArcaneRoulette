@@ -341,7 +341,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderers:
   - {fileID: 5947124527911891153}
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
+  _flashColor: {r: 1, g: 0, b: 0, a: 1}
   _duration: 0.07
 --- !u!114 &8977802434921855962
 MonoBehaviour:
@@ -421,7 +421,7 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 2
+  m_StoppingDistance: 2.3
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
@@ -478,7 +478,7 @@ MonoBehaviour:
   target: {fileID: 0}
   _behaviourTreeName: BTBruto
   _waypoints: []
-  exitAttackRange: 2
+  exitAttackRange: 4
   attackRadius: 4
   _explosionAreaPrefab: {fileID: 4587195883449260889, guid: 7b69d8b868216514daf8299f2df40203,
     type: 3}

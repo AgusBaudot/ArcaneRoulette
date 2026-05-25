@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Foundation;
 
 namespace World 
 {
@@ -11,7 +12,7 @@ namespace World
         [SerializeField] private Transform[] _enemySpawns;
         [SerializeField] private int _enemiesAlive = 0;
         [SerializeField] private int _currentWave = 0;
-        private List<IPooleable> _spawnedEnemies = new List<IPooleable>();
+        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
         private RoomEncounterData _encounterData;
 
         [Header("Hazards")]
@@ -44,8 +45,8 @@ namespace World
 
                 for (int j = 0; j < amount; j++)
                 {
-                    Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length]; // cicla los spawns
-                    IPooleable enemy = PoolEnemy.Instance.Get(type, spawn.position);
+                    Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length];
+                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn.position);
 
                     // el enemigo avisa cuando muere
                     if (enemy is EnemyController ec)

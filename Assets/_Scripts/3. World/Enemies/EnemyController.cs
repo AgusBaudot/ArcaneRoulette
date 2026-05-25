@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Foundation;
 
 namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPooleable
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable
     {
         #region Identity
         public float interval { get; set; }

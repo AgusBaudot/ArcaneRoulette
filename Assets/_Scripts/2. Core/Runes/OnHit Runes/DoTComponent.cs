@@ -45,7 +45,7 @@ namespace Core
             Destroy(this);
         }
 
-        public void OnDisable() // TEST
+        public void OnDisable()
         {
             Destroy(this);
         }

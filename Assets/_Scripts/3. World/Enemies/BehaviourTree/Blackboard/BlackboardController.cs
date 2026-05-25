@@ -11,17 +11,6 @@ namespace World
 
         public void RegisterExpert(IExpert expert) => arbiter.RegisterExpert(expert);
         public void DeregisterExpert(IExpert expert) => arbiter.DeregisterExpert(expert);
-
-        void Update()
-        {
-            /*
-            // Execute all agreed actions from the current iteration
-            foreach (var action in arbiter.BlackboardIteration(blackboard))
-            {
-                action();
-            }
-            */
-        }
         public void InitComponent(EnemyStats stats, Blackboard bb)
         {
             blackboardData.SetValuesOnBlackboard(blackboard);
@@ -29,9 +18,8 @@ namespace World
         }
         public void ResetComponent()
         {
-            blackboard.Clear(); // limpiar valores actuales
+            blackboard.Clear(); // Clean all the values
             blackboardData.SetValuesOnBlackboard(blackboard);
-            //Debug.Log("Variables reseteadas");
             //blackboard.debug();
         }
     }

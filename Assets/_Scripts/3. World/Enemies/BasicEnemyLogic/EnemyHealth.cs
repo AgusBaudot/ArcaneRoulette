@@ -87,14 +87,6 @@ namespace World
         }
         private void Die()
         {
-            /*
-            if (_blackboard.TryGetValue<bool>(isDead, out var dead) && dead)
-            {
-                return;
-            }
-            _blackboard.SetValue(isDead, true);
-            Debug.Log("Enemigo Muerto");
-            */
             if (_isDead)
                 return;
 
