@@ -28,7 +28,7 @@ namespace UI
 
         private void OnEnable()
         {
-            Debug.Log("[SceneController] Suscripto a RoomClearEvent");
+            Debug.Log($"[SceneController] Suscribiendo a {typeof(RoomClearEvent).FullName}");
             EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
         }
 
@@ -60,12 +60,12 @@ namespace UI
 
         private void HandleRoomCleared(RoomClearEvent evt)
         {
-            //if (_isLoadingMainMenu) return;
+            if (_isLoadingMainMenu) return;
             if (_floorManager == null) return;
 
             bool isFinalRoom = evt.roomId == _floorManager.EndOfTheFloor;
-            Debug.Log($"Cambio de room = {evt.roomId}");
-            //if (!isFinalRoom) return;
+            Debug.Log($"Cambio de room = {evt.roomId} | {isFinalRoom}");
+            if (!isFinalRoom) return;
 
             Debug.Log($"FIN de floor = {evt.roomId}");
             _isLoadingMainMenu = true;

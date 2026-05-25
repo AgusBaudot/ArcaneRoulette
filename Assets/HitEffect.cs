@@ -25,7 +25,7 @@ namespace World
         {
             Collider[] hits = new Collider[1];
             int count = Physics.OverlapSphereNonAlloc(transform.position, _radius, hits, _playerMask);
-            Debug.Log($"[DoHitAttack] count: {count}, pos: {transform.position}, radius: {_radius}, layer: {_playerMask.value}");
+            //Debug.Log($"[DoHitAttack] count: {count}, pos: {transform.position}, radius: {_radius}, layer: {_playerMask.value}");
 
             if (count > 0 && hits[0] != null && hits[0].TryGetComponent<IDamageable>(out IDamageable player))
             {
