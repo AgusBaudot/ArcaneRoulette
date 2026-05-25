@@ -41,7 +41,10 @@ namespace World
             _mapGenerator.Init();
             _mapSpawner.Init();
 
-
+            if(_player == null) 
+            {
+                Debug.Log($"<color=red>FAIL:</color> Forget to assing Player =  {_player}");
+            }
         }
         private void Start()
         {

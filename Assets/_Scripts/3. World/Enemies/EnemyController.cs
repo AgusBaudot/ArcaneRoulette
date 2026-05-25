@@ -91,8 +91,7 @@ namespace World
                     _aiBrain.Agent.enabled = true;
                     _aiBrain.Agent.Warp(safePosition);
 
-                    Debug.Log(
-                        $"<color=green>SUCCESS:</color> Bound {gameObject.name} to NavMesh on attempt {attempts + 1}. Agent is on NavMesh: {_aiBrain.Agent.isOnNavMesh}");
+                    Debug.Log( $"<color=green>SUCCESS:</color> Bound {gameObject.name} to NavMesh on attempt {attempts + 1}. Agent is on NavMesh: {_aiBrain.Agent.isOnNavMesh}");
 
                     boundSuccessfully = true;
 
