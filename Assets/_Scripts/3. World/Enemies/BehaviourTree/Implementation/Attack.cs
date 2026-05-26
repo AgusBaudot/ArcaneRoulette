@@ -9,23 +9,24 @@ namespace World
     {
         private readonly Animator _animator;
         private readonly float _cooldown;
+        private readonly string _attackAnimName;
 
         private bool _isAttacking;
         private float _nextAttackTime;
 
-        public Attack(Animator animator, float cooldown)
+        public Attack(Animator animator, float cooldown, string attackAnimName)
         {
             _animator = animator;
             _cooldown = cooldown;
+            _attackAnimName = attackAnimName;
         }
 
         public Node.NodeState Process()
         {
             //  Cooldown
             if (Time.time < _nextAttackTime)
-                return Node.NodeState.Failure;
+                return Node.NodeState.Running;
 
-            //  Si todavía no empezó el ataque
             if (!_isAttacking)
             {
                 _animator.SetTrigger("Attack");
@@ -33,11 +34,9 @@ namespace World
                 return Node.NodeState.Running;
             }
 
-            //  Mientras la animación está corriendo
             if (IsAnimationPlaying())
                 return Node.NodeState.Running;
 
-            //  Terminó el ataque
             _isAttacking = false;
             _nextAttackTime = Time.time + _cooldown;
 
@@ -47,7 +46,7 @@ namespace World
         bool IsAnimationPlaying()
         {
             var state = _animator.GetCurrentAnimatorStateInfo(0);
-            return state.IsName("PlaceHolderAnimation") && state.normalizedTime < 1f;
+            return state.IsName(_attackAnimName) && state.normalizedTime < 1f;
         }
 
         public void Reset()

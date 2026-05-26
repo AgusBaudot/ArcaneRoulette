@@ -44,5 +44,10 @@ namespace Core
             _tickRoutine = null;
             Destroy(this);
         }
+
+        public void OnDisable()
+        {
+            Destroy(this);
+        }
     }
 }
