@@ -8,7 +8,7 @@ namespace Core
     public sealed class Projectile : BaseProjectile
     {
         public override bool IsEnemy => false;
-        public override ElementType SpellElement => _source?.SpellElement ?? ElementType.Neutral;
+        public override ElementType SpellElement => _cachedElement;
 
         [Serializable]
         public struct ElementVisual
@@ -28,6 +28,7 @@ namespace Core
         private int _pierceCount;
         private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
         private bool _excludeBounceCastRuneForOnHitContext;
+        private ElementType _cachedElement;
 
         // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
@@ -46,6 +47,7 @@ namespace Core
             _baseDamage = baseDamage;
             _abilityTypeForOnHit = abilityTypeForOnHit;
             _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
+            _cachedElement = _source?.SpellElement ?? ElementType.Neutral;
 
             BounceCount = 0;
             _pierceCount = 0;

@@ -799,11 +799,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enemySpawns: []
+  _enemiesAlive: 0
+  _currentWave: 0
   hazards: []
-  _enemyPrefabMelee: {fileID: 0}
-  _enemyMeleeCount: 0
-  _enemyPrefabRange: {fileID: 0}
-  _enemyRangeCount: 0
 --- !u!1 &2588626303910930180
 GameObject:
   m_ObjectHideFlags: 0
@@ -3047,26 +3045,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7279575211118779271}
     m_Modifications:
-    - target: {fileID: 3626793338957358747, guid: 63babfe0ed6335e4db90012e68ba4aa7,
-        type: 3}
-      propertyPath: _element
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 2.699247
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2.699247
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 2.699247
-      objectReference: {fileID: 0}
     - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -3121,6 +3099,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Thunder_Bomb
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626793338957358747, guid: 63babfe0ed6335e4db90012e68ba4aa7,
+        type: 3}
+      propertyPath: _element
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3266,26 +3249,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 7279575211118779271}
     m_Modifications:
-    - target: {fileID: 3626793338957358747, guid: 63babfe0ed6335e4db90012e68ba4aa7,
-        type: 3}
-      propertyPath: _element
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.x
-      value: 2.699247
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2.699247
-      objectReference: {fileID: 0}
-    - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 2.699247
-      objectReference: {fileID: 0}
     - target: {fileID: 4600732356466860081, guid: 42720241a8ca2e54792ad161c5122964,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -3340,6 +3303,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Thunder_Bomb (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3626793338957358747, guid: 63babfe0ed6335e4db90012e68ba4aa7,
+        type: 3}
+      propertyPath: _element
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
