@@ -45,6 +45,11 @@ namespace World
 
                 for (int j = 0; j < amount; j++)
                 {
+                    if (_enemySpawns.Length == 0)
+                    {
+                        continue;
+                    }
+                    
                     Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length];
                     IPoolable enemy = PoolEnemy.Instance.Get(type, spawn.position);
 
@@ -110,7 +115,7 @@ namespace World
                 attempts++;
             }
 
-            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse después de {maxAttempts} intentos");
+            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse despuï¿½s de {maxAttempts} intentos");
         }
     }
 
