@@ -9,6 +9,7 @@ namespace World
         [Header("Room references")]
         [SerializeField] private HardcoreDoor _door;
         [SerializeField] private HardcoreSpawner[] _spawners;
+        [SerializeField] private Transform _player;
         
         [Header("Room Info details")]
         [SerializeField] private EnemyEntry[] _entries;
@@ -38,7 +39,7 @@ namespace World
 
             foreach (var spawner in _spawners)
             {
-                List<BaseEnemy> spawnedEnemies = spawner.Spawn(_entries, waveIndex);
+                List<BaseEnemy> spawnedEnemies = spawner.Spawn(_entries, waveIndex, _player);
 
                 foreach (var enemy in spawnedEnemies)
                 {
