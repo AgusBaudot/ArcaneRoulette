@@ -107,6 +107,7 @@ namespace World
             //_blackboard.SetValue(isDead, false);
             _isDead = false;
             _currentHp = _maxHp;
+            UpdateUI();
         }
 
         //IDebuffReceiver Implementation------------------------
