@@ -2,7 +2,7 @@ namespace World
 {
     public struct EnemySpawnData
     {
-        public EnemyType enemyType;
-        public int amount;
+        public EnemyType[] EnemyType;
+        public int[] Amounts;
     }
 }

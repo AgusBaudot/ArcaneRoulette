@@ -18,6 +18,7 @@ namespace World
 
         //Guardar el Index de salas especiales
         private int bossRoomIndex;
+        public int BossRoomIndex => bossRoomIndex;
         private int secretRoomIndex;
         private int shopRoomIndex;
         private int itemRoomIndex;
@@ -26,7 +27,7 @@ namespace World
 
         private List<RoomInfo> _spawnedCellsInfo;
 
-        public void Awake()
+        public void Init()
         {
             minRooms = 7;
             maxRooms = 15;
@@ -92,9 +93,9 @@ namespace World
 
             SaveRoomInfo(secretRoomIndex);
 
-            UpdateSpecialRoomVisual();
+            UpdateSpecialRoomType();
         }
-        private void UpdateSpecialRoomVisual()
+        private void UpdateSpecialRoomType()
         {
             for (int i = 0; i < _spawnedCellsInfo.Count; i++)
             {

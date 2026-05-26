@@ -43,5 +43,19 @@ namespace Foundation
             for (int i = 0; i < _renderers.Length; i++)
                 _renderers[i].color = _originalColors[i];
         }
+
+        public void OnDisable()
+        {
+            StopAllCoroutines();
+            ResetColors();
+        }
+        private void ResetColors()
+        {
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                if (_renderers[i] != null)
+                    _renderers[i].color = _originalColors[i];
+            }
+        }
     }
 }

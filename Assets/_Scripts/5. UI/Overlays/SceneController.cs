@@ -1,19 +1,16 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Core;
 using Foundation;
 using World;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace UI 
+namespace UI
 {
     public class SceneController : MonoBehaviour
     {
         [SerializeField] private float _sceneFadeDuration;
         [SerializeField] private string _mainMenuSceneName = "MainMenu";
-        [SerializeField] private int _finalRoomId = -1;
 
         private SceneFade _sceneFade;
         private PlayerHealth _playerHealth;
@@ -31,19 +28,19 @@ namespace UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<RoomManager.RoomClearEvent>(HandleRoomCleared);
+            EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<RoomManager.RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
         }
 
         private void OnDestroy()
         {
             if (_playerHealth != null)
                 _playerHealth.OnDeath -= HandlePlayerDeath;
-            EventBus.Unsubscribe<RoomManager.RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
         }
 
         private IEnumerator Start()
@@ -60,24 +57,16 @@ namespace UI
             StartCoroutine(LoadMainMenuCoroutine());
         }
 
-        private void HandleRoomCleared(RoomManager.RoomClearEvent evt)
+        private void HandleRoomCleared(RoomClearEvent evt)
         {
-            if (_isLoadingMainMenu)
-                return;
+            if (_isLoadingMainMenu) return;
+            if (_floorManager == null) return;
 
-            bool isFinalRoom = false;
-            if (_finalRoomId >= 0)
-            {
-                isFinalRoom = evt.roomId == _finalRoomId;
-            }
-            else if (_floorManager != null)
-            {
-                isFinalRoom = evt.roomId == _floorManager.MaximumRooms - 1;
-            }
+            bool isFinalRoom = evt.roomId == _floorManager.EndOfTheFloor;
+            Debug.Log($"Cambio de room = {evt.roomId} | {isFinalRoom}");
+            if (!isFinalRoom) return;
 
-            if (!isFinalRoom)
-                return;
-
+            Debug.Log($"FIN de floor = {evt.roomId}");
             _isLoadingMainMenu = true;
             StartCoroutine(LoadMainMenuCoroutine());
         }

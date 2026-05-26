@@ -19,7 +19,7 @@ namespace World
 
         private int _spaceBetweenRooms = 90;
 
-        public void Awake()
+        public void Init()
         {
             _doorLookup = new Dictionary<RoomType, Material>();
             _roomLookup = new Dictionary<int, RoomManager>();
