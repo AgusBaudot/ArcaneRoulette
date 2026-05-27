@@ -33,8 +33,6 @@ namespace World
             
             if (projectile.IsEnemy)
                 return;
-
-            Debug.LogError(projectile.SpellElement);
             
             // Element must match the bomb's pre-imbued element.
             if (projectile.SpellElement != _element)
