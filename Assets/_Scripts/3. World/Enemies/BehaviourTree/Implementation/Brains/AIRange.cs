@@ -8,6 +8,8 @@ namespace World
         [Header("Range Settings")]
         [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
         [SerializeField] private EnemyProjectile projectilePrefab;
+        [SerializeField] private float _projectileSpeed;
+        
         private bool _wasInRange;
         protected override void Awake()
         {
@@ -60,11 +62,12 @@ namespace World
 
             float spawnOffset = 1.0f;
 
-            Vector3 spawnPos = transform.position + dir * spawnOffset;
+            Vector3 spawnPos = transform.position + Vector3.up * 0.5f + dir * spawnOffset;
+
 
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
-            proj.Init(dir, 10, 2, Foundation.ElementType.Neutral);
+            proj.Init(dir, _projectileSpeed, 2, Foundation.ElementType.Neutral);
         }
     }
 
