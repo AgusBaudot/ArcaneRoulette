@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 6870825820021145795}
   - component: {fileID: 854042893006059658}
   - component: {fileID: 8348006666490126901}
+  - component: {fileID: 7526882824734231920}
   m_Layer: 15
   m_Name: DoorContinue
   m_TagString: Untagged
@@ -150,6 +151,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _direction: 0
+--- !u!114 &7526882824734231920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714453901027964544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &1071368515550605134
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,8 +198,8 @@ Transform:
   m_GameObject: {fileID: 1071368515550605134}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.3, y: -0.5, z: 4.2}
-  m_LocalScale: {x: 6.5881996, y: 1, z: 6.9255347}
+  m_LocalPosition: {x: -1.9932, y: -0.5, z: -0.1956}
+  m_LocalScale: {x: 5.5994368, y: 0.4449, z: 3.7179348}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4976067573889000579}
@@ -306,7 +326,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 129015
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0
@@ -317,7 +337,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 0487d05c3513f1e46b9d0f2f0f11bffc, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 4e3d7861569076e4c8cc8f847b86ef16, type: 2}
   m_BuildHeightMesh: 0
 --- !u!1 &1468871710468138148
 GameObject:
@@ -362,6 +382,7 @@ GameObject:
   - component: {fileID: 1876859270189407625}
   - component: {fileID: 1912541050457459505}
   - component: {fileID: 1124945997506211203}
+  - component: {fileID: 73195438747564930}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -455,6 +476,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &73195438747564930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1623104220467372557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &1679245756842556482
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,6 +507,7 @@ GameObject:
   - component: {fileID: 7750646116158123532}
   - component: {fileID: 1300544983385160875}
   - component: {fileID: 40803774568404225}
+  - component: {fileID: 6256136393302593840}
   m_Layer: 15
   m_Name: Wall (4)
   m_TagString: Untagged
@@ -560,6 +601,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6256136393302593840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679245756842556482}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &2011377096956886558
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,6 +663,7 @@ GameObject:
   - component: {fileID: 1802255372309320885}
   - component: {fileID: 2963658287378682603}
   - component: {fileID: 1222793078524574085}
+  - component: {fileID: 5993992768823816476}
   m_Layer: 15
   m_Name: Wall (3)
   m_TagString: Untagged
@@ -696,6 +757,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5993992768823816476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2257337909002702302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &2430469124438568900
 GameObject:
   m_ObjectHideFlags: 0
@@ -782,10 +862,12 @@ MonoBehaviour:
   _up: {fileID: 0}
   _left: {fileID: 0}
   _right: {fileID: 0}
-  _DownDoor: {fileID: 0}
+  _downDoor: {fileID: 0}
   _upDoor: {fileID: 0}
   _leftDoor: {fileID: 0}
   _rightDoor: {fileID: 0}
+  _offsetSpawn: 1
+  _liftDoors: 5
 --- !u!114 &1914884113007971262
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -845,6 +927,7 @@ GameObject:
   - component: {fileID: 7078716228492907253}
   - component: {fileID: 1116726426777217269}
   - component: {fileID: 4383245879369309426}
+  - component: {fileID: 8053962380211476406}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -938,6 +1021,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8053962380211476406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2774045816353272790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &2808925144472360251
 GameObject:
   m_ObjectHideFlags: 0
@@ -950,6 +1052,7 @@ GameObject:
   - component: {fileID: 2897635441659603428}
   - component: {fileID: 3133835440920720821}
   - component: {fileID: 5473775058669403449}
+  - component: {fileID: 5280850771695530105}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -1043,6 +1146,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5280850771695530105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2808925144472360251}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &3214489048778192736
 GameObject:
   m_ObjectHideFlags: 0
@@ -1099,6 +1221,7 @@ GameObject:
   - component: {fileID: 6564608883271887479}
   - component: {fileID: 1936845622553851786}
   - component: {fileID: 9214364852708132186}
+  - component: {fileID: 2811653401161824227}
   m_Layer: 15
   m_Name: Wall (2)
   m_TagString: Untagged
@@ -1192,6 +1315,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2811653401161824227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3684025271898736524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &3970659042089888375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1266,6 +1408,7 @@ GameObject:
   - component: {fileID: 8238071826722696281}
   - component: {fileID: 7963068108665959846}
   - component: {fileID: 6768381965691647753}
+  - component: {fileID: 2387390561767942293}
   m_Layer: 15
   m_Name: Door1
   m_TagString: Untagged
@@ -1359,6 +1502,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2387390561767942293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4100497590588034475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &4165871211323832963
 GameObject:
   m_ObjectHideFlags: 0
@@ -1402,6 +1564,7 @@ GameObject:
   - component: {fileID: 3002401513731124835}
   - component: {fileID: 8804532956740924995}
   - component: {fileID: 2303449317155922328}
+  - component: {fileID: 5256110397282933773}
   m_Layer: 15
   m_Name: Wall (5)
   m_TagString: Untagged
@@ -1495,6 +1658,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5256110397282933773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4279964916054249148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &4778440199187806261
 GameObject:
   m_ObjectHideFlags: 0
@@ -1507,6 +1689,7 @@ GameObject:
   - component: {fileID: 2968310322127815425}
   - component: {fileID: 2344187849296445028}
   - component: {fileID: 7600172896415088414}
+  - component: {fileID: 6214584526812906712}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -1600,6 +1783,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6214584526812906712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4778440199187806261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &5147233658231033260
 GameObject:
   m_ObjectHideFlags: 0
@@ -1612,6 +1814,7 @@ GameObject:
   - component: {fileID: 1969772551039238553}
   - component: {fileID: 3772850069737233401}
   - component: {fileID: 1066892955152534452}
+  - component: {fileID: 356038178573564897}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -1705,6 +1908,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &356038178573564897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5147233658231033260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &5596449970472525433
 GameObject:
   m_ObjectHideFlags: 0
@@ -1717,6 +1939,7 @@ GameObject:
   - component: {fileID: 1093881128961886685}
   - component: {fileID: 3703656503920217753}
   - component: {fileID: 5769826690796267824}
+  - component: {fileID: 6222022944298497004}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -1810,6 +2033,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6222022944298497004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5596449970472525433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &5896715213148244202
 GameObject:
   m_ObjectHideFlags: 0
@@ -1946,6 +2188,7 @@ GameObject:
   - component: {fileID: 2955006471451540064}
   - component: {fileID: 7356662154946735248}
   - component: {fileID: 1532407454107326151}
+  - component: {fileID: 2143931047103119961}
   m_Layer: 15
   m_Name: Wall
   m_TagString: Untagged
@@ -2039,6 +2282,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2143931047103119961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7183506142558513282}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7192851267200867076
 GameObject:
   m_ObjectHideFlags: 0
@@ -2082,6 +2344,7 @@ GameObject:
   - component: {fileID: 3239889389806225985}
   - component: {fileID: 5946821046387444398}
   - component: {fileID: 8315314781008713107}
+  - component: {fileID: 8454425467550540984}
   m_Layer: 15
   m_Name: Wall (1)
   m_TagString: Untagged
@@ -2175,6 +2438,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8454425467550540984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7434950136890345676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7633305113515129084
 GameObject:
   m_ObjectHideFlags: 0
@@ -2188,6 +2470,7 @@ GameObject:
   - component: {fileID: 7882987309215395422}
   - component: {fileID: 6090727778000863850}
   - component: {fileID: 2127514073318391799}
+  - component: {fileID: 8777796076618413933}
   m_Layer: 15
   m_Name: DoorActivate
   m_TagString: Untagged
@@ -2294,6 +2577,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _direction: 0
+--- !u!114 &8777796076618413933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7633305113515129084}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7658110604931184270
 GameObject:
   m_ObjectHideFlags: 0
@@ -2386,6 +2688,7 @@ GameObject:
   - component: {fileID: 7645580122698037788}
   - component: {fileID: 4409416881710390123}
   - component: {fileID: 767095238923872924}
+  - component: {fileID: 7536286809208924867}
   m_Layer: 15
   m_Name: Door2
   m_TagString: Untagged
@@ -2479,6 +2782,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7536286809208924867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7768689458314124988}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &8235573775078925639
 GameObject:
   m_ObjectHideFlags: 0
@@ -2492,6 +2814,7 @@ GameObject:
   - component: {fileID: 7344358104328084395}
   - component: {fileID: 637003211120378}
   - component: {fileID: 6359779588584820919}
+  - component: {fileID: 2713916601234766097}
   m_Layer: 15
   m_Name: DoorExit
   m_TagString: Untagged
@@ -2598,6 +2921,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _direction: 0
+--- !u!114 &2713916601234766097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8235573775078925639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &8771987045232467914
 GameObject:
   m_ObjectHideFlags: 0
