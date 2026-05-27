@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace World 
+namespace World
 {
     public class MapSpawner : MonoBehaviour
     {
@@ -17,8 +17,6 @@ namespace World
         private Dictionary<int, RoomManager> _roomLookup;
         public Dictionary<int, RoomManager> RoomLookup => _roomLookup;
 
-        private int _spaceBetweenRooms = 90;
-
         public void Init()
         {
             _doorLookup = new Dictionary<RoomType, Material>();
@@ -29,7 +27,7 @@ namespace World
                 _doorLookup.Add(door.roomType, door.materialDoor);
             }
         }
-        public void SetUpRooms(List<RoomInfo> rooms, int[] floorPlan)
+        public void SetUpRooms(List<RoomInfo> rooms, int[] floorPlan, Vector2 roomOffset)
         {
             foreach (RoomManager room in _roomLookup.Values)
             {
@@ -37,20 +35,20 @@ namespace World
             }
             _roomLookup.Clear();
 
-            foreach (RoomInfo room in rooms) 
+            foreach (RoomInfo room in rooms)
             {
-                SpawnRooms(room.index, room.roomType);
+                SpawnRooms(room.index, room.roomType, roomOffset);
             }
 
             SetUpDoors(floorPlan);
             SetAllActiveFalse();
         }
-        private void SpawnRooms(int index, RoomType roomType) 
+        private void SpawnRooms(int index, RoomType roomType, Vector2 offset)
         {
             int x = index % 10;
             int z = index / 10;
 
-            Vector3 position = new Vector3(x * _spaceBetweenRooms, 0, -z * _spaceBetweenRooms);
+            Vector3 position = new Vector3(x * offset.x, 0, -z * offset.y);
 
             RoomManager prefab = null;
 
@@ -78,7 +76,7 @@ namespace World
                     break;
             }
 
-            RoomManager newRoom =Instantiate(prefab, position, Quaternion.identity);
+            RoomManager newRoom = Instantiate(prefab, position, Quaternion.identity);
 
             RoomInfo info = new RoomInfo();
 
@@ -88,17 +86,17 @@ namespace World
 
             newRoom.Init(info);
 
-            _roomLookup.Add(index,newRoom);
+            _roomLookup.Add(index, newRoom);
             //spawnedRooms.Add(newRoom);
         }
         public void SetUpDoors(int[] floorPlan)
         {
-            foreach (RoomManager rooms in _roomLookup.Values) 
+            foreach (RoomManager rooms in _roomLookup.Values)
             {
                 // save index of neighbours
                 int upIndex = rooms.Index - 10;
                 int downIndex = rooms.Index + 10;
-                int leftIndex = rooms.Index -1;
+                int leftIndex = rooms.Index - 1;
                 int rightIndex = rooms.Index + 1;
 
                 // por si esta fuera del grid

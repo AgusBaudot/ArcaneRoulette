@@ -41,7 +41,7 @@ namespace World
             _mapGenerator.Init();
             _mapSpawner.Init();
 
-            if(_player == null) 
+            if (_player == null)
             {
                 Debug.Log($"<color=red>FAIL:</color> Forget to assing Player =  {_player}");
             }
@@ -58,7 +58,7 @@ namespace World
 
             List<RoomInfo> rooms = _mapGenerator.SetupDungeon();
 
-            _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan);
+            _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan, _mapGenerator.RoomOffset);
 
             EndOfTheFloor = _mapGenerator.BossRoomIndex;
         }

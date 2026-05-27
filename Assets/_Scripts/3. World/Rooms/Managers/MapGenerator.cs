@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace World 
+namespace World
 {
     public class MapGenerator : MonoBehaviour
     {
@@ -12,22 +12,24 @@ namespace World
         public int[] getFloorPlan => floorPlan;
 
         private int floorPlanCount; //Cuantas rooms spawnearon
-        
+
         [Header("Dungeon Size")]
         [SerializeField] private int minRooms = 6;
         [SerializeField] private int maxRooms = 6;
-        
+        [SerializeField] private Vector2 roomOffset = new(10f, 10f);
+
         [Header("Special Room Counts")]
         [SerializeField] private int targetItemRooms = 1;
         [SerializeField] private int targetShopRooms = 0;
         [SerializeField] private int targetSecretRooms = 0;
-        
+
         private List<int> endRooms; //Dead End Room
 
         //Guardar el Index de salas especiales
         private int bossRoomIndex;
         public int BossRoomIndex => bossRoomIndex;
-        
+        public Vector2 RoomOffset => roomOffset;
+
         //Converted to lists to support 0, 1, or multiple rooms
         private List<int> secretRoomIndices = new();
         private List<int> shopRoomIndices = new();
@@ -68,7 +70,7 @@ namespace World
                 if (index > 20) created |= VisitCell(index - 10);
                 if (index < 70) created |= VisitCell(index + 10);
 
-                if (created == false) // si no se logr� crear ninguna sala se agrega a la lista de rooms finales
+                if (created == false) // si no se logr  crear ninguna sala se agrega a la lista de rooms finales
                     endRooms.Add(index);
             }
 
@@ -90,7 +92,7 @@ namespace World
             itemRoomIndices.Clear();
 
             bool generationSuccessful = true;
-            
+
             bossRoomIndex = endRooms.Count > 0 ? endRooms[endRooms.Count - 1] : -1; // si hay room que sea la ultima en agregarse, si no valor invalido
 
             if (bossRoomIndex != -1)
@@ -114,7 +116,7 @@ namespace World
                     itemRoomIndices.Add(r);
                 }
             }
-            
+
             for (int i = 0; i < targetShopRooms; i++)
             {
                 int r = RandomEndRoom();
@@ -135,7 +137,7 @@ namespace World
                 {
                     generationSuccessful = false;
                 }
-                else 
+                else
                 {
                     secretRoomIndices.Add(r);
                     SaveRoomInfo(r);
