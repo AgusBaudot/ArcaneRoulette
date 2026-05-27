@@ -50,6 +50,7 @@ namespace Core
                 Renderer hitRenderer = hit.collider.GetComponent<Renderer>();
                 if (hitRenderer != null)
                 {
+                    
                     _renderersHitThisFrame.Add(hitRenderer);
 
                     if (!_hiddenRenderers.Contains(hitRenderer))

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Foundation;
+using Random = UnityEngine.Random;
 
 namespace World
 {
@@ -30,10 +31,14 @@ namespace World
 
         public event Action<EnemyController> OnDeathEvent;
 
+        private int _floorLayerMask;
+
         public void Awake()
         {
             BlackboardController _bcontroller = GetComponent<BlackboardController>();
             _blackboard = _bcontroller.GetBlackboard();
+            
+            _floorLayerMask = LayerMask.GetMask("Floor");
 
             _enemyHealth = GetComponent<EnemyHealth>();
             _aiBrain = GetComponent<AIBrain>();
@@ -82,20 +87,27 @@ namespace World
             int attempts = 0;
             bool boundSuccessfully = false;
 
+            Vector2 jitter2D = Random.insideUnitCircle * 0.2f;
+            Vector3 initialPos = transform.position + new Vector3(jitter2D.x, 0, jitter2D.y);
+
             while (attempts < maxAttempts && !boundSuccessfully)
             {
-                if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+                Vector3 searchPos = initialPos;
+                
+                if (Physics.Raycast(initialPos + Vector3.up * 2f, Vector3.down, out RaycastHit rayHit, 10f, _floorLayerMask))
                 {
-                    Vector3 safePosition = new Vector3(hit.position.x, transform.position.y, hit.position.z);
-                    transform.position = safePosition;
+                    searchPos = rayHit.point;
+                }
+                if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
+                {
+                    transform.position = hit.position;
 
                     _aiBrain.Agent.enabled = true;
-                    _aiBrain.Agent.Warp(safePosition);
+                    _aiBrain.Agent.Warp(hit.position);
 
-                    Debug.Log( $"<color=green>SUCCESS:</color> Bound {gameObject.name} to NavMesh on attempt {attempts + 1}. Agent is on NavMesh: {_aiBrain.Agent.isOnNavMesh}");
+                    Debug.Log($"<color=green>SUCCESS:</color> Bound {gameObject.name} to NavMesh on attempt {attempts + 1}. Agent is on NavMesh: {_aiBrain.Agent.isOnNavMesh}");
 
                     boundSuccessfully = true;
-
                     CustomUpdateEnemyManager.Instance.Register(this);
                 }
                 else
