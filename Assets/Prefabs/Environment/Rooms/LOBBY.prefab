@@ -109,6 +109,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c471c322bc223d4da0d06582ce29bb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minRooms: 6
+  maxRooms: 6
+  targetItemRooms: 1
+  targetShopRooms: 0
+  targetSecretRooms: 0
 --- !u!114 &1207303266970486735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1122,6 +1127,12 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8750245841102229666, guid: 4bfcdbaab000fdd4eab35e905b5e0e7c,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: b16acc0b86691b042b125343297a8af9,
+        type: 3}
     - target: {fileID: 8752728785315943364, guid: 4bfcdbaab000fdd4eab35e905b5e0e7c,
         type: 3}
       propertyPath: m_LocalPosition.x
