@@ -25,9 +25,9 @@ namespace World
             float distance = Vector3.Distance(transform.position, target.position);
             bool result;
             if (_wasInRange)
-                result = distance <= exitAttackRange;
+                result = distance <= _enemyStats.ExitAttackRange;
             else
-                result = distance <= _attackRange;
+                result = distance <= _enemyStats.AttackRange;
             _wasInRange = result;
             return result;
         }
@@ -39,16 +39,16 @@ namespace World
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "MeleePHAnim")));
-            attackSequence.AddChild(new LeafNode("wait", new Wait(_attackSpeed)));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _enemyStats.AttackSpeed, "MeleePHAnim")));
+            //attackSequence.AddChild(new LeafNode("wait", new Wait(_enemyStats.AttackSpeed)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _enemyStats.ChaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
             // --- Estructura ---
             root.AddChild(attackSequence);
@@ -64,7 +64,7 @@ namespace World
             Vector3 dir = (target.position - transform.position).normalized;
             Vector3 pos = transform.position + dir * 1f;
             var explosion = Instantiate(_hitEffect, pos, Quaternion.identity);
-            explosion.Init(_attackRadius, _attackDamage, _playerLayer, target, 0.2f);
+            explosion.Init(_attackRadius, _enemyStats.AttackDamage, _playerLayer, target, 0.2f);
         }
     }
 }

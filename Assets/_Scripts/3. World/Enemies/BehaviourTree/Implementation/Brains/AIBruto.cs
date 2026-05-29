@@ -28,9 +28,9 @@ public class AIBruto : AIBrain
         float distance = Vector3.Distance(transform.position, target.position);
         bool result;
         if (_wasInRange)
-            result = distance <= exitAttackRange;
+            result = distance <= _enemyStats.ExitAttackRange;
         else
-            result = distance <= _attackRange;
+            result = distance <= _enemyStats.AttackRange;
         _wasInRange = result;
         return result;
     } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
@@ -42,16 +42,16 @@ public class AIBruto : AIBrain
         // --- Attack Sequence ---
         var attackSequence = new SequenceNode("Attack", 2);
         attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-        attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "BrutoPHAnim")));
+        attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _enemyStats.AttackSpeed, "BrutoPHAnim")));
         //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
         // --- Chase ---
         var chaseSequence = new SequenceNode("Chase", 1);
         chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-        chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+        chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _enemyStats.ChaseSpeed)));
 
         // --- Patrol ---
-        var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+        var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
         // --- Estructura ---
         root.AddChild(attackSequence);
@@ -67,7 +67,7 @@ public class AIBruto : AIBrain
         Vector3 dir = (target.position - transform.position).normalized;
         Vector3 pos = transform.position + dir * 3f;
         var explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
-        explosion.Init(_radius, _attackDamage, _playerLayer, target, 1);
+        explosion.Init(_radius, _enemyStats.AttackDamage, _playerLayer, target, 1);
     }
 }
 

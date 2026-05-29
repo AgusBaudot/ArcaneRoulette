@@ -20,18 +20,19 @@ namespace World
 
         #region Components
         private Blackboard _blackboard;
-        public Blackboard Blackboard => _blackboard;
         private EnemyHealth _enemyHealth;
         private AIBrain _aiBrain;
+        public Blackboard Blackboard => _blackboard;
+        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
-        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
+
 
         public event Action<EnemyController> OnDeathEvent;
-
         private int _floorLayerMask;
+
 
         public void Awake()
         {
@@ -116,7 +117,6 @@ namespace World
                     yield return null;
                 }
             }
-
             if (!boundSuccessfully)
             {
                 Debug.LogError(

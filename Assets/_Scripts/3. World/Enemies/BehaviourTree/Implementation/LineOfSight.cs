@@ -1,38 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace World 
 {
-    public class LineOfSight : MonoBehaviour
+    public class LineOfSight
     {
-        public Transform reference;
-        public float range;
-        public LayerMask obsMask;
+        private Transform _origin;
+        private float _range;
+        private LayerMask _obsMask;
+        public void Init(Transform origin, float range, LayerMask obsMask)
+        {
+            _origin = origin;
+            _range = range;
+            _obsMask = obsMask;
+        }
+
         public bool CheckRange(Transform target)
         {
-            float distanceToTarget = (target.position - Origin).sqrMagnitude;
-            return distanceToTarget <= range * range;
+            float distanceToTarget = (target.position - _origin.position).sqrMagnitude;
+            return distanceToTarget <= _range * _range;
         }
+
         public bool CheckView(Transform target)
         {
-            Vector3 dirToTarget = target.position - Origin;
-            return !Physics.Raycast(Origin, dirToTarget.normalized, dirToTarget.magnitude, obsMask);
-        }
-        Vector3 Origin
-        {
-            get
-            {
-                if (reference == null) return transform.position;
-                return reference.position;
-            }
-        }
-        private void OnDrawGizmos()
-        {
-            Color myColor = Color.red;
-            myColor.a = 0.5f;
-            Gizmos.color = myColor;
-            Gizmos.DrawWireSphere(Origin, range);
+            Vector3 dirToTarget = target.position - _origin.position;
+            return !Physics.Raycast(_origin.position, dirToTarget.normalized, dirToTarget.magnitude, _obsMask);
         }
     }
 

@@ -1089,6 +1089,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 1
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &257857393
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7339,6 +7341,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 2
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &609686457
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10870,6 +10874,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotIndex: 0
   _abilityIcon: {fileID: 0}
+  _grayedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _iconRecoverSpeed: 5
 --- !u!114 &1408003383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12205,9 +12211,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RegularRoomPrefab:
-  - {fileID: 8513938931462823758, guid: 5fddbcd5e4e9f0a408231349bec357dd, type: 3}
-  - {fileID: 1847170810499673583, guid: 206120fa5ed0db844be0d8b10501e2f6, type: 3}
-  - {fileID: 4563979234947723885, guid: 81526037442a244498d829785800a049, type: 3}
+  - {fileID: 1847170810499673583, guid: 56706c0a13cca3743aecc3cd1caf4a6f, type: 3}
+  - {fileID: 8218544230341318610, guid: 714a844671adb1740afe71a867499414, type: 3}
+  - {fileID: 4563979234947723885, guid: 1dbbfe07cc74577409764576bc6193a1, type: 3}
   ItemRoomPrefab: {fileID: 7020847662515840597, guid: 3aaa583d2a80adb4bbb5f4dca4053c16,
     type: 3}
   ShopRoomPrefab: {fileID: -4603583050371147331, guid: 8b30f94692854d24c80fc57a08dbd0c0,
@@ -12235,6 +12241,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c471c322bc223d4da0d06582ce29bb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  minRooms: 6
+  maxRooms: 6
+  roomOffset: {x: 10, y: 10}
+  targetItemRooms: 1
+  targetShopRooms: 0
+  targetSecretRooms: 0
 --- !u!114 &1828579698
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13222,7 +13234,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b92cc7ebe03a12249b455e2598c85610, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerStats: {fileID: 11400000, guid: 2b8764b24077a414c872887074663b24, type: 2}
   _spriteTransform: {fileID: 954413298}
   _hurtBox: {fileID: 988587769}
 --- !u!54 &1994747164
