@@ -58,7 +58,7 @@ namespace World
 
             List<RoomInfo> rooms = _mapGenerator.SetupDungeon();
 
-            _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan);
+            _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFloorPlan);
 
             EndOfTheFloor = _mapGenerator.BossRoomIndex;
         }
