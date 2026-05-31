@@ -224,10 +224,18 @@ namespace Core
 
         protected override void OnHitWall(Collider other)
         {
+            _source?.TriggerOnHit(
+                transform.position,
+                other.gameObject,
+                _runner,
+                _abilityTypeForOnHit,
+                _excludeBounceCastRuneForOnHitContext,
+                Rb.velocity.normalized);
+
             if (!TryBounce())
+            {
                 Helpers.ProjFactory.Despawn(gameObject);
-            // On bounce, _hitTargets is intentionally NOT cleared —
-            // a bounced projectile can't re-hit an enemy it already pierced through.
+            }
         }
 
         public override void OnDespawn()
