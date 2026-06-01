@@ -11,7 +11,8 @@ namespace UI
         public int UpdatePriority => Foundation.UpdatePriority.UI;
         
         [SerializeField] private int _slotIndex;
-        [SerializeField] private Image _abilityIcon;         // optional — spell icon
+        [SerializeField] private Image _inputIcon;
+        [SerializeField] private Image _abilityIcon;      
         [SerializeField] private Color _grayedColor = Color.gray;
         [SerializeField] private float _iconRecoverSpeed = 5f; // how quickly the icon color approaches the target
 
@@ -27,10 +28,30 @@ namespace UI
 
             // Slider starts full — no spell equipped yet means nothing on cooldown
             // record normal icon color and ensure icon is grayed out until a spell is equipped
-            if (_abilityIcon != null)
-                _iconNormalColor = _abilityIcon.color;
+            if (_inputIcon != null)
+                _iconNormalColor = _inputIcon.color;
 
             SetSliderNull();
+        }
+
+        private void Start()
+        {
+            // If a spell was already equipped before this UI came online,
+            // initialize the icon from the current run state immediately.
+            var runState = GameStateManager.RunState;
+            if (runState != null)
+            {
+                var spell = runState.GetSlot((SlotIndex)_slotIndex) as SpellInstance;
+                if (spell != null)
+                {
+                    _instance = spell;
+                    RefreshAbilityIcon();
+                    if (_inputIcon != null)
+                        _inputIcon.color = _iconNormalColor;
+                    if (_abilityIcon != null)
+                        _abilityIcon.color = _iconNormalColor;
+                }
+            }
         }
 
         private void OnDestroy()
@@ -56,22 +77,24 @@ namespace UI
 
             // Update icon color: immediately gray when completely empty,
             // otherwise smoothly move towards the color corresponding to the fill level.
-            if (_abilityIcon != null)
-            {
-                // target is interpolation between grayed and normal based on fill (0..1)
-                var target = Color.Lerp(_grayedColor, _iconNormalColor, _cooldownSlider.value);
+            var target = Color.Lerp(_grayedColor, _iconNormalColor, _cooldownSlider.value);
 
+            if (_cooldownSlider.value <= 0f)
+            {
                 // If completely empty, set gray immediately
-                if (_cooldownSlider.value <= 0f)
-                {
+                if (_inputIcon != null)
+                    _inputIcon.color = _grayedColor;
+                if (_abilityIcon != null)
                     _abilityIcon.color = _grayedColor;
-                }
-                else
-                {
-                    // Smoothly approach target color
-                    float t = Mathf.Clamp01(dt * _iconRecoverSpeed);
+            }
+            else
+            {
+                // Smoothly approach target color
+                float t = Mathf.Clamp01(dt * _iconRecoverSpeed);
+                if (_inputIcon != null)
+                    _inputIcon.color = Color.Lerp(_inputIcon.color, target, t);
+                if (_abilityIcon != null)
                     _abilityIcon.color = Color.Lerp(_abilityIcon.color, target, t);
-                }
             }
         }
 
@@ -82,11 +105,13 @@ namespace UI
 
             _instance = evt.Instance as SpellInstance;
 
-            // Optionally set sprite here if available on the instance (left commented because
-            // `SpellInstance` internals vary). Ensure icon color is reset to the normal color
-            // so it can be grayed by cooldown logic when needed.
-            // if (_abilityIcon != null)
-            //     _abilityIcon.sprite = _instance?.IconSprite;
+            // Update the ability icon to reflect the current cast rune automatically.
+            RefreshAbilityIcon();
+
+            if (_inputIcon != null)
+            {
+                _inputIcon.color = _iconNormalColor;
+            }
 
             if (_abilityIcon != null)
             {
@@ -94,11 +119,38 @@ namespace UI
             }
         }
 
+        private void RefreshAbilityIcon()
+        {
+            if (_abilityIcon == null)
+                return;
+
+            Sprite icon = GetCurrentCastRuneIcon();
+            _abilityIcon.sprite = icon;
+            _abilityIcon.enabled = icon != null;
+        }
+
+        private Sprite GetCurrentCastRuneIcon()
+        {
+            if (_instance == null)
+                return null;
+
+            // Only show the ability rune icon here (shield, dash, etc.).
+            // Modifier rune icons are handled elsewhere and should not appear
+            // on the ability icon.
+            return _instance.Recipe.Ability?.Icon;
+        }
+
         private void SetSliderNull()
         {
             _cooldownSlider.value = 0f;
+            if (_inputIcon != null)
+                _inputIcon.color = _grayedColor;
             if (_abilityIcon != null)
+            {
+                _abilityIcon.sprite = null;
+                _abilityIcon.enabled = false;
                 _abilityIcon.color = _grayedColor;
+            }
         }
     }
 }
