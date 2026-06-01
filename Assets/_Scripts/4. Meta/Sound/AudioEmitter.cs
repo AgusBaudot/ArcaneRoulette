@@ -91,7 +91,7 @@ namespace Meta
             if (_handle != null)
             {
                 _handle.IsPlaying = true;
-                _handle.IsPlaying = true;
+                _handle.IsValid = true;
                 _handle.Event = audioEvent;
             }
         }

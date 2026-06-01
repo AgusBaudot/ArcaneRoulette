@@ -8,12 +8,16 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
     public sealed class DashAbilityRune : AbilityRuneSO
     {
+        [Header("Stats")]
         [SerializeField] private float _dashSpeed = 20f;
         [SerializeField] private float _baseDashDuration = 0.2f;
         [SerializeField] private float _cooldownDuration = 0.8f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _defaultCastSound;
+        [SerializeField] private ElementalSound[] _elementalSounds;
 
         public override AbilityType Type => AbilityType.Dash;
         public override bool IsHoldAbility => false;
@@ -21,10 +25,31 @@ namespace Core
 
         public override void Activate(SpellContext ctx)
         {
+            AudioEventSO sound = GetCastSound(ctx.AttackerElement);
+            if (sound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = sound,
+                    WorldPosition = ctx.Runner.transform.position
+                });
+            }
+            
             var args = new DashActivationArgs();
             (ctx.Source as ISpellEventSource)?.RaiseBeforeActivate(args);
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
                 _baseDashDuration * args.DurationMultiplier, args));
+        }
+
+        private AudioEventSO GetCastSound(ElementType element)
+        {
+            foreach (var map in _elementalSounds)
+            {
+                if (map.Element == element)
+                    return map.CastSound;
+            }
+
+            return _defaultCastSound;
         }
 
         private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args)

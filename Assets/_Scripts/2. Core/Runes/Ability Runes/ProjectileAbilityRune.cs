@@ -7,12 +7,16 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Projectile")]
     public class ProjectileAbilityRune : AbilityRuneSO
     {
+        [Header("Stats")]
         [SerializeField] private Projectile _projectilePrefab;
         [SerializeField] private float _projectileSpeed = 18f;
         [SerializeField] private int _baseDamage = 10;
         [SerializeField] private float _windupDuration = 0.08f;
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
         [SerializeField] private float _offset = 2f;
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _defaultCastSound;
+        [SerializeField] private ElementalSound[] _elementalSounds;
 
         public override AbilityType Type => AbilityType.Projectile;
         public override bool IsHoldAbility => false;
@@ -20,9 +24,30 @@ namespace Core
         
         public override void Activate(SpellContext ctx)
         {
+            AudioEventSO audio = GetCastSound(ctx.AttackerElement);
+            if (audio != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = audio,
+                    WorldPosition = ctx.Runner.transform.position
+                });
+            }
+            
             var args = new ProjectileFireArgs(); //Default values = baseline.
             (ctx.Source as ISpellEventSource)?.RaiseBeforeFire(args); //Cast runes write into args.
             ctx.Runner.StartCoroutine(WindUpThenFire(ctx, args));
+        }
+        
+        private AudioEventSO GetCastSound(ElementType element)
+        {
+            foreach (var map in _elementalSounds)
+            {
+                if (map.Element == element)
+                    return map.CastSound;
+            }
+
+            return _defaultCastSound;
         }
 
         private IEnumerator WindUpThenFire(SpellContext ctx, ProjectileFireArgs args)
