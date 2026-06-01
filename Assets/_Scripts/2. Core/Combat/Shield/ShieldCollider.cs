@@ -77,7 +77,7 @@ namespace Core
 
                 foreach (var d in dirs)
                 {
-                    var go = Instantiate(_reflectedProjectilePrefab, other.transform.position, Quaternion.LookRotation(d));
+                    var go = Helpers.ProjFactory.Spawn(_reflectedProjectilePrefab, other.transform.position, Quaternion.LookRotation(d));
                     go.Init(_boundInstance, d, speed, enemy.Damage, _runner, AbilityType.Projectile, true);
                     go.SetPierceCount(0);
                     go.SetBounceCount(0);

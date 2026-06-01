@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace World 
+namespace World
 {
     public class MapGenerator : MonoBehaviour
     {
@@ -12,24 +12,35 @@ namespace World
         public int[] getFloorPlan => floorPlan;
 
         private int floorPlanCount; //Cuantas rooms spawnearon
-        private int minRooms;
-        private int maxRooms;
+
+        [Header("Dungeon Size")]
+        [SerializeField] private int minRooms = 6;
+        [SerializeField] private int maxRooms = 6;
+        [SerializeField] private Vector2 roomOffset = new(10f, 10f);
+
+        [Header("Special Room Counts")]
+        [SerializeField] private int targetItemRooms = 1;
+        [SerializeField] private int targetShopRooms = 0;
+        [SerializeField] private int targetSecretRooms = 0;
+
         private List<int> endRooms; //Dead End Room
 
         //Guardar el Index de salas especiales
         private int bossRoomIndex;
-        private int secretRoomIndex;
-        private int shopRoomIndex;
-        private int itemRoomIndex;
+        public int BossRoomIndex => bossRoomIndex;
+        public Vector2 RoomOffset => roomOffset;
+
+        //Converted to lists to support 0, 1, or multiple rooms
+        private List<int> secretRoomIndices = new();
+        private List<int> shopRoomIndices = new();
+        private List<int> itemRoomIndices = new();
 
         private Queue<int> cellQueue; // cola de generacion de rooms
 
         private List<RoomInfo> _spawnedCellsInfo;
 
-        public void Awake()
+        public void Init()
         {
-            minRooms = 7;
-            maxRooms = 15;
             _spawnedCellsInfo = new List<RoomInfo>();
         }
         public List<RoomInfo> SetupDungeon()
@@ -59,11 +70,13 @@ namespace World
                 if (index > 20) created |= VisitCell(index - 10);
                 if (index < 70) created |= VisitCell(index + 10);
 
-                if (created == false) // si no se logró crear ninguna sala se agrega a la lista de rooms finales
+                if (created == false) // si no se logr  crear ninguna sala se agrega a la lista de rooms finales
                     endRooms.Add(index);
             }
 
-            if (floorPlanCount < minRooms) // si no se logro crear el minimo de salas entonces vuelve a empezar
+            //1 is for boss
+            int requiredSpecialRooms = 1 + targetItemRooms + targetShopRooms;
+            if (floorPlanCount < minRooms || endRooms.Count < requiredSpecialRooms)
             {
                 SetupDungeon();
                 return;
@@ -73,51 +86,96 @@ namespace World
         }
         private void SetupSpecialRooms()
         {
+            //Clean up old lists
+            secretRoomIndices.Clear();
+            shopRoomIndices.Clear();
+            itemRoomIndices.Clear();
+
+            bool generationSuccessful = true;
+
             bossRoomIndex = endRooms.Count > 0 ? endRooms[endRooms.Count - 1] : -1; // si hay room que sea la ultima en agregarse, si no valor invalido
 
             if (bossRoomIndex != -1)
             {
                 endRooms.RemoveAt(endRooms.Count - 1); // Quitamos la bossRoom de la lista de endRooms
             }
+            else
+            {
+                generationSuccessful = false;
+            }
 
-            itemRoomIndex = RandomEndRoom(); //
-            shopRoomIndex = RandomEndRoom();
-            secretRoomIndex = PickSecretRoom();
+            for (int i = 0; i < targetItemRooms; i++)
+            {
+                int r = RandomEndRoom();
+                if (r == -1)
+                {
+                    generationSuccessful = false;
+                }
+                else
+                {
+                    itemRoomIndices.Add(r);
+                }
+            }
 
-            if (itemRoomIndex == -1 || shopRoomIndex == -1 || bossRoomIndex == -1 || secretRoomIndex == -1) // si todo sale mal volver a empezar
+            for (int i = 0; i < targetShopRooms; i++)
+            {
+                int r = RandomEndRoom();
+                if (r == -1)
+                {
+                    generationSuccessful = false;
+                }
+                else
+                {
+                    shopRoomIndices.Add(r);
+                }
+            }
+
+            for (int i = 0; i < targetSecretRooms; i++)
+            {
+                int r = PickSecretRoom();
+                if (r == -1)
+                {
+                    generationSuccessful = false;
+                }
+                else
+                {
+                    secretRoomIndices.Add(r);
+                    SaveRoomInfo(r);
+                }
+            }
+
+            if (!generationSuccessful)
             {
                 SetupDungeon();
                 return;
             }
 
-            SaveRoomInfo(secretRoomIndex);
-
-            UpdateSpecialRoomVisual();
+            UpdateSpecialRoomType();
         }
-        private void UpdateSpecialRoomVisual()
+        private void UpdateSpecialRoomType()
         {
             for (int i = 0; i < _spawnedCellsInfo.Count; i++)
             {
                 RoomInfo cell = _spawnedCellsInfo[i];
 
-                if (cell.index == itemRoomIndex)
+                if (itemRoomIndices.Contains(cell.index))
                 {
                     cell.SetRoomType(RoomType.Item);
                 }
 
-                if (cell.index == shopRoomIndex)
+                else if (shopRoomIndices.Contains(cell.index))
                 {
                     cell.SetRoomType(RoomType.Shop);
                 }
 
-                if (cell.index == bossRoomIndex)
-                {
-                    cell.SetRoomType(RoomType.Boss);
-                }
-
-                if (cell.index == secretRoomIndex)
+                else if (secretRoomIndices.Contains(cell.index))
                 {
                     cell.SetRoomType(RoomType.Secret);
+                }
+
+                else if (cell.index == bossRoomIndex)
+                {
+                    cell.SetRoomType(RoomType.Boss);
                 }
 
                 _spawnedCellsInfo[i] = cell;
@@ -176,7 +234,7 @@ namespace World
         }
         private bool VisitCell(int index)
         {
-            if (floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || floorPlanCount > maxRooms || Random.value < 0.5f) // Si se encuentra libre seguimos y no tiene mas de 1 vecino( = 0)
+            if (floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || floorPlanCount >= maxRooms || Random.value < 0.5f) // Si se encuentra libre seguimos y no tiene mas de 1 vecino( = 0)
                 return false;
 
             cellQueue.Enqueue(index); //Guardamos el index de la sala principal

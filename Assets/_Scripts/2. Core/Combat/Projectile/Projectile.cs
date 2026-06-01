@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -7,7 +8,18 @@ namespace Core
     public sealed class Projectile : BaseProjectile
     {
         public override bool IsEnemy => false;
-        public override ElementType SpellElement => _source?.SpellElement ?? ElementType.Neutral;
+        public override ElementType SpellElement => _cachedElement;
+
+        [Serializable]
+        public struct ElementVisual
+        {
+            public ElementType Element;
+            public GameObject VisualGO;
+        }
+        
+        [Header("Visuals")]
+        [Tooltip("Map each element to its corresponding child GameObject inside the VisualPivot.")]
+        [SerializeField] private ElementVisual[] _elementVisuals;
 
         private SpellInstance _source;
         private MonoBehaviour _runner;
@@ -16,6 +28,7 @@ namespace Core
         private int _pierceCount;
         private AbilityType _abilityTypeForOnHit = AbilityType.Projectile;
         private bool _excludeBounceCastRuneForOnHitContext;
+        private ElementType _cachedElement;
 
         // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
@@ -34,13 +47,30 @@ namespace Core
             _baseDamage = baseDamage;
             _abilityTypeForOnHit = abilityTypeForOnHit;
             _excludeBounceCastRuneForOnHitContext = excludeBounceCastRuneForOnHitContext;
+            _cachedElement = _source?.SpellElement ?? ElementType.Neutral;
 
             BounceCount = 0;
             _pierceCount = 0;
             _hitTargets.Clear();
+            
+            UpdateActiveVisual(SpellElement);
 
             SetVelocity(direction, speed);
             PlayParticles();
+        }
+
+        private void UpdateActiveVisual(ElementType currentElement)
+        {
+            if (_elementVisuals == null)
+                return;
+
+            foreach (var ev in _elementVisuals)
+            {
+                if (ev.VisualGO != null)
+                {
+                    ev.VisualGO.SetActive(ev.Element == currentElement);
+                }
+            }
         }
 
         public void SetPierceCount(int count) => _pierceCount = count;

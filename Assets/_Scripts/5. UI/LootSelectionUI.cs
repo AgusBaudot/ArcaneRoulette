@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Foundation;
+using World;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,17 +49,17 @@ namespace UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+            EventBus.Subscribe<RoomClearEvent>(OnRoomCleared);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
+            EventBus.Unsubscribe<RoomClearEvent>(OnRoomCleared);
         }
 
         // ── Event handler ─────────────────────────────────────────────────────
 
-        private void OnRoomCleared(RoomManager.RoomClearEvent evt)
+        private void OnRoomCleared(RoomClearEvent evt)
         {
             if (_isShowing)
                 return;

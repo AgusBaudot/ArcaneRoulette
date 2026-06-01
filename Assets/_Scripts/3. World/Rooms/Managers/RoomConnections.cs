@@ -12,18 +12,52 @@ namespace World
         [SerializeField] private RoomDoor _up;
         [SerializeField] private RoomDoor _left;
         [SerializeField] private RoomDoor _right;
+
         [Header("Doors")]
-        [SerializeField] private GameObject _DownDoor;
+        [SerializeField] private GameObject _downDoor;
         [SerializeField] private GameObject _upDoor;
         [SerializeField] private GameObject _leftDoor;
         [SerializeField] private GameObject _rightDoor;
-        private AllDoorsInfo _allDoorsInfo;
-        [Header("PlayerSpawn")]
-        float _offsetSpawn = 1f;
-        float _liftDoors = 5f;
-        private Vector3 _playerSpawnDown, _playerSpawnUp, _playerSpawnLeft, _playerSpawnRight;
 
+        [Header("PlayerSpawn")]
+        [SerializeField] private float _offsetSpawn = 1f;
+        [SerializeField] private float _liftDoors = 5f;
+
+        private AllDoorsInfo _allDoorsInfo;
+        private Vector3 _playerSpawnDown, _playerSpawnUp, _playerSpawnLeft, _playerSpawnRight;
         public event Action<EdgeDirection> OnDoorActivated;
+
+        // ---- Init ----
+        public void SetDoorColors(AllDoorsInfo info)
+        {
+            if (_upDoor.TryGetComponent<Renderer>(out var upRend)) upRend.material = info.Up.Material;
+            if (_downDoor.TryGetComponent<Renderer>(out var downRend)) downRend.material = info.Down.Material;
+            else
+            {
+                Debug.Log(gameObject.name);
+            }
+            if (_leftDoor.TryGetComponent<Renderer>(out var leftRend)) leftRend.material = info.Left.Material;
+            if (_rightDoor.TryGetComponent<Renderer>(out var rightRend)) rightRend.material = info.Right.Material;
+            _allDoorsInfo = info;
+        }
+        public void CalculateSpawnsEntry()
+        {
+            _playerSpawnDown = GetFlatSpawnPosition(_downDoor.transform.position, new Vector3(0f, 0f, _offsetSpawn));
+            _playerSpawnUp = GetFlatSpawnPosition(_upDoor.transform.position, new Vector3(0f, 0f, -_offsetSpawn));
+            _playerSpawnLeft = GetFlatSpawnPosition(_leftDoor.transform.position, new Vector3(_offsetSpawn, 0f, 0f));
+            _playerSpawnRight = GetFlatSpawnPosition(_rightDoor.transform.position, new Vector3(-_offsetSpawn, 0f, 0f));
+        }
+
+        private Vector3 GetFlatSpawnPosition(Vector3 doorPosition, Vector3 offset)
+        {
+            return new Vector3(doorPosition.x + offset.x, 0f, doorPosition.z + offset.z);
+        }
+
+        // ---- Info ----
+        private void EnterDoor(EdgeDirection direction)
+        {
+            OnDoorActivated?.Invoke(direction);
+        }
         public Vector3 GetPlayerSpawn(EdgeDirection dir)
         {
             switch (dir)
@@ -35,6 +69,17 @@ namespace World
                 default: return Vector3.zero;
             }
         }
+        public void RoomCleared()
+        {
+            Vector3 liftOffset = new Vector3(0f, _liftDoors, 0f);
+
+            if (_allDoorsInfo.Down.UnlockOnClear) _downDoor.transform.position += liftOffset;
+            if (_allDoorsInfo.Up.UnlockOnClear) _upDoor.transform.position += liftOffset;
+            if (_allDoorsInfo.Left.UnlockOnClear) _leftDoor.transform.position += liftOffset;
+            if (_allDoorsInfo.Right.UnlockOnClear) _rightDoor.transform.position += liftOffset;
+        }
+
+        // ---- Enable Disable ----
         public void EnableConnections()
         {
             if (_bottom != null) _bottom.OnPlayerEnter += EnterDoor;
@@ -42,39 +87,12 @@ namespace World
             if (_left != null) _left.OnPlayerEnter += EnterDoor;
             if (_right != null) _right.OnPlayerEnter += EnterDoor;
         }
-        public void SetDoorColors(AllDoorsInfo info) 
-        {
-            _upDoor.GetComponent<Renderer>().material = info.Up.Material;
-            _DownDoor.GetComponent<Renderer>().material = info.Down.Material;
-            _leftDoor.GetComponent<Renderer>().material = info.Left.Material;
-            _rightDoor.GetComponent<Renderer>().material = info.Right.Material;
-            _allDoorsInfo = info;
-        }
         public void DisableConnections()
         {
-            _bottom.OnPlayerEnter -= EnterDoor;
-            _up.OnPlayerEnter -= EnterDoor;
-            _left.OnPlayerEnter -= EnterDoor;
-            _right.OnPlayerEnter -= EnterDoor;
-        }
-        public void CalculateSpawnsEntry()
-        {
-            _playerSpawnDown = _DownDoor.transform.position + new Vector3(0, -1, _offsetSpawn);
-            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, -1, -_offsetSpawn);
-            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, -1, 0);
-            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, -1, 0);
-        }
-        private void EnterDoor(EdgeDirection direction)
-        {
-            OnDoorActivated?.Invoke(direction);
-        }
-        public void RoomCleared() 
-        {
-            if (_allDoorsInfo.Down.UnlockOnClear) _DownDoor.transform.position = _DownDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Up.UnlockOnClear) _upDoor.transform.position = _upDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Left.UnlockOnClear) _leftDoor.transform.position = _leftDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Right.UnlockOnClear) _rightDoor.transform.position = _rightDoor.transform.position + new Vector3(0, _liftDoors, 0);
+            if (_bottom != null) _bottom.OnPlayerEnter -= EnterDoor;
+            if (_up != null) _up.OnPlayerEnter -= EnterDoor;
+            if (_left != null) _left.OnPlayerEnter -= EnterDoor;
+            if (_right != null) _right.OnPlayerEnter -= EnterDoor;
         }
     }
 }
-
