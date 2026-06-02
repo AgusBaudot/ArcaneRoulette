@@ -8,6 +8,7 @@ namespace Foundation
         public string Name;
         public string Type;
         public Sprite Icon;
+        public Sprite StoneLessIcon;
         [TextArea]
         public string Description;
     }
