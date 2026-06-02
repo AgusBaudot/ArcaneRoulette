@@ -60,14 +60,7 @@ namespace Core
             go.SetPierceCount(args.PierceCount);
             go.SetBounceCount(args.BounceCount);
             
-            if (args.SizeMultiplier != 1f)
-            {
-                go.transform.GetChild(0).localScale = Vector3.one * args.SizeMultiplier;
-                
-                var col = go.GetComponent<SphereCollider>();
-                if (col != null)
-                    col.radius *= args.SizeMultiplier / 2;
-            }
+            go.ApplyVisualScale(args.SizeMultiplier);
 
             if (args.HomingCount > 0)
                 SpawnHomingProjectiles(ctx, dir, args.HomingCount);

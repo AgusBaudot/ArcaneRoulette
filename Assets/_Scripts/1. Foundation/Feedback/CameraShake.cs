@@ -38,7 +38,7 @@ namespace Foundation
         public static void AddTrauma(float amount)
         {
             if (Instance == null) return;
-            Instance._trauma = Mathf.Clamp01(Instance._trauma + amount);
+            Instance._trauma = Mathf.Max(Instance._trauma, amount);
         }
 
         public void Tick(float deltaTime)

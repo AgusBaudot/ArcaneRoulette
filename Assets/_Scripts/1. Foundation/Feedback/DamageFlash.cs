@@ -29,6 +29,9 @@ namespace Foundation
         /// <param name="duration"></param>
         public void Flash(float duration)
         {
+            if (!isActiveAndEnabled)
+                return;
+            
             StopAllCoroutines();
             StartCoroutine(DoFlash(duration));
         }
@@ -51,6 +54,9 @@ namespace Foundation
         }
         private void ResetColors()
         {
+            if (_originalColors == null)
+                return;
+            
             for (int i = 0; i < _renderers.Length; i++)
             {
                 if (_renderers[i] != null)

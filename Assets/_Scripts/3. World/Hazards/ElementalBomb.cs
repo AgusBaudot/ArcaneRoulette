@@ -33,10 +33,11 @@ namespace World
             
             if (projectile.IsEnemy)
                 return;
-
+            
             // Element must match the bomb's pre-imbued element.
             if (projectile.SpellElement != _element)
                 return;
+            
 
             _triggered = true;
             StartCoroutine(Explode());

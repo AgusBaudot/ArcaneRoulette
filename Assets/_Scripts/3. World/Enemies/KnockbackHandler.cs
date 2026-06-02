@@ -19,12 +19,20 @@ namespace World
 
         public void ApplyKnockback(Vector3 direction, float force)
         {
-            if (_current != null) StopCoroutine(_current);
+            if (!isActiveAndEnabled)
+                return;
+            
+            if (_current != null) 
+                StopCoroutine(_current);
+            
             _current = StartCoroutine(Run(direction, force));
         }
 
         private IEnumerator Run(Vector3 direction, float force)
         {
+            if (_rb.isKinematic)
+                yield break;
+            
             IsKnockedBack = true;
             
             //Ensure we aren't knocking them directly into the floor/sky
