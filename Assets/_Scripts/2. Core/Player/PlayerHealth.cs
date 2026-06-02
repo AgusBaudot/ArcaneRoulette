@@ -62,7 +62,7 @@ namespace Core
             
             if (Current <= 0f)
                 Die();
-                
+
             return true;
         }
 
