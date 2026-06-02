@@ -11,16 +11,21 @@ namespace World
         [Tooltip("Maximum number of rooms in the grid + boss.\nMaxRoom MUST NEVER BE LESS than minRoom.")]
         public int MaxRooms;
 
+        [Header("Fixed Room Counts")]
+        [Tooltip("How many of the minumun rooms are guaranteed to be Regular type.")]
+        public int MinRegularRooms;
+        [Tooltip("How many of the total rooms are guaranteed to be Regular type.")]
+        public int MaxRegularRooms;
 
-        [Header("Special Room Counts")]
-        [Tooltip("Amount of Boos rooms in this generation.")]
-        public int TargetBossRoom;
-        [Tooltip("Amount of Resting rooms in this generation.")]
-        public int TargetRestingRoom;
-        [Tooltip("Amount of Shop rooms in this generation.")]
-        public int TargetShopRooms;
-        [Tooltip("Amount of Secret rooms in this generation.")]
-        public int TargetSecretRooms;
+        [Header("Guaranteed Special Rooms")]
+        [Tooltip("If true, at least 1 Resting room is guaranteed to spawn.")]
+        public bool GuaranteeRestingRoom;
+        [Tooltip("If true, at least 1 Shop room is guaranteed to spawn.")]
+        public bool GuaranteeShopRoom;
+        [Tooltip("If true, at least 1 Secret room is guaranteed to spawn.")]
+        public bool GuaranteeEventRoom;
+        [Tooltip("If true, at least 1 Item room is guaranteed to spawn.")]
+        public bool GuaranteeArtifactRoom;
     }
 
 }

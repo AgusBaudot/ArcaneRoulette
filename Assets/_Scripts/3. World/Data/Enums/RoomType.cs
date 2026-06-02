@@ -2,6 +2,6 @@ namespace World
 {
     public enum RoomType
     {
-        Regular, Item, Shop, Boss, Secret, Lobby, None
+        Regular, Artifact, Shop, Boss, Resting, Lobby, Event, None
     }
 }

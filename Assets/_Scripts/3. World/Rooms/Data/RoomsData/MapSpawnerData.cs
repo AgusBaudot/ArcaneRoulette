@@ -16,7 +16,9 @@ namespace World
         [Tooltip("Lobby = Entry room of the floor.")]
         public RoomManager LobbyRoomPrefab;
         [Tooltip("Secret = just a normal room surrounded by many rooms.")]
-        public RoomManager SecretRoomPrefab;
+        public RoomManager EventRoomPrefab;
+        [Tooltip("Secret = just a normal room surrounded by many rooms.")]
+        public RoomManager ArtifactRoomPrefab;
         [Tooltip("Select Material and de RoomType for that room.")]
         public DoorScriptable[] doorsMaterials;
         [Tooltip("Offset means the space between rooms. \n (recomended > 100)")]

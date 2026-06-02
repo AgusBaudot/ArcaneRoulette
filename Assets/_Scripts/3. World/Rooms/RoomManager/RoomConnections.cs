@@ -43,7 +43,6 @@ namespace World
             _playerSpawnLeft = GetFlatSpawnPosition(_leftDoor.transform.position, new Vector3(_offsetSpawn, 0f, 0f));
             _playerSpawnRight = GetFlatSpawnPosition(_rightDoor.transform.position, new Vector3(-_offsetSpawn, 0f, 0f));
         }
-
         private Vector3 GetFlatSpawnPosition(Vector3 doorPosition, Vector3 offset)
         {
             return new Vector3(doorPosition.x + offset.x, 0f, doorPosition.z + offset.z);

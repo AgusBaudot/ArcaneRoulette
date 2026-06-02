@@ -60,12 +60,12 @@ namespace World
                     prefab = data.BossRoomPrefab;
                     break;
 
-                case RoomType.Item:
+                case RoomType.Resting:
                     prefab = data.RestingRoomPrefab;
                     break;
 
-                case RoomType.Secret:
-                    prefab = data.SecretRoomPrefab;
+                case RoomType.Event:
+                    prefab = data.EventRoomPrefab;
                     break;
 
                 case RoomType.Shop:
@@ -74,6 +74,10 @@ namespace World
 
                 case RoomType.Lobby:
                     prefab = data.LobbyRoomPrefab;
+                    break;
+
+                case RoomType.Artifact:
+                    prefab = data.ArtifactRoomPrefab;
                     break;
             }
             RoomManager newRoom = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity);
