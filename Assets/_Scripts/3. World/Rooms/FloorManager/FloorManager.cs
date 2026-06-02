@@ -6,69 +6,76 @@ using UnityEngine;
 
 namespace World
 {
-    [RequireComponent(typeof(MapGenerator))]
-    [RequireComponent(typeof(MapSpawner))]
     [RequireComponent(typeof(EncounterGenerator))]
     public class FloorManager : MonoBehaviour
     {
-        [Header("Settings")]
-        [SerializeField] private RoomDoor _startRoom;
-        [SerializeField] private RoomDoor _generateFloor;
-
-        [Header("MapMaker")]
+        [Header("Components")]
         private MapGenerator _mapGenerator;
         private MapSpawner _mapSpawner;
         private EncounterGenerator _encounterGenerator;
+
+        [Header("Data")]
+        [SerializeField] private MapGeneratorData _generatorData;
+        [SerializeField] private MapSpawnerData _spawnerData;
 
         [Header("MoveBetweenRooms")]
         private RoomManager _currentRoom;
         [SerializeField] private PlayerController _player;
 
-        [Header("RunInfo")]
-        [SerializeField] private int _roomsVisited = 0;
-
+        [Tooltip("Don't assign it anything, it shouldn't break, but it won't do anything.")]
+        [Header("RunInfo")] // info solo para leer desde el inspector
+        [SerializeField] private int _roomsVisited;
         [SerializeField] public int EndOfTheFloor;
-        private int _currentIndex; // todavia no se usa pero por las dudas se guarda
-
+        [SerializeField] private int LobbyIndex;
 
         public static FloorManager instance;
+
         private void Awake()
         {
-            _mapGenerator = GetComponent<MapGenerator>();
-            _mapSpawner = GetComponent<MapSpawner>();
+            _mapGenerator = new MapGenerator();
+            _mapSpawner = new MapSpawner();
+
             _encounterGenerator = GetComponent<EncounterGenerator>();
 
-            _mapGenerator.Init();
-            _mapSpawner.Init();
+            _mapGenerator.Init(_generatorData);
+            _mapSpawner.Init(_spawnerData);
 
             if (_player == null)
             {
-                Debug.Log($"<color=red>FAIL:</color> Forget to assing Player =  {_player}");
+                Debug.Log($"<color=red>FAIL:</color> player reference null =  {_player}");
             }
         }
         private void Start()
         {
             instance = this;
-            _startRoom.OnPlayerEnter += StartRun;
-            _generateFloor.OnPlayerEnter += GenerateFloor;
+            StartCoroutine(GenerateFloor());
         }
-        private void GenerateFloor(EdgeDirection dir)
+        private IEnumerator GenerateFloor()
         {
-            _generateFloor.OnPlayerEnter -= GenerateFloor;
 
-            List<RoomInfo> rooms = _mapGenerator.SetupDungeon();
+            var (rooms, success) = _mapGenerator.SetupDungeon();
 
-            _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan, _mapGenerator.RoomOffset);
+            if (!success)
+            {
+                Debug.Log("MapGeneration Fail");
+                yield break;
+            }
 
+            yield return null;
+
+            _mapSpawner.InstantiateRooms(rooms, _mapGenerator.getFloorPlan);
             EndOfTheFloor = _mapGenerator.BossRoomIndex;
+            LobbyIndex = _mapGenerator.LobbyRoomIndex;
+
+            yield return null;
+
+            StartRun(EdgeDirection.Up);
         }
         private void StartRun(EdgeDirection dir)
         {
-            _startRoom.OnPlayerEnter -= StartRun;
-            if (_mapSpawner.RoomLookup.TryGetValue(45, out RoomManager room))
+            if (_mapSpawner.RoomLookup.TryGetValue(_mapGenerator.LobbyRoomIndex, out RoomManager room))
             {
                 _currentRoom = room;
-                _currentIndex = 45;
                 room.gameObject.SetActive(true);
                 SetupRoomEncounter(room);
                 room.EnableRoom();
@@ -82,15 +89,14 @@ namespace World
         }
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)
         {
-            _currentIndex = currentIndexRoom;
             int playerDirection = 0;
             switch (dir)
             {
                 case EdgeDirection.Up:
-                    playerDirection = -10;
+                    playerDirection = -DungeonGrid.GRID_WIDTH;
                     break;
                 case EdgeDirection.Down:
-                    playerDirection = 10;
+                    playerDirection = DungeonGrid.GRID_WIDTH;
                     break;
                 case EdgeDirection.Left:
                     playerDirection = -1;
@@ -112,7 +118,6 @@ namespace World
                 _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
                 _player.SetCanMove(true);
                 // hasta aca, por un metodo del player
-                SetupRoomEncounter(room);
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
             }

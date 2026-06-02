@@ -4,107 +4,106 @@ using UnityEngine;
 
 namespace World
 {
-    public class MapSpawner : MonoBehaviour
+    public class MapSpawner
     {
-        [SerializeField] RoomManager[] RegularRoomPrefab;
-        [SerializeField] RoomManager ItemRoomPrefab;
-        [SerializeField] RoomManager ShopRoomPrefab;
-        [SerializeField] RoomManager BossRoomPrefab;
-        [SerializeField] RoomManager SecretRoomPrefab;
+        [Header("Map Spawner Data")]
+        private MapSpawnerData data;
 
-        [SerializeField] DoorScriptable[] doorsMaterials;
-        private Dictionary<RoomType, Material> _doorLookup;
-        private Dictionary<int, RoomManager> _roomLookup;
+        private Dictionary<RoomType, Material> _doorLookup = new Dictionary<RoomType, Material>();
+        private Dictionary<int, RoomManager> _roomLookup = new Dictionary<int, RoomManager>();
         public Dictionary<int, RoomManager> RoomLookup => _roomLookup;
 
-        public void Init()
+        public void Init(MapSpawnerData mapSpawnerData)
         {
-            _doorLookup = new Dictionary<RoomType, Material>();
-            _roomLookup = new Dictionary<int, RoomManager>();
+            data = mapSpawnerData;
 
-            foreach (DoorScriptable door in doorsMaterials)
+
+            foreach (DoorScriptable door in data.doorsMaterials)
             {
                 _doorLookup.Add(door.roomType, door.materialDoor);
             }
         }
-        public void SetUpRooms(List<RoomInfo> rooms, int[] floorPlan, Vector2 roomOffset)
+        public void InstantiateRooms(List<RoomInfo> rooms, int[] floorPlan)
         {
             foreach (RoomManager room in _roomLookup.Values)
             {
-                Destroy(room.gameObject);
+                UnityEngine.Object.Destroy(room.gameObject);
+                //Destroy(room.gameObject);
             }
             _roomLookup.Clear();
 
             foreach (RoomInfo room in rooms)
             {
-                SpawnRooms(room.index, room.roomType, roomOffset);
+                SpawnRoom(room.index, room.roomType, data.roomOffset);
             }
 
             SetUpDoors(floorPlan);
             SetAllActiveFalse();
         }
-        private void SpawnRooms(int index, RoomType roomType, Vector2 offset)
+        private void SpawnRoom(int index, RoomType roomType, Vector2 offset)
         {
-            int x = index % 10;
-            int z = index / 10;
+            int x = DungeonGrid.GetX(index);
+            int y = DungeonGrid.GetY(index);
 
-            Vector3 position = new Vector3(x * offset.x, 0, -z * offset.y);
+            Vector3 position = new Vector3(x * offset.x, 0, -y * offset.y);
 
             RoomManager prefab = null;
 
             switch (roomType)
             {
                 case RoomType.Regular:
-                    int rand = Random.Range(0, RegularRoomPrefab.Length);
-                    prefab = RegularRoomPrefab[rand];
+                    int rand = Random.Range(0, data.RegularRoomPrefab.Length);
+                    prefab = data.RegularRoomPrefab[rand];
                     break;
 
                 case RoomType.Boss:
-                    prefab = BossRoomPrefab;
+                    prefab = data.BossRoomPrefab;
                     break;
 
                 case RoomType.Item:
-                    prefab = ItemRoomPrefab;
+                    prefab = data.RestingRoomPrefab;
                     break;
 
                 case RoomType.Secret:
-                    prefab = SecretRoomPrefab;
+                    prefab = data.SecretRoomPrefab;
                     break;
 
                 case RoomType.Shop:
-                    prefab = ShopRoomPrefab;
+                    prefab = data.ShopRoomPrefab;
+                    break;
+
+                case RoomType.Lobby:
+                    prefab = data.LobbyRoomPrefab;
                     break;
             }
-
-            RoomManager newRoom = Instantiate(prefab, position, Quaternion.identity);
+            RoomManager newRoom = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity);
+            //RoomManager newRoom = Instantiate(prefab, position, Quaternion.identity);
 
             RoomInfo info = new RoomInfo();
 
             info.index = index;
-            info.value = 1;
             info.roomType = roomType;
 
             newRoom.Init(info);
 
             _roomLookup.Add(index, newRoom);
-            //spawnedRooms.Add(newRoom);
         }
         public void SetUpDoors(int[] floorPlan)
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
                 // save index of neighbours
-                int upIndex = rooms.Index - 10;
-                int downIndex = rooms.Index + 10;
+                int upIndex = rooms.Index - DungeonGrid.GRID_WIDTH;
+                int downIndex = rooms.Index + DungeonGrid.GRID_WIDTH;
                 int leftIndex = rooms.Index - 1;
                 int rightIndex = rooms.Index + 1;
 
                 // por si esta fuera del grid
-                int x = rooms.Index % 10;
+                int x = DungeonGrid.GetX(rooms.Index);
                 bool hasUpBounds = upIndex >= 0;
                 bool hasDownBounds = downIndex < floorPlan.Length;
                 bool hasLeftBounds = x > 0;
-                bool hasRightBounds = x < 9;
+                bool hasRightBounds = x < DungeonGrid.GRID_WIDTH - 1;
 
                 // ---- Send Info to Room Manager ----
                 AllDoorsInfo doorInfo = new AllDoorsInfo();
@@ -120,7 +119,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                rooms.gameObject.SetActive(false);
+                //rooms.gameObject.SetActive(false);
             }
         }
         private DoorInfo CreateDoorInfo(bool hasBounds, int neighbourIndex, int[] floorPlan)

@@ -11,7 +11,6 @@ namespace World
         //Serializado solo para testeo, luego lo saco
         [Header("Room Data")]
         [SerializeField] private int _index;
-        [SerializeField] private int _value;
         [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
         [SerializeField] private bool _cleared = false;
@@ -21,7 +20,6 @@ namespace World
 
         //Getters
         public int Index => _index;
-        public int Value => _value;
         public RoomType Type => _roomType;
         public bool Cleared => _cleared;
 
@@ -41,7 +39,6 @@ namespace World
         public void Init(RoomInfo info)
         {
             _index = info.index;
-            _value = info.value;
             _roomType = info.roomType;
             _state = RoomState.Idle;
         }
