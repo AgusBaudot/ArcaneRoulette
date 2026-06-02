@@ -8,7 +8,7 @@ namespace World
     {
         [SerializeField] private WaveEntry[] _waves;
 
-        public List<BaseEnemy> Spawn(EnemyEntry[] entries, int waveNumber)
+        public List<BaseEnemy> Spawn(EnemyEntry[] entries, int waveNumber, Transform player)
         {
             List<BaseEnemy> spawned = new();
             
@@ -35,6 +35,7 @@ namespace World
                 if (selectedPrefab != null)
                 {
                     BaseEnemy instance = Instantiate(selectedPrefab, transform.position, Quaternion.identity);
+                    instance.Init(player);
                     spawned.Add(instance);
                 }
             }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Foundation;
+using World;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -63,7 +64,7 @@ namespace UI
 
         // ── Event handler ─────────────────────────────────────────────────────
 
-        private void OnRoomCleared(RoomManager.RoomClearEvent evt)
+        private void OnRoomCleared(RoomClearEvent evt)
         {
             if (_isShowing)
                 return;

@@ -1,4 +1,5 @@
 using System;
+using Core;
 using UnityEngine;
 
 namespace World
@@ -7,13 +8,14 @@ namespace World
     {
         public event Action OnPlayerEnter;
 
+        [SerializeField] private GameObject _solidDoor;
+
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag("Player"))
+            if (!other.TryGetComponent<PlayerHurtBox>(out _))
                 return;
-            if (!other.isTrigger)
-                return;
-
+            
+            _solidDoor.SetActive(true);
             OnPlayerEnter?.Invoke();
             Destroy(gameObject);
         }

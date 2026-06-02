@@ -28,8 +28,6 @@ namespace World
 
             // Only players and enemies (IDamageable entities) activate the trap.
             // Projectiles and other objects are ignored.
-            // Debug.LogError("If player is dashing spikes won't detect IDamageable interface");
-            
             if (other.GetComponentInParent<IDamageable>() == null && other.GetComponentInParent<PlayerController>() == null)
                     return;
 
