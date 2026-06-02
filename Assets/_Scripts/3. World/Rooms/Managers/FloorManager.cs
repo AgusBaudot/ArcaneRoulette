@@ -1,14 +1,12 @@
 using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
-using Core;
 using UnityEngine;
 
-namespace World
+namespace World 
 {
     [RequireComponent(typeof(MapGenerator))]
     [RequireComponent(typeof(MapSpawner))]
-    [RequireComponent(typeof(EncounterGenerator))]
     public class FloorManager : MonoBehaviour
     {
         [Header("Settings")]
@@ -18,73 +16,60 @@ namespace World
         [Header("MapMaker")]
         private MapGenerator _mapGenerator;
         private MapSpawner _mapSpawner;
-        private EncounterGenerator _encounterGenerator;
 
         [Header("MoveBetweenRooms")]
-        private RoomManager _currentRoom;
-        [SerializeField] private PlayerController _player;
-
-        [Header("RunInfo")]
-        [SerializeField] private int _roomsVisited = 0;
-
-        [SerializeField] public int EndOfTheFloor;
+        private GameObject _player;
         private int _currentIndex; // todavia no se usa pero por las dudas se guarda
-
+        private RoomManager _currentRoom;
+        public int MaximumRooms = 1;
 
         public static FloorManager instance;
         private void Awake()
         {
             _mapGenerator = GetComponent<MapGenerator>();
             _mapSpawner = GetComponent<MapSpawner>();
-            _encounterGenerator = GetComponent<EncounterGenerator>();
-
-            _mapGenerator.Init();
-            _mapSpawner.Init();
-
-            if(_player == null) 
-            {
-                Debug.Log($"<color=red>FAIL:</color> Forget to assing Player =  {_player}");
-            }
         }
         private void Start()
         {
             instance = this;
+            _player = GameObject.FindGameObjectWithTag("Player");
             _startRoom.OnPlayerEnter += StartRun;
             _generateFloor.OnPlayerEnter += GenerateFloor;
         }
-        private void GenerateFloor(EdgeDirection dir)
+        private void GenerateFloor(EdgeDirection dir) 
         {
             _generateFloor.OnPlayerEnter -= GenerateFloor;
-
+            StartCoroutine(StartRunRoutine());
+        }
+        private IEnumerator StartRunRoutine()
+        {
+            GenerateFloor();
+            yield return new WaitForSeconds(0.1f); // Hay que hacer algo con esto
+        }
+        private void GenerateFloor()
+        {
             List<RoomInfo> rooms = _mapGenerator.SetupDungeon();
-
             _mapSpawner.SetUpRooms(rooms, _mapGenerator.getFlorrPlan);
-
-            EndOfTheFloor = _mapGenerator.BossRoomIndex;
+            //_mapSpawner.SetUpDoors(_mapGenerator.getFlorrPlan);
         }
         private void StartRun(EdgeDirection dir)
         {
             _startRoom.OnPlayerEnter -= StartRun;
-            if (_mapSpawner.RoomLookup.TryGetValue(45, out RoomManager room))
+            
+            if(_mapSpawner.RoomLookup.TryGetValue(45, out RoomManager room)) // 45 porque es la room inicial donde empieza el MapGenerator linea 57
             {
                 _currentRoom = room;
                 _currentIndex = 45;
                 room.gameObject.SetActive(true);
-                SetupRoomEncounter(room);
                 room.EnableRoom();
-                // Reemplazo
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
                 _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca
             }
         }
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)
-        {
+        { 
             _currentIndex = currentIndexRoom;
             int playerDirection = 0;
-            switch (dir)
+            switch (dir) 
             {
                 case EdgeDirection.Up:
                     playerDirection = -10;
@@ -100,29 +85,15 @@ namespace World
                     break;
             }
 
-            if (_mapSpawner.RoomLookup.TryGetValue(currentIndexRoom + playerDirection, out RoomManager room))
+            if (_mapSpawner.RoomLookup.TryGetValue(currentIndexRoom + playerDirection, out RoomManager room)) 
             {
                 _currentRoom.DisableRoom();
                 _currentRoom.gameObject.SetActive(false);
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
-                // cambiar esto
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
-                _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca, por un metodo del player
-                SetupRoomEncounter(room);
-                SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
+                _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
             }
-        }
-        private void SetupRoomEncounter(RoomManager room)
-        {
-            if (room.Cleared) return;
-            _roomsVisited++;
-            RoomEncounterData data = _encounterGenerator.Generate(room.Type, _roomsVisited);
-            room.InitEntity(data);
         }
     }
 }

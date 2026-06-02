@@ -22,29 +22,8 @@ namespace World
         float _offsetSpawn = 1f;
         float _liftDoors = 5f;
         private Vector3 _playerSpawnDown, _playerSpawnUp, _playerSpawnLeft, _playerSpawnRight;
-        public event Action<EdgeDirection> OnDoorActivated;
 
-        // ---- Init ----
-        public void SetDoorColors(AllDoorsInfo info) 
-        {
-            _upDoor.GetComponent<Renderer>().material = info.Up.Material;
-            _DownDoor.GetComponent<Renderer>().material = info.Down.Material;
-            _leftDoor.GetComponent<Renderer>().material = info.Left.Material;
-            _rightDoor.GetComponent<Renderer>().material = info.Right.Material;
-            _allDoorsInfo = info;
-        }
-        public void CalculateSpawnsEntry()
-        {
-            _playerSpawnDown = _DownDoor.transform.position + new Vector3(0, -1, _offsetSpawn);
-            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, -1, -_offsetSpawn);
-            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, -1, 0);
-            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, -1, 0);
-        }
-        // ---- Info ----
-        private void EnterDoor(EdgeDirection direction)
-        {
-            OnDoorActivated?.Invoke(direction);
-        }
+        public event Action<EdgeDirection> OnDoorActivated;
         public Vector3 GetPlayerSpawn(EdgeDirection dir)
         {
             switch (dir)
@@ -56,15 +35,6 @@ namespace World
                 default: return Vector3.zero;
             }
         }
-        public void RoomCleared() 
-        {
-            if (_allDoorsInfo.Down.UnlockOnClear) _DownDoor.transform.position = _DownDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Up.UnlockOnClear) _upDoor.transform.position = _upDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Left.UnlockOnClear) _leftDoor.transform.position = _leftDoor.transform.position + new Vector3(0, _liftDoors, 0);
-            if (_allDoorsInfo.Right.UnlockOnClear) _rightDoor.transform.position = _rightDoor.transform.position + new Vector3(0, _liftDoors, 0);
-        }
-
-        // ---- Enable Disable ----
         public void EnableConnections()
         {
             if (_bottom != null) _bottom.OnPlayerEnter += EnterDoor;
@@ -72,12 +42,38 @@ namespace World
             if (_left != null) _left.OnPlayerEnter += EnterDoor;
             if (_right != null) _right.OnPlayerEnter += EnterDoor;
         }
+        public void SetDoorColors(AllDoorsInfo info) 
+        {
+            _upDoor.GetComponent<Renderer>().material = info.Up.Material;
+            _DownDoor.GetComponent<Renderer>().material = info.Down.Material;
+            _leftDoor.GetComponent<Renderer>().material = info.Left.Material;
+            _rightDoor.GetComponent<Renderer>().material = info.Right.Material;
+            _allDoorsInfo = info;
+        }
         public void DisableConnections()
         {
-            if (_bottom != null) _bottom.OnPlayerEnter -= EnterDoor;
-            if (_up != null) _up.OnPlayerEnter -= EnterDoor;
-            if (_left != null) _left.OnPlayerEnter -= EnterDoor;
-            if (_right != null) _right.OnPlayerEnter -= EnterDoor;
+            _bottom.OnPlayerEnter -= EnterDoor;
+            _up.OnPlayerEnter -= EnterDoor;
+            _left.OnPlayerEnter -= EnterDoor;
+            _right.OnPlayerEnter -= EnterDoor;
+        }
+        public void CalculateSpawnsEntry()
+        {
+            _playerSpawnDown = _DownDoor.transform.position + new Vector3(0, -1, _offsetSpawn);
+            _playerSpawnUp = _upDoor.transform.position + new Vector3(0, -1, -_offsetSpawn);
+            _playerSpawnLeft = _leftDoor.transform.position + new Vector3(_offsetSpawn, -1, 0);
+            _playerSpawnRight = _rightDoor.transform.position + new Vector3(-_offsetSpawn, -1, 0);
+        }
+        private void EnterDoor(EdgeDirection direction)
+        {
+            OnDoorActivated?.Invoke(direction);
+        }
+        public void RoomCleared() 
+        {
+            if (_allDoorsInfo.Down.UnlockOnClear) _DownDoor.transform.position = _DownDoor.transform.position + new Vector3(0, _liftDoors, 0);
+            if (_allDoorsInfo.Up.UnlockOnClear) _upDoor.transform.position = _upDoor.transform.position + new Vector3(0, _liftDoors, 0);
+            if (_allDoorsInfo.Left.UnlockOnClear) _leftDoor.transform.position = _leftDoor.transform.position + new Vector3(0, _liftDoors, 0);
+            if (_allDoorsInfo.Right.UnlockOnClear) _rightDoor.transform.position = _rightDoor.transform.position + new Vector3(0, _liftDoors, 0);
         }
     }
 }

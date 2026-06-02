@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Core;
 using Foundation;
 using UnityEngine;
 using World;
@@ -8,20 +7,24 @@ using World;
 public class AIBruto : AIBrain
 {
 
-    [Header("Bruto Settings")]
-    [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
+    [Header("Range Settings")]
+    [SerializeField] private float attackRange;
+    [SerializeField] private float exitAttackRange;
     [SerializeField] private float attackRadius;
+    [SerializeField] private int _damage;
+    [SerializeField] private ElementType _element = ElementType.Neutral;
+    [SerializeField] private float _cooldown;
     private bool _wasInRange;
-
-    [Header("Prefab")]
-    [SerializeField] private ExplosionArea _explosionAreaPrefab;
-
-    [Header("Explosion")]
-    [SerializeField] private float _radius = 4f;
-    [SerializeField] private LayerMask _playerLayer;
+    [SerializeField] private float chaseSpeed;
+    [SerializeField] private float patrolSpeed;
+    [SerializeField] private GameObject FVXPrefab;
+    [SerializeField] private float vfxDuration = 1f;
+    [SerializeField] private LayerMask damageMask;
+    [SerializeField] private List<Transform> waypoints;
     protected override void Awake()
     {
         base.Awake();
+        waypoints.Add(target);
     }
     bool IsInAttackRangeStable()
     {
@@ -30,10 +33,10 @@ public class AIBruto : AIBrain
         if (_wasInRange)
             result = distance <= exitAttackRange;
         else
-            result = distance <= _attackRange;
+            result = distance <= attackRange;
         _wasInRange = result;
         return result;
-    } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
+    }
     protected override BehaviourTree BuildTree()
     {
         var tree = new BehaviourTree(base._behaviourTreeName);
@@ -42,16 +45,16 @@ public class AIBruto : AIBrain
         // --- Attack Sequence ---
         var attackSequence = new SequenceNode("Attack", 2);
         attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-        attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "BrutoPHAnim")));
+        attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _cooldown)));
         //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
         // --- Chase ---
         var chaseSequence = new SequenceNode("Chase", 1);
-        chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-        chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+        chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInAttackRangeStable())));
+        chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, chaseSpeed)));
 
         // --- Patrol ---
-        var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+        var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, waypoints, patrolSpeed), 0);
 
         // --- Estructura ---
         root.AddChild(attackSequence);
@@ -62,12 +65,24 @@ public class AIBruto : AIBrain
 
         return tree;
     }
-    public void DoAreaAttack()
+    void PlayAttackVFX()
     {
         Vector3 dir = (target.position - transform.position).normalized;
-        Vector3 pos = transform.position + dir * 3f;
-        var explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
-        explosion.Init(_radius, _attackDamage, _playerLayer, target, 1);
+        Vector3 pos = transform.position + dir * 2f;
+        var vfx = Instantiate(FVXPrefab, pos, Quaternion.LookRotation(dir));
+        Destroy(vfx, vfxDuration);
+    }
+    public void DoAreaAttack()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, attackRadius, damageMask);
+        PlayAttackVFX();
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent<IDamageable>(out var dmg))
+            {
+                dmg.TakeDamage(_damage, _element);
+            }
+        }
     }
 }
 

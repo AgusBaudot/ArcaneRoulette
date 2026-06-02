@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -9,17 +8,6 @@ namespace Core
     {
         public override bool IsEnemy => false;
         public override ElementType SpellElement => _source?.SpellElement ?? ElementType.Neutral;
-
-        [Serializable]
-        public struct ElementVisual
-        {
-            public ElementType Element;
-            public GameObject VisualGO;
-        }
-        
-        [Header("Visuals")]
-        [Tooltip("Map each element to its corresponding child GameObject inside the VisualPivot.")]
-        [SerializeField] private ElementVisual[] _elementVisuals;
 
         private SpellInstance _source;
         private MonoBehaviour _runner;
@@ -50,25 +38,9 @@ namespace Core
             BounceCount = 0;
             _pierceCount = 0;
             _hitTargets.Clear();
-            
-            UpdateActiveVisual(SpellElement);
 
             SetVelocity(direction, speed);
             PlayParticles();
-        }
-
-        private void UpdateActiveVisual(ElementType currentElement)
-        {
-            if (_elementVisuals == null)
-                return;
-
-            foreach (var ev in _elementVisuals)
-            {
-                if (ev.VisualGO != null)
-                {
-                    ev.VisualGO.SetActive(ev.Element == currentElement);
-                }
-            }
         }
 
         public void SetPierceCount(int count) => _pierceCount = count;

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Foundation;
 
 namespace World 
 {
@@ -10,76 +9,23 @@ namespace World
     {
         [Header("Room spawn settings")]
         [SerializeField] private Transform[] _enemySpawns;
-        [SerializeField] private int _enemiesAlive = 0;
-        [SerializeField] private int _currentWave = 0;
-        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
         private RoomEncounterData _encounterData;
+        private RoomState _state;
 
         [Header("Hazards")]
         [SerializeField] MonoBehaviour[] hazards; //overkill me quedo sin tiempo xd
 
+
+        [SerializeField] private GameObject _enemyPrefabMelee;
+        [SerializeField] public int _enemyMeleeCount;
+        [SerializeField] private GameObject _enemyPrefabRange;
+        [SerializeField] public int _enemyRangeCount;
+        int enemiesAlive = 0;
+
         public event Action RoomIsClear;
-        public void SaveEnemiesData(RoomEncounterData encounterData)
+        public void SaveEnemiesData(RoomEncounterData encounterData) 
         {
             _encounterData = encounterData;
-            _currentWave = 0;
-        }
-        public void SpawnEnemies()
-        {
-            if (_encounterData.Waves == null || _encounterData.Waves.Length == 0)
-            {
-                RoomIsClear?.Invoke();
-                return;
-            }
-            SpawnWave(_currentWave);
-        }
-        private void SpawnWave(int waveIndex)
-        {
-            EnemySpawnData wave = _encounterData.Waves[waveIndex];
-            _enemiesAlive = 0;
-
-            for (int i = 0; i < wave.EnemyType.Length; i++)
-            {
-                EnemyType type = wave.EnemyType[i];
-                int amount = wave.Amounts[i];
-
-                for (int j = 0; j < amount; j++)
-                {
-                    if (_enemySpawns.Length == 0)
-                    {
-                        continue;
-                    }
-                    
-                    Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length];
-                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn.position);
-
-                    // el enemigo avisa cuando muere
-                    if (enemy is EnemyController ec)
-                    {
-                        ec.Type = type;
-                        ec.OnDeathEvent -= OnEnemyDeath;
-                        ec.OnDeathEvent += OnEnemyDeath;
-                        StartCoroutine(VerifySubscription(ec));
-                    }
-
-                    _spawnedEnemies.Add(enemy);
-                    _enemiesAlive++;
-                }
-            }
-        }
-        private void OnEnemyDeath(EnemyController enemy)
-        {
-            PoolEnemy.Instance.Release(enemy.Type, enemy);
-            _enemiesAlive--;
-
-            if (_enemiesAlive <= 0)
-            {
-                _currentWave++;
-                if (_currentWave < _encounterData.Waves.Length)
-                    SpawnWave(_currentWave);
-                else
-                    RoomIsClear?.Invoke();
-            }
         }
         public void DisableAllHazards() 
         {
@@ -89,33 +35,33 @@ namespace World
                     hazard.Disable();
             }
         }
-        private IEnumerator VerifySubscription(EnemyController ec)
+        private void SpawnEnemies(RoomEncounterData data)
         {
-            int attempts = 0;
-            int maxAttempts = 10;
-
-            while (attempts < maxAttempts)
+            
+                /*
+                _state = RoomState.Active;
+                var player = playerCollider.transform;
+                foreach (var spawnPoint in _spawnMelee)
+                {
+                    var enemy = Instantiate(_enemyPrefabMelee, spawnPoint.transform.position, spawnPoint.transform.rotation,
+                        transform);
+                    enemiesAlive++;
+                    enemy.GetComponent<BaseEnemy>()?.Init(player);
+                    enemy.GetComponent<EnemyHealth>().OnDeath += OnEnemyDeath;
+                    // enemy.GetComponent<DummyEnemy>().OnDeath += OnEnemyDeath;
+                }
+                */
+            
+        }
+        private void OnEnemyDeath()
+        {
+            enemiesAlive--;
+            if (enemiesAlive <= 0)
             {
-                yield return null; // espera un frame
-
-                if (ec == null || !ec.gameObject.activeSelf) yield break;
-
-                if (!ec.HasDeathListeners())
-                {
-                    Debug.LogWarning($"[VerifySubscription] {ec.name} sin listeners, resuscribiendo. Intento {attempts + 1}");
-                    ec.OnDeathEvent -= OnEnemyDeath;
-                    ec.OnDeathEvent += OnEnemyDeath;
-                }
-                else
-                {
-                    //Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
-                    yield break; // todo bien, salir
-                }
-
-                attempts++;
+                _state = RoomState.Cleared;
+                RoomIsClear?.Invoke();
             }
 
-            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse despu�s de {maxAttempts} intentos");
         }
     }
 

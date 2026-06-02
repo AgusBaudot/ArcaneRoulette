@@ -149,7 +149,7 @@ namespace Core
 
             foreach (var d in dirs)
             {
-                var go = Helpers.ProjFactory.Spawn(
+                var go = Instantiate(
                     _reflectedProjectilePrefab, origin, Quaternion.LookRotation(d));
                 
                 //Reflected projectiles inherit all OnHit runes, no BounceCastRune context

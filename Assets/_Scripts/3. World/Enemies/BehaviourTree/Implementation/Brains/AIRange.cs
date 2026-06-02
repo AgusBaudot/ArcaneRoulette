@@ -6,9 +6,13 @@ namespace World
     public class AIRange : AIBrain
     {
         [Header("Range Settings")]
-        [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
-        [SerializeField] private EnemyProjectile projectilePrefab;
+        [SerializeField] private float attackRange;
+        [SerializeField] private float exitAttackRange;
+        [SerializeField] private float _cooldown;
         private bool _wasInRange;
+        [SerializeField] private float chaseSpeed;
+        [SerializeField] private float patrolSpeed;
+        [SerializeField] private GameObject projectilePrefab;
         protected override void Awake()
         {
             base.Awake();
@@ -21,16 +25,16 @@ namespace World
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "PlaceHolderAnimation")));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _cooldown)));
             //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, chaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, patrolSpeed), 0);
 
             // --- Estructura ---
             root.AddChild(attackSequence);
@@ -48,10 +52,10 @@ namespace World
             if (_wasInRange)
                 result = distance <= exitAttackRange;
             else
-                result = distance <= _attackRange;
+                result = distance <= attackRange;
             _wasInRange = result;
             return result;
-        }// Change the method for GetIdealRange to make it more accurate
+        }
 
         // Reemplazar por una lista de ataques posibles
         public void FireProjectile()
@@ -62,7 +66,7 @@ namespace World
 
             Vector3 spawnPos = transform.position + dir * spawnOffset;
 
-            var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
+            var go = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
             proj.Init(dir, 10, 2, Foundation.ElementType.Neutral);
         }

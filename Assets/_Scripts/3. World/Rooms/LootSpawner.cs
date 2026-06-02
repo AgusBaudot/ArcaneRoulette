@@ -12,15 +12,15 @@ namespace World
 
         private void OnEnable()
         {
-            EventBus.Subscribe<RoomClearEvent>(OnRoomCleared);
+            EventBus.Subscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<RoomClearEvent>(OnRoomCleared);
+            EventBus.Unsubscribe<RoomManager.RoomClearEvent>(OnRoomCleared);
         }
 
-        private void OnRoomCleared(RoomClearEvent evt)
+        private void OnRoomCleared(RoomManager.RoomClearEvent evt)
         {
             if (evt.roomId != _roomId)
                 return;

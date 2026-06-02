@@ -3,68 +3,39 @@ using UnityEngine;
 
 namespace World 
 {
-    public sealed class AIMelee : AIBrain
+    public class AIMelee : AIBrain
     {
         [Header("Melee Settings")]
-        [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
-        private bool _wasInRange;
+        [SerializeField] private float attackRange;
+        [SerializeField] private float chaseSpeed;
+        [SerializeField] private float patrolSpeed;
+        [SerializeField] private float _cooldown;
 
-        [Header("Prefab")]
-        [SerializeField] private HitEffect _hitEffect;
-
-        [Header("Hit")]
-        [SerializeField] private float _attackRadius;
-        [SerializeField] private LayerMask _playerLayer;
         protected override void Awake()
         {
             base.Awake();
-        }
-
-        bool IsInAttackRangeStable()
-        {
-            float distance = Vector3.Distance(transform.position, target.position);
-            bool result;
-            if (_wasInRange)
-                result = distance <= exitAttackRange;
-            else
-                result = distance <= _attackRange;
-            _wasInRange = result;
-            return result;
         }
         protected override BehaviourTree BuildTree() 
         {
             var tree = new BehaviourTree(base._behaviourTreeName);
             var root = new PrioritySelectorNode("Root");
 
-            // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "MeleePHAnim")));
-            attackSequence.AddChild(new LeafNode("wait", new Wait(_attackSpeed)));
-
             // --- Chase ---
-            var chaseSequence = new SequenceNode("Chase", 1);
+            var chaseSequence = new SequenceNode("Chase",1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform ,_agent, chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, patrolSpeed), 0);
 
             // --- Estructura ---
-            root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
 
             tree.AddChild(root);
 
             return tree;
-        }
-        public void DoHitAttack()
-        {
-            Vector3 dir = (target.position - transform.position).normalized;
-            Vector3 pos = transform.position + dir * 1f;
-            var explosion = Instantiate(_hitEffect, pos, Quaternion.identity);
-            explosion.Init(_attackRadius, _attackDamage, _playerLayer, target, 0.2f);
         }
     }
 }

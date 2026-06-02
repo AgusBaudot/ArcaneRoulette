@@ -1,8 +1,7 @@
 using Foundation;
-using Unity.AI.Navigation;
 using UnityEngine;
 
-namespace World
+namespace World 
 {
     [RequireComponent(typeof(RoomConnections))]
     [RequireComponent(typeof(EntityController))]
@@ -16,27 +15,28 @@ namespace World
         [SerializeField] private RoomState _state;
         [SerializeField] private bool _cleared = false;
 
-        //[Header("Has Enemies")]
-        //[SerializeField] public bool generateEncounter = true;
-
         //Getters
         public int Index => _index;
         public int Value => _value;
         public RoomType Type => _roomType;
-        public bool Cleared => _cleared;
 
         [Header("ReferenceToMap")]
         private RoomConnections _roomConnections;
         private EntityController _entityController;
-        //private NavMeshSurface _navMeshSurface;
         public RoomConnections GetRoomConnections => _roomConnections;
 
         // ---- Init a Room ----
         public void Awake()
         {
             _roomConnections = GetComponent<RoomConnections>();
-            _entityController = GetComponent<EntityController>();
-            //_navMeshSurface = GetComponentInChildren<NavMeshSurface>();
+            _entityController = GetComponent<EntityController>();   
+        }
+        public void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                RoomClearedEvent();
+            }
         }
         public void Init(RoomInfo info)
         {
@@ -50,35 +50,21 @@ namespace World
             _roomConnections.SetDoorColors(info);
             _roomConnections.CalculateSpawnsEntry();
         }
-        public void InitEntity(RoomEncounterData data)
+        public void InitEntity(RoomEncounterData data) 
         {
             _entityController.SaveEnemiesData(data);
         }
 
         // ---- Room Events ----
-        public void EnableRoom()
+        public void EnableRoom() 
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _roomConnections.OnDoorActivated += HandleDoorTransition;
 
             if (!_cleared)
             {
-                if (_roomType == RoomType.Regular /*|| _roomType == RoomType.Boss*/)
-                {
-                    _entityController.RoomIsClear -= RoomClearedEvent;
-                    _entityController.RoomIsClear += RoomClearedEvent;
-                    _entityController.SpawnEnemies();
-                }
-                else if (_roomType == RoomType.Boss) 
-                {
-                    RoomClearedEvent();
-                }
-                else
-                {
-                    _cleared = true;
-                    _state = RoomState.Cleared;
-                    _roomConnections.RoomCleared(); // abre puertas
-                }
+                _entityController.RoomIsClear -= RoomClearedEvent;
+                _entityController.RoomIsClear += RoomClearedEvent;
             }
 
             _roomConnections.EnableConnections();
@@ -86,24 +72,54 @@ namespace World
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
         }
-        public void DisableRoom()
+        public void DisableRoom() 
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _entityController.RoomIsClear -= RoomClearedEvent;
             _roomConnections.DisableConnections();
         }
-        private void RoomClearedEvent()
+        private void RoomClearedEvent() 
         {
             _entityController.RoomIsClear -= RoomClearedEvent;
             _entityController.DisableAllHazards();
             _cleared = true;
             _state = RoomState.Cleared;
+
             _roomConnections.RoomCleared();
+
             EventBus.Publish(new RoomClearEvent { roomId = _index });
         }
         private void HandleDoorTransition(EdgeDirection direction)
         {
+            _roomConnections.DisableConnections();
+            Debug.Log("Se Esta llamando a este evento?");
             FloorManager.instance.TeleportPlayer(direction, Index);
+        }
+        public struct RoomClearEvent
+        {
+            public int roomId;
+            
+            //alguna otra info para enviar...
         }
     }
 }
+
+//switch (direction)
+//{
+//    case EdgeDirection.up:
+//        Debug.Log("Entro Arriba");
+//        break;
+
+//    case EdgeDirection.down:
+//        Debug.Log("Entro Abajo");
+//        break;
+
+//    case EdgeDirection.left:
+//        Debug.Log("Entro Izquierda");
+//        break;
+
+//    case EdgeDirection.right:
+//        Debug.Log("Entro Derecha");
+//        break;
+
+// return RoomManager.instance.doors.FirstOrDefault(x => x.roomType == roomType);

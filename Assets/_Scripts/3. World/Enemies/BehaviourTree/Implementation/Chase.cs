@@ -31,6 +31,9 @@ namespace World
             if (_agent.pathPending)
                 return Node.NodeState.Running;
 
+            if (_agent.pathStatus == NavMeshPathStatus.PathInvalid)
+                return Node.NodeState.Failure;
+
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
                 return Node.NodeState.Failure; 
