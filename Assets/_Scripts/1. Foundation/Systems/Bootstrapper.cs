@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Foundation;
 using Core;
+using Foundation;
+using Meta;
+using UnityEngine;
 
 [DefaultExecutionOrder(-100)]
 public class Bootstrapper : MonoBehaviour
@@ -18,6 +17,7 @@ public class Bootstrapper : MonoBehaviour
     {
         InitializeCheats();
         InitializeCraftingSystem();
+        InitializeAudioManager();
     }
 
     private void InitializeGameManager()
@@ -39,7 +39,7 @@ public class Bootstrapper : MonoBehaviour
     private void InitializeCheats()
     {
         if (FindObjectOfType<Cheats>() != null)
-                return;
+            return;
 
         gameObject.AddComponent<Cheats>();
     }
@@ -62,5 +62,22 @@ public class Bootstrapper : MonoBehaviour
         gameObject.AddComponent<AttunementSystem>();
         gameObject.AddComponent<SpellCrafter>();
         Debug.LogError($"{nameof(gameObject)}: Spell crafter not found! Rune seeder is probably also missing.");
+    }
+
+    private void InitializeAudioManager()
+    {
+        if (AudioManager.Instance != null)
+            return;
+
+        var audioPrefab = Resources.Load<GameObject>("AudioManager");
+        if (audioPrefab != null)
+        {
+            Instantiate(audioPrefab).name = "AudioManager";
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[Bootstrapper] AudioManager prefab not found at Resources/AudioManager. Audio will be silent in this scene. Create the prefab and wire mixer groups in its inspector.");
+        }
     }
 }

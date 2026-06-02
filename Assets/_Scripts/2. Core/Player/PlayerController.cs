@@ -55,6 +55,7 @@ namespace Core
         private Vector2 _facingDirection = Vector2.right;
         private bool _canMove = true;
         private PlayerInputActions _inputActions;
+        private AudioHandle _runAudioHandle;
 
         #endregion
 
@@ -112,6 +113,17 @@ namespace Core
             Helpers.Input.OnSlot0Canceled -= HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled -= HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled -= HandleSlot2Release;
+
+            if (_runAudioHandle != null && _runAudioHandle.IsValid)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _runAudioHandle,
+                    FadeOut = false
+                });
+                
+                _runAudioHandle = null;
+            }
         }
 
         #endregion
@@ -203,12 +215,42 @@ namespace Core
             // Input XY maps to world XZ — Y axis is reserved for gravity/height
             Vector3 targetVelocity = new Vector3(_input.x, 0f, _input.y) * _playerStats.BaseSpeed;
 
-            float rate = _input.sqrMagnitude > 0.01f
+            bool isMoving = _input.sqrMagnitude > 0.01f;
+
+            float rate = isMoving
                 ? _playerStats.Acceleration
                 : _playerStats.Deceleration;
 
             _velocity = Vector3.MoveTowards(_velocity, targetVelocity, rate * Time.deltaTime);
             _rb.velocity = _velocity;
+
+            if (isMoving)
+            {
+                UpdateSpriteFlip();
+
+                if (_runAudioHandle == null || !_runAudioHandle.IsValid)
+                {
+                    EventBus.Publish(new AudioPlayTrackedRequest
+                    {
+                        Event = Helpers.PlayerAudio.Footsteps,
+                        WorldPosition = transform.position,
+                        OnHandleReady = handle => _runAudioHandle = handle
+                    });
+                }
+            }
+            else
+            {
+                if (_runAudioHandle != null && _runAudioHandle.IsValid)
+                {
+                    EventBus.Publish(new AudioStopRequest
+                    {
+                        Handle = _runAudioHandle,
+                        FadeOut =  true
+                    });
+                    
+                    _runAudioHandle = null;
+                }
+            }
 
             if (_input.sqrMagnitude > 0.01f)
                 UpdateSpriteFlip();

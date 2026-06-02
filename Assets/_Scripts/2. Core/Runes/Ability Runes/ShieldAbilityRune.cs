@@ -7,9 +7,13 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Shield")]
     public class ShieldAbilityRune : AbilityRuneSO
     {
+        [Header("Stats")]
         [SerializeField] private GameObject _shieldVisualPrefab;
         [SerializeField] private GameObject _shockwavePrefab;
         [SerializeField] private float _abilityThreshold = 1.5f; // seconds held to spawn shockwave
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _defaultCastSound;
+        [SerializeField] private ElementalSound[] _elementalSounds;
 
         public override AbilityType Type => AbilityType.Shield;
         public override bool IsHoldAbility => true;
@@ -18,12 +22,22 @@ namespace Core
         //One visual per HoldSpellInstance - keyed by ISpellSource identity
         //Cleared on eun end when SpellInstances are dismantled
         private readonly Dictionary<ISpellSource, GameObject> _visuals = new();
+        private readonly Dictionary<ISpellSource, AudioHandle> _audioHandles = new();
         
         public override void StartHold(SpellContext ctx)
         {
             var args = new ShieldActivationArgs();
             (ctx.Source as ISpellEventSource)?.RaiseBeforeStartHold(args);
             ConfigureAndStartHold(ctx, ctx.Source as HoldSpellInstance, args);
+        }
+        
+        private AudioEventSO GetHoldSound(ElementType element)
+        {
+            foreach (var map in _elementalSounds)
+            {
+                if (map.Element == element) return map.CastSound;
+            }
+            return _defaultCastSound;
         }
 
         internal void ConfigureAndStartHold(SpellContext ctx, HoldSpellInstance source, ShieldActivationArgs args)
@@ -33,6 +47,20 @@ namespace Core
             
             if (!source.Energy.TryStartDrain())
                 return;
+            
+            if (!_audioHandles.ContainsKey(ctx.Source))
+            {
+                AudioEventSO sound = GetHoldSound(ctx.AttackerElement);
+                if (sound != null)
+                {
+                    EventBus.Publish(new AudioPlayTrackedRequest
+                    {
+                        Event = sound,
+                        WorldPosition = ctx.Runner.transform.position,
+                        OnHandleReady = handle => _audioHandles[ctx.Source] = handle
+                    });
+                }
+            }
 
             var state = source.ShieldState;
             state.Active = true;
@@ -125,6 +153,16 @@ namespace Core
             
             if (_visuals.TryGetValue(source, out var visual) && visual != null)
                 visual.SetActive(false);
+
+            if (_audioHandles.TryGetValue(ctx.Source, out var handle))
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = handle,
+                    FadeOut = true
+                });
+                _audioHandles.Remove(ctx.Source);
+            }
         }
 
         //Called by SpellCrafter.Dismantle - cleans up the visual for this instance
@@ -132,6 +170,16 @@ namespace Core
         {
             if (_visuals.TryGetValue(source, out var visual) && visual != null)
                 Destroy(visual);
+
+            if (_audioHandles.TryGetValue(source, out var handle))
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = handle,
+                    FadeOut = true
+                });
+                _audioHandles.Remove(source);
+            }
             
             _visuals.Remove(source);
         }

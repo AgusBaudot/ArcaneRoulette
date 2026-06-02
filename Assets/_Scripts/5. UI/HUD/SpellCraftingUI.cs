@@ -130,6 +130,12 @@ namespace UI
 
             _craftingPanel.SetActive(true);
             Time.timeScale = 0f;
+            AudioListener.pause = true;
+            
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.UIAudio.MenuOpen
+            });
             
             //Switch to Input Map
             Helpers.Input.EnableUIInput();
@@ -158,7 +164,13 @@ namespace UI
 
             _tooltip.Hide();
             _craftingPanel.SetActive(false);
+            AudioListener.pause = false;
             Time.timeScale = 1f;
+            
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.UIAudio.MenuClose
+            });
             
             //Switch to Player Map
             Helpers.Input.EnablePlayerInput();
@@ -169,6 +181,11 @@ namespace UI
         // Right arrow: the right back slot comes to center.
         private void OnRightArrow()
         {
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.UIAudio.CarouselSlide
+            });
+            
             _centerIndex = (_centerIndex + 1) % _slotPanels.Length;
             _pendingRune = null;
             _pendingRuneIndex = -1;
@@ -180,6 +197,11 @@ namespace UI
         // Left arrow: the left back slot comes to center.
         private void OnLeftArrow()
         {
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.UIAudio.CarouselSlide
+            });
+            
             _centerIndex = (_centerIndex + _slotPanels.Length - 1) % _slotPanels.Length;
             _pendingRune = null;
             _pendingRuneIndex = -1;
@@ -282,6 +304,11 @@ namespace UI
 
                 if (autoAssigned)
                 {
+                    EventBus.Publish(new AudioPlayRequest
+                    {
+                        Event = Helpers.UIAudio.RuneEquip
+                    });
+                    
                     _inventoryPanel.RemoveOneTile(rune);
 
                     if (_pendingRuneIndex == index)
@@ -290,8 +317,14 @@ namespace UI
                         _pendingRuneIndex = -1;
                     }
                 }
+                else
+                {
+                    EventBus.Publish(new AudioPlayRequest
+                    {
+                        Event =  Helpers.UIAudio.RuneFail
+                    });
+                }
             }
-            
             
             RefreshAll();
             EventSystem.current.SetSelectedGameObject(null);
@@ -306,10 +339,22 @@ namespace UI
                 bool assigned = panel.TryAssign(_pendingRune, slotType, modIndex, out var replacedRune);
                 if (assigned)
                 {
+                    EventBus.Publish(new AudioPlayRequest
+                    {
+                        Event = Helpers.UIAudio.RuneEquip
+                    });
+                    
                     _inventoryPanel.RemoveOneTile(_pendingRune);
                     
                     if (replacedRune != null)
                         _inventoryPanel.AddOneTile(replacedRune);
+                }
+                else
+                {
+                    EventBus.Publish(new AudioPlayRequest
+                    {
+                        Event =  Helpers.UIAudio.RuneFail
+                    });
                 }
             }
             else
@@ -318,6 +363,11 @@ namespace UI
                 
                 if (clearedRune != null)
                 {
+                    EventBus.Publish(new AudioPlayRequest
+                    {
+                        Event = Helpers.UIAudio.RuneUnequip
+                    });
+                    
                     _inventoryPanel.AddOneTile(clearedRune);
                     
                     // If the cleared rune doesn't match the current filter, switch to its filter
@@ -341,6 +391,11 @@ namespace UI
             if (_currentFilter == clickedTab.FilterType)
                 return;
             
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.UIAudio.TabSwitch
+            });
+            
             _currentFilter = clickedTab.FilterType;
             _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
             RefreshTabVisuals();
@@ -362,7 +417,7 @@ namespace UI
         private void RefreshTabVisuals()
         {
             foreach(var tab in _filterTabs)
-            tab.SetActiveState(tab.FilterType == _currentFilter);
+                tab.SetActiveState(tab.FilterType == _currentFilter);
         }
 
         private int GetEffectiveAvailableCount(RuneDefinitionSO rune)

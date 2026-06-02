@@ -1,5 +1,6 @@
 using Core;
 using Foundation;
+using UI;
 using UnityEngine;
 
 public static class Helpers
@@ -8,6 +9,8 @@ public static class Helpers
     private static InputReader _input;
     private static PlayerStats _playerStats;
     private static ProjectilePrefabFactory _projectilePrefabFactory;
+    private static PlayerAudioProfileSO _playerAudioProfile;
+    private static UIAudioProfileSO _uiAudioProfile;
 
     public static CombatSettings Combat
     {
@@ -16,6 +19,7 @@ public static class Helpers
             if (_combatSettings == null)
             {
                 _combatSettings = Resources.Load<CombatSettings>("CombatSettings");
+                
                 if (_combatSettings == null)
                     Debug.LogError("CRITICAL: Could not find CombatSettings in Resources folder!");
             }
@@ -69,6 +73,38 @@ public static class Helpers
             }
             
             return _projectilePrefabFactory;
+        }
+    }
+
+    public static PlayerAudioProfileSO PlayerAudio
+    {
+        get
+        {
+            if (_playerAudioProfile == null)
+            {
+                _playerAudioProfile = Resources.Load<PlayerAudioProfileSO>("PlayerProfile");
+                
+                if (_playerAudioProfile == null)
+                    Debug.LogError($"CRITICAL: Could not find Player Audio Profile in Resources folder!");
+            }
+            
+            return _playerAudioProfile;
+        }
+    }
+
+    public static UIAudioProfileSO UIAudio
+    {
+        get
+        {
+            if (_uiAudioProfile == null)
+            {
+                _uiAudioProfile = Resources.Load<UIAudioProfileSO>("UIProfile");
+                
+                if (_uiAudioProfile == null)
+                    Debug.LogError("CRITICAL: Could not find UI Audio Profile in Resources folder!");
+            }
+            
+            return _uiAudioProfile;
         }
     }
 }
