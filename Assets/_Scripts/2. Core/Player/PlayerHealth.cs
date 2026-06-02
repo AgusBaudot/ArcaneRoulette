@@ -11,7 +11,6 @@ namespace Core
         public event Action OnDeath;
         public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
-        public float Health;
         
         //IUpdatable
         public int UpdatePriority => Foundation.UpdatePriority.Player; 
@@ -59,7 +58,6 @@ namespace Core
             if (Current <= 0f)
                 Die();
 
-            Health = Current;
             return true;
         }
 
