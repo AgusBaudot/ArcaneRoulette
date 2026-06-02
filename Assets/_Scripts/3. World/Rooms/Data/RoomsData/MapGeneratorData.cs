@@ -7,20 +7,20 @@ namespace World
     {
         [Header("Dungeon Size")]
         [Tooltip("Minimum of regular Rooms in the grid + boss.")]
-        public int minRooms;
+        public int MinRooms;
         [Tooltip("Maximum number of rooms in the grid + boss.\nMaxRoom MUST NEVER BE LESS than minRoom.")]
-        public int maxRooms;
+        public int MaxRooms;
 
 
         [Header("Special Room Counts")]
         [Tooltip("Amount of Boos rooms in this generation.")]
-        public int targetBossRoom;
+        public int TargetBossRoom;
         [Tooltip("Amount of Resting rooms in this generation.")]
-        public int targetRestingRoom;
+        public int TargetRestingRoom;
         [Tooltip("Amount of Shop rooms in this generation.")]
-        public int targetShopRooms;
+        public int TargetShopRooms;
         [Tooltip("Amount of Secret rooms in this generation.")]
-        public int targetSecretRooms;
+        public int TargetSecretRooms;
     }
 
 }

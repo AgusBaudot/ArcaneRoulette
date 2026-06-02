@@ -8,15 +8,12 @@ namespace World
     [RequireComponent(typeof(EntityController))]
     public class RoomManager : MonoBehaviour
     {
-        //Serializado solo para testeo, luego lo saco
+        //[serializefield] is Just for testing
         [Header("Room Data")]
         [SerializeField] private int _index;
         [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
         [SerializeField] private bool _cleared = false;
-
-        //[Header("Has Enemies")]
-        //[SerializeField] public bool generateEncounter = true;
 
         //Getters
         public int Index => _index;
@@ -26,7 +23,6 @@ namespace World
         [Header("ReferenceToMap")]
         private RoomConnections _roomConnections;
         private EntityController _entityController;
-        //private NavMeshSurface _navMeshSurface;
         public RoomConnections GetRoomConnections => _roomConnections;
 
         // ---- Init a Room ----
@@ -34,7 +30,6 @@ namespace World
         {
             _roomConnections = GetComponent<RoomConnections>();
             _entityController = GetComponent<EntityController>();
-            //_navMeshSurface = GetComponentInChildren<NavMeshSurface>();
         }
         public void Init(RoomInfo info)
         {

@@ -14,7 +14,7 @@ namespace World
         [SerializeField] private RoomDoor _right;
 
         [Header("Doors")]
-        [SerializeField] private GameObject _downDoor;
+        [SerializeField] private GameObject _bottomDoor;
         [SerializeField] private GameObject _upDoor;
         [SerializeField] private GameObject _leftDoor;
         [SerializeField] private GameObject _rightDoor;
@@ -31,18 +31,14 @@ namespace World
         public void SetDoorColors(AllDoorsInfo info)
         {
             if (_upDoor.TryGetComponent<Renderer>(out var upRend)) upRend.material = info.Up.Material;
-            if (_downDoor.TryGetComponent<Renderer>(out var downRend)) downRend.material = info.Down.Material;
-            else
-            {
-                Debug.Log(gameObject.name);
-            }
+            if (_bottomDoor.TryGetComponent<Renderer>(out var downRend)) downRend.material = info.Down.Material;
             if (_leftDoor.TryGetComponent<Renderer>(out var leftRend)) leftRend.material = info.Left.Material;
             if (_rightDoor.TryGetComponent<Renderer>(out var rightRend)) rightRend.material = info.Right.Material;
             _allDoorsInfo = info;
         }
         public void CalculateSpawnsEntry()
         {
-            _playerSpawnDown = GetFlatSpawnPosition(_downDoor.transform.position, new Vector3(0f, 0f, _offsetSpawn));
+            _playerSpawnDown = GetFlatSpawnPosition(_bottomDoor.transform.position, new Vector3(0f, 0f, _offsetSpawn));
             _playerSpawnUp = GetFlatSpawnPosition(_upDoor.transform.position, new Vector3(0f, 0f, -_offsetSpawn));
             _playerSpawnLeft = GetFlatSpawnPosition(_leftDoor.transform.position, new Vector3(_offsetSpawn, 0f, 0f));
             _playerSpawnRight = GetFlatSpawnPosition(_rightDoor.transform.position, new Vector3(-_offsetSpawn, 0f, 0f));
@@ -73,7 +69,7 @@ namespace World
         {
             Vector3 liftOffset = new Vector3(0f, _liftDoors, 0f);
 
-            if (_allDoorsInfo.Down.UnlockOnClear) _downDoor.transform.position += liftOffset;
+            if (_allDoorsInfo.Down.UnlockOnClear) _bottomDoor.transform.position += liftOffset;
             if (_allDoorsInfo.Up.UnlockOnClear) _upDoor.transform.position += liftOffset;
             if (_allDoorsInfo.Left.UnlockOnClear) _leftDoor.transform.position += liftOffset;
             if (_allDoorsInfo.Right.UnlockOnClear) _rightDoor.transform.position += liftOffset;

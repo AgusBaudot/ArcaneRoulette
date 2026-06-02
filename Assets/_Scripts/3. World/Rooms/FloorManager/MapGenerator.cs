@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 
 namespace World
@@ -60,8 +61,8 @@ namespace World
                 VisitCell(StartIndex);
                 RunBFS();
 
-                int requiredSpecialRooms = _data.targetBossRoom + _data.targetRestingRoom + _data.targetShopRooms;
-                if (_floorPlanCount < _data.minRooms || _endRooms.Count < requiredSpecialRooms)
+                int requiredSpecialRooms = _data.TargetBossRoom + _data.TargetRestingRoom + _data.TargetShopRooms;
+                if (_floorPlanCount < _data.MinRooms || _endRooms.Count < requiredSpecialRooms)
                     continue;
 
                 if (!SetupSpecialRooms())
@@ -81,7 +82,7 @@ namespace World
                 int y = DungeonGrid.GetY(index);
 
                 bool created = false;
-                // 1 and 2 are arbitrary values ??for a margin on the edges of the grid 
+                // 1 and 2 are arbitrary values ​​for a margin on the edges of the grid 
 
                 if (x > 1) created |= VisitCell(index - 1); // left edge
                 if (x < DungeonGrid.GRID_WIDTH - 2) created |= VisitCell(index + 1); // right edge
@@ -102,62 +103,40 @@ namespace World
             if (_lobbyRoomIndex == -1) return false;
             SaveRoomInfo(_lobbyRoomIndex);
 
-            for (int i = 0; i < _data.targetRestingRoom; i++)
-            {
-                int r = PickEndRoom();
-                if (r == -1) return false;
-                _restingRoomIndices.Add(r);
-            }
-
-            for (int i = 0; i < _data.targetShopRooms; i++)
-            {
-                int r = PickEndRoom();
-                if (r == -1) return false;
-                _shopRoomIndices.Add(r);
-            }
-
-            for (int i = 0; i < _data.targetSecretRooms; i++)
-            {
-                int r = PickSurroundedRoom();
-                if (r == -1) return false;
-                _secretRoomIndices.Add(r);
-                SaveRoomInfo(r);
-            }
+            if (!PickRooms(_data.TargetRestingRoom, PickEndRoom, _restingRoomIndices)) return false;
+            if (!PickRooms(_data.TargetShopRooms, PickEndRoom, _shopRoomIndices)) return false;
+            if (!PickRooms(_data.TargetSecretRooms, PickSurroundedRoom, _secretRoomIndices, saveInfo: true)) return false;
 
             UpdateSpecialRoomType();
             return true;
         }
+        private bool PickRooms(int count, Func<int> picker, List<int> targetList, bool saveInfo = false)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                int r = picker();
+                if (r == -1) return false;
+                targetList.Add(r);
+                if (saveInfo) SaveRoomInfo(r);
+            }
+            return true;
+        }
         private void UpdateSpecialRoomType()
         {
+            var typeMap = new Dictionary<int, RoomType>();
+
+            typeMap[_bossRoomIndex] = RoomType.Boss;
+            typeMap[_lobbyRoomIndex] = RoomType.Lobby;
+
+            foreach (int i in _restingRoomIndices) typeMap[i] = RoomType.Item;
+            foreach (int i in _shopRoomIndices) typeMap[i] = RoomType.Shop;
+            foreach (int i in _secretRoomIndices) typeMap[i] = RoomType.Secret;
+
             for (int i = 0; i < _spawnedCellsInfo.Count; i++)
             {
                 RoomInfo cell = _spawnedCellsInfo[i];
-
-                if (_restingRoomIndices.Contains(cell.index))
-                {
-                    cell.SetRoomType(RoomType.Item);
-                }
-
-                else if (_shopRoomIndices.Contains(cell.index))
-                {
-                    cell.SetRoomType(RoomType.Shop);
-                }
-
-                else if (_secretRoomIndices.Contains(cell.index))
-                {
-                    cell.SetRoomType(RoomType.Secret);
-                }
-
-                else if (cell.index == _bossRoomIndex)
-                {
-                    cell.SetRoomType(RoomType.Boss);
-                }
-
-                else if (cell.index == _lobbyRoomIndex)
-                {
-                    cell.SetRoomType(RoomType.Lobby);
-                }
-
+                if (typeMap.TryGetValue(cell.index, out RoomType type))
+                    cell.SetRoomType(type);
                 _spawnedCellsInfo[i] = cell;
             }
         }
@@ -213,7 +192,7 @@ namespace World
         }
         private bool VisitCell(int index)
         {
-            if (_floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || _floorPlanCount >= _data.maxRooms || Random.value < 0.5f) // Si se encuentra libre seguimos y no tiene mas de 1 vecino( = 0)
+            if (_floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || _floorPlanCount >= _data.MaxRooms || Random.value < 0.5f) // Si se encuentra libre seguimos y no tiene mas de 1 vecino( = 0)
                 return false;
 
             _cellQueue.Enqueue(index); //Guardamos el index de la sala principal
