@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8733404080804509391}
-  - component: {fileID: 8513938931462823758}
   - component: {fileID: 596779301402567425}
   - component: {fileID: 1480399465487422876}
+  - component: {fileID: 716750860542135207}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Untagged
@@ -39,23 +39,6 @@ Transform:
   - {fileID: 7837628974842643063}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8513938931462823758
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 23437477851257473}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 081eba74ff35eb14db6869e5ce1f1c4d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _index: 0
-  _value: 0
-  _roomType: 0
-  _state: 0
-  _cleared: 0
 --- !u!114 &596779301402567425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,7 +55,7 @@ MonoBehaviour:
   _up: {fileID: 2345872779221258422}
   _left: {fileID: 2117612388696444440}
   _right: {fileID: 5345232290040525271}
-  _downDoor: {fileID: 6683558374336782635}
+  _bottomDoor: {fileID: 6683558374336782635}
   _upDoor: {fileID: 5979100065582878708}
   _leftDoor: {fileID: 4754200902960047666}
   _rightDoor: {fileID: 8220435522064416363}
@@ -94,6 +77,22 @@ MonoBehaviour:
   _enemiesAlive: 0
   _currentWave: 0
   hazards: []
+--- !u!114 &716750860542135207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23437477851257473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081eba74ff35eb14db6869e5ce1f1c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _index: 0
+  _roomType: 0
+  _state: 0
+  _cleared: 0
 --- !u!1 &861071159322437276
 GameObject:
   m_ObjectHideFlags: 0
