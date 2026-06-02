@@ -56,6 +56,7 @@ namespace Meta
             _source.clip = audioEvent.PickClip();
             _source.outputAudioMixerGroup = mixerGroup;
             _source.loop = audioEvent.Loop;
+            _source.ignoreListenerPause = (audioEvent.Bus == MixerBus.UI || audioEvent.Bus == MixerBus.Music); 
             _source.spatialBlend = audioEvent.Is3D ? 1f : 0f;
             _source.minDistance = audioEvent.MinDistance;
             _source.maxDistance = audioEvent.MaxDistance;

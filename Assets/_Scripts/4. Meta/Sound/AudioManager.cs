@@ -107,6 +107,10 @@ namespace Meta
             DontDestroyOnLoad(gameObject);
 
             BuildPool();
+        }
+
+        private void Start()
+        {
             LoadVolumePrefs();
         }
 

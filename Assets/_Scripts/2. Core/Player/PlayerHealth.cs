@@ -47,6 +47,11 @@ namespace Core
         {
             if (IsInvincible)
                 return false;
+            
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.PlayerAudio.TakeDamage
+            });
 
             float newHp = Current - amount;
             GameStateManager.RunState.SetHp(newHp);
@@ -62,7 +67,14 @@ namespace Core
         }
 
         public void Heal(int amount)
-            => GameStateManager.RunState.SetHp(Current + amount);
+        {
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.PlayerAudio.Heal
+            });
+            
+            GameStateManager.RunState.SetHp(Current + amount);
+        }
         
         private IEnumerator IFrameFlash()
         {
@@ -83,6 +95,11 @@ namespace Core
         
         private void Die()
         {
+            EventBus.Publish(new AudioPlayRequest
+            {
+                Event = Helpers.PlayerAudio.Death
+            });
+            
             OnDeath?.Invoke();
             //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
         }
