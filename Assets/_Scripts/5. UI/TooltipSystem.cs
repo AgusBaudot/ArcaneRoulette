@@ -37,7 +37,7 @@ namespace UI
             }
 
             Instance = this;
-            _canvas = GetComponentInParent<Canvas>();
+            _canvas = GetComponent<Canvas>();
             _panel.SetActive(false);
         }
 

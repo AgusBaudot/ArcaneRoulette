@@ -26,7 +26,7 @@ namespace UI
         [SerializeField] private int _runesToSelect = 1;
 
         [Header("Drop Pool")]
-        [SerializeField] private World.PickupDropPool _dropPool;
+        [SerializeField] private PickupDropPool _dropPool;
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
