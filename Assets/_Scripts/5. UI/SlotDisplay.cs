@@ -137,7 +137,7 @@ namespace UI
             // Only show the ability rune icon here (shield, dash, etc.).
             // Modifier rune icons are handled elsewhere and should not appear
             // on the ability icon.
-            return _instance.Recipe.Ability?.Icon;
+            return _instance.Recipe.Ability?.StoneLessIcon;
         }
 
         private void SetSliderNull()
