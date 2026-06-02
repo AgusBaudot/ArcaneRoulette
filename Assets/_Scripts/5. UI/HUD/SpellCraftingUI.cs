@@ -39,9 +39,8 @@ namespace UI
         [Header("Carousel Animation")] 
         [SerializeField] private float _animDuration = 0.35f;
         [SerializeField] private Ease _animEase = Ease.OutCubic;
-        
-        [Header("Tooltip")]
-        [SerializeField] private TooltipSystem _tooltip;
+
+        private TooltipSystem _tooltip => TooltipSystem.Instance;
         
 
         // ── Carousel layout constants ────────────────────────────────────────

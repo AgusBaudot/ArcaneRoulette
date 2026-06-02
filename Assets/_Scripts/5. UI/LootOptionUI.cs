@@ -8,7 +8,7 @@ using Foundation;
 namespace UI
 {
     [RequireComponent(typeof(Button))]
-    public sealed class LootOptionUI : MonoBehaviour, IPointerClickHandler
+    public sealed class LootOptionUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI Elements")]
         [SerializeField] private Image _runeIcon;
@@ -61,6 +61,16 @@ namespace UI
 
             if (eventData.button == PointerEventData.InputButton.Left)
                 _onClicked?.Invoke();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            TooltipSystem.Instance?.Show(Rune, GetComponent<RectTransform>());
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            TooltipSystem.Instance?.Hide();
         }
     }
 }
