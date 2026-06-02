@@ -25,7 +25,7 @@ namespace Core
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
-            if (ctx.HitTarget == null)
+            if (ctx.HitTarget == null || !ctx.HitTarget.TryGetComponent<IDebuffReceiver>(out _))
                 return;
 
             DebuffType type = ElementToDebuffType(ctx.AttackerElement);
