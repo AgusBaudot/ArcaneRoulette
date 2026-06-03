@@ -26,7 +26,12 @@ namespace UI
         {
             float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
             float maskWidth = _healthFillMask.GetComponent<RectTransform>().rect.width;
-            float rightPadding = Mathf.RoundToInt((1f - normalizedHealth) * maskWidth);
+
+            int fillWidth = Mathf.RoundToInt(normalizedHealth * maskWidth);
+            if (currentHp > 0f && fillWidth == 0 && maskWidth >= 1f)
+                fillWidth = 1;
+
+            int rightPadding = Mathf.RoundToInt(maskWidth) - fillWidth;
             _healthFillMask.padding = new Vector4(0f, 0f, rightPadding, 0f);
 
             UpdateHeartSprite(currentHp, maxHp);
