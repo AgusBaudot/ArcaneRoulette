@@ -45,7 +45,7 @@ namespace UI
                 {
                     _instance = spell;
                     RefreshAbilityIcon();
-                    SetIconTint(_instance.IsReady);
+                    SetIconTint(IsSpellReady());
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace UI
             // CooldownProgress: 1 = ready, 0 = fully on cooldown
             // Slider.value maps directly — no math needed
             _cooldownSlider.value = _instance.DisplayProgress;
-            SetIconTint(_instance.IsReady);
+            SetIconTint(IsSpellReady());
         }
 
         private void OnSpellEquipped(SpellEquippedEvent evt)
@@ -82,7 +82,18 @@ namespace UI
 
             // Update the ability icon to reflect the current cast rune automatically.
             RefreshAbilityIcon();
-            SetIconTint(_instance?.IsReady ?? false);
+            SetIconTint(IsSpellReady());
+        }
+
+        private bool IsSpellReady()
+        {
+            if (_instance == null)
+                return false;
+
+            if (_instance is HoldSpellInstance hold)
+                return !hold.Energy.IsBroken && hold.Energy.Current > 0f;
+
+            return _instance.DisplayProgress >= 1f;
         }
 
         private void SetIconTint(bool isReady)
