@@ -61,6 +61,8 @@ namespace Core
             if (dir == Vector3.zero) 
                 dir = player.transform.forward;
 
+            Vector3 dashVelocity = new Vector3(dir.x * _dashSpeed, 0f, dir.z * _dashSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier);
+
             // Invincibility — distinct from IFrames per locked decisions
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
@@ -107,8 +109,8 @@ namespace Core
                 {
                     ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance, args);
                 }
-                
-                player.Rigidbody.velocity = dir * _dashSpeed;
+
+                player.Rigidbody.velocity = dashVelocity;
                 elapsed += Time.fixedDeltaTime;
                 yield return new WaitForFixedUpdate();
             }

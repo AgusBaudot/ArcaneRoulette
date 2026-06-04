@@ -9,6 +9,9 @@ namespace Core
         [Tooltip("The base speed at which the player moves.")]
         public float BaseSpeed = 6f;
 
+        [Tooltip("Values > 1 make z-axis movement faster.")]
+        public float VerticalSpeedMultiplier = 1.4f;
+
         [Tooltip("How fast can the player reach max speed.")]
         public float Acceleration = 20f;
 
