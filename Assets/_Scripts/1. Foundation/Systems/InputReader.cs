@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 [CreateAssetMenu(fileName = "InputReader", menuName = "ScriptableObjects/InputReader")]
 public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, PlayerInputActions.IUIActions
 {
+    public bool PlayerActions => _inputActions.Player.enabled;
+
     private PlayerInputActions _inputActions;
 
     #region Player Events
