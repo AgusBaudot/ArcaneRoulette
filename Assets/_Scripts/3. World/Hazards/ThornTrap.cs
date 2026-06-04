@@ -9,15 +9,21 @@ namespace World
 {
     public sealed class ThornTrap : MonoBehaviour , IHazard
     {
+        [Header("Stats")]
         [SerializeField] private int _damage = 15;
         [SerializeField] private float _windupDuration = 0.5f;
         [SerializeField] private float _spikeDisplayDuration = 0.3f;
         [SerializeField] private float _cooldownDuration = 2f;
         [SerializeField] private Vector3 _boxSize;
-        [SerializeField] private GameObject _spikesVisual;
+
+        [Header("Animation")]
+        [SerializeField] private Animator _anim;
 
         private bool _isActive = true;
         private bool _isIdle = true;
+
+        private readonly int _activateHash = Animator.StringToHash("Activate_Up");
+        private readonly int _idleHash = Animator.StringToHash("Activate_Down");
 
         private void OnTriggerEnter(Collider other)
         {
@@ -41,18 +47,23 @@ namespace World
             yield return CoroutineUtils.GetWait(_windupDuration);
 
             // Spikes fully emerge — damage fires exactly here, one OverlapSphere
-            if (_spikesVisual != null) 
-                _spikesVisual.SetActive(true);
+            //if (_spikesVisual != null) 
+            //    _spikesVisual.SetActive(true);
+            Debug.Log("Up here");
+            _anim.SetTrigger(_activateHash);
             
             ApplyDamage();
 
             // Spikes stay visible briefly for readability, then retract
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
-            if (_spikesVisual != null) _spikesVisual.SetActive(false);
+            Debug.Log("Down here");
+            //if (_spikesVisual != null) _spikesVisual.SetActive(false);
 
             // Cooldown before trap can activate again
             yield return CoroutineUtils.GetWait(_cooldownDuration);
+            _anim.SetTrigger(_idleHash);
 
+            Debug.Log("Reload");
             _isIdle = true;
         }
 
