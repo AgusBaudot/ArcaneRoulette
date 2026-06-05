@@ -115,7 +115,7 @@ namespace Core
                 yield return new WaitForFixedUpdate();
             }
 
-            player.Rigidbody.velocity = Vector3.zero;
+            player.SetVelocity(Vector3.zero);
             player.SetCanMove(true);
             player.Hurtbox.SetActive(true);
         }

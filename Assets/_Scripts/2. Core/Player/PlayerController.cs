@@ -268,7 +268,11 @@ namespace Core
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
         
-        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
+        public void SetVelocity(Vector3 velocity)
+        {
+            _velocity = velocity;
+            _rb.velocity = velocity;
+        }
         
         #endregion
         
