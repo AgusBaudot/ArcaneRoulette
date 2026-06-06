@@ -3,13 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
+using Random = UnityEngine.Random;
 
-namespace World 
+namespace World
 {
     public class EntityController : MonoBehaviour
     {
         [Header("Room spawn settings")]
-        [SerializeField] private Transform[] _enemySpawns;
+        [SerializeField] private BoxCollider[] _enemySpawns;
+        [SerializeField] private int _spawnAtSameTime;
         [SerializeField] private int _enemiesAlive = 0;
         [SerializeField] private int _currentWave = 0;
         private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
@@ -23,6 +25,15 @@ namespace World
         {
             _encounterData = encounterData;
             _currentWave = 0;
+        }
+        private Vector3 GetRandomSpawnPosition(int spawn)
+        {
+            Bounds bounds = _enemySpawns[spawn].bounds;
+            return new Vector3(
+                Random.Range(bounds.min.x, bounds.max.x),
+                bounds.min.y,
+                Random.Range(bounds.min.z, bounds.max.z)
+            );
         }
         public void SpawnEnemies()
         {
@@ -49,9 +60,10 @@ namespace World
                     {
                         continue;
                     }
-                    
-                    Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length];
-                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn.position);
+
+                    int spawnIndex = _enemiesAlive % _enemySpawns.Length;
+                    Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
+                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn);
 
                     // el enemigo avisa cuando muere
                     if (enemy is EnemyController ec)
@@ -81,7 +93,7 @@ namespace World
                     RoomIsClear?.Invoke();
             }
         }
-        public void DisableAllHazards() 
+        public void DisableAllHazards()
         {
             for (int i = 0; i < hazards.Length; i++)
             {
