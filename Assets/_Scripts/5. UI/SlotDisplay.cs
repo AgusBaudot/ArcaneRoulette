@@ -16,12 +16,15 @@ namespace UI
         [SerializeField] private Color _grayedColor = Color.gray;
 
         private Slider _cooldownSlider;
+        private Image _fillImage;
         private SpellInstance _instance;
         private Color _iconNormalColor = Color.white;
+        private Color _fillNormalColor = Color.white;
 
         private void Awake()
         {
             _cooldownSlider = GetComponent<Slider>();
+            _fillImage = _cooldownSlider?.fillRect?.GetComponent<Image>();
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
 
@@ -29,6 +32,8 @@ namespace UI
             // record normal icon color and ensure icon is grayed out until a spell is equipped
             if (_inputIcon != null)
                 _iconNormalColor = _inputIcon.color;
+            if (_fillImage != null)
+                _fillNormalColor = _fillImage.color;
 
             SetSliderNull();
         }
@@ -98,13 +103,19 @@ namespace UI
 
         private void SetIconTint(bool isReady)
         {
-            var tint = isReady ? _iconNormalColor : _grayedColor;
+            var iconTint = isReady ? _iconNormalColor : _grayedColor;
 
             if (_inputIcon != null)
-                _inputIcon.color = tint;
+                _inputIcon.color = iconTint;
 
             if (_abilityIcon != null)
-                _abilityIcon.color = tint;
+                _abilityIcon.color = iconTint;
+
+            if (_fillImage != null)
+            {
+                var fillTint = isReady ? _fillNormalColor : _grayedColor;
+                _fillImage.color = fillTint;
+            }
         }
 
         private void RefreshAbilityIcon()
@@ -139,6 +150,8 @@ namespace UI
                 _abilityIcon.enabled = false;
                 _abilityIcon.color = _grayedColor;
             }
+            if (_fillImage != null)
+                _fillImage.color = _grayedColor;
         }
     }
 }
