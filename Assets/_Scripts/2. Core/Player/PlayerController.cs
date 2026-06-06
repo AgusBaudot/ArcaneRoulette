@@ -213,7 +213,7 @@ namespace Core
         private void HandleMovement()
         {
             // Input XY maps to world XZ — Y axis is reserved for gravity/height
-            Vector3 targetVelocity = new Vector3(_input.x, 0f, _input.y) * _playerStats.BaseSpeed;
+            Vector3 targetVelocity = new Vector3(_input.x * _playerStats.BaseSpeed, 0f, _input.y * (_playerStats.BaseSpeed * _playerStats.VerticalSpeedMultiplier));
 
             bool isMoving = _input.sqrMagnitude > 0.01f;
 
@@ -268,7 +268,11 @@ namespace Core
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
         
-        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
+        public void SetVelocity(Vector3 velocity)
+        {
+            _velocity = velocity;
+            _rb.velocity = velocity;
+        }
         
         #endregion
         
