@@ -29,7 +29,7 @@ namespace World
         public float AttackDamage;
         [Tooltip("How far away must this enemy be from the player to attack?")]
         public float AttackRange;
-        [Tooltip("")]
+        [Tooltip("When the enemy enters combat range: What is the new distance at which to cease combat? (It must be at least 0.1 greater than Attack Range)")]
         public float ExitAttackRange;
         [Tooltip("Interval between each attacks.")] // Cuando tengamos animaciones esto debe cambiar
         public float AttackSpeed;

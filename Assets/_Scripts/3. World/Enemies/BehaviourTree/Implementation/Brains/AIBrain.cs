@@ -10,11 +10,12 @@ namespace World
     [RequireComponent(typeof(BlackboardController))]
     public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
+        public NavMeshAgent Agent => _agent;
+
         [Header("Components Reference")]
         [SerializeField] protected Animator _animator;
         [SerializeField] protected NavMeshAgent _agent;
         protected LineOfSight _los;
-        public NavMeshAgent Agent => _agent;
 
         [Header("Basic AI Data")]
         [SerializeField] protected Blackboard _blackboard;
@@ -26,10 +27,17 @@ namespace World
         [SerializeField] protected List<Transform> _waypoints;
         protected BlackboardKey hasSeenPlayerKey;
         protected IDebuffReadable _debuffs;
+        protected bool _wasInRange;
 
         [Header("Stats")]
         protected EnemyStats _enemyStats;
 
+        [Header("Debuff shared Variables")]
+        protected float _currentAttackDamage;
+        protected float _currentAttackSpeed;
+        protected float _currentChaseSpeed;
+
+        // ---- Init Brain ----
         protected virtual void Awake()
         {
             _animator = GetComponentInChildren<Animator>();
@@ -48,6 +56,9 @@ namespace World
         {
             _blackboard = bb;
             _enemyStats = stats;
+            _currentAttackDamage = _enemyStats.AttackDamage;
+            _currentAttackSpeed = _enemyStats.AttackSpeed;
+            _currentChaseSpeed = _enemyStats.ChaseSpeed;
             _los.Init(transform, _enemyStats.viewDistance, _enemyStats.obsMask);
             //hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayer");
             tree = BuildTree();
@@ -62,6 +73,8 @@ namespace World
             tree?.Process();
         }
         protected abstract BehaviourTree BuildTree();
+
+        // ---- Internal Functions ---- 
         protected virtual bool IsInLos()
         {
             if (_blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
@@ -74,10 +87,40 @@ namespace World
             _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
+        protected virtual bool IsInAttackRangeStable()
+        {
+            float distance = Vector3.Distance(transform.position, target.position);
+            bool result;
+            if (_wasInRange)
+                result = distance <= _enemyStats.ExitAttackRange;
+            else
+                result = distance <= _enemyStats.AttackRange;
+            _wasInRange = result;
+            return result;
+        } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
+        protected virtual bool ApplyDebuff()
+        {
+            _currentAttackDamage = _enemyStats.AttackDamage;
+            _currentAttackSpeed = _enemyStats.AttackSpeed;
+            _currentChaseSpeed = _enemyStats.ChaseSpeed;
+            if (_debuffs == null)
+                return true;
+
+            if (_debuffs.IsDebuffed(DebuffType.ATK))
+                _currentAttackDamage *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
+
+            if (_debuffs.IsDebuffed(DebuffType.AttackSpeed))
+                _currentAttackSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+
+            if (_debuffs.IsDebuffed(DebuffType.Speed))
+                _currentChaseSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+            return true;
+        }
 
         //------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
         public void UnregisterDebuff() => _debuffs = null;
+        
 
         // ---- Gizmos ----
         private void OnDrawGizmos()

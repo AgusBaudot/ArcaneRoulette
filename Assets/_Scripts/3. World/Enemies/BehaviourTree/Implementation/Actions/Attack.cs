@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Foundation;
@@ -8,19 +9,19 @@ namespace World
     public class Attack : IStrategy
     {
         private readonly Animator _animator;
-        private readonly float _cooldown;
+       //private readonly float _cooldown;
         private readonly string _attackAnimName;
 
         private bool _isAttacking;
         private float _nextAttackTime;
 
-        public Attack(Animator animator, float cooldown, string attackAnimName)
+        public Attack(Animator animator, Func<float> getcooldown, string attackAnimName)
         {
             _animator = animator;
-            _cooldown = cooldown;
+            _getCooldown = getcooldown;
             _attackAnimName = attackAnimName;
         }
-
+        readonly Func<float> _getCooldown;
         public Node.NodeState Process()
         {
             //  Cooldown
@@ -38,7 +39,7 @@ namespace World
                 return Node.NodeState.Running;
 
             _isAttacking = false;
-            _nextAttackTime = Time.time + _cooldown;
+            _nextAttackTime = Time.time + _getCooldown();
 
             return Node.NodeState.Success;
         }

@@ -1,16 +1,13 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace World 
 {
     public class AIRange : AIBrain
     {
-        [Header("Range Settings")]
-        [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
+        [Header("Range Prefab")]
         [SerializeField] private EnemyProjectile projectilePrefab;
         [SerializeField] private float _projectileSpeed;
-        
-        private bool _wasInRange;
+
         protected override void Awake()
         {
             base.Awake();
@@ -22,14 +19,15 @@ namespace World
 
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
+            attackSequence.AddChild(new LeafNode("ApplyDebuff", new ConditionNode(() => ApplyDebuff())));
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _enemyStats.AttackSpeed, "PlaceHolderAnimation")));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, () => _currentAttackSpeed, "PlaceHolderAnimation")));
             //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _enemyStats.ChaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => _currentChaseSpeed)));
 
             // --- Patrol ---
             var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
@@ -43,17 +41,6 @@ namespace World
 
             return tree;
         }
-        bool IsInAttackRangeStable()
-        {
-            float distance = Vector3.Distance(transform.position, target.position);
-            bool result;
-            if (_wasInRange)
-                result = distance <= _enemyStats.ExitAttackRange;
-            else
-                result = distance <= _enemyStats.AttackRange;
-            _wasInRange = result;
-            return result;
-        }// Change the method for GetIdealRange to make it more accurate
 
         // Reemplazar por una lista de ataques posibles
         public void FireProjectile()
@@ -67,7 +54,7 @@ namespace World
 
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
-            proj.Init(dir, _projectileSpeed, 2, Foundation.ElementType.Neutral);
+            proj.Init(dir, _projectileSpeed, (int)_currentAttackDamage, Foundation.ElementType.Neutral);
         }
     }
 
