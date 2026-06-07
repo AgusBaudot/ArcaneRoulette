@@ -12,13 +12,22 @@ namespace World
         [Header("Room spawn settings")]
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
-        [SerializeField] private int _enemiesAlive = 0;
-        [SerializeField] private int _currentWave = 0;
-        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
-        private RoomEncounterData _encounterData;
+        [SerializeField] private float _spawnDelay;
+        [SerializeField] SpriteRenderer _dangerImage;
+        [SerializeField] private float _warningDuration;
+
 
         [Header("Hazards")]
-        [SerializeField] MonoBehaviour[] hazards; //overkill me quedo sin tiempo xd
+        [SerializeField] MonoBehaviour[] hazards; //overkill
+
+        [Header("Read only info")]
+        [SerializeField] private int _enemiesAlive = 0;
+        [SerializeField] private int _currentWave = 0;
+
+        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
+        private RoomEncounterData _encounterData;
+        private List<EnemyType> _spawnList;
+
 
         public event Action RoomIsClear;
         public void SaveEnemiesData(RoomEncounterData encounterData)
@@ -35,37 +44,68 @@ namespace World
                 Random.Range(bounds.min.z, bounds.max.z)
             );
         }
-        public void SpawnEnemies()
+
+        // ---- Entry function ----
+        public void PlayEntityController()
         {
-            if (_encounterData.Waves == null || _encounterData.Waves.Length == 0)
+            if (_encounterData.Waves == null || _encounterData.Waves.Length == 0 || _enemySpawns.Length == 0)
             {
                 RoomIsClear?.Invoke();
                 return;
             }
             SpawnWave(_currentWave);
         }
+
+        // ---- Core Wave System ----
         private void SpawnWave(int waveIndex)
         {
             EnemySpawnData wave = _encounterData.Waves[waveIndex];
             _enemiesAlive = 0;
-
+            // ---- Create a list with all enemy Types ----
+            _spawnList = new List<EnemyType>();
             for (int i = 0; i < wave.EnemyType.Length; i++)
             {
-                EnemyType type = wave.EnemyType[i];
-                int amount = wave.Amounts[i];
-
-                for (int j = 0; j < amount; j++)
+                for (int j = 0; j < wave.Amounts[i]; j++)
                 {
-                    if (_enemySpawns.Length == 0)
-                    {
-                        continue;
-                    }
+                    _spawnList.Add(wave.EnemyType[i]);
+                }
+            }
+            // ---- shuffle the list ----
+            for (int i = _spawnList.Count - 1; i > 0; i--)
+            {
+                int rand = Random.Range(0, i + 1);
+                EnemyType e = _spawnList[i];
+                _spawnList[i] = _spawnList[rand];
+                _spawnList[rand] = e;
+            }
 
-                    int spawnIndex = _enemiesAlive % _enemySpawns.Length;
+            StartCoroutine(SpawnEnemies(_spawnList));
+        }
+        private IEnumerator SpawnEnemies(List<EnemyType> enemiesToSpawn)
+        {
+            int spawnedSoFar = 0;
+
+            while (spawnedSoFar < enemiesToSpawn.Count)
+            {
+                int batchSize = Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar);
+                List<Vector3> batchPositions = new List<Vector3>();
+                List<SpriteRenderer> batchIndicators = new List<SpriteRenderer>();
+
+                for (int i = 0; i < batchSize; i++)
+                {
+                    int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
                     Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
-                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn);
+                    batchPositions.Add(spawn);
+                    SpriteRenderer indicator = Instantiate(_dangerImage, spawn, Quaternion.identity);
+                    batchIndicators.Add(indicator);
+                }
+                yield return new WaitForSeconds(_warningDuration);
 
-                    // el enemigo avisa cuando muere
+                for (int i = 0; i < batchSize; i++)
+                {
+                    EnemyType type = enemiesToSpawn[spawnedSoFar + i];
+                    IPoolable enemy = PoolEnemy.Instance.Get(type, batchPositions[i]);
+
                     if (enemy is EnemyController ec)
                     {
                         ec.Type = type;
@@ -76,7 +116,14 @@ namespace World
 
                     _spawnedEnemies.Add(enemy);
                     _enemiesAlive++;
+
+                    Destroy(batchIndicators[i].gameObject);
                 }
+
+                spawnedSoFar += batchSize;
+
+                if (spawnedSoFar < enemiesToSpawn.Count)
+                    yield return new WaitForSeconds(_spawnDelay);
             }
         }
         private void OnEnemyDeath(EnemyController enemy)
@@ -93,14 +140,6 @@ namespace World
                     RoomIsClear?.Invoke();
             }
         }
-        public void DisableAllHazards()
-        {
-            for (int i = 0; i < hazards.Length; i++)
-            {
-                if (hazards[i] is IHazard hazard)
-                    hazard.Disable();
-            }
-        }
         private IEnumerator VerifySubscription(EnemyController ec)
         {
             int attempts = 0;
@@ -108,26 +147,30 @@ namespace World
 
             while (attempts < maxAttempts)
             {
-                yield return null; // espera un frame
+                yield return null;
 
                 if (ec == null || !ec.gameObject.activeSelf) yield break;
 
                 if (!ec.HasDeathListeners())
                 {
-                    Debug.LogWarning($"[VerifySubscription] {ec.name} sin listeners, resuscribiendo. Intento {attempts + 1}");
                     ec.OnDeathEvent -= OnEnemyDeath;
                     ec.OnDeathEvent += OnEnemyDeath;
                 }
                 else
                 {
-                    //Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
-                    yield break; // todo bien, salir
+                    yield break;
                 }
 
                 attempts++;
             }
-
-            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse despu�s de {maxAttempts} intentos");
+        }
+        public void DisableAllHazards()
+        {
+            for (int i = 0; i < hazards.Length; i++)
+            {
+                if (hazards[i] is IHazard hazard)
+                    hazard.Disable();
+            }
         }
     }
 

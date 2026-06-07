@@ -42,7 +42,7 @@ namespace World
 
             if (_player == null)
             {
-                Debug.Log($"<color=red>FAIL:</color> player reference null =  {_player}");
+                Debug.Log($"<color=red>FAIL:</color> player reference is =  {_player == null}");
             }
         }
         private void Start()
