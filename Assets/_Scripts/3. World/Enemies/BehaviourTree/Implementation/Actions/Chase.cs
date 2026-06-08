@@ -25,6 +25,7 @@ namespace World
                 return Node.NodeState.Failure;
 
             _agent.speed = _getChaseSpeed();
+            Debug.Log("speed = " + _agent.speed);
             Vector3 offset = (_entity.position - _target.position).normalized * 1; //attackRange
             Vector3 targetPos = _target.position + offset;
 

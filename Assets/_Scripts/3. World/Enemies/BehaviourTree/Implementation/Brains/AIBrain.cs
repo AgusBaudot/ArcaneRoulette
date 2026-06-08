@@ -46,6 +46,7 @@ namespace World
             _agent.updateRotation = false;
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
+            
             if (target == null)
             {
                 target = GameObject.FindGameObjectWithTag("Player").transform;
@@ -59,6 +60,7 @@ namespace World
             _currentAttackDamage = _enemyStats.AttackDamage;
             _currentAttackSpeed = _enemyStats.AttackSpeed;
             _currentChaseSpeed = _enemyStats.ChaseSpeed;
+            _agent.stoppingDistance = _enemyStats.AttackRange - 0.1f;
             _los.Init(transform, _enemyStats.viewDistance, _enemyStats.obsMask);
             //hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayer");
             tree = BuildTree();
@@ -105,15 +107,20 @@ namespace World
             _currentChaseSpeed = _enemyStats.ChaseSpeed;
             if (_debuffs == null)
                 return true;
-
+            Debug.Log($"old Attack = {_currentAttackDamage}");
             if (_debuffs.IsDebuffed(DebuffType.ATK))
                 _currentAttackDamage *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
+            Debug.Log($"NEW attack = {_currentAttackDamage}");
 
+            Debug.Log($"OLD ATspeed = {_currentAttackSpeed}");
             if (_debuffs.IsDebuffed(DebuffType.AttackSpeed))
-                _currentAttackSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+                _currentAttackSpeed *= Mathf.Max(0f, 1f + _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+            Debug.Log($"NEW ATspeed = {_currentAttackSpeed}");
 
+            Debug.Log($"OLD Chase = {_currentChaseSpeed}");
             if (_debuffs.IsDebuffed(DebuffType.Speed))
                 _currentChaseSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+            Debug.Log($"NEW Chase = {_currentChaseSpeed}");
             return true;
         }
 
