@@ -19,15 +19,14 @@ namespace World
 
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("ApplyDebuff", new ConditionNode(() => ApplyDebuff())));
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, () => _currentAttackSpeed, "BrutoPHAnim")));
-            //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
+            attackSequence.AddChild(new LeafNode("wait", new Wait(() => EffectiveAttackSpeed)));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "BrutoPHAnim")));
 
             // --- Chase ---
             var chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => _currentChaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => EffectiveChaseSpeed)));
 
             // --- Patrol ---
             var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
@@ -46,7 +45,7 @@ namespace World
             Vector3 dir = (target.position - transform.position).normalized;
             Vector3 pos = transform.position + dir * 3f;
             var explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
-            explosion.Init(_radius, _currentAttackDamage, _playerLayer, target, 1);
+            explosion.Init(_radius, EffectiveAttackDamage, _playerLayer, target, 1);
         }
     }
 

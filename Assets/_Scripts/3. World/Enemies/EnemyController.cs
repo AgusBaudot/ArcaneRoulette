@@ -26,13 +26,15 @@ namespace World
         private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
+        [SerializeField] bool testVelocity = false;
+
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
+        private Rigidbody _rb;
 
 
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
-
 
         public void Awake()
         {
@@ -43,6 +45,7 @@ namespace World
 
             _enemyHealth = GetComponent<EnemyHealth>();
             _aiBrain = GetComponent<AIBrain>();
+            _rb = GetComponent<Rigidbody>();
 
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
@@ -79,6 +82,8 @@ namespace World
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;
             StartCoroutine(WaitForNavMeshAndBindRoutine());
+            _rb.velocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
         }
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
@@ -129,6 +134,11 @@ namespace World
         }
         public void Tick()
         {
+            if (testVelocity) 
+            {
+                _rb.velocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+            }
             _aiBrain.Tick();
             _enemyHealth.Tick();
         }

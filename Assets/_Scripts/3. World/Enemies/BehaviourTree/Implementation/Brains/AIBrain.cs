@@ -32,11 +32,6 @@ namespace World
         [Header("Stats")]
         protected EnemyStats _enemyStats;
 
-        [Header("Debuff shared Variables")]
-        protected float _currentAttackDamage;
-        protected float _currentAttackSpeed;
-        protected float _currentChaseSpeed;
-
         // ---- Init Brain ----
         protected virtual void Awake()
         {
@@ -44,7 +39,7 @@ namespace World
             _agent = GetComponent<NavMeshAgent>();
             _los = new LineOfSight();
             _agent.updateRotation = false;
-            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
             
             if (target == null)
@@ -57,10 +52,7 @@ namespace World
         {
             _blackboard = bb;
             _enemyStats = stats;
-            _currentAttackDamage = _enemyStats.AttackDamage;
-            _currentAttackSpeed = _enemyStats.AttackSpeed;
-            _currentChaseSpeed = _enemyStats.ChaseSpeed;
-            _agent.stoppingDistance = _enemyStats.AttackRange - 0.1f;
+            _agent.stoppingDistance = _enemyStats.AttackRange - 1f;
             _los.Init(transform, _enemyStats.viewDistance, _enemyStats.obsMask);
             //hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayer");
             tree = BuildTree();
@@ -100,28 +92,38 @@ namespace World
             _wasInRange = result;
             return result;
         } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
-        protected virtual bool ApplyDebuff()
+        protected float EffectiveAttackSpeed 
         {
-            _currentAttackDamage = _enemyStats.AttackDamage;
-            _currentAttackSpeed = _enemyStats.AttackSpeed;
-            _currentChaseSpeed = _enemyStats.ChaseSpeed;
-            if (_debuffs == null)
-                return true;
-            Debug.Log($"old Attack = {_currentAttackDamage}");
-            if (_debuffs.IsDebuffed(DebuffType.ATK))
-                _currentAttackDamage *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
-            Debug.Log($"NEW attack = {_currentAttackDamage}");
-
-            Debug.Log($"OLD ATspeed = {_currentAttackSpeed}");
-            if (_debuffs.IsDebuffed(DebuffType.AttackSpeed))
-                _currentAttackSpeed *= Mathf.Max(0f, 1f + _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
-            Debug.Log($"NEW ATspeed = {_currentAttackSpeed}");
-
-            Debug.Log($"OLD Chase = {_currentChaseSpeed}");
-            if (_debuffs.IsDebuffed(DebuffType.Speed))
-                _currentChaseSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
-            Debug.Log($"NEW Chase = {_currentChaseSpeed}");
-            return true;
+            get
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.AttackSpeed))
+                {
+                    return _enemyStats.AttackSpeed * Mathf.Max(0f, 1f + _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+                }
+                return _enemyStats.AttackSpeed;
+            }
+        }
+        protected float EffectiveAttackDamage 
+        {
+            get 
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.ATK))
+                {
+                    return _enemyStats.AttackDamage * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
+                }
+                return _enemyStats.AttackDamage;
+            }
+        }
+        protected float EffectiveChaseSpeed 
+        {
+            get 
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
+                {
+                    return _enemyStats.ChaseSpeed * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+                }
+                return _enemyStats.ChaseSpeed;
+            }
         }
 
         //------------ IDebuffReceiver Implementation ------------

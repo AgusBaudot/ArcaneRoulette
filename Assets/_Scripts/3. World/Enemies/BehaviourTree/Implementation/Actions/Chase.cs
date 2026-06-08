@@ -25,18 +25,17 @@ namespace World
                 return Node.NodeState.Failure;
 
             _agent.speed = _getChaseSpeed();
-            Debug.Log("speed = " + _agent.speed);
-            Vector3 offset = (_entity.position - _target.position).normalized * 1; //attackRange
+            Vector3 offset = (_entity.position - _target.position).normalized;
             Vector3 targetPos = _target.position + offset;
 
-            _agent.SetDestination(targetPos);
+            _agent.SetDestination(_target.position);
 
             if (_agent.pathPending)
                 return Node.NodeState.Running;
 
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
-                return Node.NodeState.Failure; 
+                return Node.NodeState.Success; 
             }
 
             return Node.NodeState.Running;
