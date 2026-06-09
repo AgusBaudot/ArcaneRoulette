@@ -20,7 +20,6 @@ namespace World
             // --- Attack Sequence ---
             var attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("wait", new Wait(() => EffectiveAttackSpeed)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "BrutoPHAnim")));
 
             // --- Chase ---

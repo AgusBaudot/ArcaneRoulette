@@ -10,12 +10,10 @@ namespace World
         Func<float> _duration;
         private float _timer;
         private bool _started = false;
-
         public Wait( Func<float> duration)
         {
             _duration = duration;
         }
-        
         public Node.NodeState Process()
         {
             if (!_started)
@@ -29,7 +27,6 @@ namespace World
 
             return Node.NodeState.Success;
         }
-
         public void Reset()
         {
             _started = false;
