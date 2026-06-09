@@ -13,7 +13,8 @@ namespace World
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
         [SerializeField] private float _spawnDelay;
-        [SerializeField] SpriteRenderer _dangerImage;
+        [SerializeField] GameObject _dangerImage;
+        [SerializeField] private ParticleSystem _effect;
         [SerializeField] private float _warningDuration;
 
 
@@ -89,14 +90,15 @@ namespace World
             {
                 int batchSize = Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar);
                 List<Vector3> batchPositions = new List<Vector3>();
-                List<SpriteRenderer> batchIndicators = new List<SpriteRenderer>();
+                List<GameObject> batchIndicators = new List<GameObject>();
 
                 for (int i = 0; i < batchSize; i++)
                 {
                     int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
                     Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
                     batchPositions.Add(spawn);
-                    SpriteRenderer indicator = Instantiate(_dangerImage, spawn, Quaternion.identity);
+                    Debug.Log("Se spawnea esto?");
+                    GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0))); // the exact rotation as the camera
                     batchIndicators.Add(indicator);
                 }
                 yield return new WaitForSeconds(_warningDuration);
