@@ -32,6 +32,40 @@ namespace World
         [Header("Stats")]
         protected EnemyStats _enemyStats;
 
+        protected float EffectiveAttackSpeed
+        {
+            get
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.AttackSpeed))
+                {
+                    return _enemyStats.AttackSpeed * Mathf.Max(0f, 1f + _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
+                }
+                return _enemyStats.AttackSpeed;
+            }
+        }
+        protected float EffectiveAttackDamage
+        {
+            get
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.ATK))
+                {
+                    return _enemyStats.AttackDamage * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
+                }
+                return _enemyStats.AttackDamage;
+            }
+        }
+        protected float EffectiveChaseSpeed
+        {
+            get
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
+                {
+                    return _enemyStats.ChaseSpeed * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+                }
+                return _enemyStats.ChaseSpeed;
+            }
+        }
+
         // ---- Init Brain ----
         protected virtual void Awake()
         {
@@ -41,7 +75,7 @@ namespace World
             _agent.updateRotation = false;
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
-            
+
             if (target == null)
             {
                 target = GameObject.FindGameObjectWithTag("Player").transform;
@@ -92,46 +126,13 @@ namespace World
             _wasInRange = result;
             return result;
         } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
-        protected float EffectiveAttackSpeed 
-        {
-            get
-            {
-                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.AttackSpeed))
-                {
-                    return _enemyStats.AttackSpeed * Mathf.Max(0f, 1f + _debuffs.GetDebuffStrength(DebuffType.AttackSpeed));
-                }
-                return _enemyStats.AttackSpeed;
-            }
-        }
-        protected float EffectiveAttackDamage 
-        {
-            get 
-            {
-                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.ATK))
-                {
-                    return _enemyStats.AttackDamage * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
-                }
-                return _enemyStats.AttackDamage;
-            }
-        }
-        protected float EffectiveChaseSpeed 
-        {
-            get 
-            {
-                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
-                {
-                    return _enemyStats.ChaseSpeed * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
-                }
-                return _enemyStats.ChaseSpeed;
-            }
-        }
 
         //------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
         public void UnregisterDebuff() => _debuffs = null;
-        
 
-        // ---- Gizmos ----
+        #region Gizmos
+        //attack Range
         private void OnDrawGizmos()
         {
             Color myColor = Color.red;
@@ -139,6 +140,6 @@ namespace World
             Gizmos.color = myColor;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
         }
+        #endregion
     }
 }
-

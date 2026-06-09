@@ -26,8 +26,6 @@ namespace World
         private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
-        [SerializeField] bool testVelocity = false;
-
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
         private Rigidbody _rb;
@@ -134,11 +132,6 @@ namespace World
         }
         public void Tick()
         {
-            if (testVelocity) 
-            {
-                _rb.velocity = Vector3.zero;
-                _rb.angularVelocity = Vector3.zero;
-            }
             _aiBrain.Tick();
             _enemyHealth.Tick();
         }
