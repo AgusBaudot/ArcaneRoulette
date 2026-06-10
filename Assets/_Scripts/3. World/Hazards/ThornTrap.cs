@@ -23,7 +23,8 @@ namespace World
         private bool _isIdle = true;
 
         private readonly int _activateHash = Animator.StringToHash("Activate_Up");
-        private readonly int _idleHash = Animator.StringToHash("Activate_Down");
+        private readonly int _cooldownHash = Animator.StringToHash("Activate_Cooldown");
+        private readonly int _idleHash = Animator.StringToHash("Activate_Idle");
 
         private void OnTriggerEnter(Collider other)
         {
@@ -49,21 +50,19 @@ namespace World
             // Spikes fully emerge — damage fires exactly here, one OverlapSphere
             //if (_spikesVisual != null) 
             //    _spikesVisual.SetActive(true);
-            Debug.Log("Up here");
             _anim.SetTrigger(_activateHash);
             
             ApplyDamage();
 
             // Spikes stay visible briefly for readability, then retract
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
-            Debug.Log("Down here");
+            _anim.SetTrigger(_cooldownHash);
             //if (_spikesVisual != null) _spikesVisual.SetActive(false);
 
             // Cooldown before trap can activate again
             yield return CoroutineUtils.GetWait(_cooldownDuration);
             _anim.SetTrigger(_idleHash);
 
-            Debug.Log("Reload");
             _isIdle = true;
         }
 
