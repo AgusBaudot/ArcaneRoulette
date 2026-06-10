@@ -19,10 +19,19 @@ namespace Core
         [SerializeField] [Range(0, 1)] private float _alpha = 0.5f;
 
         public int UpdatePriority => Foundation.UpdatePriority.Camera;
+        
+        private static readonly int OpacityPropertyId = Shader.PropertyToID("_Opacity");
 
         //Track state to avoid GetComponent calls every frame and handle restoring
         private readonly HashSet<Renderer> _hiddenRenderers = new();
         private readonly HashSet<Renderer> _renderersHitThisFrame = new();
+
+        private MaterialPropertyBlock _mpb;
+
+        private void Awake()
+        {
+            _mpb = new MaterialPropertyBlock();
+        }
 
         private void OnEnable()
         {
@@ -50,13 +59,14 @@ namespace Core
                 Renderer hitRenderer = hit.collider.GetComponent<Renderer>();
                 if (hitRenderer != null)
                 {
-                    
                     _renderersHitThisFrame.Add(hitRenderer);
 
                     if (!_hiddenRenderers.Contains(hitRenderer))
                     {
-                        Color c = hitRenderer.material.GetColor("_BaseColor");
-                        hitRenderer.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, _alpha));
+                        hitRenderer.GetPropertyBlock(_mpb);
+                        _mpb.SetFloat(OpacityPropertyId, _alpha);
+                        hitRenderer.SetPropertyBlock(_mpb);
+                        
                         _hiddenRenderers.Add(hitRenderer);
                     }
                 }
@@ -68,8 +78,8 @@ namespace Core
                 {
                     if (renderer != null)
                     {
-                        Color c = renderer.material.GetColor("_BaseColor");
-                        renderer.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1));
+                        //Null completely clears the override applied earlier, reverting back to default.
+                        renderer.SetPropertyBlock(null);
                     }
 
                     return true;
@@ -85,8 +95,7 @@ namespace Core
             {
                 if (r != null)
                 {
-                    Color c = r.material.GetColor("_BaseColor");
-                    r.material.SetColor("_BaseColor", new Color(c.r, c.g, c.b, 1));
+                    r.SetPropertyBlock(null);
                 }
             }
             _hiddenRenderers.Clear();
