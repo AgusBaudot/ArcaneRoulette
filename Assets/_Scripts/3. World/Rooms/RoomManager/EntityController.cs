@@ -13,8 +13,8 @@ namespace World
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
         [SerializeField] private float _spawnDelay;
-        [SerializeField] GameObject _dangerImage;
-        [SerializeField] private ParticleSystem _effect;
+        [SerializeField] private GameObject _dangerImage;
+        [SerializeField] private GameObject _effect;
         [SerializeField] private float _warningDuration;
 
 
@@ -22,8 +22,8 @@ namespace World
         [SerializeField] MonoBehaviour[] hazards; //overkill
 
         [Header("Read only info")]
-        [SerializeField] private int _enemiesAlive = 0;
-        [SerializeField] private int _currentWave = 0;
+        [SerializeField] private int _enemiesAlive;
+        [SerializeField] private int _currentWave;
 
         private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
         private RoomEncounterData _encounterData;
@@ -105,6 +105,8 @@ namespace World
 
                 for (int i = 0; i < batchSize; i++)
                 {
+                    GameObject effect = Instantiate(_effect, batchPositions[i], Quaternion.identity);
+                    Destroy(effect, 3f);
                     EnemyType type = enemiesToSpawn[spawnedSoFar + i];
                     IPoolable enemy = PoolEnemy.Instance.Get(type, batchPositions[i]);
 

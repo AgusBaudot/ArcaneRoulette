@@ -36,22 +36,22 @@ public class AIBruto : AIBrain
     } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
     protected override BehaviourTree BuildTree()
     {
-        var tree = new BehaviourTree(base._behaviourTreeName);
-        var root = new PrioritySelectorNode("Root");
+        BehaviourTree tree = new BehaviourTree(base._behaviourTreeName);
+        PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
         // --- Attack Sequence ---
-        var attackSequence = new SequenceNode("Attack", 2);
+        SequenceNode attackSequence = new SequenceNode("Attack", 2);
         attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
         attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "BrutoPHAnim")));
         //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
         // --- Chase ---
-        var chaseSequence = new SequenceNode("Chase", 1);
+        SequenceNode chaseSequence = new SequenceNode("Chase", 1);
         chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
         chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
 
         // --- Patrol ---
-        var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+        LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
 
         // --- Estructura ---
         root.AddChild(attackSequence);
@@ -66,7 +66,7 @@ public class AIBruto : AIBrain
     {
         Vector3 dir = (target.position - transform.position).normalized;
         Vector3 pos = transform.position + dir * 3f;
-        var explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
+        ExplosionArea explosion = Instantiate(_explosionAreaPrefab, pos, Quaternion.identity);
         explosion.Init(_radius, _attackDamage, _playerLayer, target, 1);
     }
 }
