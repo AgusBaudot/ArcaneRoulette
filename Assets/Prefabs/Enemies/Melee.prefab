@@ -97,7 +97,6 @@ GameObject:
   - component: {fileID: 2671222585452926215}
   - component: {fileID: 6609402721532654236}
   - component: {fileID: 1354876219366200651}
-  - component: {fileID: 2908258750790832809}
   - component: {fileID: 2494622429942246647}
   - component: {fileID: 3785297136978254722}
   - component: {fileID: 6147265720480183938}
@@ -197,23 +196,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2908258750790832809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326220217148487278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b5fecd45b9f89848861fbb4cd49c3be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  reference: {fileID: 0}
-  range: 15
-  obsMask:
-    serializedVersion: 2
-    m_Bits: 32768
 --- !u!195 &2494622429942246647
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -302,7 +284,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animator: {fileID: 0}
   _agent: {fileID: 0}
-  _los: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: BTMelee
   _waypoints: []

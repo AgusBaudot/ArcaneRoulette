@@ -247,7 +247,6 @@ GameObject:
   - component: {fileID: 1761069233465956933}
   - component: {fileID: 8977802434921855962}
   - component: {fileID: 3415579662829176277}
-  - component: {fileID: 1788442533233594985}
   - component: {fileID: 6160062026905782466}
   - component: {fileID: 4465080897143572717}
   - component: {fileID: 4584940593510640468}
@@ -348,23 +347,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1788442533233594985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6198314231924131935}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b5fecd45b9f89848861fbb4cd49c3be, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  reference: {fileID: 0}
-  range: 23
-  obsMask:
-    serializedVersion: 2
-    m_Bits: 32768
 --- !u!95 &6160062026905782466
 Animator:
   serializedVersion: 5
@@ -453,7 +435,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animator: {fileID: 0}
   _agent: {fileID: 0}
-  _los: {fileID: 0}
   target: {fileID: 0}
   _behaviourTreeName: BTBruto
   _waypoints: []

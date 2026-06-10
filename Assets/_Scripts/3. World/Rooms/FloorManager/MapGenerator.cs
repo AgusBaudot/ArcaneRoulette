@@ -15,7 +15,7 @@ namespace World
         private List<int> _endRooms; //Dead End Room
         private Queue<int> _cellQueue; // cola de generacion de rooms
         private List<RoomInfo> _spawnedCellsInfo = new List<RoomInfo>();
-        public int[] getFloorPlan => _floorPlan;
+
         #endregion
 
         #region Special Indices
@@ -26,6 +26,11 @@ namespace World
         private List<int> _restingRoomIndices = new();
         private List<int> _artifactRoomIndices = new();
         private List<int> _regularRoomIndices = new();
+
+        #endregion
+
+        #region properties
+        public int[] getFloorPlan => _floorPlan;
         public int BossRoomIndex => _bossRoomIndex;
         public int LobbyRoomIndex => _lobbyRoomIndex;
         #endregion
@@ -53,7 +58,6 @@ namespace World
         {
             int attempts = 0;
             int maxAttempts = 100;
-
             while (attempts < maxAttempts)
             {
                 attempts++;
@@ -69,21 +73,27 @@ namespace World
                 _artifactRoomIndices.Clear();
                 _regularRoomIndices.Clear();
                 _bossRoomIndex = -1;
-
+                // start BFS from here
                 VisitCell(StartIndex);
+
+                // Generate the grid with 1 and 0 and saving each index
                 RunBFS();
 
-                int guaranteedSpecialCount = CountGuaranteedSpecialRooms(); // suma 1 por cada room garantizada
+                // Save 1 number for each of the guaranteed rooms 
+                int guaranteedSpecialCount = CountGuaranteedSpecialRooms();
 
-                if (_floorPlanCount < _data.MinRooms || _endRooms.Count < guaranteedSpecialCount) // doble chequear
+                //if the generation is not correct => restart
+                if (_floorPlanCount < _data.MinRooms || _endRooms.Count < guaranteedSpecialCount)
                     continue;
 
+                // all the combat - non Combat rooms must to have a place in the grid
                 if (!SetupSpecialRooms())
                     continue;
 
+                //return to floormanager
                 return (_spawnedCellsInfo, true);
             }
-
+            // attempts > maxAttempts => the generation failed
             return (null, false);
         }
         private int CountGuaranteedSpecialRooms()
@@ -116,62 +126,59 @@ namespace World
         }
         private bool SetupSpecialRooms()
         {
-            int availablePool = _floorPlanCount;
-
+            // ---- boss room
             _bossRoomIndex = _endRooms.Count > 0 ? _endRooms[_endRooms.Count - 1] : -1;
             if (_bossRoomIndex == -1) return false;
             _endRooms.RemoveAt(_endRooms.Count - 1);
-            availablePool--;
 
+            // ---- Lobby room ----
             _lobbyRoomIndex = PickSurroundedRoom();
             if (_lobbyRoomIndex == -1) return false;
             SaveRoomInfo(_lobbyRoomIndex);
-            availablePool--;
 
             int regularRoomsCount = Random.Range(_data.MinRegularRooms, _data.MaxRegularRooms);
-            availablePool -= regularRoomsCount;
 
             // ---- Pick Up rooms ----
             if (_data.GuaranteeRestingRoom)
             {
+                //choose between PickEndRoom and PickSurroundedRoom
                 if (!PickRooms(PickEndRoom, _restingRoomIndices)) return false;
-                availablePool--;
             }
             if (_data.GuaranteeShopRoom)
             {
-                 if (!PickRooms(PickEndRoom, _shopRoomIndices)) return false;
-                availablePool--;
+                if (!PickRooms(PickEndRoom, _shopRoomIndices)) return false;
             }
             if (_data.GuaranteeEventRoom)
             {
                 if (!PickRooms(PickEndRoom, _eventRoomIndices, true)) return false;
-                availablePool--;
             }
             if (_data.GuaranteeArtifactRoom)
             {
                 if (!PickRooms(PickEndRoom, _artifactRoomIndices)) return false;
-                availablePool--;
             }
 
+            // save all the assigned index in a list to compare => hash list to easier compare
             HashSet<int> assignedIndices = BuildAssignedSet();
             List<int> unassignedRooms = new List<int>();
 
-            foreach (var info in _spawnedCellsInfo)
+            // All spawnedCells indices that are not on the list will be moved to unassignedRooms
+            foreach (RoomInfo info in _spawnedCellsInfo)
             {
                 if (!assignedIndices.Contains(info.index))
                     unassignedRooms.Add(info.index);
             }
 
-            for (int i = 0; i < regularRoomsCount && i < unassignedRooms.Count; i++) // priorizo las regular rooms antes que las rooms aleatorias
+            // combat rooms become first than non combat rooms
+            for (int i = 0; i < regularRoomsCount && i < unassignedRooms.Count; i++)
                 _regularRoomIndices.Add(unassignedRooms[i]);
 
-
-            for (int i = regularRoomsCount; i < unassignedRooms.Count; i++) // indices restantes se asignan aleatoriamente
+            // the remaining indices are assigned randomly
+            for (int i = regularRoomsCount; i < unassignedRooms.Count; i++)
             {
-                RoomType randomType = _randomPoolTypes[Random.Range(0, _randomPoolTypes.Length)]; // tipo random
-                AssignToList(unassignedRooms[i], randomType);
+                RoomType randomType = _randomPoolTypes[Random.Range(0, _randomPoolTypes.Length)];
+                AssignToList(unassignedRooms[i], randomType); // save index in list
             }
-
+            // save lists in RoomInfo
             UpdateSpecialRoomType();
             return true;
         }
@@ -221,7 +228,9 @@ namespace World
             {
                 RoomInfo cell = _spawnedCellsInfo[i];
                 if (typeMap.TryGetValue(cell.index, out RoomType type))
+                {
                     cell.SetRoomType(type);
+                }
                 _spawnedCellsInfo[i] = cell;
             }
         }

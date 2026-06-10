@@ -101,7 +101,8 @@ namespace UI
             Helpers.Input.OnCloseCrafting += CloseCraftingUI;
             Helpers.Input.OnCarouselLeft += OnLeftArrow;
             Helpers.Input.OnCarouselRight += OnRightArrow;
-            Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
+            if (_tooltip != null)
+                Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
         }
 
         private void OnDisable()
@@ -111,7 +112,8 @@ namespace UI
             Helpers.Input.OnCloseCrafting -= CloseCraftingUI;
             Helpers.Input.OnCarouselLeft -= OnLeftArrow;
             Helpers.Input.OnCarouselRight -= OnRightArrow;
-            Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
+            if (_tooltip != null)
+                Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
         }
 
         #endregion
@@ -161,7 +163,7 @@ namespace UI
             foreach (var panel in _slotPanels)
                 panel.TryApply(_spellCrafter);
 
-            _tooltip.Hide();
+            _tooltip?.Hide();
             _craftingPanel.SetActive(false);
             AudioListener.pause = false;
             Time.timeScale = 1f;

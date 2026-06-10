@@ -20,17 +20,18 @@ namespace World
 
         #region Components
         private Blackboard _blackboard;
-        public Blackboard Blackboard => _blackboard;
         private EnemyHealth _enemyHealth;
         private AIBrain _aiBrain;
+        public Blackboard Blackboard => _blackboard;
+        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
-        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
+        private Rigidbody _rb;
+
 
         public event Action<EnemyController> OnDeathEvent;
-
         private int _floorLayerMask;
 
         public void Awake()
@@ -42,6 +43,7 @@ namespace World
 
             _enemyHealth = GetComponent<EnemyHealth>();
             _aiBrain = GetComponent<AIBrain>();
+            _rb = GetComponent<Rigidbody>();
 
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
@@ -78,6 +80,8 @@ namespace World
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;
             StartCoroutine(WaitForNavMeshAndBindRoutine());
+            _rb.velocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
         }
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
@@ -114,7 +118,6 @@ namespace World
                     yield return null;
                 }
             }
-
             if (!boundSuccessfully)
             {
                 Debug.LogError(

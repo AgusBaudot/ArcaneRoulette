@@ -35,7 +35,7 @@ namespace Core
             {
                 receiver.UnregisterDebuff();
             }
-            Destroy(this); // TEST
+            Destroy(this);
         }
         
         // ── IDebuffable ──────────────────────────────────────────────────────────

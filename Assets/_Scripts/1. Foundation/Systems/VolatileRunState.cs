@@ -90,6 +90,16 @@ namespace Foundation
             Currency += amount;
             OnCurrencyChanged?.Invoke(Currency);
         }
+        
+        public bool TrySpend(int amount)
+        {
+            if (Currency - amount < 0)
+                return false;
+            
+            Currency -= amount;
+            OnCurrencyChanged?.Invoke(Currency);
+            return true;
+        }
 
         // ── Spell slots ──────────────────────────────────────────────────────
 
