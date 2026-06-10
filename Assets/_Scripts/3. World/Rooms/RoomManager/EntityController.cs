@@ -69,6 +69,7 @@ namespace World
                 for (int j = 0; j < wave.Amounts[i]; j++)
                 {
                     _spawnList.Add(wave.EnemyType[i]);
+                    _enemiesAlive++;
                 }
             }
             // ---- shuffle the list ----
@@ -97,7 +98,6 @@ namespace World
                     int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
                     Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
                     batchPositions.Add(spawn);
-                    Debug.Log("Se spawnea esto?");
                     GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0))); // the exact rotation as the camera
                     batchIndicators.Add(indicator);
                 }
@@ -119,7 +119,6 @@ namespace World
                     }
 
                     _spawnedEnemies.Add(enemy);
-                    _enemiesAlive++;
 
                     Destroy(batchIndicators[i].gameObject);
                 }
