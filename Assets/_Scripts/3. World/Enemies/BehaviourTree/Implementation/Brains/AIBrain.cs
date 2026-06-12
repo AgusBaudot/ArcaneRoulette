@@ -132,13 +132,18 @@ namespace World
         public void UnregisterDebuff() => _debuffs = null;
 
         #region Gizmos
-        //attack Range
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
-            Color myColor = Color.red;
-            myColor.a = 0.5f;
-            Gizmos.color = myColor;
+            //attack Range
+            Color Color1 = Color.red;
+            Color1.a = 0.5f;
+            Gizmos.color = Color1;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
+
+            Color Color2 = Color.blue;
+            Color2.a = 0.5f;
+            Gizmos.color = Color2;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.viewDistance);
         }
         #endregion
     }

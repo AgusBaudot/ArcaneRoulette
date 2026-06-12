@@ -59,7 +59,7 @@ namespace World
                 {
                     _entityController.RoomIsClear -= RoomClearedEvent;
                     _entityController.RoomIsClear += RoomClearedEvent;
-                    _entityController.SpawnEnemies();
+                    _entityController.PlayEntityController();
                 }
                 else if (_roomType == RoomType.Boss) 
                 {
