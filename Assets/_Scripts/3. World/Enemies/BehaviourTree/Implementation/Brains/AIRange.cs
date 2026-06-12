@@ -4,58 +4,49 @@ namespace World
 {
     public class AIRange : AIBrain
     {
+        #region SerializeField
         [Header("Range Prefab")]
         [SerializeField] private EnemyProjectile projectilePrefab;
         [SerializeField] private float _projectileSpeed;
-
+        #endregion
         protected override void Awake()
         {
             base.Awake();
         }
         protected override BehaviourTree BuildTree()
         {
-            var tree = new BehaviourTree(base._behaviourTreeName);
-            var root = new PrioritySelectorNode("Root");
+            BehaviourTree tree = new BehaviourTree(base._behaviourTreeName);
+            PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack", 2);
+            SequenceNode attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent ,() => EffectiveAttackSpeed, "PlaceHolderAnimation")));
-            //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
 
             // --- Chase ---
-            var chaseSequence = new SequenceNode("Chase", 1);
+            SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            //chaseSequence.AddChild(new LeafNode("NotInAttackRange", new ConditionNode(() => !IsInAttackRangeStable())));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => EffectiveChaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
+            LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
             // --- Estructura ---
             root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
-
             tree.AddChild(root);
-
             return tree;
         }
-
-        // Reemplazar por una lista de ataques posibles
+        // Replace for a list of posible attacks
         public void FireProjectile()
         {
             Vector3 dir = (target.position - transform.position).normalized;
-
             float spawnOffset = 1.0f;
-
             Vector3 spawnPos = transform.position + Vector3.up * 0.5f + dir * spawnOffset;
-
-
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
             proj.Init(dir, _projectileSpeed, (int)EffectiveAttackDamage, Foundation.ElementType.Neutral);
         }
     }
-
 }

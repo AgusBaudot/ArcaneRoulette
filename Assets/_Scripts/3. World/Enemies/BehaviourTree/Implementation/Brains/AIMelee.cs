@@ -4,40 +4,38 @@ namespace World
 {
     public sealed class AIMelee : AIBrain
     {
-        [Header("Melee Internal values")]
+        #region SerializeField
+        [Header("Melee Config")]
         [SerializeField] private HitEffect _hitEffect;
-        [SerializeField] private float _attackRadius;
-        [SerializeField] private LayerMask _playerLayer;
+        #endregion
         protected override void Awake()
         {
             base.Awake();
         }
         protected override BehaviourTree BuildTree() 
         {
-            var tree = new BehaviourTree(base._behaviourTreeName);
-            var root = new PrioritySelectorNode("Root");
+            BehaviourTree tree = new BehaviourTree(base._behaviourTreeName);
+            PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack", 2);
+            SequenceNode attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent,() => EffectiveAttackSpeed, "MeleePHAnim")));
             //attackSequence.AddChild(new LeafNode("wait", new Wait(_enemyStats.AttackSpeed)));
 
             // --- Chase ---
-            var chaseSequence = new SequenceNode("Chase", 1);
+            SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
             chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => EffectiveChaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
+            LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
-            // --- Estructura ---
+            // --- Structure ---
             root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
-
             tree.AddChild(root);
-
             return tree;
         }
         public void DoHitAttack()
@@ -45,7 +43,7 @@ namespace World
             Vector3 dir = (target.position - transform.position).normalized;
             Vector3 pos = transform.position + dir * 1f;
             var explosion = Instantiate(_hitEffect, pos, Quaternion.identity);
-            explosion.Init(_attackRadius, EffectiveAttackDamage, _playerLayer, target, 0.2f);
+            explosion.Init(_enemyStats.AttackRadius, EffectiveAttackDamage, _enemyStats.HitLayer, target, 0.2f);
         }
     }
 }
