@@ -24,8 +24,6 @@ namespace World
                 return true;
 
             _ally = FindBestAlly();
-            
-
             return _ally != null;
         }
 
