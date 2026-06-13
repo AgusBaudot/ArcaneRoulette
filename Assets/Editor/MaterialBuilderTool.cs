@@ -124,10 +124,10 @@ public class MaterialBuilderTool : EditorWindow
         if (height != null) newMat.SetTexture("_HeightMap", height);
         if (emissive != null) newMat.SetTexture("_EmissiveMap", emissive);
 
-        // Assign Default Floats and Colors based on your Blackboard
+        var emissiveColor = emissive == null ? Color.black : Color.white;
         newMat.SetFloat("_Opacity", 1.0f);
         newMat.SetFloat("_HeightStrength", 0.01f); 
-        newMat.SetColor("_EmissiveColor", Color.white); // Default to white so the map shows through
+        newMat.SetColor("_EmissiveColor", emissiveColor);
 
         // Save it to the project
         AssetDatabase.CreateAsset(newMat, materialPath);

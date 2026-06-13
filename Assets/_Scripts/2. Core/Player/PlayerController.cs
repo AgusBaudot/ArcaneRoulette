@@ -273,6 +273,19 @@ namespace Core
             _velocity = velocity;
             _rb.velocity = velocity;
         }
+
+        public void TeleportTo(Vector3 pos)
+        {
+            _velocity = Vector3.zero;
+            _rb.velocity = Vector3.zero;
+            
+            var previousInterpolation = _rb.interpolation;
+            _rb.interpolation = RigidbodyInterpolation.None;
+            
+            _rb.position = pos;
+            
+            _rb.interpolation = previousInterpolation;
+        }
         
         #endregion
         
