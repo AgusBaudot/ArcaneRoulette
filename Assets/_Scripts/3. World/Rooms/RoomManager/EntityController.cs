@@ -28,9 +28,8 @@ namespace World
         private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
         private RoomEncounterData _encounterData;
         private List<EnemyType> _spawnList;
-
-
         public event Action RoomIsClear;
+
         public void SaveEnemiesData(RoomEncounterData encounterData)
         {
             _encounterData = encounterData;

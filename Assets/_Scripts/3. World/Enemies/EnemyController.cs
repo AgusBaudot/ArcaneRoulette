@@ -10,27 +10,29 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
-        #region Identity
+        #region Parameters
         public float interval { get; set; }
         public float timer { get; set; }
         public EnemyType Type { get; set; }
+        public IHealable Healable => _healable;
+        public bool IsBeingHealed { get; set; }
+        public Transform Transform => transform;
+        public Blackboard Blackboard => _blackboard;
         #endregion
 
         #region Components
         private Blackboard _blackboard;
         private EnemyHealth _enemyHealth;
         private AIBrain _aiBrain;
-        public Blackboard Blackboard => _blackboard;
+        private IHealable _healable;
+        private Rigidbody _rb;
         private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
-        private Rigidbody _rb;
-
-
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
 
@@ -38,13 +40,11 @@ namespace World
         {
             BlackboardController _bcontroller = GetComponent<BlackboardController>();
             _blackboard = _bcontroller.GetBlackboard();
-            
             _floorLayerMask = LayerMask.GetMask("Floor");
-
             _enemyHealth = GetComponent<EnemyHealth>();
+            _healable = GetComponent<IHealable>();
             _aiBrain = GetComponent<AIBrain>();
             _rb = GetComponent<Rigidbody>();
-
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
@@ -82,6 +82,7 @@ namespace World
             StartCoroutine(WaitForNavMeshAndBindRoutine());
             _rb.velocity = Vector3.zero;
             _rb.angularVelocity = Vector3.zero;
+            IsBeingHealed = false;
         }
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
@@ -92,7 +93,7 @@ namespace World
             bool boundSuccessfully = false;
 
             Vector2 jitter2D = Random.insideUnitCircle * 0.2f;
-            Vector3 initialPos = transform.position + new Vector3(jitter2D.x, 0, jitter2D.y);
+            Vector3 initialPos = base.transform.position + new Vector3(jitter2D.x, 0, jitter2D.y);
 
             while (attempts < maxAttempts && !boundSuccessfully)
             {
@@ -104,7 +105,7 @@ namespace World
                 }
                 if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
                 {
-                    transform.position = hit.position;
+                    base.transform.position = hit.position;
 
                     _aiBrain.Agent.enabled = true;
                     _aiBrain.Agent.Warp(hit.position);
@@ -122,7 +123,7 @@ namespace World
             {
                 Debug.LogError(
                     $"<color=red>FATAL ERROR:</color> {gameObject.name} could not find the NavMesh after {maxAttempts} frames. " +
-                    $"Position: {transform.position}. Ensure the Room's NavMeshSurface has completely finished building before spawning this enemy!");
+                    $"Position: {base.transform.position}. Ensure the Room's NavMeshSurface has completely finished building before spawning this enemy!");
             }
         }
         public void DeathEvent()

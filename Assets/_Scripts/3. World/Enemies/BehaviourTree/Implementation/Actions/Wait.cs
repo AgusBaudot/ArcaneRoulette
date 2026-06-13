@@ -7,10 +7,10 @@ namespace World
 {
     public class Wait : IStrategy
     {
-        Func<float> _duration;
+        private float _duration;
         private float _timer;
         private bool _started = false;
-        public Wait( Func<float> duration)
+        public Wait( float duration)
         {
             _duration = duration;
         }
@@ -18,7 +18,7 @@ namespace World
         {
             if (!_started)
             {
-                _timer = _duration();
+                _timer = _duration;
                 _started = true;
             }
             _timer -= Time.deltaTime;

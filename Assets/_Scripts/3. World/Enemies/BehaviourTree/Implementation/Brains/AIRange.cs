@@ -13,20 +13,20 @@ namespace World
         {
             base.Awake();
         }
-        protected override BehaviourTree BuildTree()
+        protected override BehaviorTree BuildTree()
         {
-            BehaviourTree tree = new BehaviourTree(base._behaviourTreeName);
+            BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
             PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_player))));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent ,() => EffectiveAttackSpeed, "PlaceHolderAnimation")));
 
             // --- Chase ---
             SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, () => EffectiveChaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed)));
 
             // --- Patrol ---
             LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
@@ -41,7 +41,7 @@ namespace World
         // Replace for a list of posible attacks
         public void FireProjectile()
         {
-            Vector3 dir = (target.position - transform.position).normalized;
+            Vector3 dir = (_player.position - transform.position).normalized;
             float spawnOffset = 1.0f;
             Vector3 spawnPos = transform.position + Vector3.up * 0.5f + dir * spawnOffset;
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);

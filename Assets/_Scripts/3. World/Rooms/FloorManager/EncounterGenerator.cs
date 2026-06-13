@@ -7,16 +7,16 @@ namespace World
     public class EncounterGenerator : MonoBehaviour
     {
         [Header("Wave Settings")]
-        [SerializeField] private int _minWaves = 1;
-        [SerializeField] private int _maxWaves = 3;
-        [SerializeField] private int _enemiesPerWave = 2;
+        [SerializeField] private int _minWaves;
+        [SerializeField] private int _maxWaves;
+        [SerializeField] private int _enemiesPerWave;
 
         [Header("Amount Settings")]
-        [SerializeField] private int _minAmount = 1;
-        [SerializeField] private int _maxAmount = 4;
+        [SerializeField] private int _minAmount;
+        [SerializeField] private int _maxAmount;
 
         // el peso es el mismo orden que el enum
-        private readonly float[] _weights = { 0.5f, 0.4f, 0.2f }; // melee, range, bruto
+        private readonly float[] _weights = { 0.5f, 0.4f, 0.2f, 0.2f }; // melee, range, bruto, healer
 
         public RoomEncounterData Generate(RoomType roomType, int roomsVisited)
         {
@@ -71,7 +71,7 @@ namespace World
             for (int i = 0; i < _weights.Length; i++)
                 if (!used[i]) return (EnemyType)i;
 
-            return EnemyType.melee;
+            return EnemyType.Melee;
         }
     }
 }

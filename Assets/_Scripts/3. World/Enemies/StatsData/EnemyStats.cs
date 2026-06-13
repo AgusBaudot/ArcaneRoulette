@@ -14,9 +14,9 @@ namespace World
 
         [Header("Sense")]
         [Tooltip("How far can the enemy see.")]
-        public float viewDistance;
+        public float ViewDistance;
         [Tooltip("Wich layer is blocking the view.")]
-        public LayerMask obsMask;
+        public LayerMask ObsMask;
 
         [Header("Movement")]
         [Tooltip("The speed at which the enemy moves when is chasing.")]
