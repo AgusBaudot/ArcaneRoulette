@@ -875,7 +875,7 @@ PrefabInstance:
     - target: {fileID: 2223614184539410523, guid: 81cf1722ff1810e4db2cdb404f38d17c,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2645199312943748642, guid: 81cf1722ff1810e4db2cdb404f38d17c,
         type: 3}
@@ -915,12 +915,12 @@ PrefabInstance:
     - target: {fileID: 4223574885698075228, guid: 81cf1722ff1810e4db2cdb404f38d17c,
         type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4223574885698075228, guid: 81cf1722ff1810e4db2cdb404f38d17c,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5043537720480583589, guid: 81cf1722ff1810e4db2cdb404f38d17c,
         type: 3}
@@ -1825,9 +1825,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 324fb5508e631444391e5f65fa3d6da1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lowHealthImage: {fileID: 0}
-  _cheatCode: LOWHP
-  _cheatCodeResetDelay: 4
+  _vignetteImage: {fileID: 0}
+  _criticalHealthThreshold: 0.25
+  _testToggleKey: 116
 --- !u!114 &1856515281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1988,26 +1988,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4852483868299576927, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
-        type: 3}
-      propertyPath: m_Color.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4852483868299576927, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
-        type: 3}
-      propertyPath: m_Color.b
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4852483868299576927, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
-        type: 3}
-      propertyPath: m_Color.g
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4852483868299576927, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
-        type: 3}
-      propertyPath: m_Color.r
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5790243863256629318, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
         type: 3}
