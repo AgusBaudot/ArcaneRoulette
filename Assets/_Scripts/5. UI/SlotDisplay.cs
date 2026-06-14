@@ -12,20 +12,15 @@ namespace UI
         
         [SerializeField] private int _slotIndex;
         [SerializeField] private Image _inputIcon;
-        [SerializeField] private Image _abilityIcon;      
+        [SerializeField] private Image _abilityIcon;
+        [SerializeField] private Image _fillImage;
         [SerializeField] private Color _grayedColor = Color.gray;
-
-        private Slider _cooldownSlider;
-        private Image _fillImage;
         private SpellInstance _instance;
         private Color _iconNormalColor = Color.white;
         private Color _fillNormalColor = Color.white;
 
         private void Awake()
         {
-            _cooldownSlider = GetComponent<Slider>();
-            _fillImage = _cooldownSlider?.fillRect?.GetComponent<Image>();
-            
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
 
             // Slider starts full — no spell equipped yet means nothing on cooldown
@@ -73,8 +68,9 @@ namespace UI
             }
 
             // CooldownProgress: 1 = ready, 0 = fully on cooldown
-            // Slider.value maps directly — no math needed
-            _cooldownSlider.value = _instance.DisplayProgress;
+            // fillAmount maps directly — no math needed
+            if (_fillImage != null)
+                _fillImage.fillAmount = _instance.DisplayProgress;
             SetIconTint(IsSpellReady());
         }
 
@@ -141,7 +137,8 @@ namespace UI
 
         private void SetSliderNull()
         {
-            _cooldownSlider.value = 0f;
+            if (_fillImage != null)
+                _fillImage.fillAmount = 0f;
             if (_inputIcon != null)
                 _inputIcon.color = _grayedColor;
             if (_abilityIcon != null)
