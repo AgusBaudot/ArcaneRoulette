@@ -101,7 +101,7 @@ namespace Core
             });
             
             OnDeath?.Invoke();
-            //EventBus.Publish (new PlayerDiedEvent()); - wire when EventBus is ready.
+            EventBus.Publish (new PlayerDiedEvent());
         }
     }
 }

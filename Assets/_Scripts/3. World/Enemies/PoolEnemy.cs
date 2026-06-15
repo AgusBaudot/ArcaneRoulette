@@ -23,8 +23,8 @@ namespace World
                     () =>
                     {
                         var obj = Instantiate(prefab);
-                        var pooleable = obj.GetComponent<IPoolable>();
-                        //var pooleable = obj.GetComponent<EnemyController>();
+                        //var pooleable = obj.GetComponent<IPoolable>();
+                        var pooleable = obj.GetComponent<EnemyController>();
                         return pooleable;
                     },
                     obj => obj.OnSpawn(),

@@ -6,47 +6,106 @@ namespace UI
 {
     public sealed class HUDHealthDisplay : MonoBehaviour
     {
-        [SerializeField] private RectMask2D _healthFillMask;
+        [Header("UI References")]
+        [SerializeField] private Image _healthFillImage;
         [SerializeField] private Image _heartsIcon;
+        
+        [Header("Configuration")]
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
+
+        private const float MIN_VISUAL_THRESHOLD = 0.02f;
+        
+        private VolatileRunState _activeRunState;
 
         private void OnEnable()
         {
-            GameStateManager.RunState.OnHpChanged += UpdateUI;
-
-            UpdateUI(GameStateManager.RunState.CurrentHp, GameStateManager.RunState.MaxHp);
+            GameStateManager.OnRunStateInitialized += HandleRunStateInitialized;
+            
+            if (GameStateManager.RunState != null)
+            {
+                HandleRunStateInitialized(GameStateManager.RunState);
+            }
+            
+            EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDied);
         }
 
         private void OnDisable()
         {
-            GameStateManager.RunState.OnHpChanged -= UpdateUI;
+            GameStateManager.OnRunStateInitialized -= HandleRunStateInitialized;
+            UnbindCurrentState();
+            
+            EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDied);
+        }
+
+        private void HandleRunStateInitialized(VolatileRunState newState)
+        {
+            UnbindCurrentState();
+            
+            _activeRunState = newState;
+            if (_activeRunState != null)
+            {
+                _activeRunState.OnHpChanged += UpdateUI;
+                UpdateUI(_activeRunState.CurrentHp, _activeRunState.MaxHp);
+            }
+        }
+
+        private void UnbindCurrentState()
+        {
+            if (_activeRunState != null)
+            {
+                _activeRunState.OnHpChanged -= UpdateUI;
+                _activeRunState = null;
+            }
         }
 
         private void UpdateUI(float currentHp, float maxHp)
         {
-            float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-            float maskWidth = _healthFillMask.GetComponent<RectTransform>().rect.width;
+            if (currentHp <= 0f || maxHp <= 0f)
+            {
+                ForceZeroVisibilityBaseline();
+                return;
+            }
 
-            int fillWidth = Mathf.RoundToInt(normalizedHealth * maskWidth);
-            if (currentHp > 0f && fillWidth == 0 && maskWidth >= 1f)
-                fillWidth = 1;
+            float normalizedHealth = Mathf.Clamp01(currentHp / maxHp);
+            
+            if (_healthFillImage != null)
+            {
+                _healthFillImage.fillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, normalizedHealth);
+            }
 
-            int rightPadding = Mathf.RoundToInt(maskWidth) - fillWidth;
-            _healthFillMask.padding = new Vector4(0f, 0f, rightPadding, 0f);
-
-            UpdateHeartSprite(currentHp, maxHp);
+            UpdateHeartSprite(normalizedHealth);
         }
 
-        private void UpdateHeartSprite(float currentHp, float maxHp)
+        private void HandlePlayerDied(PlayerDiedEvent evt)
+        {
+            ForceZeroVisibilityBaseline();
+        }
+
+        private void ForceZeroVisibilityBaseline()
+        {
+            if (_healthFillImage != null)
+            {
+                _healthFillImage.fillAmount = 0f;
+            }
+            
+            if (_heartsIcon != null && _heartsIcon.enabled) 
+            {
+                _heartsIcon.enabled = false;
+            }
+        }
+
+        private void UpdateHeartSprite(float normalizedHealth)
         {
             if (_heartsIcon == null || _heartSprites.Length < 4)
                 return;
 
-            float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-            int spriteIndex = Mathf.FloorToInt(normalizedHealth * 4f);
-            spriteIndex = Mathf.Clamp(spriteIndex, 0, 3);
+            _heartsIcon.enabled = true;
+            
+            int maxIndex = _heartSprites.Length - 1;
+            int spriteIndex = Mathf.FloorToInt(normalizedHealth * _heartSprites.Length);
+            
+            spriteIndex = Mathf.Clamp(spriteIndex, 0, maxIndex);
             _heartsIcon.sprite = _heartSprites[spriteIndex];
         }
-
     }
 }
