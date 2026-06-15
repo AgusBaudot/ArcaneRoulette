@@ -6,7 +6,7 @@ namespace UI
 {
     public sealed class HUDHealthDisplay : MonoBehaviour
     {
-        [SerializeField] private RectMask2D _healthFillMask;
+        [SerializeField] private Image _healthFillImage;
         [SerializeField] private Image _heartsIcon;
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
 
@@ -22,17 +22,23 @@ namespace UI
             GameStateManager.RunState.OnHpChanged -= UpdateUI;
         }
 
+        private void Update()
+        {
+            // Test input: Press Space to damage player by 10 HP
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                GameStateManager.RunState.SetHp(GameStateManager.RunState.CurrentHp - 10f);
+            }
+        }
+
         private void UpdateUI(float currentHp, float maxHp)
         {
             float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-            float maskWidth = _healthFillMask.GetComponent<RectTransform>().rect.width;
 
-            int fillWidth = Mathf.RoundToInt(normalizedHealth * maskWidth);
-            if (currentHp > 0f && fillWidth == 0 && maskWidth >= 1f)
-                fillWidth = 1;
-
-            int rightPadding = Mathf.RoundToInt(maskWidth) - fillWidth;
-            _healthFillMask.padding = new Vector4(0f, 0f, rightPadding, 0f);
+            if (_healthFillImage != null)
+            {
+                _healthFillImage.fillAmount = normalizedHealth;
+            }
 
             UpdateHeartSprite(currentHp, maxHp);
         }
@@ -43,6 +49,14 @@ namespace UI
                 return;
 
             float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
+            
+            if (normalizedHealth <= 0f)
+            {
+                _heartsIcon.enabled = false;
+                return;
+            }
+
+            _heartsIcon.enabled = true;
             int spriteIndex = Mathf.FloorToInt(normalizedHealth * 4f);
             spriteIndex = Mathf.Clamp(spriteIndex, 0, 3);
             _heartsIcon.sprite = _heartSprites[spriteIndex];
