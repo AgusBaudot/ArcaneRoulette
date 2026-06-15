@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Foundation
@@ -6,17 +7,26 @@ namespace Foundation
     public class GameStateManager : MonoBehaviour
     {
         public static VolatileRunState RunState { get; private set; }
+        
+        // BUGFIX: Notify UI elements when the instance changes
+        public static event Action<VolatileRunState> OnRunStateInitialized;
 
         private void Awake()
         {
-            RunState = new VolatileRunState(100f);
+            InitializeNewRun();
         }
 
         public void EndRun()
         {
-            RunState.Reset();
+            RunState?.Reset();
             EventBus.Clear();
-            RunState = new  VolatileRunState(100f); //Fresh instance next run
+            InitializeNewRun();
+        }
+
+        private void InitializeNewRun()
+        {
+            RunState = new VolatileRunState(100f);
+            OnRunStateInitialized?.Invoke(RunState);
         }
     }
 }
