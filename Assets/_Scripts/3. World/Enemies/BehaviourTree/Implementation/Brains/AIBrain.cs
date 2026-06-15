@@ -19,8 +19,8 @@ namespace World
 
         [Header("Basic AI Data")]
         [SerializeField] protected Blackboard _blackboard;
-        [SerializeField] protected BehaviourTree tree;
-        [SerializeField] protected Transform target;
+        [SerializeField] protected BehaviorTree _tree;
+        [SerializeField] protected Transform _player;
         [SerializeField] protected string _behaviourTreeName;
 
         [Header("BB Shared Data")]
@@ -31,6 +31,7 @@ namespace World
 
         [Header("Stats")]
         protected EnemyStats _enemyStats;
+        protected AIState _currentState; 
 
         protected float EffectiveAttackSpeed
         {
@@ -76,31 +77,33 @@ namespace World
             _agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
 
-            if (target == null)
+            if (_player == null)
             {
-                target = GameObject.FindGameObjectWithTag("Player").transform;
+                _player = GameObject.FindGameObjectWithTag("Player").transform;
             }
-            _waypoints.Add(target);
+            _waypoints.Add(_player);
         }
         public void InitComponent(EnemyStats stats, Blackboard bb)
         {
             _blackboard = bb;
             _enemyStats = stats;
             _agent.stoppingDistance = _enemyStats.AttackRange - 1f;
-            _los.Init(transform, _enemyStats.viewDistance, _enemyStats.obsMask);
+            _los.Init(transform, _enemyStats.ViewDistance, _enemyStats.ObsMask);
             //hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayer");
-            tree = BuildTree();
+            _tree = BuildTree();
         }
         public void ResetComponent()
         {
             _debuffs = null;
-            tree?.Reset();
+            _tree?.Reset();
         }
         public void Tick()
         {
-            tree?.Process();
+            _tree?.Process();
         }
-        protected abstract BehaviourTree BuildTree();
+        protected abstract BehaviorTree BuildTree();
+        protected bool IsState(AIState state) => _currentState == state;
+        protected void SetState(AIState state) => _currentState = state;
 
         // ---- Internal Functions ---- 
         protected virtual bool IsInLos()
@@ -108,14 +111,14 @@ namespace World
             if (_blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
                 return true;
 
-            if (target == null)
-                target = GameObject.FindGameObjectWithTag("Player").transform;
+            if (_player == null)
+                _player = GameObject.FindGameObjectWithTag("Player").transform;
 
-            bool hasLOS = _los.CheckRange(target) && _los.CheckView(target);
+            bool hasLOS = _los.CheckRange(_player) && _los.CheckView(_player);
             _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
-        protected virtual bool IsInAttackRangeStable()
+        protected virtual bool IsInStableDistance(Transform target)
         {
             float distance = Vector3.Distance(transform.position, target.position);
             bool result;
@@ -132,13 +135,18 @@ namespace World
         public void UnregisterDebuff() => _debuffs = null;
 
         #region Gizmos
-        //attack Range
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
-            Color myColor = Color.red;
-            myColor.a = 0.5f;
-            Gizmos.color = myColor;
+            //attack Range
+            Color Color1 = Color.red;
+            Color1.a = 0.5f;
+            Gizmos.color = Color1;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
+
+            Color Color2 = Color.blue;
+            Color2.a = 0.5f;
+            Gizmos.color = Color2;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.ViewDistance);
         }
         #endregion
     }

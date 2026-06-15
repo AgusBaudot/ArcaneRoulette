@@ -2,6 +2,6 @@ namespace World
 {
     public enum EnemyType
     {
-        melee, range, bruto
+        Melee, Range, Bruto, Healer
     }
 }

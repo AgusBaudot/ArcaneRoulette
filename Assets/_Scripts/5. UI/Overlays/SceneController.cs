@@ -28,19 +28,19 @@ namespace UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Subscribe<EndFloorClearEvent>(HandleRoomCleared);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<EndFloorClearEvent>(HandleRoomCleared);
         }
 
         private void OnDestroy()
         {
             if (_playerHealth != null)
                 _playerHealth.OnDeath -= HandlePlayerDeath;
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<EndFloorClearEvent>(HandleRoomCleared);
         }
 
         private IEnumerator Start()
@@ -57,16 +57,10 @@ namespace UI
             StartCoroutine(LoadMainMenuCoroutine());
         }
 
-        private void HandleRoomCleared(RoomClearEvent evt)
+        private void HandleRoomCleared(EndFloorClearEvent evt)
         {
             if (_isLoadingMainMenu) return;
             if (_floorManager == null) return;
-
-            bool isFinalRoom = evt.roomId == _floorManager.EndOfTheFloor;
-            Debug.Log($"Cambio de room = {evt.roomId} | {isFinalRoom}");
-            if (!isFinalRoom) return;
-
-            Debug.Log($"FIN de floor = {evt.roomId}");
             _isLoadingMainMenu = true;
             StartCoroutine(LoadMainMenuCoroutine());
         }

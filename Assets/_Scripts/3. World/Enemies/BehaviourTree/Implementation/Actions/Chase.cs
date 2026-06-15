@@ -9,7 +9,7 @@ namespace World
         readonly Transform _target;
         readonly Transform _entity;
         readonly NavMeshAgent _agent;
-        //readonly float _chaseSpeed;
+        readonly Func<float> _getChaseSpeed;
 
         public Chase(Transform target, Transform entity ,NavMeshAgent agent, Func<float> getChaseSpeed) 
         {
@@ -18,7 +18,6 @@ namespace World
             this._agent = agent;
             _getChaseSpeed = getChaseSpeed;
         }
-        readonly Func<float> _getChaseSpeed;
         public Node.NodeState Process()
         {  
             if (_target == null)

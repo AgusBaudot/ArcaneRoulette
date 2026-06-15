@@ -14,9 +14,9 @@ namespace World
 
         [Header("Sense")]
         [Tooltip("How far can the enemy see.")]
-        public float viewDistance;
+        public float ViewDistance;
         [Tooltip("Wich layer is blocking the view.")]
-        public LayerMask obsMask;
+        public LayerMask ObsMask;
 
         [Header("Movement")]
         [Tooltip("The speed at which the enemy moves when is chasing.")]
@@ -31,7 +31,11 @@ namespace World
         public float AttackRange;
         [Tooltip("When the enemy enters combat range: What is the new distance at which to cease combat? (It must be at least 0.1 greater than Attack Range)")]
         public float ExitAttackRange;
+        [Tooltip("Each enemy has an attack radius, if this enemy does not have an attack radius, the recommended value is 1.)")]
+        public float AttackRadius;
         [Tooltip("Interval between each attacks. (lower value = faster)")] // Cuando tengamos animaciones esto debe cambiar
         public float AttackSpeed;
+        [Tooltip("The player layer or any layer that this enemy can hit.")]
+        public LayerMask HitLayer;
     }
 }

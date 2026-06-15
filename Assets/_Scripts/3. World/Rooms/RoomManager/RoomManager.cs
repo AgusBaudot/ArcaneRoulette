@@ -59,7 +59,7 @@ namespace World
                 {
                     _entityController.RoomIsClear -= RoomClearedEvent;
                     _entityController.RoomIsClear += RoomClearedEvent;
-                    _entityController.SpawnEnemies();
+                    _entityController.PlayEntityController();
                 }
                 else if (_roomType == RoomType.Boss) 
                 {
@@ -91,7 +91,14 @@ namespace World
             _cleared = true;
             _state = RoomState.Cleared;
             _roomConnections.RoomCleared();
-            EventBus.Publish(new RoomClearEvent { roomId = _index });
+            if (_roomType == RoomType.Boss)
+            {
+                EventBus.Publish(new EndFloorClearEvent{ roomId = _index});
+            }
+            else
+            {
+                EventBus.Publish(new RoomClearEvent{roomId = _index});
+            }
         }
         private void HandleDoorTransition(EdgeDirection direction)
         {
