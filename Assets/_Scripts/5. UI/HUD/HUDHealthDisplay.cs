@@ -10,57 +10,105 @@ namespace UI
         [SerializeField] private Image _heartsIcon;
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
 
+        private VolatileRunState _activeRunState;
+
         private void OnEnable()
         {
-            GameStateManager.RunState.OnHpChanged += UpdateUI;
-
-            UpdateUI(GameStateManager.RunState.CurrentHp, GameStateManager.RunState.MaxHp);
+            GameStateManager.OnRunStateInitialized += HandleRunStateInitialized;
+            
+            if (GameStateManager.RunState != null)
+            {
+                HandleRunStateInitialized(GameStateManager.RunState);
+            }
         }
 
         private void OnDisable()
         {
-            GameStateManager.RunState.OnHpChanged -= UpdateUI;
+            GameStateManager.OnRunStateInitialized -= HandleRunStateInitialized;
+            UnbindCurrentState();
+        }
+
+        private void HandleRunStateInitialized(VolatileRunState newState)
+        {
+            UnbindCurrentState();
+            
+            _activeRunState = newState;
+            if (_activeRunState != null)
+            {
+                _activeRunState.OnHpChanged += UpdateUI;
+                UpdateUI(_activeRunState.CurrentHp, _activeRunState.MaxHp);
+            }
+        }
+
+        private void UnbindCurrentState()
+        {
+            if (_activeRunState != null)
+            {
+                _activeRunState.OnHpChanged -= UpdateUI;
+            }
         }
 
         private void Update()
         {
-            // Test input: Press Space to damage player by 10 HP
-            if (Input.GetKeyDown(KeyCode.Space))
+            // Test input
+            if (Input.GetKeyDown(KeyCode.Space) && _activeRunState != null)
             {
-                GameStateManager.RunState.SetHp(GameStateManager.RunState.CurrentHp - 10f);
+                _activeRunState.SetHp(_activeRunState.CurrentHp - 10f);
+            }
+        }
+
+        // BULLETPROOF FALLBACK: Evaluates state every single frame after physics and gameplay logic
+        private void LateUpdate()
+        {
+            // Try global access first, fallback to cached instance
+            var currentRunState = GameStateManager.RunState ?? _activeRunState;
+            
+            if (currentRunState != null && currentRunState.CurrentHp <= 0f)
+            {
+                ForceZeroVisibilityBaseline();
             }
         }
 
         private void UpdateUI(float currentHp, float maxHp)
         {
-            float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-
-            if (_healthFillImage != null)
+            if (currentHp <= 0f || maxHp <= 0f)
             {
-                _healthFillImage.fillAmount = normalizedHealth;
+                ForceZeroVisibilityBaseline();
+                return;
             }
 
-            UpdateHeartSprite(currentHp, maxHp);
+            float normalizedHealth = Mathf.Clamp01(currentHp / maxHp);
+            if (_healthFillImage != null)
+            {
+                // Mínimo visible: 1% de la barra
+                const float minVisibleFill = 0.01f;
+                _healthFillImage.fillAmount = Mathf.Max(normalizedHealth, minVisibleFill);
+            }
+
+            UpdateHeartSprite(normalizedHealth);
+    
+
         }
 
-        private void UpdateHeartSprite(float currentHp, float maxHp)
+        private void ForceZeroVisibilityBaseline()
+        {
+            if (_healthFillImage != null) _healthFillImage.fillAmount = 0f;
+            if (_heartsIcon != null && _heartsIcon.enabled) 
+            {
+                _heartsIcon.enabled = false; // Drops down layer instantly
+            }
+        }
+
+        private void UpdateHeartSprite(float normalizedHealth)
         {
             if (_heartsIcon == null || _heartSprites.Length < 4)
                 return;
 
-            float normalizedHealth = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-            
-            if (normalizedHealth <= 0f)
-            {
-                _heartsIcon.enabled = false;
-                return;
-            }
-
             _heartsIcon.enabled = true;
+            
             int spriteIndex = Mathf.FloorToInt(normalizedHealth * 4f);
             spriteIndex = Mathf.Clamp(spriteIndex, 0, 3);
             _heartsIcon.sprite = _heartSprites[spriteIndex];
         }
-
     }
 }
