@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 80bcfad5b5a64a34fb498eb6a56abfd0, type: 3}
-  m_Name: MeleeBasic
+  m_Name: Healer
   m_EditorClassIdentifier: 
   MaxHp: 12
   ElementType: 4
-  viewDistance: 10
-  obsMask:
+  ViewDistance: 35
+  ObsMask:
     serializedVersion: 2
     m_Bits: 0
-  ChaseSpeed: 8
-  PatrolSpeed: 4
-  AttackDamage: 2
-  AttackRange: 2
-  ExitAttackRange: 3
-  AttackRadius: 1.5
-  AttackSpeed: 1
+  ChaseSpeed: 6
+  PatrolSpeed: 1
+  AttackDamage: 3
+  AttackRange: 7
+  ExitAttackRange: 9
+  AttackRadius: 10
+  AttackSpeed: 3
   HitLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 128

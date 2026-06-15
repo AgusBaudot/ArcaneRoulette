@@ -37,7 +37,7 @@ namespace World
         {
             _pools.TryGetValue(enemyType, out var pool);
             var entity = pool.Get() as EnemyController;
-            entity.transform.position = position;
+            entity.Transform.position = position;
             //entity.GetComponent<NavMeshAgent>().Warp(position);
             return entity;
         }

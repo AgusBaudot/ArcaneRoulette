@@ -12,9 +12,10 @@ namespace World
         private readonly Animator _animator;
         private readonly string _attackAnimName;
         private readonly NavMeshAgent _agent;
-
         private bool _isAttacking;
         private float _nextAttackTime;
+
+        readonly Func<float> _getCooldown;
 
         public Attack(Animator animator, NavMeshAgent agent ,Func<float> getcooldown, string attackAnimName)
         {
@@ -23,7 +24,7 @@ namespace World
             _getCooldown = getcooldown;
             _attackAnimName = attackAnimName;
         }
-        readonly Func<float> _getCooldown;
+        
         public Node.NodeState Process()
         {
             //  Cooldown

@@ -25,7 +25,6 @@ namespace World
         [Tooltip("Don't assign it anything, it shouldn't break, but it won't do anything.")]
         [Header("RunInfo")] // info solo para leer desde el inspector
         [SerializeField] private int _roomsVisited;
-        [SerializeField] public int EndOfTheFloor;
         [SerializeField] private int LobbyIndex;
 
         public static FloorManager instance;
@@ -34,9 +33,7 @@ namespace World
         {
             _mapGenerator = new MapGenerator();
             _mapSpawner = new MapSpawner();
-
             _encounterGenerator = GetComponent<EncounterGenerator>();
-
             _mapGenerator.Init(_generatorData);
             _mapSpawner.Init(_spawnerData);
 
@@ -52,7 +49,6 @@ namespace World
         }
         private IEnumerator GenerateFloor()
         {
-
             var (rooms, success) = _mapGenerator.SetupDungeon();
 
             if (!success)
@@ -64,11 +60,9 @@ namespace World
             yield return null;
 
             _mapSpawner.InstantiateRooms(rooms, _mapGenerator.getFloorPlan);
-            EndOfTheFloor = _mapGenerator.BossRoomIndex;
             LobbyIndex = _mapGenerator.LobbyRoomIndex;
 
             yield return null;
-
             StartRun(EdgeDirection.Up);
         }
         private void StartRun(EdgeDirection dir)
@@ -79,6 +73,7 @@ namespace World
                 room.gameObject.SetActive(true);
                 SetupRoomEncounter(room);
                 room.EnableRoom();
+
                 // Reemplazo
                 _player.SetCanMove(false);
                 _player.Rb.velocity = Vector3.zero;
@@ -112,12 +107,14 @@ namespace World
                 _currentRoom.gameObject.SetActive(false);
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
+
                 // cambiar esto
                 _player.SetCanMove(false);
                 _player.Rb.velocity = Vector3.zero;
                 _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
                 _player.SetCanMove(true);
                 // hasta aca, por un metodo del player
+
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
             }
