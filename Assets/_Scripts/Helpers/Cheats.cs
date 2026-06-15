@@ -10,8 +10,6 @@ public class Cheats : MonoBehaviour, IUpdatable
     private readonly string _scene1 = "Core Loop";
     private readonly string _scene2 = "Hardcore Room";
     
-    [SerializeField] private int _damageAmount = 10;
-    private PlayerHealth _playerHealth;
     
     private void OnEnable() => UpdateManager.Instance.Register(this);
 
@@ -19,10 +17,6 @@ public class Cheats : MonoBehaviour, IUpdatable
 
     public void Tick(float dt)
     {
-        // Cache player health on first use
-        if (_playerHealth == null)
-            _playerHealth = FindObjectOfType<PlayerHealth>();
-
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -42,10 +36,5 @@ public class Cheats : MonoBehaviour, IUpdatable
             SceneManager.LoadScene(_scene2);
         }
 
-        // Deal damage to player with T key
-        if (Input.GetKeyDown(KeyCode.T) && _playerHealth != null)
-        {
-            _playerHealth.TakeDamage(_damageAmount, ElementType.Neutral);
-        }
     }
 }

@@ -1,34 +1,69 @@
 using UnityEngine;
 using Core;
+using Foundation;
 
 public class HealthVisualManager : MonoBehaviour
 {
     [Header("Execution Parameters")]
-    [SerializeField] private PlayerHealth playerHealth; // Reference to the player's health component
-    [SerializeField] private ParticleSystem healthRecoveryPrefab; // The green VFX prefab
-    [SerializeField] private Vector3 spawnOffset = new Vector3(0, 1f, 0); // Centers it around the character body
-    [SerializeField] private bool attachToCharacter = true; // Does it move with the character?
+    [SerializeField] private PlayerHealth playerHealth;
+    [SerializeField] private ParticleSystem healthRecoveryPrefab; 
+    [SerializeField] private Vector3 spawnOffset = new Vector3(0, 1f, 0); 
+    [SerializeField] private bool attachToCharacter = true; 
+
+    private float _previousHp;
 
     private void OnEnable()
     {
-        if (playerHealth != null)
-            playerHealth.OnHealed += PlayRecoveryVisual;
+        if (GameStateManager.RunState != null)
+        {
+            // Snapshot the HP right as this object turns on
+            _previousHp = GameStateManager.RunState.CurrentHp;
+            
+            // Subscribe to the event
+            GameStateManager.RunState.OnHpChanged += HandleHpChanged;
+        }
     }
-    
+
     private void OnDisable()
     {
-        if (playerHealth != null)
-            playerHealth.OnHealed -= PlayRecoveryVisual;
+        if (GameStateManager.RunState != null)
+        {
+            GameStateManager.RunState.OnHpChanged -= HandleHpChanged;
+        }
     }
-    
-    /// <summary>
-    /// Triggers the green health recovery visual elements.
-    /// </summary>
-    public void PlayRecoveryVisual(int amount = 0)
+
+    private void HandleHpChanged(float currentHp, float maxHp)
+    {
+        // 1. Ignore initialization spikes: 
+        // If this happens in the first 0.2 seconds of the scene, it's just the game 
+        // applying the player's base stats, NOT an actual mid-game heal.
+        if (Time.timeSinceLevelLoad < 0.2f)
+        {
+            _previousHp = currentHp;
+            return;
+        }
+
+        // 2. Only play the visual if the health actually increased
+        if (currentHp > _previousHp)
+        {
+            PlayRecoveryVisual();
+        }
+        
+        // 3. Update the previous HP for the next evaluation
+        _previousHp = currentHp;
+    }
+
+    public void PlayRecoveryVisual()
     {
         if (healthRecoveryPrefab == null)
         {
             Debug.LogWarning("Health Recovery Prefab is missing!");
+            return;
+        }
+
+        if (playerHealth == null)
+        {
+            Debug.LogWarning("PlayerHealth reference is missing! Cannot spawn VFX.");
             return;
         }
 
@@ -46,8 +81,5 @@ public class HealthVisualManager : MonoBehaviour
 
         // 4. Play the particle system
         vfxInstance.Play();
-
-        // 5. Clean up memory once the particles are done blowing
-        Destroy(vfxInstance.gameObject, vfxInstance.main.duration + vfxInstance.main.startLifetime.constantMax);
     }
 }
