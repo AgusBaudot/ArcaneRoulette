@@ -9,6 +9,7 @@ namespace Core
     public class PlayerHealth : MonoBehaviour, IUpdatable
     {
         public event Action OnDeath;
+        public event Action<int> OnHealed;
         public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
         
@@ -74,6 +75,7 @@ namespace Core
             });
             
             GameStateManager.RunState.SetHp(Current + amount);
+            OnHealed?.Invoke(amount);
         }
         
         private IEnumerator IFrameFlash()
