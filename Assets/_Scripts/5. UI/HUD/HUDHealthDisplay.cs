@@ -6,10 +6,15 @@ namespace UI
 {
     public sealed class HUDHealthDisplay : MonoBehaviour
     {
+        [Header("UI References")]
         [SerializeField] private Image _healthFillImage;
         [SerializeField] private Image _heartsIcon;
+        
+        [Header("Configuration")]
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
 
+        private const float MIN_VISUAL_THRESHOLD = 0.02f;
+        
         private VolatileRunState _activeRunState;
 
         private void OnEnable()
@@ -20,12 +25,16 @@ namespace UI
             {
                 HandleRunStateInitialized(GameStateManager.RunState);
             }
+            
+            EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDied);
         }
 
         private void OnDisable()
         {
             GameStateManager.OnRunStateInitialized -= HandleRunStateInitialized;
             UnbindCurrentState();
+            
+            EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDied);
         }
 
         private void HandleRunStateInitialized(VolatileRunState newState)
@@ -45,27 +54,7 @@ namespace UI
             if (_activeRunState != null)
             {
                 _activeRunState.OnHpChanged -= UpdateUI;
-            }
-        }
-
-        private void Update()
-        {
-            // Test input
-            if (Input.GetKeyDown(KeyCode.Space) && _activeRunState != null)
-            {
-                _activeRunState.SetHp(_activeRunState.CurrentHp - 10f);
-            }
-        }
-
-        // BULLETPROOF FALLBACK: Evaluates state every single frame after physics and gameplay logic
-        private void LateUpdate()
-        {
-            // Try global access first, fallback to cached instance
-            var currentRunState = GameStateManager.RunState ?? _activeRunState;
-            
-            if (currentRunState != null && currentRunState.CurrentHp <= 0f)
-            {
-                ForceZeroVisibilityBaseline();
+                _activeRunState = null;
             }
         }
 
@@ -78,24 +67,30 @@ namespace UI
             }
 
             float normalizedHealth = Mathf.Clamp01(currentHp / maxHp);
+            
             if (_healthFillImage != null)
             {
-                // Mínimo visible: 1% de la barra
-                const float minVisibleFill = 0.01f;
-                _healthFillImage.fillAmount = Mathf.Max(normalizedHealth, minVisibleFill);
+                _healthFillImage.fillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, normalizedHealth);
             }
 
             UpdateHeartSprite(normalizedHealth);
-    
+        }
 
+        private void HandlePlayerDied(PlayerDiedEvent evt)
+        {
+            ForceZeroVisibilityBaseline();
         }
 
         private void ForceZeroVisibilityBaseline()
         {
-            if (_healthFillImage != null) _healthFillImage.fillAmount = 0f;
+            if (_healthFillImage != null)
+            {
+                _healthFillImage.fillAmount = 0f;
+            }
+            
             if (_heartsIcon != null && _heartsIcon.enabled) 
             {
-                _heartsIcon.enabled = false; // Drops down layer instantly
+                _heartsIcon.enabled = false;
             }
         }
 
@@ -106,8 +101,10 @@ namespace UI
 
             _heartsIcon.enabled = true;
             
-            int spriteIndex = Mathf.FloorToInt(normalizedHealth * 4f);
-            spriteIndex = Mathf.Clamp(spriteIndex, 0, 3);
+            int maxIndex = _heartSprites.Length - 1;
+            int spriteIndex = Mathf.FloorToInt(normalizedHealth * _heartSprites.Length);
+            
+            spriteIndex = Mathf.Clamp(spriteIndex, 0, maxIndex);
             _heartsIcon.sprite = _heartSprites[spriteIndex];
         }
     }
