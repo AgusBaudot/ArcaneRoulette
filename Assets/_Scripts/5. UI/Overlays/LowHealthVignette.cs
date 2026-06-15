@@ -4,19 +4,12 @@ using Foundation;
 
 namespace UI
 {
-    public class LowHealthVignette : MonoBehaviour, IUpdatable
+    public class LowHealthVignette : MonoBehaviour
     {
-        #region Properties
-
-        public int UpdatePriority => Foundation.UpdatePriority.UI;
-
-        #endregion
-
         #region Variables & State
 
         [SerializeField] private Image _vignetteImage;
         [SerializeField, Range(0f, 1f)] private float _criticalHealthThreshold = 0.25f;
-        [SerializeField] private KeyCode _testToggleKey = KeyCode.T;
 
         private bool _forceShowVignette;
 
@@ -26,8 +19,6 @@ namespace UI
 
         private void OnEnable()
         {
-            UpdateManager.Instance.Register(this);
-
             if (GameStateManager.RunState != null)
             {
                 GameStateManager.RunState.OnHpChanged += UpdateVignette;
@@ -37,24 +28,8 @@ namespace UI
 
         private void OnDisable()
         {
-            UpdateManager.Instance?.Unregister(this);
-
             if (GameStateManager.RunState != null)
                 GameStateManager.RunState.OnHpChanged -= UpdateVignette;
-        }
-
-        #endregion
-
-        #region Update Loop (IUpdatable)
-
-        public void Tick(float dt)
-        {
-            if (Input.GetKeyDown(_testToggleKey))
-            {
-                _forceShowVignette = !_forceShowVignette;
-                if (GameStateManager.RunState != null)
-                    UpdateVignette(GameStateManager.RunState.CurrentHp, GameStateManager.RunState.MaxHp);
-            }
         }
 
         #endregion
