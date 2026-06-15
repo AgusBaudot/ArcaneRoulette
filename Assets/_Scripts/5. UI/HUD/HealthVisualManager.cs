@@ -4,25 +4,21 @@ using Core;
 public class HealthVisualManager : MonoBehaviour
 {
     [Header("Execution Parameters")]
+    [SerializeField] private PlayerHealth playerHealth; // Reference to the player's health component
     [SerializeField] private ParticleSystem healthRecoveryPrefab; // The green VFX prefab
     [SerializeField] private Vector3 spawnOffset = new Vector3(0, 1f, 0); // Centers it around the character body
     [SerializeField] private bool attachToCharacter = true; // Does it move with the character?
-    
-    private PlayerHealth _playerHealth;
 
     private void OnEnable()
     {
-        if (_playerHealth == null)
-            _playerHealth = GetComponent<PlayerHealth>();
-        
-        if (_playerHealth != null)
-            _playerHealth.OnHealed += PlayRecoveryVisual;
+        if (playerHealth != null)
+            playerHealth.OnHealed += PlayRecoveryVisual;
     }
     
     private void OnDisable()
     {
-        if (_playerHealth != null)
-            _playerHealth.OnHealed -= PlayRecoveryVisual;
+        if (playerHealth != null)
+            playerHealth.OnHealed -= PlayRecoveryVisual;
     }
     
     /// <summary>
@@ -37,7 +33,7 @@ public class HealthVisualManager : MonoBehaviour
         }
 
         // 1. Calculate the execution position surrounding the character
-        Vector3 spawnPosition = transform.position + spawnOffset;
+        Vector3 spawnPosition = playerHealth.transform.position + spawnOffset;
 
         // 2. Instantiate the particle system
         ParticleSystem vfxInstance = Instantiate(healthRecoveryPrefab, spawnPosition, Quaternion.identity);
@@ -45,7 +41,7 @@ public class HealthVisualManager : MonoBehaviour
         // 3. Handle tracking (If true, parent it so it moves *with* the character)
         if (attachToCharacter)
         {
-            vfxInstance.transform.SetParent(this.transform);
+            vfxInstance.transform.SetParent(playerHealth.transform);
         }
 
         // 4. Play the particle system
