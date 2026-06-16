@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Foundation;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 namespace World
@@ -33,6 +34,13 @@ namespace World
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
+        [Header("References")]
+        [SerializeField] private SpriteRenderer _elementalFeedback;
+        [SerializeField] private Sprite _fireElement;
+        [SerializeField] private Sprite _earthElement;
+        [SerializeField] private Sprite _waterElement;
+        [SerializeField] private Sprite _thunderElement;
+        
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
 
@@ -51,6 +59,22 @@ namespace World
         }
         public void Start()
         {
+            switch (_enemyStats.ElementType)
+            {
+                case ElementType.Fire:
+                    _elementalFeedback.sprite = _fireElement;
+                    break;
+                case ElementType.Water:
+                    _elementalFeedback.sprite = _waterElement;
+                    break;
+                case ElementType.Earth:
+                    _elementalFeedback.sprite = _earthElement;
+                    break;
+                case ElementType.Electric:
+                    _elementalFeedback.sprite = _thunderElement;
+                    break;
+            }
+            
             InitSystems();
         }
         private void InitSystems()
