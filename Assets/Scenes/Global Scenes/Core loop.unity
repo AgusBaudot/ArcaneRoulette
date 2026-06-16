@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028352, g: 0.22571376, b: 0.30692244, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -647,7 +647,7 @@ PrefabInstance:
     - target: {fileID: 693372100063039699, guid: 2cf1793cad3379b4abd0bcfe2c4d936e,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 172.47
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 693372100063039699, guid: 2cf1793cad3379b4abd0bcfe2c4d936e,
         type: 3}
@@ -657,7 +657,7 @@ PrefabInstance:
     - target: {fileID: 693372100063039699, guid: 2cf1793cad3379b4abd0bcfe2c4d936e,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 86.235
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 693372100063039699, guid: 2cf1793cad3379b4abd0bcfe2c4d936e,
         type: 3}
@@ -1119,7 +1119,6 @@ MonoBehaviour:
   _spawnerData: {fileID: 11400000, guid: ab9881395e100c644901adbed5a4c49c, type: 2}
   _player: {fileID: 1536851992}
   _roomsVisited: 0
-  EndOfTheFloor: 0
   LobbyIndex: 0
 --- !u!4 &1439759267
 Transform:
@@ -1285,6 +1284,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Low Health Overlay
       objectReference: {fileID: 0}
+    - target: {fileID: 5790243863256629318, guid: 8cc8023b954d1aa4c8c4a1c6f53bb593,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1449,18 +1453,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1999302366 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7034837081224049752, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
-    type: 3}
-  m_PrefabInstance: {fileID: 8382904143652103417}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &2049434986 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2003274551428300876, guid: 7a4a34434a92de64aaee873c90ba7f2a,
@@ -2011,11 +2003,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1011603050}
     m_Modifications:
-    - target: {fileID: 2498667397382369359, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+    - target: {fileID: 203567571583397355, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
         type: 3}
-      propertyPath: _fillImage
-      value: 
-      objectReference: {fileID: 1999302366}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 203567571583397355, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 203567571583397355, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4174659008708319976, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
         type: 3}
       propertyPath: m_Pivot.x
@@ -2126,15 +2128,25 @@ PrefabInstance:
       propertyPath: m_AnchorMin.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5870325231190551092, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6632337894852417072, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
         type: 3}
       propertyPath: m_Name
       value: HUD
+      objectReference: {fileID: 0}
+    - target: {fileID: 7902360184803621864, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7902360184803621864, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7902360184803621864, guid: e22ec4feb0e7ee94e8ec81af9f5926f3,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
