@@ -15,6 +15,11 @@ namespace Core
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
+        
+        [Header("VFX")]
+        [SerializeField] private PooledVFX _defaultDashVfx;
+        [SerializeField] private ElementalPooledVFX[] _elementalDashVfx;
+        
         [Header("Audio")]
         [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
@@ -37,8 +42,22 @@ namespace Core
             
             var args = new DashActivationArgs();
             (ctx.Source as ISpellEventSource)?.RaiseBeforeActivate(args);
+
+            PooledVFX vfxPrefab = GetDashVfx(ctx.AttackerElement);
+            PooledVFX activeVfx = null;
+
+            if (vfxPrefab != null)
+            {
+                activeVfx = Helpers.ProjFactory.Spawn(
+                    vfxPrefab, 
+                    ctx.Runner.transform.position, 
+                    ctx.Runner.transform.rotation
+                );
+                activeVfx.AttachTo(ctx.Runner.transform);
+            }
+            
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
-                _baseDashDuration * args.DurationMultiplier, args));
+                _baseDashDuration * args.DurationMultiplier, args, activeVfx));
         }
 
         private AudioEventSO GetCastSound(ElementType element)
@@ -51,8 +70,18 @@ namespace Core
 
             return _defaultCastSound;
         }
+        
+        private PooledVFX GetDashVfx(ElementType element)
+        {
+            foreach (var mapping in _elementalDashVfx)
+            {
+                if (mapping.Element == element) return mapping.Prefab;
+            }
+            
+            return _defaultDashVfx;
+        }
 
-        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args)
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args, PooledVFX vfx)
         {
             // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
@@ -118,6 +147,12 @@ namespace Core
             player.SetVelocity(Vector3.zero);
             player.SetCanMove(true);
             player.Hurtbox.SetActive(true);
+
+            if (vfx != null)
+            {
+                vfx.transform.SetParent(null);
+                vfx.StopEmitting();
+            }
         }
 
         private void SpawnHomingFromDash(SpellContext ctx, Vector3 dir, int count)

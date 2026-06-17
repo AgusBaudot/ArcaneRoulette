@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 2328497521325128953}
   - component: {fileID: 2036915452460174382}
   - component: {fileID: 354867343939097431}
+  - component: {fileID: 5376155415208181839}
   m_Layer: 0
-  m_Name: Earth_Dash_Particles
+  m_Name: Neutral_Dash_Particles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -223,7 +224,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 0.513772, g: 1, b: 0, a: 1}
+      maxColor: {r: 1, g: 0.3726415, b: 0.85869485, a: 1}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -4777,7 +4778,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2aa3a9028772eaa4bb493f75a2ae3ecc, type: 2}
+  - {fileID: 2100000, guid: ac94e5708996cfc479172f24f5bfbbdd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4830,3 +4831,15 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &5376155415208181839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4210795793014122032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1af512a0ff3f4999a53ce6b748f2b832, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
