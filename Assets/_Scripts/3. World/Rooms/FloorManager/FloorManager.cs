@@ -108,12 +108,7 @@ namespace World
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
 
-                // cambiar esto
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
-                _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca, por un metodo del player
+                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
 
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();

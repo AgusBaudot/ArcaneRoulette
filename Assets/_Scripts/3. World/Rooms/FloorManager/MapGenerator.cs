@@ -83,7 +83,7 @@ namespace World
                 int guaranteedSpecialCount = CountGuaranteedSpecialRooms();
 
                 //if the generation is not correct => restart
-                if (_floorPlanCount < _data.MinRooms || _endRooms.Count < guaranteedSpecialCount)
+                if (_floorPlanCount < _data.MinRooms || _endRooms.Count < guaranteedSpecialCount + 1)
                     continue;
 
                 // all the combat - non Combat rooms must to have a place in the grid
@@ -150,7 +150,7 @@ namespace World
             }
             if (_data.GuaranteeEventRoom)
             {
-                if (!PickRooms(PickEndRoom, _eventRoomIndices, true)) return false;
+                if (!PickRooms(PickEndRoom, _eventRoomIndices)) return false;
             }
             if (_data.GuaranteeArtifactRoom)
             {

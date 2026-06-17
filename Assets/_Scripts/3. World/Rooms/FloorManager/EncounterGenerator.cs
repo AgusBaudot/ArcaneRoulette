@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace World 
 {
@@ -21,7 +23,7 @@ namespace World
         public RoomEncounterData Generate(RoomType roomType, int roomsVisited)
         {
             if (roomType != RoomType.Regular && roomType != RoomType.Boss) // saber si es una room peleable no le corresponde a esto
-                return default;
+                return new RoomEncounterData { Waves = new EnemySpawnData[0] };
 
             int waveCount = Random.Range(_minWaves, _maxWaves);
             EnemySpawnData[] waves = new EnemySpawnData[waveCount];
@@ -55,6 +57,13 @@ namespace World
 
             for (int i = 0; i < _weights.Length; i++)
                 if (!used[i]) total += _weights[i];
+
+            if (total <= 0f)
+            {
+                Array.Clear(used, 0, used.Length);
+                for (int i = 0; i < _weights.Length; i++)
+                    total += _weights[i];
+            }
 
             float roll = Random.value * total;
             float cumulative = 0f;

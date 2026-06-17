@@ -122,7 +122,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                //rooms.gameObject.SetActive(false);
+                rooms.gameObject.SetActive(false);
             }
         }
         private DoorInfo CreateDoorInfo(bool hasBounds, int neighbourIndex, int[] floorPlan)

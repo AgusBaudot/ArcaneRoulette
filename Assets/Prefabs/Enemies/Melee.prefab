@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 4672286030805484426}
   - component: {fileID: 9054429380081942084}
   - component: {fileID: 5857784219357410502}
+  - component: {fileID: 9202326644840425587}
   m_Layer: 7
   m_Name: Melee
   m_TagString: Untagged
@@ -330,6 +331,23 @@ CapsuleCollider:
   m_Height: 5
   m_Direction: 1
   m_Center: {x: 0.4, y: 0, z: 0.25}
+--- !u!114 &9202326644840425587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f1674cd0d89ac142a8078ce033c0b5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _affinities:
+  - Element: 3
+    Effectiveness: 2
+  - Element: 1
+    Effectiveness: 1
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0

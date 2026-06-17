@@ -58,6 +58,7 @@ namespace World
         }
         public bool TakeDamage(int amount, ElementType elementType)
         {
+            Debug.Log($"Damage: {amount}. Type: {elementType}");
             _currentHp = Mathf.Max(0f, _currentHp - amount);
             UpdateUI();
 

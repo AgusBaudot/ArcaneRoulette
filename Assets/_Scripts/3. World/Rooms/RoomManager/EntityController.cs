@@ -88,7 +88,7 @@ namespace World
 
             while (spawnedSoFar < enemiesToSpawn.Count)
             {
-                int batchSize = Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar);
+                int batchSize = Mathf.Max(1, Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar));
                 List<Vector3> batchPositions = new List<Vector3>();
                 List<GameObject> batchIndicators = new List<GameObject>();
 
@@ -100,12 +100,16 @@ namespace World
                     GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0))); // the exact rotation as the camera
                     batchIndicators.Add(indicator);
                 }
-                yield return new WaitForSeconds(_warningDuration);
+                yield return CoroutineUtils.GetWait(_warningDuration);
 
                 for (int i = 0; i < batchSize; i++)
                 {
-                    GameObject effect = Instantiate(_effect, batchPositions[i], Quaternion.identity);
-                    Destroy(effect, 3f);
+                    if (_effect != null)
+                    {
+                        GameObject effect = Instantiate(_effect, batchPositions[i], Quaternion.identity);
+                        Destroy(effect, 3f);
+                    }
+                    
                     EnemyType type = enemiesToSpawn[spawnedSoFar + i];
                     IPoolable enemy = PoolEnemy.Instance.Get(type, batchPositions[i]);
 
@@ -125,7 +129,7 @@ namespace World
                 spawnedSoFar += batchSize;
 
                 if (spawnedSoFar < enemiesToSpawn.Count)
-                    yield return new WaitForSeconds(_spawnDelay);
+                    yield return CoroutineUtils.GetWait(_spawnDelay);
             }
         }
         private void OnEnemyDeath(EnemyController enemy)
