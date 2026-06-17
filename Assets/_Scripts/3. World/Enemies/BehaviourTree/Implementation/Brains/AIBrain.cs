@@ -96,6 +96,20 @@ namespace World
         {
             _debuffs = null;
             _tree?.Reset();
+            _wasInRange = false;
+
+            // 1. Snap the Animator out of the "Death" state back to default Idle
+            if (_animator != null)
+            {
+                _animator.Rebind();
+                _animator.Update(0f); 
+            }
+
+            // 2. Clear stale paths so it doesn't try to walk to a position from the previous room
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.ResetPath();
+            }
         }
         public void Tick()
         {

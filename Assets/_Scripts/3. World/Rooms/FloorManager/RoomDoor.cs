@@ -9,7 +9,7 @@ namespace World
         public event Action<EdgeDirection> OnPlayerEnter;
 
         private float _lastTriggerTime;
-        private const float TRIGGER_COOLDOWN = 0.5f;
+        private const float TRIGGER_COOLDOWN = 0.25f;
 
         private void OnEnable()
         {

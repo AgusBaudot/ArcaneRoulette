@@ -113,17 +113,23 @@ namespace World
                     EnemyType type = enemiesToSpawn[spawnedSoFar + i];
                     IPoolable enemy = PoolEnemy.Instance.Get(type, batchPositions[i]);
 
-                    if (enemy is EnemyController ec)
+                    if (enemy != null && enemy is EnemyController ec)
                     {
                         ec.Type = type;
                         ec.OnDeathEvent -= OnEnemyDeath;
                         ec.OnDeathEvent += OnEnemyDeath;
-                        StartCoroutine(VerifySubscription(ec));
+                        _spawnedEnemies.Add(enemy);
+                    }
+                    else
+                    {
+                        Debug.LogError($"[EntityController] Pool failed to spawn: {type}!");
+                        _enemiesAlive--; // CRITICAL: Decrement so the room can still clear!
                     }
 
-                    _spawnedEnemies.Add(enemy);
-
-                    Destroy(batchIndicators[i].gameObject);
+                    if (batchIndicators[i] != null)
+                    {
+                        Destroy(batchIndicators[i].gameObject);
+                    }
                 }
 
                 spawnedSoFar += batchSize;
@@ -144,30 +150,6 @@ namespace World
                     SpawnWave(_currentWave);
                 else
                     RoomIsClear?.Invoke();
-            }
-        }
-        private IEnumerator VerifySubscription(EnemyController ec)
-        {
-            int attempts = 0;
-            int maxAttempts = 10;
-
-            while (attempts < maxAttempts)
-            {
-                yield return null;
-
-                if (ec == null || !ec.gameObject.activeSelf) yield break;
-
-                if (!ec.HasDeathListeners())
-                {
-                    ec.OnDeathEvent -= OnEnemyDeath;
-                    ec.OnDeathEvent += OnEnemyDeath;
-                }
-                else
-                {
-                    yield break;
-                }
-
-                attempts++;
             }
         }
         public void DisableAllHazards()

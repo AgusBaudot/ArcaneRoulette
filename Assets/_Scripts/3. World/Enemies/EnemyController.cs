@@ -94,6 +94,14 @@ namespace World
         public void OnDespawn()
         {
             _enemyHealth.OnDeath -= DeathEvent;
+    
+            OnDeathEvent = null; 
+    
+            if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
+            {
+                _aiBrain.Agent.enabled = false; 
+            }
+
             gameObject.SetActive(false);
             CustomUpdateEnemyManager.Instance?.Unregister(this);
         }
@@ -153,18 +161,11 @@ namespace World
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);
-            OnDeathEvent = null;
         }
         public void Tick()
         {
             _aiBrain.Tick();
             _enemyHealth.Tick();
-        }
-
-        // ---- Corutina auxiliar ----
-        public bool HasDeathListeners()
-        {
-            return OnDeathEvent != null && OnDeathEvent.GetInvocationList().Length > 0;
         }
     }
 }
