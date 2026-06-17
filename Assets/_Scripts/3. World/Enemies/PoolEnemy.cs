@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 using Foundation;
+using UnityEngine.AI;
 
 namespace World 
 {
@@ -23,9 +24,11 @@ namespace World
                     () =>
                     {
                         var obj = Instantiate(prefab);
-                        //var pooleable = obj.GetComponent<IPoolable>();
-                        var pooleable = obj.GetComponent<EnemyController>();
-                        return pooleable;
+                        
+                        if (obj.TryGetComponent<NavMeshAgent>(out var agent))
+                            agent.enabled = false;
+                            
+                        return obj.GetComponent<EnemyController>();
                     },
                     obj => obj.OnSpawn(),
                     obj => obj.OnDespawn(), 
@@ -37,8 +40,11 @@ namespace World
         {
             _pools.TryGetValue(enemyType, out var pool);
             var entity = pool.Get() as EnemyController;
+            
             entity.Transform.position = position;
-            //entity.GetComponent<NavMeshAgent>().Warp(position);
+            
+            entity.BindToNavMesh(); 
+            
             return entity;
         }
         public void Release(EnemyType enemyType, IPoolable obj)

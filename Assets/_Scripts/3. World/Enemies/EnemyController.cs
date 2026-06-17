@@ -43,6 +43,7 @@ namespace World
         
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
+        private bool _isInitialized;
 
         public void Awake()
         {
@@ -57,26 +58,7 @@ namespace World
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
         }
-        public void Start()
-        {
-            switch (_enemyStats.ElementType)
-            {
-                case ElementType.Fire:
-                    _elementalFeedback.sprite = _fireElement;
-                    break;
-                case ElementType.Water:
-                    _elementalFeedback.sprite = _waterElement;
-                    break;
-                case ElementType.Earth:
-                    _elementalFeedback.sprite = _earthElement;
-                    break;
-                case ElementType.Electric:
-                    _elementalFeedback.sprite = _thunderElement;
-                    break;
-            }
-            
-            InitSystems();
-        }
+        
         private void InitSystems()
         {
             foreach (var component in _components)
@@ -94,7 +76,6 @@ namespace World
         public void OnDespawn()
         {
             _enemyHealth.OnDeath -= DeathEvent;
-    
             OnDeathEvent = null; 
     
             if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
@@ -108,56 +89,63 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+    
+            if (!_isInitialized)
+            {
+                switch (_enemyStats.ElementType)
+                {
+                    case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
+                    case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
+                    case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
+                    case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+                }
+        
+                InitSystems();
+                _isInitialized = true;
+            }
+
             RestartSystems();
+    
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;
-            StartCoroutine(WaitForNavMeshAndBindRoutine());
+    
+            BindToNavMesh(); 
+    
             _rb.velocity = Vector3.zero;
             _rb.angularVelocity = Vector3.zero;
             IsBeingHealed = false;
         }
+
+        public void BindToNavMesh()
+        {
+            StartCoroutine(WaitForNavMeshAndBindRoutine());
+        }
+        
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
             yield return new WaitForEndOfFrame();
 
-            int maxAttempts = 10;
-            int attempts = 0;
-            bool boundSuccessfully = false;
+            Vector2 jitter = Random.insideUnitCircle * 0.3f;
+            Vector3 searchPos = transform.position + new Vector3(jitter.x, 0, jitter.y);
 
-            Vector2 jitter2D = Random.insideUnitCircle * 0.2f;
-            Vector3 initialPos = base.transform.position + new Vector3(jitter2D.x, 0, jitter2D.y);
-
-            while (attempts < maxAttempts && !boundSuccessfully)
+            if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 3.0f, NavMesh.AllAreas))
             {
-                Vector3 searchPos = initialPos;
-                
-                if (Physics.Raycast(initialPos + Vector3.up * 2f, Vector3.down, out RaycastHit rayHit, 10f, _floorLayerMask))
-                {
-                    searchPos = rayHit.point;
-                }
-                if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
-                {
-                    base.transform.position = hit.position;
+                transform.position = hit.position;
+                _aiBrain.Agent.enabled = true;
+                _aiBrain.Agent.Warp(hit.position);
 
-                    _aiBrain.Agent.enabled = true;
-                    _aiBrain.Agent.Warp(hit.position);
-
-                    boundSuccessfully = true;
-                    CustomUpdateEnemyManager.Instance.Register(this);
-                }
-                else
-                {
-                    attempts++;
-                    yield return null;
-                }
+                // Successfully bound! Start the AI ticks.
+                CustomUpdateEnemyManager.Instance.Register(this);
             }
-            if (!boundSuccessfully)
+            else
             {
-                Debug.LogError(
-                    $"<color=red>FATAL ERROR:</color> {gameObject.name} could not find the NavMesh after {maxAttempts} frames. " +
-                    $"Position: {base.transform.position}. Ensure the Room's NavMeshSurface has completely finished building before spawning this enemy!");
+                Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to find NavMesh at {searchPos}. " +
+                               $"Check your NavMesh surface and ensure it covers the spawn colliders!");
+                               
+                CustomUpdateEnemyManager.Instance.Register(this);
             }
         }
+        
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);
