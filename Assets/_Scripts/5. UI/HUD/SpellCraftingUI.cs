@@ -160,9 +160,6 @@ namespace UI
             _pendingRune = null;
             _pendingRuneIndex = -1;
 
-            foreach (var panel in _slotPanels)
-                panel.TryApply(_spellCrafter);
-
             _tooltip?.Hide();
             _craftingPanel.SetActive(false);
             AudioListener.pause = false;
@@ -305,6 +302,8 @@ namespace UI
 
                 if (autoAssigned)
                 {
+                    _slotPanels[_centerIndex].TryApply(_spellCrafter);
+                    
                     EventBus.Publish(new AudioPlayRequest
                     {
                         Event = Helpers.UIAudio.RuneEquip
@@ -338,8 +337,11 @@ namespace UI
             if (_pendingRune != null)
             {
                 bool assigned = panel.TryAssign(_pendingRune, slotType, modIndex, out var replacedRune);
+                
                 if (assigned)
                 {
+                    panel.TryApply(_spellCrafter);
+                    
                     EventBus.Publish(new AudioPlayRequest
                     {
                         Event = Helpers.UIAudio.RuneEquip
@@ -364,6 +366,8 @@ namespace UI
                 
                 if (clearedRune != null)
                 {
+                    panel.TryApply(_spellCrafter);
+                    
                     EventBus.Publish(new AudioPlayRequest
                     {
                         Event = Helpers.UIAudio.RuneUnequip
