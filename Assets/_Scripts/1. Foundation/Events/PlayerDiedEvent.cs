@@ -1,6 +1,6 @@
 namespace Foundation
 {
-    public class PlayerDiedEvent
+    public struct PlayerDiedEvent
     {
         
     }

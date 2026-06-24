@@ -54,6 +54,7 @@ namespace Core
         private Vector3 _velocity;
         private Vector2 _facingDirection = Vector2.right;
         private bool _canMove = true;
+        private bool _isAlive = true;
         private PlayerInputActions _inputActions;
         private AudioHandle _runAudioHandle;
 
@@ -76,6 +77,7 @@ namespace Core
             GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
+            EventBus.Subscribe((PlayerDiedEvent _) => _isAlive = false);
         }
 
         private void OnDestroy()
@@ -148,6 +150,9 @@ namespace Core
 
         private void ReadInput()
         {
+            if (!_isAlive)
+                return;
+            
             _input = Helpers.Input.MoveDirection.normalized;
 
             if (_input.sqrMagnitude > 0.01f)
@@ -165,6 +170,9 @@ namespace Core
 
         private void HandleSlotPress(int slotIndex)
         {
+            if (!_isAlive)
+                return;
+            
             ISpellSlot spell  = _spellSlots[slotIndex];
             if (spell == null || Time.deltaTime == 0)
                 return;
@@ -187,6 +195,9 @@ namespace Core
 
         private void HandleSlotRelease(int slotIndex)
         {
+            if (!_isAlive)
+                return;
+            
             ISpellSlot spell = _spellSlots[slotIndex];
             if (spell == null || Time.deltaTime == 0)
                 return;
