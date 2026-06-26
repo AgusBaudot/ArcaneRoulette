@@ -8,17 +8,18 @@ namespace UI
     {
         [Header("UI References")]
         [SerializeField] private Image _healthFillImage;
+        [SerializeField] private Image _healthTrailImage; // The new yellow/white delay bar
         [SerializeField] private Image _heartsIcon;
 
         [Header("Configuration")]
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
-        [SerializeField] private float _lerpSpeed = 5f; // Added speed control for the interpolation
+        [SerializeField] private float _mainLerpSpeed = 10f;  // Faster speed for the primary bar
+        [SerializeField] private float _trailLerpSpeed = 3f;  // Slower speed for the trail bar
 
         private const float MIN_VISUAL_THRESHOLD = 0.02f;
 
         private VolatileRunState _activeRunState;
 
-        // Tracks where the health bar SHOULD be, so Update() can smoothly move towards it
         private float _targetFillAmount;
 
         private void OnEnable()
@@ -43,15 +44,25 @@ namespace UI
 
         private void Update()
         {
-            // Smoothly interpolate the fill amount towards the target value every frame
+            // 1. Interpolate the Main Health Bar (Fast)
             if (_healthFillImage != null && _healthFillImage.fillAmount != _targetFillAmount)
             {
-                _healthFillImage.fillAmount = Mathf.Lerp(_healthFillImage.fillAmount, _targetFillAmount, Time.deltaTime * _lerpSpeed);
+                _healthFillImage.fillAmount = Mathf.Lerp(_healthFillImage.fillAmount, _targetFillAmount, Time.deltaTime * _mainLerpSpeed);
 
-                // Snap to target if it gets extremely close to prevent endless micro-calculations
                 if (Mathf.Abs(_healthFillImage.fillAmount - _targetFillAmount) < 0.001f)
                 {
                     _healthFillImage.fillAmount = _targetFillAmount;
+                }
+            }
+
+            // 2. Interpolate the Trail Health Bar (Slow)
+            if (_healthTrailImage != null && _healthTrailImage.fillAmount != _targetFillAmount)
+            {
+                _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount, Time.deltaTime * _trailLerpSpeed);
+
+                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.001f)
+                {
+                    _healthTrailImage.fillAmount = _targetFillAmount;
                 }
             }
         }
@@ -65,16 +76,15 @@ namespace UI
             {
                 _activeRunState.OnHpChanged += UpdateUI;
 
-                // Snap the visual instantly when initializing, so it doesn't "fill up" from 0 on spawn
                 if (_activeRunState.MaxHp > 0)
                 {
                     float initialNormalized = Mathf.Clamp01(_activeRunState.CurrentHp / _activeRunState.MaxHp);
                     _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, initialNormalized);
 
-                    if (_healthFillImage != null)
-                    {
-                        _healthFillImage.fillAmount = _targetFillAmount;
-                    }
+                    // Snap BOTH bars instantly on spawn
+                    if (_healthFillImage != null) _healthFillImage.fillAmount = _targetFillAmount;
+                    if (_healthTrailImage != null) _healthTrailImage.fillAmount = _targetFillAmount;
+
                     UpdateHeartSprite(initialNormalized);
                 }
             }
@@ -93,19 +103,14 @@ namespace UI
         {
             if (currentHp <= 0f || maxHp <= 0f)
             {
-                // Let the Update() loop empty the bar smoothly, but instantly hide the heart icon
                 _targetFillAmount = 0f;
-                if (_heartsIcon != null && _heartsIcon.enabled)
-                {
-                    _heartsIcon.enabled = false;
-                }
+                if (_heartsIcon != null && _heartsIcon.enabled) _heartsIcon.enabled = false;
                 return;
             }
 
             float normalizedHealth = Mathf.Clamp01(currentHp / maxHp);
 
-            // Set the new target instead of applying it instantly
-            if (_healthFillImage != null)
+            if (_healthFillImage != null || _healthTrailImage != null)
             {
                 _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, normalizedHealth);
             }
@@ -115,33 +120,22 @@ namespace UI
 
         private void HandlePlayerDied(PlayerDiedEvent evt)
         {
-            // Usually upon death, we want it to deplete smoothly, so we just set the target to 0
             _targetFillAmount = 0f;
-            if (_heartsIcon != null && _heartsIcon.enabled)
-            {
-                _heartsIcon.enabled = false;
-            }
+            if (_heartsIcon != null && _heartsIcon.enabled) _heartsIcon.enabled = false;
         }
 
         private void ForceZeroVisibilityBaseline()
         {
-            // This remains as a hard reset for when we absolutely need the UI to instantly blank out
             _targetFillAmount = 0f;
-            if (_healthFillImage != null)
-            {
-                _healthFillImage.fillAmount = 0f;
-            }
+            if (_healthFillImage != null) _healthFillImage.fillAmount = 0f;
+            if (_healthTrailImage != null) _healthTrailImage.fillAmount = 0f;
 
-            if (_heartsIcon != null && _heartsIcon.enabled)
-            {
-                _heartsIcon.enabled = false;
-            }
+            if (_heartsIcon != null && _heartsIcon.enabled) _heartsIcon.enabled = false;
         }
 
         private void UpdateHeartSprite(float normalizedHealth)
         {
-            if (_heartsIcon == null || _heartSprites.Length < 4)
-                return;
+            if (_heartsIcon == null || _heartSprites.Length < 4) return;
 
             _heartsIcon.enabled = true;
 
