@@ -12,7 +12,7 @@ namespace Foundation
     {
         // ── HP ──────────────────────────────────────────────────────────────────
 
-        public float MaxHp     { get; private set; }
+        public float MaxHp { get; private set; }
         public float CurrentHp { get; private set; }
         public event Action<float, float> OnHpChanged;
 
@@ -40,13 +40,13 @@ namespace Foundation
         private readonly Dictionary<RuneDefinitionSO, int> _runeAllocated = new();
 
         // Read-only views — CraftingUI polls these directly, no event needed yet.
-        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneInventory  => _runeInventory;
-        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneAllocated  => _runeAllocated;
+        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneInventory => _runeInventory;
+        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneAllocated => _runeAllocated;
 
         // ── Floor / Room progress ────────────────────────────────────────────
 
         public int CurrentFloor { get; private set; }
-        public int CurrentRoom  { get; private set; }
+        public int CurrentRoom { get; private set; }
         public event Action<int, int> OnRoomChanged; // floor, room
 
         // ── Modifier pipeline ────────────────────────────────────────────────
@@ -54,16 +54,17 @@ namespace Foundation
 
         public event Action<DamageContext> OnCalculateDamageOut;
         public event Action<DamageContext> OnCalculateDamageIn;
-        public event Action<KillContext>   OnKill;
-        public event Action<SpellContext>  OnSpellCast;
-        public event Action<DashContext>   OnDash;
+        public event Action<KillContext> OnKill;
+        public event Action<SpellContext> OnSpellCast;
+        public event Action<DashContext> OnDash;
 
         // ── Construction ─────────────────────────────────────────────────────
 
         public VolatileRunState(float maxHp)
         {
-            MaxHp     = maxHp;
+            MaxHp = maxHp;
             CurrentHp = maxHp;
+            Currency = 50;
         }
 
         // ── HP ───────────────────────────────────────────────────────────────
@@ -90,12 +91,12 @@ namespace Foundation
             Currency += amount;
             OnCurrencyChanged?.Invoke(Currency);
         }
-        
+
         public bool TrySpend(int amount)
         {
             if (Currency - amount < 0)
                 return false;
-            
+
             Currency -= amount;
             OnCurrencyChanged?.Invoke(Currency);
             return true;
@@ -113,7 +114,7 @@ namespace Foundation
         // AddRune      — called by room reward / debug seeder
         // AllocateRune / DeallocateRune — called exclusively by SpellCrafter
         //                                 on TryCreate / Dismantle
-        
+
         public void AddRune(RuneDefinitionSO rune, int count = 1)
         {
             _runeInventory.TryGetValue(rune, out int current);
@@ -148,7 +149,7 @@ namespace Foundation
         public void SetRoom(int floor, int room)
         {
             CurrentFloor = floor;
-            CurrentRoom  = room;
+            CurrentRoom = room;
             OnRoomChanged?.Invoke(floor, room);
         }
 
@@ -169,7 +170,7 @@ namespace Foundation
         public void Reset()
         {
             // HP / economy
-            OnHpChanged       = null;
+            OnHpChanged = null;
             OnCurrencyChanged = null;
 
             // Spell slots
@@ -186,10 +187,10 @@ namespace Foundation
 
             // Modifier pipeline
             OnCalculateDamageOut = null;
-            OnCalculateDamageIn  = null;
-            OnKill               = null;
-            OnSpellCast          = null;
-            OnDash               = null;
+            OnCalculateDamageIn = null;
+            OnKill = null;
+            OnSpellCast = null;
+            OnDash = null;
         }
     }
 }
