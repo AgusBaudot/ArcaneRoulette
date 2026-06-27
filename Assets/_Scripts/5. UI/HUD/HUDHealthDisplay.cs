@@ -13,8 +13,8 @@ namespace UI
 
         [Header("Configuration")]
         [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
-        [SerializeField] private float _mainLerpSpeed = 10f;  // Faster speed for the primary bar
-        [SerializeField] private float _trailLerpSpeed = 3f;  // Slower speed for the trail bar
+        [SerializeField] private float _mainLerpSpeed = 25f;  // Faster speed for the primary bar
+        [SerializeField] private float _trailLerpSpeed = 10f;  // Slower speed for the trail bar
 
         private const float MIN_VISUAL_THRESHOLD = 0.02f;
 
@@ -45,22 +45,22 @@ namespace UI
         private void Update()
         {
             // 1. Interpolate the Main Health Bar (Fast)
-            if (_healthFillImage != null && _healthFillImage.fillAmount != _targetFillAmount)
+            if (_healthFillImage != null && !Mathf.Approximately(_healthFillImage.fillAmount, _targetFillAmount))
             {
                 _healthFillImage.fillAmount = Mathf.Lerp(_healthFillImage.fillAmount, _targetFillAmount, Time.deltaTime * _mainLerpSpeed);
 
-                if (Mathf.Abs(_healthFillImage.fillAmount - _targetFillAmount) < 0.001f)
+                if (Mathf.Abs(_healthFillImage.fillAmount - _targetFillAmount) < 0.01f)
                 {
                     _healthFillImage.fillAmount = _targetFillAmount;
                 }
             }
 
             // 2. Interpolate the Trail Health Bar (Slow)
-            if (_healthTrailImage != null && _healthTrailImage.fillAmount != _targetFillAmount)
+            if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
             {
                 _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount, Time.deltaTime * _trailLerpSpeed);
 
-                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.001f)
+                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
                 {
                     _healthTrailImage.fillAmount = _targetFillAmount;
                 }
