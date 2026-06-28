@@ -17,10 +17,10 @@ namespace World
             this._agent = agent;
             _getFollowSpeed = getFollowSpeed;
         }
-        public Node.NodeState Process()
+        public NodeState Process()
         {
             if (_ally == null)
-                return Node.NodeState.Failure;
+                return NodeState.Failure;
 
             _agent.speed = _getFollowSpeed();
             Vector3 offset = (_entity.position - _ally().position).normalized;
@@ -29,16 +29,14 @@ namespace World
             _agent.SetDestination(_ally().position);
 
             if (_agent.pathPending)
-                return Node.NodeState.Running;
+                return NodeState.Running;
 
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
-                return Node.NodeState.Success;
+                return NodeState.Success;
             }
-
-            return Node.NodeState.Running;
+            return NodeState.Running;
         }
-
         public void Reset()
         {
             if (_agent.hasPath)

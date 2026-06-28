@@ -23,11 +23,11 @@ namespace World
             this._patrolSpeed = patrolSpeed;
         }
 
-        public Node.NodeState Process() 
+        public NodeState Process() 
         {
             _agent.speed = _patrolSpeed;
             
-            if (_currentIndex == _patrolPoints.Count) return Node.NodeState.Success;
+            if (_currentIndex == _patrolPoints.Count) return NodeState.Success;
 
             var target = _patrolPoints[_currentIndex];
             _agent.SetDestination(target.position);
@@ -46,7 +46,7 @@ namespace World
             }
              //= _agent.pathPending;
 
-            return Node.NodeState.Running;
+            return NodeState.Running;
         }
 
         public void Reset() => _currentIndex = 0;

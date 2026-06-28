@@ -97,26 +97,22 @@ namespace World
             
             _tree = BuildTree();
         }
-        
         public void ResetComponent()
         {
             _debuffs = null;
             _tree?.Reset();
             _wasInRange = false;
-
             if (_animator != null)
             {
                 _animator.Rebind();
                 _animator.Update(0f); 
             }
-
             if (_agent != null && _agent.isOnNavMesh)
             {
                 _agent.ResetPath();
                 _agent.isStopped = false; 
             }
         }
-        
         public void Tick()
         {
             _tree?.Process();
@@ -138,16 +134,14 @@ namespace World
             _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
-        
         protected virtual bool IsInStableDistance(Transform target)
         {
             if (target == null)
             {
-                var p = GameObject.FindGameObjectWithTag("Player");
-                if (p != null) target = p.transform;
+                var _player = GameObject.FindGameObjectWithTag("Player");
+                if (_player != null) target = _player.transform;
                 else return false;
             }
-
             float distance = Vector3.Distance(transform.position, target.position);
             bool result;
             if (_wasInRange)
@@ -157,7 +151,7 @@ namespace World
             _wasInRange = result;
             return result;
         } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
-
+        
         //------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
         public void UnregisterDebuff() => _debuffs = null;

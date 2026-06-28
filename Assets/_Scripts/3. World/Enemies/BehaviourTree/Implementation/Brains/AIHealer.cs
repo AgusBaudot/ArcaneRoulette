@@ -26,7 +26,6 @@ namespace World
             _ally = FindBestAlly();
             return _ally != null;
         }
-
         private bool HasValidAlly()
         {
             if (_ally == null) return false;
@@ -38,7 +37,6 @@ namespace World
             }
             return true;
         }
-
         private IAlly FindBestAlly()
         {
             Collider[] alliesInRange = Physics.OverlapSphere(transform.position, _enemyStats.ViewDistance, _enemyStats.HitLayer);
@@ -90,7 +88,10 @@ namespace World
         {
             BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
             SequenceNode root = new SequenceNode("Root");
-
+            // ---- Flee ----
+            SequenceNode Flee = new SequenceNode("Flee");
+            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(() => IsInStableDistance(_player))));
+            //Flee.AddChild(new LeafNode("Flee", new Flee))
             // ---- Heal ally ----
             SequenceNode HealSequence = new SequenceNode("Heal");
             HealSequence.AddChild(new LeafNode("SearchInjuredAlly", new ConditionNode(() => SearchInjuredAlly())));
@@ -100,8 +101,7 @@ namespace World
             HealSequence.AddChild(attackCooldown);
 
             // ---- Follow Ally ----
-            SequenceNode Move = new SequenceNode("Move");
-            Move.AddChild(new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed)));
+            LeafNode Move = new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed));
 
             SelectorNode behavior = new SelectorNode("Behavior");
             behavior.AddChild(HealSequence);
@@ -128,6 +128,11 @@ namespace World
             healingArea.Init(_enemyStats.AttackRadius, finalHeal, _enemyStats.HitLayer, _spellLifetime, _spellPulseFrequency);
         }
         private Vector3 GetFlatPos(Vector3 pos) => new Vector3(pos.x, 0f, pos.z);
+        public new void ResetComponent() // If the enemy no longer freezes, that is the problem.
+        {
+            base.ResetComponent();
+            ClearAlly();
+        }
         public void OnDrawGizmos()
         {
             if(_ally != null) 

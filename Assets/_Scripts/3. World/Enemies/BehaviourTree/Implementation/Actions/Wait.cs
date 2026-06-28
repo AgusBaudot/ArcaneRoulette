@@ -14,7 +14,7 @@ namespace World
         {
             _duration = duration;
         }
-        public Node.NodeState Process()
+        public NodeState Process()
         {
             if (!_started)
             {
@@ -23,9 +23,9 @@ namespace World
             }
             _timer -= Time.deltaTime;
             if (_timer > 0f)
-                return Node.NodeState.Running;
+                return NodeState.Running;
 
-            return Node.NodeState.Success;
+            return NodeState.Success;
         }
         public void Reset()
         {

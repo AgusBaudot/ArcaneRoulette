@@ -13,15 +13,15 @@ namespace World
 
         public Chase(Transform target, Transform entity ,NavMeshAgent agent, Func<float> getChaseSpeed) 
         {
-            this._target = target;
-            this._entity = entity;
-            this._agent = agent;
+            _target = target;
+            _entity = entity;
+            _agent = agent;
             _getChaseSpeed = getChaseSpeed;
         }
-        public Node.NodeState Process()
+        public NodeState Process()
         {  
             if (_target == null)
-                return Node.NodeState.Failure;
+                return NodeState.Failure;
 
             _agent.speed = _getChaseSpeed();
             Vector3 offset = (_entity.position - _target.position).normalized;
@@ -30,14 +30,14 @@ namespace World
             _agent.SetDestination(_target.position);
 
             if (_agent.pathPending)
-                return Node.NodeState.Running;
+                return NodeState.Running;
 
             if (_agent.remainingDistance <= _agent.stoppingDistance)
             {
-                return Node.NodeState.Success; 
+                return NodeState.Success; 
             }
 
-            return Node.NodeState.Running;
+            return NodeState.Running;
         }
 
         public void Reset()

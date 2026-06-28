@@ -8,13 +8,6 @@ namespace World
 { 
     public abstract class Node
     {  
-        public enum NodeState
-        {
-            Success,
-            Failure,
-            Running
-        }
-
         public readonly string _name;
         public readonly int _priority;
             
@@ -92,7 +85,7 @@ namespace World
         {
             this.predicate = predicate;
         }
-        public Node.NodeState Process() => predicate() ? Node.NodeState.Success : Node.NodeState.Failure;
+        public NodeState Process() => predicate() ? NodeState.Success : NodeState.Failure;
 
         //public void Reset() { } anulada por la interfaz
     }
@@ -105,10 +98,10 @@ namespace World
             this.doSomething = doSOmething;
         }
 
-        public Node.NodeState Process()
+        public NodeState Process()
         {
             doSomething();
-            return Node.NodeState.Success;
+            return NodeState.Success;
         }
     }
     public class SequenceNode : Node

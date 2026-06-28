@@ -25,26 +25,26 @@ namespace World
             _attackAnimName = attackAnimName;
         }
         
-        public Node.NodeState Process()
+        public NodeState Process()
         {
             //  Cooldown
             if (Time.time < _nextAttackTime)
-                return Node.NodeState.Running;
+                return NodeState.Running;
 
             if (!_isAttacking)
             {
                 _animator.SetTrigger("Attack");
                 _isAttacking = true;
                 _agent.ResetPath();
-                return Node.NodeState.Running;
+                return NodeState.Running;
             }
 
             if (IsAnimationPlaying())
-                return Node.NodeState.Running;
+                return NodeState.Running;
             _isAttacking = false;
             _nextAttackTime = Time.time + _getCooldown();
 
-            return Node.NodeState.Success;
+            return NodeState.Success;
         }
 
         bool IsAnimationPlaying()

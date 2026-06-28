@@ -2,7 +2,7 @@ namespace World
 {
     public interface IStrategy
     {
-        Node.NodeState Process();
+        NodeState Process();
         void Reset() 
         {
             //Null
