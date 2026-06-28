@@ -44,6 +44,7 @@ namespace Core
         private readonly SpellInstance[] _spellSlots = new SpellInstance[3];
 
         private readonly List<int> _heldHoldSlots = new(); //Insertion order = press order
+        private readonly HashSet<int> _heldAutoSlots = new();
 
         private Rigidbody _rb;
         public Rigidbody Rb => _rb;
@@ -189,7 +190,12 @@ namespace Core
             }
             else if (spell is IAbility ability)
             {
-                ability.Activate(this);
+                _heldAutoSlots.Add(slotIndex);
+                
+                if (_spellSlots[slotIndex] is SpellInstance instance && instance.CooldownRemaining <= 0f)
+                {
+                    ability.Activate(this);
+                }
             }
         }
 
@@ -214,6 +220,10 @@ namespace Core
                     if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility resumeHold)
                         resumeHold.StartHold(this);
                 }
+            }
+            else if (spell is IAbility)
+            {
+                _heldAutoSlots.Remove(slotIndex);
             }
         }
         
@@ -312,6 +322,17 @@ namespace Core
                 if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
                 {
                     hold.HoldTick(Time.deltaTime, this);
+                }
+            }
+            
+            foreach (var slotIndex in _heldAutoSlots)
+            {
+                if (_spellSlots[slotIndex] is IAbility ability && _spellSlots[slotIndex] is SpellInstance instance)
+                {
+                    if (instance.CooldownRemaining <= 0f)
+                    {
+                        ability.Activate(this);
+                    }
                 }
             }
         }
