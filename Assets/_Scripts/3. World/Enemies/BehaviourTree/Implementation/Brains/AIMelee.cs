@@ -8,9 +8,16 @@ namespace World
         [Header("Melee Config")]
         [SerializeField] private HitEffect _hitEffect;
         #endregion
+        private bool _wasInAttackRange;
+        private bool IsInAttackRange() => IsInStableDistance(_player, _enemyStats.AttackRange, _enemyStats.ExitAttackRange, ref _wasInAttackRange);
         protected override void Awake()
         {
             base.Awake();
+        }
+        public override void ResetComponent()
+        {
+            base.ResetComponent();
+            _wasInAttackRange = false;
         }
         protected override BehaviorTree BuildTree() 
         {
@@ -19,7 +26,7 @@ namespace World
 
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_player))));
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsInAttackRange)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent,() => EffectiveAttackSpeed, "MeleePHAnim")));
             //attackSequence.AddChild(new LeafNode("wait", new Wait(_enemyStats.AttackSpeed)));
 

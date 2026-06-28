@@ -58,7 +58,6 @@ namespace World
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
         }
-        
         private void InitSystems()
         {
             foreach (var component in _components)
@@ -115,12 +114,10 @@ namespace World
             _rb.angularVelocity = Vector3.zero;
             IsBeingHealed = false;
         }
-
         public void BindToNavMesh()
         {
             StartCoroutine(WaitForNavMeshAndBindRoutine());
         }
-        
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
             yield return new WaitForEndOfFrame();
@@ -145,7 +142,6 @@ namespace World
                 CustomUpdateEnemyManager.Instance.Register(this);
             }
         }
-        
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);

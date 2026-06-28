@@ -27,7 +27,6 @@ namespace World
         [SerializeField] protected List<Transform> _waypoints;
         protected BlackboardKey hasSeenPlayerKey;
         protected IDebuffReadable _debuffs;
-        protected bool _wasInRange;
 
         [Header("Stats")]
         protected EnemyStats _enemyStats;
@@ -85,23 +84,21 @@ namespace World
             }
             _waypoints.Add(_player);
         }
-        
         public void InitComponent(EnemyStats stats, Blackboard bb)
         {
             _blackboard = bb;
             _enemyStats = stats;
-            _agent.stoppingDistance = _enemyStats.AttackRange - 1f;
+            //_agent.stoppingDistance = _enemyStats.AttackRange - 1f;
             _los.Init(transform, _enemyStats.ViewDistance, _enemyStats.ObsMask);
             
             hasSeenPlayerKey = _blackboard.GetOrRegisterKey("hasSeenPlayer"); 
             
             _tree = BuildTree();
         }
-        public void ResetComponent()
+        public virtual void ResetComponent()
         {
             _debuffs = null;
             _tree?.Reset();
-            _wasInRange = false;
             if (_animator != null)
             {
                 _animator.Rebind();
@@ -134,7 +131,7 @@ namespace World
             _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
-        protected virtual bool IsInStableDistance(Transform target)
+        protected virtual bool IsInStableDistance(Transform target, float enterRange, float exitRange, ref bool wasInRange)
         {
             if (target == null)
             {
@@ -143,12 +140,9 @@ namespace World
                 else return false;
             }
             float distance = Vector3.Distance(transform.position, target.position);
-            bool result;
-            if (_wasInRange)
-                result = distance <= _enemyStats.ExitAttackRange;
-            else
-                result = distance <= _enemyStats.AttackRange;
-            _wasInRange = result;
+
+            bool result = wasInRange? distance <= exitRange : distance <= enterRange;
+            wasInRange = result;
             return result;
         } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
         
@@ -160,14 +154,10 @@ namespace World
         private void OnDrawGizmosSelected()
         {
             //attack Range
-            Color Color1 = Color.red;
-            Color1.a = 0.5f;
-            Gizmos.color = Color1;
+            Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
 
-            Color Color2 = Color.blue;
-            Color2.a = 0.5f;
-            Gizmos.color = Color2;
+            Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.ViewDistance);
         }
         #endregion

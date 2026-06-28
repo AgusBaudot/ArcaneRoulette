@@ -24,10 +24,10 @@ namespace World
                 return NodeState.Failure;
 
             _agent.speed = _getChaseSpeed();
-            Vector3 offset = (_entity.position - _target.position).normalized;
-            Vector3 targetPos = _target.position + offset;
 
             _agent.SetDestination(_target.position);
+            float realDistance = Vector3.Distance(_entity.position, _target.position);
+            Debug.Log($"[Chase] remainingDistance: {_agent.remainingDistance:F2}, stoppingDistance: {_agent.stoppingDistance:F2}, realDistance: {realDistance:F2}");
 
             if (_agent.pathPending)
                 return NodeState.Running;

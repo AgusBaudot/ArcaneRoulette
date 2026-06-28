@@ -9,18 +9,32 @@ namespace World
         [SerializeField] private EnemyProjectile projectilePrefab;
         [SerializeField] private float _projectileSpeed;
         #endregion
+        private bool _wasTooClose;
+        private bool _wasInAttackRange;
+        private bool IsTooClose() => IsInStableDistance(_player, _enemyStats.DangerRange, _enemyStats.ExitDangerRange, ref _wasTooClose);
+        private bool IsInAttackRange() => IsInStableDistance(_player, _enemyStats.AttackRange, _enemyStats.ExitAttackRange, ref _wasInAttackRange);
         protected override void Awake()
         {
             base.Awake();
+        }
+        public override void ResetComponent()
+        {
+            base.ResetComponent();
+            _wasTooClose = false;
+            _wasInAttackRange = false;
         }
         protected override BehaviorTree BuildTree()
         {
             BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
             PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
+            SequenceNode Flee = new SequenceNode("Flee",3);
+            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(IsTooClose)));
+            Flee.AddChild(new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed)));
+
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_player))));
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsInAttackRange)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent ,() => EffectiveAttackSpeed, "PlaceHolderAnimation")));
 
             // --- Chase ---
@@ -32,9 +46,11 @@ namespace World
             LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
             // --- Estructura ---
+            root.AddChild(Flee);
             root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
+
             tree.AddChild(root);
             return tree;
         }
@@ -47,6 +63,15 @@ namespace World
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
             proj.Init(dir, _projectileSpeed, (int)EffectiveAttackDamage, Foundation.ElementType.Neutral);
+        }
+
+        public void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.DangerRange);
+
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.ExitDangerRange);
         }
     }
 }

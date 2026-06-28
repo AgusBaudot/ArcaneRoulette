@@ -13,10 +13,21 @@ namespace World
         #endregion
         private bool _hasHealedOnce = false;
         private IAlly _ally;
+        private bool _wasNearPlayer;
+        private bool _wasNearAlly;
+        private bool IsTooClose() => IsInStableDistance(_player, _enemyStats.DangerRange, _enemyStats.ExitDangerRange, ref _wasNearPlayer);
+        private bool IsAllyNear() => IsInStableDistance(_ally?.Transform, _enemyStats.AttackRange, _enemyStats.ExitAttackRange, ref _wasNearAlly);
         protected override void Awake()
         {
             _knockback = GetComponent<KnockbackHandler>();
             base.Awake();
+        }
+        public override void ResetComponent()
+        {
+            base.ResetComponent();
+            ClearAlly();
+            _wasNearPlayer = false;
+            _wasNearAlly = false;
         }
         public bool SearchInjuredAlly()
         {
@@ -88,14 +99,16 @@ namespace World
         {
             BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
             SequenceNode root = new SequenceNode("Root");
+
             // ---- Flee ----
             SequenceNode Flee = new SequenceNode("Flee");
-            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(() => IsInStableDistance(_player))));
-            //Flee.AddChild(new LeafNode("Flee", new Flee))
+            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(IsTooClose)));
+            Flee.AddChild(new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed)));
+
             // ---- Heal ally ----
             SequenceNode HealSequence = new SequenceNode("Heal");
             HealSequence.AddChild(new LeafNode("SearchInjuredAlly", new ConditionNode(() => SearchInjuredAlly())));
-            HealSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_ally.Transform))));
+            HealSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsAllyNear)));
             LeafNode HealAction = new LeafNode("Heal", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "HealerPHanim"));
             CooldownDecorator attackCooldown = new CooldownDecorator(HealAction, () => EffectiveAttackSpeed);
             HealSequence.AddChild(attackCooldown);
@@ -104,11 +117,11 @@ namespace World
             LeafNode Move = new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed));
 
             SelectorNode behavior = new SelectorNode("Behavior");
+            behavior.AddChild(Flee);
             behavior.AddChild(HealSequence);
             behavior.AddChild(Move);
             behavior.AddChild(new LeafNode("Wait", new Wait(2f)));
 
-            root.AddChild(new LeafNode("NotKnockedBack", new ConditionNode(() => !_knockback.IsKnockedBack)));
             root.AddChild(behavior);
             tree.AddChild(root);
             return tree;
@@ -128,11 +141,6 @@ namespace World
             healingArea.Init(_enemyStats.AttackRadius, finalHeal, _enemyStats.HitLayer, _spellLifetime, _spellPulseFrequency);
         }
         private Vector3 GetFlatPos(Vector3 pos) => new Vector3(pos.x, 0f, pos.z);
-        public new void ResetComponent() // If the enemy no longer freezes, that is the problem.
-        {
-            base.ResetComponent();
-            ClearAlly();
-        }
         public void OnDrawGizmos()
         {
             if(_ally != null) 
@@ -140,6 +148,12 @@ namespace World
             Gizmos.color = Color.green;
             Gizmos.DrawLine(transform.position, _ally.Transform.position);
             }
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.DangerRange);
+
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.ExitDangerRange);
         }
     }
 

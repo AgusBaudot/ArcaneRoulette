@@ -8,6 +8,13 @@ namespace World
         [Header("Bruto Config")]
         [SerializeField] private ExplosionArea _explosionAreaPrefab;
         #endregion
+        private bool _wasInAttackRange;
+        private bool IsInAttackRange() => IsInStableDistance(_player, _enemyStats.AttackRange, _enemyStats.ExitAttackRange, ref _wasInAttackRange);
+        public override void ResetComponent()
+        {
+            base.ResetComponent();
+            _wasInAttackRange = false;
+        }
         protected override void Awake()
         {
             base.Awake();
@@ -19,7 +26,7 @@ namespace World
 
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_player))));
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsInAttackRange)));
             attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "BrutoPHAnim")));
 
             // --- Chase ---

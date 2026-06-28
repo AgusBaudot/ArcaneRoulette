@@ -23,10 +23,22 @@ namespace World
         }
         public NodeState Process()
         {
-            if(_target == null)
+            if (_target == null)
                 return NodeState.Failure;
 
-            return NodeState.Failure; // progresss
+            _agent.speed = _getChaseSpeed();
+
+            Vector3 fleeDirection = (_entity.position - _target.position).normalized;
+            Vector3 targetPos = _entity.position + fleeDirection * 8f;
+            _agent.SetDestination(targetPos);
+
+            if (_agent.pathPending)
+                return NodeState.Running;
+
+            if (_agent.remainingDistance <= _agent.stoppingDistance)
+                return NodeState.Success;
+
+            return NodeState.Running;
         }
         public void Reset()
         {
