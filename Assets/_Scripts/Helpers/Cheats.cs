@@ -2,6 +2,7 @@ using Core;
 using Foundation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Core;
 
 public class Cheats : MonoBehaviour, IUpdatable
 {
