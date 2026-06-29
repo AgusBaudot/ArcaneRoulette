@@ -13,21 +13,51 @@ MonoBehaviour:
   m_Name: CombatSettings
   m_EditorClassIdentifier: 
   BaseContactDamage: 2
+  _enemyProjectileImpact: {fileID: 4573713469644316486, guid: 8e3ab949958b1f64ea20e27f38ce6ad3,
+    type: 3}
+  _playerProjectileImpacts:
+  - Element: 0
+    Prefab: {fileID: -3344685567840347119, guid: 72b937d7b6f08894690fe24db2bb47aa,
+      type: 3}
+  - Element: 4
+    Prefab: {fileID: -5767482754854719070, guid: 441710860e173b1468fb3fae351c2687,
+      type: 3}
+  - Element: 3
+    Prefab: {fileID: 3093728826105189947, guid: 27b2ece187e3018478aefdd1971f0835,
+      type: 3}
+  - Element: 2
+    Prefab: {fileID: 4357956961358946402, guid: b93663b433b4e61408eb2e1570788831,
+      type: 3}
+  - Element: 1
+    Prefab: {fileID: 8772230220583706737, guid: abf74cc833bf76b4eb9e6ea5c11c23fd,
+      type: 3}
   PlayerDamage:
     HitStop: 0.2
     CameraShake: 0.8
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
   BigDMG:
     HitStop: 0.05
     CameraShake: 0.8
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
   NormalDMG:
     HitStop: 0.03
     CameraShake: 0.4
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
   SmallDMG:
     HitStop: 0
     CameraShake: 0.3
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
   NoFeedback:
     HitStop: 0
     CameraShake: 0
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
   BombExplosion:
     HitStop: 0.1
     CameraShake: 1.5
+    ImpactSound: {fileID: 0}
+    ImpactPosition: {x: 0, y: 0, z: 0}
