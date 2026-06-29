@@ -18,5 +18,10 @@ public class Cheats : MonoBehaviour, IUpdatable
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            GameStateManager.RunState.AddCurrency(5);
+        }
     }
 }
