@@ -24,6 +24,7 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     public event Action OnSlot2Canceled;
     public event Action OnCraftingMenuPressed;
     public event Action OnPausePressed;
+    public event Action OnInteractPressed;
 
     #endregion
     
@@ -122,6 +123,12 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     {
         if (context.phase == InputActionPhase.Performed)
             OnPausePressed?.Invoke();
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            OnInteractPressed?.Invoke();
     }
     #endregion
     
