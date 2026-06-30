@@ -10,13 +10,15 @@ namespace World
         readonly Transform _entity;
         readonly NavMeshAgent _agent;
         readonly Func<float> _getChaseSpeed;
+        private readonly float _attackRange;
 
-        public Chase(Transform target, Transform entity ,NavMeshAgent agent, Func<float> getChaseSpeed) 
+        public Chase(Transform target, Transform entity ,NavMeshAgent agent, Func<float> getChaseSpeed, float attackRange) 
         {
             _target = target;
             _entity = entity;
             _agent = agent;
             _getChaseSpeed = getChaseSpeed;
+            _attackRange = attackRange;
         }
         public NodeState Process()
         {  
@@ -24,17 +26,14 @@ namespace World
                 return NodeState.Failure;
 
             _agent.speed = _getChaseSpeed();
+            _agent.stoppingDistance = _attackRange - 0.5f;
 
             _agent.SetDestination(_target.position);
             float realDistance = Vector3.Distance(_entity.position, _target.position);
-            Debug.Log($"[Chase] remainingDistance: {_agent.remainingDistance:F2}, stoppingDistance: {_agent.stoppingDistance:F2}, realDistance: {realDistance:F2}");
 
-            if (_agent.pathPending)
-                return NodeState.Running;
-
-            if (_agent.remainingDistance <= _agent.stoppingDistance)
+            if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
             {
-                return NodeState.Success; 
+                return NodeState.Success;
             }
 
             return NodeState.Running;

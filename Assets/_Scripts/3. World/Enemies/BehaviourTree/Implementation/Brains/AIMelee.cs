@@ -33,7 +33,7 @@ namespace World
             // --- Chase ---
             SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed, _enemyStats.AttackRange)));
 
             // --- Patrol ---
             LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);

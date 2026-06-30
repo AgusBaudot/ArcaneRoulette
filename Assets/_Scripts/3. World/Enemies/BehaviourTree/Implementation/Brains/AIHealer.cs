@@ -98,31 +98,33 @@ namespace World
         protected override BehaviorTree BuildTree()
         {
             BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
-            SequenceNode root = new SequenceNode("Root");
+
+            PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // ---- Flee ----
-            SequenceNode Flee = new SequenceNode("Flee");
-            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(IsTooClose)));
-            Flee.AddChild(new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed)));
+            LeafNode Flee = new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed, IsTooClose), 3);
 
-            // ---- Heal ally ----
-            SequenceNode HealSequence = new SequenceNode("Heal");
+            // ---- Heal Ally Sequence ----
+            SequenceNode HealSequence = new SequenceNode("Heal", 2);
             HealSequence.AddChild(new LeafNode("SearchInjuredAlly", new ConditionNode(() => SearchInjuredAlly())));
             HealSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsAllyNear)));
+
             LeafNode HealAction = new LeafNode("Heal", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "HealerPHanim"));
             CooldownDecorator attackCooldown = new CooldownDecorator(HealAction, () => EffectiveAttackSpeed);
             HealSequence.AddChild(attackCooldown);
 
             // ---- Follow Ally ----
-            LeafNode Move = new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed));
+            LeafNode Move = new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed), 1);
 
-            SelectorNode behavior = new SelectorNode("Behavior");
-            behavior.AddChild(Flee);
-            behavior.AddChild(HealSequence);
-            behavior.AddChild(Move);
-            behavior.AddChild(new LeafNode("Wait", new Wait(2f)));
+            // ---- Wait / Idle ----
+            LeafNode waitNode = new LeafNode("Wait", new Wait(2f), 0);
 
-            root.AddChild(behavior);
+            // --- Structure ----
+            root.AddChild(Flee);
+            root.AddChild(HealSequence);
+            root.AddChild(Move);
+            root.AddChild(waitNode);
+
             tree.AddChild(root);
             return tree;
         }

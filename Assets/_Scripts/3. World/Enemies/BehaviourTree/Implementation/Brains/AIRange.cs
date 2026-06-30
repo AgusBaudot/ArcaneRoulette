@@ -28,25 +28,26 @@ namespace World
             BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
             PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
-            SequenceNode Flee = new SequenceNode("Flee",3);
-            Flee.AddChild(new LeafNode("IsPlayerNear", new ConditionNode(IsTooClose)));
-            Flee.AddChild(new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed)));
+
+            // ---- Flee ----
+            SequenceNode fleeAndAttackSequence = new SequenceNode("FleeAndAttack", 3);
+            fleeAndAttackSequence.AddChild(new LeafNode("IsPlayerTooClose", new ConditionNode(IsTooClose)));
+            fleeAndAttackSequence.AddChild(new LeafNode("FleeAction", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed, IsTooClose)));
 
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);
             attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(IsInAttackRange)));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent ,() => EffectiveAttackSpeed, "PlaceHolderAnimation")));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "PlaceHolderAnimation")));
 
             // --- Chase ---
             SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed, _enemyStats.AttackRange)));
 
             // --- Patrol ---
             LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
-            // --- Estructura ---
-            root.AddChild(Flee);
+            root.AddChild(fleeAndAttackSequence);
             root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
@@ -67,7 +68,7 @@ namespace World
 
         public void OnDrawGizmos()
         {
-            Gizmos.color = Color.red;
+            Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, _enemyStats.DangerRange);
 
             Gizmos.color = Color.white;

@@ -35,12 +35,13 @@ namespace World
             {
                 _animator.SetTrigger("Attack");
                 _isAttacking = true;
-                _agent.ResetPath();
+                //_agent.ResetPath();
                 return NodeState.Running;
             }
 
             if (IsAnimationPlaying())
                 return NodeState.Running;
+
             _isAttacking = false;
             _nextAttackTime = Time.time + _getCooldown();
 
