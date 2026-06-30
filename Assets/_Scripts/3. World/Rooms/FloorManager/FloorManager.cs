@@ -31,10 +31,10 @@ namespace World
 
         private void Awake()
         {
-            _mapGenerator = new MapGenerator();
+            instance = this;
+            _mapGenerator = new MapGenerator(_generatorData);
             _mapSpawner = new MapSpawner();
             _encounterGenerator = GetComponent<EncounterGenerator>();
-            _mapGenerator.Init(_generatorData);
             _mapSpawner.Init(_spawnerData);
 
             if (_player == null)
@@ -44,7 +44,6 @@ namespace World
         }
         private void Start()
         {
-            instance = this;
             StartCoroutine(GenerateFloor());
         }
         private IEnumerator GenerateFloor()
@@ -73,13 +72,7 @@ namespace World
                 room.gameObject.SetActive(true);
                 SetupRoomEncounter(room);
                 room.EnableRoom();
-
-                // Reemplazo
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
-                _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca
+                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
             }
         }
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)

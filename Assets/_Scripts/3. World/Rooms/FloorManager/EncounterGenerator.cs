@@ -22,7 +22,7 @@ namespace World
 
         public RoomEncounterData Generate(RoomType roomType, int roomsVisited)
         {
-            if (roomType != RoomType.Regular && roomType != RoomType.Boss) // saber si es una room peleable no le corresponde a esto
+            if (roomType != RoomType.Combat && roomType != RoomType.Boss) // saber si es una room peleable no le corresponde a esto
                 return new RoomEncounterData { Waves = new EnemySpawnData[0] };
 
             int waveCount = Random.Range(_minWaves, _maxWaves);

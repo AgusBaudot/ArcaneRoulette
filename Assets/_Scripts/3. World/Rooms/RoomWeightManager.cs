@@ -7,7 +7,6 @@ namespace World
     public class RoomWeightManager
     {
         private List<WeightedRoom> _roomPool;
-
         private readonly int _penaltyWeight;
         private readonly int _bonusWeight;
         private Random _rng;
@@ -23,7 +22,7 @@ namespace World
             {
                 new WeightedRoom { Type = RoomType.Shop, CurrentWeight = startingWeight },
                 new WeightedRoom { Type = RoomType.Resting, CurrentWeight = startingWeight },
-                new WeightedRoom { Type = RoomType.Artifact, CurrentWeight = startingWeight }
+                new WeightedRoom { Type = RoomType.Artifact, CurrentWeight = startingWeight },
             };
         }
 
