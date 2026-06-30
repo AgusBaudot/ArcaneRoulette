@@ -1,5 +1,4 @@
 using Foundation;
-using Unity.AI.Navigation;
 using UnityEngine;
 
 namespace World
@@ -52,6 +51,8 @@ namespace World
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _roomConnections.OnDoorActivated += HandleDoorTransition;
+            
+            EventBus.Publish(new PlayerEnteredRoomEvent(_index));
 
             if (!_cleared)
             {
@@ -93,11 +94,11 @@ namespace World
             _roomConnections.RoomCleared();
             if (_roomType == RoomType.Boss)
             {
-                EventBus.Publish(new EndFloorClearEvent{ roomId = _index});
+                EventBus.Publish(new EndFloorClearEvent{ Index = _index});
             }
             else
             {
-                EventBus.Publish(new RoomClearEvent{roomId = _index});
+                EventBus.Publish(new RoomClearEvent{Index = _index});
             }
         }
         private void HandleDoorTransition(EdgeDirection direction)

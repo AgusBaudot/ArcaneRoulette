@@ -2,11 +2,11 @@ namespace World
 {
     public struct RoomClearEvent
     {
-        public int roomId;
+        public int Index;
         // public bool IsBossRoom;
-        public RoomClearEvent(int roomId)
+        public RoomClearEvent(int index)
         {
-            this.roomId = roomId;
+            Index = index;
         }
     }
 }

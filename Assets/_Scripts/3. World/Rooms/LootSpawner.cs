@@ -22,10 +22,10 @@ namespace World
 
         private void OnRoomCleared(RoomClearEvent evt)
         {
-            if (evt.roomId != _roomId)
+            if (evt.Index != _roomId)
                 return;
 
-            Debug.Log("RoomSpawner: room " + evt.roomId + " cleared.");
+            Debug.Log("RoomSpawner: room " + evt.Index + " cleared.");
             HandleRoomCleared();
         }
 

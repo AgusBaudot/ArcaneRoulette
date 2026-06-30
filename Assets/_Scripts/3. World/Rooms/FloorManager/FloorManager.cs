@@ -1,7 +1,7 @@
-using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using Core;
+using Foundation;
 using UnityEngine;
 
 namespace World
@@ -63,8 +63,49 @@ namespace World
             LobbyIndex = _mapGenerator.LobbyRoomIndex;
 
             yield return null;
+
+            BuildAndSendMapStateToFoundation();
+            
             StartRun(EdgeDirection.Up);
         }
+
+        private void BuildAndSendMapStateToFoundation()
+        {
+            Dictionary<int, VolatileRunState.RoomMapData> layout = new();
+            int[] plan = _mapGenerator.getFloorPlan;
+
+            foreach (var kvp in _mapSpawner.RoomLookup)
+            {
+                int idx = kvp.Key;
+                RoomManager room = kvp.Value;
+
+                List<int> neighbors = new();
+        
+                int upIndex = idx - DungeonGrid.GRID_WIDTH;
+                if (upIndex >= 0 && plan[upIndex] != 0) neighbors.Add(upIndex);
+        
+                int downIndex = idx + DungeonGrid.GRID_WIDTH;
+                if (downIndex < plan.Length && plan[downIndex] != 0) neighbors.Add(downIndex);
+        
+                int x = DungeonGrid.GetX(idx);
+                if (x > 0 && plan[idx - 1] != 0) neighbors.Add(idx - 1);
+                if (x < DungeonGrid.GRID_WIDTH - 1 && plan[idx + 1] != 0) neighbors.Add(idx + 1);
+
+                layout[idx] = new VolatileRunState.RoomMapData
+                {
+                    Index = idx,
+                    X = x,
+                    Y = DungeonGrid.GetY(idx),
+                    Type = room.Type,
+                    IsCleared = room.Cleared,
+                    IsDiscovered = false,
+                    NeighborIndices = neighbors.ToArray()
+                };
+            }
+
+            GameStateManager.RunState.InitializeFloorMap(layout);
+        }
+        
         private void StartRun(EdgeDirection dir)
         {
             if (_mapSpawner.RoomLookup.TryGetValue(_mapGenerator.LobbyRoomIndex, out RoomManager room))
