@@ -237,12 +237,8 @@ namespace Core
             Vector3 targetVelocity = new Vector3(_input.x * _playerStats.BaseSpeed, 0f, _input.y * (_playerStats.BaseSpeed * _playerStats.VerticalSpeedMultiplier));
 
             bool isMoving = _input.sqrMagnitude > 0.01f;
-
-            float rate = isMoving
-                ? _playerStats.Acceleration
-                : _playerStats.Deceleration;
-
-            _velocity = Vector3.MoveTowards(_velocity, targetVelocity, rate * Time.deltaTime);
+            
+            _velocity = targetVelocity;
             _rb.velocity = _velocity;
 
             if (isMoving)
