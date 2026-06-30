@@ -34,6 +34,8 @@ namespace UI
             if (_icon != null && rune != null)
             {
                 _icon.sprite = rune.Icon;
+                _icon.preserveAspect = true;
+                _icon.rectTransform.localScale = Vector3.one * rune.UIIconScale;
             }
 
             InternalSetup(isSold, cost, index, parent);

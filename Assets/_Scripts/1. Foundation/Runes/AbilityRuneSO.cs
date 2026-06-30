@@ -8,6 +8,8 @@ namespace Foundation
     /// </summary>
     public abstract class AbilityRuneSO : RuneDefinitionSO
     {
+        public override float UIIconScale => 1.25f;
+        
         public abstract AbilityType Type { get; }
         public abstract bool IsHoldAbility { get; }
         public abstract float CooldownDuration { get; } //0f = no cooldown.
