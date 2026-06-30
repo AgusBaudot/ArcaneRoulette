@@ -66,6 +66,11 @@ namespace World
                 {
                     RoomClearedEvent();
                 }
+                else if (_roomType == RoomType.Resting)
+                {
+                    //Do not set cleared here, so the map stays green.
+                    _roomConnections.RoomCleared();
+                }
                 else
                 {
                     _cleared = true;
@@ -91,19 +96,39 @@ namespace World
             _entityController.DisableAllHazards();
             _cleared = true;
             _state = RoomState.Cleared;
-            _roomConnections.RoomCleared();
+    
+            if (_roomType != RoomType.Resting)
+            {
+                _roomConnections.RoomCleared();
+            }
+    
+            // --- NEW ROUTING LOGIC ---
             if (_roomType == RoomType.Boss)
             {
-                EventBus.Publish(new EndFloorClearEvent{ Index = _index});
+                EventBus.Publish(new EndFloorClearEvent(_index));
+            }
+            else if (_roomType == RoomType.Resting)
+            {
+                // Tell the UI/State the room is cleared, but DO NOT drop loot!
+                EventBus.Publish(new PassiveRoomClearEvent(_index));
             }
             else
             {
-                EventBus.Publish(new RoomClearEvent{Index = _index});
+                // Regular Combat Rooms
+                EventBus.Publish(new RoomClearEvent(_index));
             }
         }
         private void HandleDoorTransition(EdgeDirection direction)
         {
             FloorManager.instance.TeleportPlayer(direction, Index);
+        }
+
+        public void MarkAsCleared()
+        {
+            if (_cleared)
+                return;
+            
+            RoomClearedEvent();
         }
     }
 }

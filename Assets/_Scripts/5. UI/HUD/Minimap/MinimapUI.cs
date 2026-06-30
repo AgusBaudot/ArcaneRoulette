@@ -96,7 +96,10 @@ namespace UI
             if (_spawnedBlocks.TryGetValue(index, out var block))
             {
                 var data = GameStateManager.RunState.FloorMap[index];
-                block.UpdateVisuals(data, GetStyleForRoom(data));
+                RoomStyleConfig style = GetStyleForRoom(data);
+                
+                block.UpdateVisuals(data, style);
+                block.SetFocus(index == GameStateManager.RunState.CurrentRoomIndex);
             }
         }
 

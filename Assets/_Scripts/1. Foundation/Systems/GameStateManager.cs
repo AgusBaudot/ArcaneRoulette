@@ -30,6 +30,8 @@ namespace Foundation
             EventBus.Subscribe<PlayerEnteredRoomEvent>(e => RunState.UpdatePlayerRoom(e.Index));
             EventBus.Subscribe<RoomClearEvent>(e => RunState.MarkRoomCleared(e.Index));
             EventBus.Subscribe<EndFloorClearEvent>(e => RunState.MarkRoomCleared(e.Index));
+            EventBus.Subscribe<PassiveRoomClearEvent>(e => RunState.MarkRoomCleared(e.Index));
+            
             OnRunStateInitialized?.Invoke(RunState);
         }
     }
