@@ -102,7 +102,7 @@ namespace World
             PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // ---- Flee ----
-            LeafNode Flee = new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed, IsTooClose), 3);
+            LeafNode Flee = new LeafNode("Flee", new Flee(_player, transform, _agent, () => EffectiveFleeSpeed, IsTooClose), 3);
 
             // ---- Heal Ally Sequence ----
             SequenceNode HealSequence = new SequenceNode("Heal", 2);

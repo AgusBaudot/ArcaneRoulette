@@ -32,7 +32,7 @@ namespace World
             // ---- Flee ----
             SequenceNode fleeAndAttackSequence = new SequenceNode("FleeAndAttack", 3);
             fleeAndAttackSequence.AddChild(new LeafNode("IsPlayerTooClose", new ConditionNode(IsTooClose)));
-            fleeAndAttackSequence.AddChild(new LeafNode("FleeAction", new Flee(_player, transform, _agent, () => EffectiveChaseSpeed, IsTooClose)));
+            fleeAndAttackSequence.AddChild(new LeafNode("FleeAction", new Flee(_player, transform, _agent, () => EffectiveFleeSpeed, IsTooClose)));
 
             // --- Attack Sequence ---
             SequenceNode attackSequence = new SequenceNode("Attack", 2);

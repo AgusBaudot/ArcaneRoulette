@@ -65,6 +65,17 @@ namespace World
                 return _enemyStats.ChaseSpeed;
             }
         }
+        protected float EffectiveFleeSpeed 
+        {
+            get 
+            {
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
+                {
+                    return _enemyStats.FleeSpeed * Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+                }
+                return _enemyStats.FleeSpeed;
+            }
+        }
 
         // ---- Init Brain ----
         protected virtual void Awake()
