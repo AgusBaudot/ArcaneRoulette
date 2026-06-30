@@ -44,6 +44,7 @@ namespace Core
         private readonly SpellInstance[] _spellSlots = new SpellInstance[3];
 
         private readonly List<int> _heldHoldSlots = new(); //Insertion order = press order
+        private readonly HashSet<int> _heldAutoSlots = new();
 
         private Rigidbody _rb;
         public Rigidbody Rb => _rb;
@@ -189,7 +190,12 @@ namespace Core
             }
             else if (spell is IAbility ability)
             {
-                ability.Activate(this);
+                _heldAutoSlots.Add(slotIndex);
+                
+                if (_spellSlots[slotIndex] is SpellInstance instance && instance.CooldownRemaining <= 0f)
+                {
+                    ability.Activate(this);
+                }
             }
         }
 
@@ -215,6 +221,10 @@ namespace Core
                         resumeHold.StartHold(this);
                 }
             }
+            else if (spell is IAbility)
+            {
+                _heldAutoSlots.Remove(slotIndex);
+            }
         }
         
         #endregion
@@ -227,12 +237,8 @@ namespace Core
             Vector3 targetVelocity = new Vector3(_input.x * _playerStats.BaseSpeed, 0f, _input.y * (_playerStats.BaseSpeed * _playerStats.VerticalSpeedMultiplier));
 
             bool isMoving = _input.sqrMagnitude > 0.01f;
-
-            float rate = isMoving
-                ? _playerStats.Acceleration
-                : _playerStats.Deceleration;
-
-            _velocity = Vector3.MoveTowards(_velocity, targetVelocity, rate * Time.deltaTime);
+            
+            _velocity = targetVelocity;
             _rb.velocity = _velocity;
 
             if (isMoving)
@@ -312,6 +318,17 @@ namespace Core
                 if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
                 {
                     hold.HoldTick(Time.deltaTime, this);
+                }
+            }
+            
+            foreach (var slotIndex in _heldAutoSlots)
+            {
+                if (_spellSlots[slotIndex] is IAbility ability && _spellSlots[slotIndex] is SpellInstance instance)
+                {
+                    if (instance.CooldownRemaining <= 0f)
+                    {
+                        ability.Activate(this);
+                    }
                 }
             }
         }

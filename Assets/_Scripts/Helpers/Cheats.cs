@@ -2,6 +2,7 @@ using Core;
 using Foundation;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Core;
 
 public class Cheats : MonoBehaviour, IUpdatable
 {
@@ -16,6 +17,11 @@ public class Cheats : MonoBehaviour, IUpdatable
         if (Input.GetKeyDown(KeyCode.R))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            GameStateManager.RunState.AddCurrency(5);
         }
     }
 }

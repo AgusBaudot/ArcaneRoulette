@@ -86,11 +86,17 @@ namespace Core
         {
             if (other.gameObject.layer == _shieldLayer)
                 return;
-            
+
             if (other.TryGetComponent<IDamageable>(out _))
+            {
+                SpawnImpactVFX();
                 OnHitDamageable(other);
+            }
             else
+            {
+                SpawnImpactVFX();
                 OnHitWall(other);
+            }
         }
 
         public virtual void OnSpawn()
@@ -110,6 +116,16 @@ namespace Core
                 Rb.velocity = Vector3.zero;
                 Rb.angularVelocity = Vector3.zero;
                 Rb.interpolation = RigidbodyInterpolation.None;
+            }
+        }
+
+        protected void SpawnImpactVFX()
+        {
+            PooledVFX impactPrefab = Helpers.Combat.GetImpactVFX(IsEnemy, SpellElement);
+
+            if (impactPrefab != null)
+            {
+                Helpers.ProjFactory.Spawn<PooledVFX>(impactPrefab, transform.position, transform.rotation);
             }
         }
     }
