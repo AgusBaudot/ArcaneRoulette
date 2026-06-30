@@ -7,24 +7,23 @@ namespace UI
 {
     public sealed class HUDHealthDisplay : MonoBehaviour
     {
-        [Header("UI References")] [SerializeField]
-        private Image _healthFillImage;
-
+        [Header("UI References")] 
+        [SerializeField] private Image _healthFillImage;
         [SerializeField] private Image _healthTrailImage;
         [SerializeField] private Image _heartsIcon;
 
-        [Header("Configuration")] [SerializeField]
-        private Sprite[] _heartSprites = new Sprite[4];
-
+        [Header("Configuration")] 
+        [SerializeField] private Sprite[] _heartSprites = new Sprite[4];
         [SerializeField] private float _mainLerpSpeed = 25f;
         [SerializeField] private float _trailLerpSpeed = 10f;
 
-        [Header("Juice Configuration")] [SerializeField]
-        private float _pulseScaleMultiplier = 1.3f;
-
+        [Header("Juice Configuration")] 
+        [SerializeField] private float _pulseScaleMultiplier = 1.3f;
         [SerializeField] private float _pulseDuration = 0.25f;
 
-        private const float MIN_VISUAL_THRESHOLD = 0.02f;
+        // Custom bounds for the new UI mask
+        private const float MIN_VISUAL_THRESHOLD = 0.14f;
+        private const float MAX_VISUAL_THRESHOLD = 0.72f;
 
         private VolatileRunState _activeRunState;
         private float _targetFillAmount;
@@ -76,16 +75,16 @@ namespace UI
                 }
             }
 
-            if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
-            {
-                _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
-                    Time.deltaTime * _trailLerpSpeed);
-
-                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
-                {
-                    _healthTrailImage.fillAmount = _targetFillAmount;
-                }
-            }
+            // if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
+            // {
+            //     _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
+            //         Time.deltaTime * _trailLerpSpeed);
+            //
+            //     if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
+            //     {
+            //         _healthTrailImage.fillAmount = _targetFillAmount;
+            //     }
+            // }
         }
 
         private void HandleRunStateInitialized(VolatileRunState newState)
@@ -102,7 +101,8 @@ namespace UI
                     _lastKnownHp = _activeRunState.CurrentHp;
 
                     float initialNormalized = Mathf.Clamp01(_activeRunState.CurrentHp / _activeRunState.MaxHp);
-                    _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, initialNormalized);
+                    
+                    _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, MAX_VISUAL_THRESHOLD, initialNormalized);
 
                     if (_healthFillImage != null) _healthFillImage.fillAmount = _targetFillAmount;
                     if (_healthTrailImage != null) _healthTrailImage.fillAmount = _targetFillAmount;
@@ -142,7 +142,7 @@ namespace UI
 
             if (_healthFillImage != null || _healthTrailImage != null)
             {
-                _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, 1f, normalizedHealth);
+                _targetFillAmount = Mathf.Lerp(MIN_VISUAL_THRESHOLD, MAX_VISUAL_THRESHOLD, normalizedHealth);
             }
 
             UpdateHeartSprite(normalizedHealth);
@@ -185,6 +185,7 @@ namespace UI
             _heartsIcon.enabled = true;
 
             int maxIndex = _heartSprites.Length - 1;
+            
             int spriteIndex = Mathf.FloorToInt(normalizedHealth * _heartSprites.Length);
 
             spriteIndex = Mathf.Clamp(spriteIndex, 0, maxIndex);
