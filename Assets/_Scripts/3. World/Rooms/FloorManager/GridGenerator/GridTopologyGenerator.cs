@@ -29,20 +29,22 @@ namespace World
         }
         public (TopologyResult result, bool success) ExecuteLayoutGeneration()
         {
+            int maxAllowedSurrounded = Mathf.Max(0, _data.MaxRooms - 3);
+    
+            // Use a local variable for the corrected target, avoiding overwrite the SO data permanently
+            int actualSurroundedTarget = Mathf.Min(_data.SurroundedRooms, maxAllowedSurrounded);
+            
             ClearData();
 
-            // start BFS from here
             VisitCell(StartIndex);
 
-            // Generate the grid with 1 and 0 and saving each index
-            RunBFS();
+            RunBFS(actualSurroundedTarget);
 
             int surroundedTarget = _data.SurroundedRooms;
             GenerateSurroundedRooms(surroundedTarget);
 
             ClassifyTopology();
 
-            //if the generation is not correct => restart
             if (_floorPlanCount < _data.MinRooms || _floorPlanCount > _data.MaxRooms)
                 return (null, false);
 
@@ -65,7 +67,7 @@ namespace World
             _surroundedRooms.Clear();
             _middleRooms.Clear();
         }
-        private void RunBFS()
+        private void RunBFS(int actualSurroundedTarget) 
         {
             while (_cellQueue.Count > 0)
             {
@@ -73,7 +75,7 @@ namespace World
                 int x = DungeonGrid.GetX(index);
                 int y = DungeonGrid.GetY(index);
 
-                int bfsTargetLimit = _data.MaxRooms - _data.SurroundedRooms;
+                int bfsTargetLimit = _data.MaxRooms - actualSurroundedTarget; 
                 bool created = false;
 
                 if (_floorPlanCount < bfsTargetLimit)
@@ -132,10 +134,8 @@ namespace World
             {
                 if (_floorPlan[index] == 0) continue;
 
-                // if room its an endRoom or surroundedRoom -> continue
                 if (endRoomsSet.Contains(index) || surroundedRoomsSet.Contains(index)) continue;
 
-                // otherwise its a middleRoom
                 _middleRooms.Add(index);
             }
         }

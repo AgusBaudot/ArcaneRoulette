@@ -27,7 +27,6 @@ namespace World
             foreach (RoomManager room in _roomLookup.Values)
             {
                 Object.Destroy(room.gameObject);
-                Object.Destroy(room.gameObject);
             }
             _roomLookup.Clear();
 
