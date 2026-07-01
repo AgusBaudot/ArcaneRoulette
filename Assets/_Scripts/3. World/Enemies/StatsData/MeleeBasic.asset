@@ -13,9 +13,18 @@ MonoBehaviour:
   m_Name: MeleeBasic
   m_EditorClassIdentifier: 
   MaxHp: 12
-  ElementType: 4
+  ElementType: 0
+  ViewDistance: 0
+  ObsMask:
+    serializedVersion: 2
+    m_Bits: 0
   ChaseSpeed: 8
   PatrolSpeed: 4
   AttackDamage: 2
   AttackRange: 2
-  AttackSpeed: 2
+  ExitAttackRange: 3
+  AttackRadius: 1.5
+  AttackSpeed: 1
+  HitLayer:
+    serializedVersion: 2
+    m_Bits: 256

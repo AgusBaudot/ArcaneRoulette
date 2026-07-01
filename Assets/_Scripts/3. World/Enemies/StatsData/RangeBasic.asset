@@ -13,9 +13,18 @@ MonoBehaviour:
   m_Name: RangeBasic
   m_EditorClassIdentifier: 
   MaxHp: 12
-  ElementType: 4
+  ElementType: 1
+  ViewDistance: 0
+  ObsMask:
+    serializedVersion: 2
+    m_Bits: 0
   ChaseSpeed: 6
   PatrolSpeed: 4
   AttackDamage: 2
   AttackRange: 12
-  AttackSpeed: 2
+  ExitAttackRange: 13
+  AttackRadius: 0
+  AttackSpeed: 4
+  HitLayer:
+    serializedVersion: 2
+    m_Bits: 256

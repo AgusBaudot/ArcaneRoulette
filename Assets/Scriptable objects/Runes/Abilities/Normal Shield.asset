@@ -21,12 +21,34 @@ MonoBehaviour:
     When the shield touches an enemy or their projectiles, an Impact is triggered.
 
 '
-  _shieldVisualPrefab: {fileID: 3647493217451500633, guid: 890723a485fcdc347bd77ca9ee3eae2e,
+  _defaultShieldPrefab: {fileID: 3647493217451500633, guid: 890723a485fcdc347bd77ca9ee3eae2e,
     type: 3}
+  _elementalShields:
+  - Element: 0
+    Reference: {fileID: 313531777951869430, guid: 0b8c1c2f1d0633c43a1de2f4ba4cd527,
+      type: 3}
+  - Element: 1
+    Reference: {fileID: 313531777951869430, guid: c362133633ca5034ba899d0eaba14fba,
+      type: 3}
+  - Element: 2
+    Reference: {fileID: 313531777951869430, guid: 9d7f73bbcbdb3244eb33c20e92fb5778,
+      type: 3}
+  - Element: 3
+    Reference: {fileID: 313531777951869430, guid: 4449b7812e54feb4c854ac49324e1b31,
+      type: 3}
+  - Element: 4
+    Reference: {fileID: 313531777951869430, guid: 53d25396fc350674cafde1bb4c9bb79a,
+      type: 3}
   _shockwavePrefab: {fileID: 4761967986793294931, guid: 5e67dd9b9851cdb49a66f80ef971aea0,
     type: 3}
   _abilityThreshold: 1.5
   _defaultCastSound: {fileID: 11400000, guid: ac1b93e37349c594cb20133607f60944, type: 2}
   _elementalSounds:
+  - Element: 4
+    CastSound: {fileID: 11400000, guid: 7bd8f66b3dea26f458850173ce7efd60, type: 2}
+  - Element: 1
+    CastSound: {fileID: 11400000, guid: 1855eede8f830914ab2a92b5ef3a550b, type: 2}
+  - Element: 0
+    CastSound: {fileID: 11400000, guid: 85168b01a51d7024cb1b657385336c47, type: 2}
   - Element: 2
     CastSound: {fileID: 11400000, guid: ac1b93e37349c594cb20133607f60944, type: 2}

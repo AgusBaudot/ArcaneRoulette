@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ddc0c97dc69e5540a557bbd990d6dd4, type: 3}
   m_Name: Floor_Generation
   m_EditorClassIdentifier: 
-  MinRooms: 7
+  MinRooms: 5
   MaxRooms: 7
-  MinRegularRooms: 4
-  MaxRegularRooms: 4
+  SurroundedRooms: 1
+  MinCombatRooms: 2
+  MaxCombatRooms: 4
   GuaranteeRestingRoom: 1
   GuaranteeShopRoom: 0
-  GuaranteeEventRoom: 0
   GuaranteeArtifactRoom: 0
+  GenerateBossRoom: 1

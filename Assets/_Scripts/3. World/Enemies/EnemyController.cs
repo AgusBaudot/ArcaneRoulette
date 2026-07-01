@@ -4,53 +4,61 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Foundation;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
-        #region Identity
+        #region Parameters
         public float interval { get; set; }
         public float timer { get; set; }
         public EnemyType Type { get; set; }
+        public IHealable Healable => _healable;
+        public bool IsBeingHealed { get; set; }
+        public Transform Transform => transform;
+        public Blackboard Blackboard => _blackboard;
         #endregion
 
         #region Components
         private Blackboard _blackboard;
-        public Blackboard Blackboard => _blackboard;
         private EnemyHealth _enemyHealth;
         private AIBrain _aiBrain;
+        private IHealable _healable;
+        private Rigidbody _rb;
+        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
         #endregion
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
-        private List<IEnemyComponent> _components = new List<IEnemyComponent>();
-
+        [Header("References")]
+        [SerializeField] private SpriteRenderer _elementalFeedback;
+        [SerializeField] private Sprite _fireElement;
+        [SerializeField] private Sprite _earthElement;
+        [SerializeField] private Sprite _waterElement;
+        [SerializeField] private Sprite _thunderElement;
+        
         public event Action<EnemyController> OnDeathEvent;
-
         private int _floorLayerMask;
+        private bool _isInitialized;
 
         public void Awake()
         {
             BlackboardController _bcontroller = GetComponent<BlackboardController>();
             _blackboard = _bcontroller.GetBlackboard();
-            
             _floorLayerMask = LayerMask.GetMask("Floor");
-
             _enemyHealth = GetComponent<EnemyHealth>();
+            _healable = GetComponent<IHealable>();
             _aiBrain = GetComponent<AIBrain>();
-
+            _rb = GetComponent<Rigidbody>();
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
         }
-        public void Start()
-        {
-            InitSystems();
-        }
+        
         private void InitSystems()
         {
             foreach (var component in _components)
@@ -68,75 +76,84 @@ namespace World
         public void OnDespawn()
         {
             _enemyHealth.OnDeath -= DeathEvent;
+            OnDeathEvent = null; 
+    
+            if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
+            {
+                _aiBrain.Agent.enabled = false; 
+            }
+
             gameObject.SetActive(false);
             CustomUpdateEnemyManager.Instance?.Unregister(this);
         }
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+    
+            if (!_isInitialized)
+            {
+                switch (_enemyStats.ElementType)
+                {
+                    case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
+                    case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
+                    case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
+                    case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+                }
+        
+                InitSystems();
+                _isInitialized = true;
+            }
+
             RestartSystems();
+    
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;
+    
+            BindToNavMesh(); 
+    
+            _rb.velocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            IsBeingHealed = false;
+        }
+
+        public void BindToNavMesh()
+        {
             StartCoroutine(WaitForNavMeshAndBindRoutine());
         }
+        
         private IEnumerator WaitForNavMeshAndBindRoutine()
         {
             yield return new WaitForEndOfFrame();
 
-            int maxAttempts = 10;
-            int attempts = 0;
-            bool boundSuccessfully = false;
+            Vector2 jitter = Random.insideUnitCircle * 0.3f;
+            Vector3 searchPos = transform.position + new Vector3(jitter.x, 0, jitter.y);
 
-            Vector2 jitter2D = Random.insideUnitCircle * 0.2f;
-            Vector3 initialPos = transform.position + new Vector3(jitter2D.x, 0, jitter2D.y);
-
-            while (attempts < maxAttempts && !boundSuccessfully)
+            if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 3.0f, NavMesh.AllAreas))
             {
-                Vector3 searchPos = initialPos;
-                
-                if (Physics.Raycast(initialPos + Vector3.up * 2f, Vector3.down, out RaycastHit rayHit, 10f, _floorLayerMask))
-                {
-                    searchPos = rayHit.point;
-                }
-                if (NavMesh.SamplePosition(searchPos, out NavMeshHit hit, 0.5f, NavMesh.AllAreas))
-                {
-                    transform.position = hit.position;
+                transform.position = hit.position;
+                _aiBrain.Agent.enabled = true;
+                _aiBrain.Agent.Warp(hit.position);
 
-                    _aiBrain.Agent.enabled = true;
-                    _aiBrain.Agent.Warp(hit.position);
-
-                    boundSuccessfully = true;
-                    CustomUpdateEnemyManager.Instance.Register(this);
-                }
-                else
-                {
-                    attempts++;
-                    yield return null;
-                }
+                // Successfully bound! Start the AI ticks.
+                CustomUpdateEnemyManager.Instance.Register(this);
             }
-
-            if (!boundSuccessfully)
+            else
             {
-                Debug.LogError(
-                    $"<color=red>FATAL ERROR:</color> {gameObject.name} could not find the NavMesh after {maxAttempts} frames. " +
-                    $"Position: {transform.position}. Ensure the Room's NavMeshSurface has completely finished building before spawning this enemy!");
+                Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to find NavMesh at {searchPos}. " +
+                               $"Check your NavMesh surface and ensure it covers the spawn colliders!");
+                               
+                CustomUpdateEnemyManager.Instance.Register(this);
             }
         }
+        
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);
-            OnDeathEvent = null;
         }
         public void Tick()
         {
             _aiBrain.Tick();
             _enemyHealth.Tick();
-        }
-
-        // ---- Corutina auxiliar ----
-        public bool HasDeathListeners()
-        {
-            return OnDeathEvent != null && OnDeathEvent.GetInvocationList().Length > 0;
         }
     }
 }

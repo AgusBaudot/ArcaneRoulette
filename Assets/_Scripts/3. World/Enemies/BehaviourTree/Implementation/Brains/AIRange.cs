@@ -1,74 +1,52 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace World 
 {
     public class AIRange : AIBrain
     {
-        [Header("Range Settings")]
-        [SerializeField] private float exitAttackRange; // it must always be greater than _attackRange
+        #region SerializeField
+        [Header("Range Prefab")]
         [SerializeField] private EnemyProjectile projectilePrefab;
         [SerializeField] private float _projectileSpeed;
-        
-        private bool _wasInRange;
+        #endregion
         protected override void Awake()
         {
             base.Awake();
         }
-        protected override BehaviourTree BuildTree()
+        protected override BehaviorTree BuildTree()
         {
-            var tree = new BehaviourTree(base._behaviourTreeName);
-            var root = new PrioritySelectorNode("Root");
+            BehaviorTree tree = new BehaviorTree(base._behaviourTreeName);
+            PrioritySelectorNode root = new PrioritySelectorNode("Root");
 
             // --- Attack Sequence ---
-            var attackSequence = new SequenceNode("Attack", 2);
-            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInAttackRangeStable())));
-            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _attackSpeed, "PlaceHolderAnimation")));
-            //attackSequence.AddChild(new LeafNode("wait", new Wait(_cooldown)));
+            SequenceNode attackSequence = new SequenceNode("Attack", 2);
+            attackSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_player))));
+            attackSequence.AddChild(new LeafNode("Attack", new Attack(_animator, _agent ,() => EffectiveAttackSpeed, "PlaceHolderAnimation")));
 
             // --- Chase ---
-            var chaseSequence = new SequenceNode("Chase", 1);
+            SequenceNode chaseSequence = new SequenceNode("Chase", 1);
             chaseSequence.AddChild(new LeafNode("HasLOS", new ConditionNode(() => IsInLos())));
-            chaseSequence.AddChild(new LeafNode("Chase", new Chase(target, transform, _agent, _chaseSpeed)));
+            chaseSequence.AddChild(new LeafNode("Chase", new Chase(_player, transform, _agent, () => EffectiveChaseSpeed)));
 
             // --- Patrol ---
-            var patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _patrolSpeed), 0);
+            LeafNode patrol = new LeafNode("Patrol", new Patrol(transform, _agent, _waypoints, _enemyStats.PatrolSpeed), 0);
 
             // --- Estructura ---
             root.AddChild(attackSequence);
             root.AddChild(chaseSequence);
             root.AddChild(patrol);
-
             tree.AddChild(root);
-
             return tree;
         }
-        bool IsInAttackRangeStable()
-        {
-            float distance = Vector3.Distance(transform.position, target.position);
-            bool result;
-            if (_wasInRange)
-                result = distance <= exitAttackRange;
-            else
-                result = distance <= _attackRange;
-            _wasInRange = result;
-            return result;
-        }// Change the method for GetIdealRange to make it more accurate
-
-        // Reemplazar por una lista de ataques posibles
+        // Replace for a list of posible attacks
         public void FireProjectile()
         {
-            Vector3 dir = (target.position - transform.position).normalized;
-
+            Vector3 dir = (_player.position - transform.position).normalized;
             float spawnOffset = 1.0f;
-
             Vector3 spawnPos = transform.position + Vector3.up * 0.5f + dir * spawnOffset;
-
-
             var go = Helpers.ProjFactory.Spawn(projectilePrefab, spawnPos, Quaternion.identity);
             var proj = go.GetComponent<EnemyProjectile>();
-            proj.Init(dir, _projectileSpeed, 2, Foundation.ElementType.Neutral);
+            proj.Init(dir, _projectileSpeed, (int)EffectiveAttackDamage, Foundation.ElementType.Neutral);
         }
     }
-
 }

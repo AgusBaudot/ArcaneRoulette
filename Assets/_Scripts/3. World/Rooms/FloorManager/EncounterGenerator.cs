@@ -1,27 +1,29 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace World 
 {
     public class EncounterGenerator : MonoBehaviour
     {
         [Header("Wave Settings")]
-        [SerializeField] private int _minWaves = 1;
-        [SerializeField] private int _maxWaves = 3;
-        [SerializeField] private int _enemiesPerWave = 2;
+        [SerializeField] private int _minWaves;
+        [SerializeField] private int _maxWaves;
+        [SerializeField] private int _enemiesPerWave;
 
         [Header("Amount Settings")]
-        [SerializeField] private int _minAmount = 1;
-        [SerializeField] private int _maxAmount = 4;
+        [SerializeField] private int _minAmount;
+        [SerializeField] private int _maxAmount;
 
         // el peso es el mismo orden que el enum
-        private readonly float[] _weights = { 0.5f, 0.4f, 0.2f }; // melee, range, bruto
+        private readonly float[] _weights = { 0.5f, 0.4f, 0.2f, 0.2f }; // melee, range, bruto, healer
 
         public RoomEncounterData Generate(RoomType roomType, int roomsVisited)
         {
-            if (roomType != RoomType.Regular && roomType != RoomType.Boss) // saber si es una room peleable no le corresponde a esto
-                return default;
+            if (roomType != RoomType.Combat && roomType != RoomType.Boss) // saber si es una room peleable no le corresponde a esto
+                return new RoomEncounterData { Waves = new EnemySpawnData[0] };
 
             int waveCount = Random.Range(_minWaves, _maxWaves);
             EnemySpawnData[] waves = new EnemySpawnData[waveCount];
@@ -56,6 +58,13 @@ namespace World
             for (int i = 0; i < _weights.Length; i++)
                 if (!used[i]) total += _weights[i];
 
+            if (total <= 0f)
+            {
+                Array.Clear(used, 0, used.Length);
+                for (int i = 0; i < _weights.Length; i++)
+                    total += _weights[i];
+            }
+
             float roll = Random.value * total;
             float cumulative = 0f;
 
@@ -71,7 +80,7 @@ namespace World
             for (int i = 0; i < _weights.Length; i++)
                 if (!used[i]) return (EnemyType)i;
 
-            return EnemyType.melee;
+            return EnemyType.Melee;
         }
     }
 }

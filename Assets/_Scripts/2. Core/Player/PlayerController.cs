@@ -44,6 +44,7 @@ namespace Core
         private readonly SpellInstance[] _spellSlots = new SpellInstance[3];
 
         private readonly List<int> _heldHoldSlots = new(); //Insertion order = press order
+        private readonly HashSet<int> _heldAutoSlots = new();
 
         private Rigidbody _rb;
         public Rigidbody Rb => _rb;
@@ -54,6 +55,7 @@ namespace Core
         private Vector3 _velocity;
         private Vector2 _facingDirection = Vector2.right;
         private bool _canMove = true;
+        private bool _isAlive = true;
         private PlayerInputActions _inputActions;
         private AudioHandle _runAudioHandle;
 
@@ -76,6 +78,7 @@ namespace Core
             GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
+            EventBus.Subscribe((PlayerDiedEvent _) => _isAlive = false);
         }
 
         private void OnDestroy()
@@ -97,6 +100,19 @@ namespace Core
             Helpers.Input.OnSlot0Canceled += HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
+            
+            _heldAutoSlots.Clear();
+            _heldHoldSlots.Clear();
+            if (_runAudioHandle != null && _runAudioHandle.IsValid)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _runAudioHandle,
+                    FadeOut = false
+                });
+                
+                _runAudioHandle = null;
+            }
         }
 
         private void OnDisable()
@@ -148,6 +164,9 @@ namespace Core
 
         private void ReadInput()
         {
+            if (!_isAlive)
+                return;
+            
             _input = Helpers.Input.MoveDirection.normalized;
 
             if (_input.sqrMagnitude > 0.01f)
@@ -165,6 +184,9 @@ namespace Core
 
         private void HandleSlotPress(int slotIndex)
         {
+            if (!_isAlive)
+                return;
+            
             ISpellSlot spell  = _spellSlots[slotIndex];
             if (spell == null || Time.deltaTime == 0)
                 return;
@@ -181,12 +203,20 @@ namespace Core
             }
             else if (spell is IAbility ability)
             {
-                ability.Activate(this);
+                _heldAutoSlots.Add(slotIndex);
+                
+                if (_spellSlots[slotIndex] is SpellInstance instance && instance.CooldownRemaining <= 0f)
+                {
+                    ability.Activate(this);
+                }
             }
         }
 
         private void HandleSlotRelease(int slotIndex)
         {
+            if (!_isAlive)
+                return;
+            
             ISpellSlot spell = _spellSlots[slotIndex];
             if (spell == null || Time.deltaTime == 0)
                 return;
@@ -204,6 +234,10 @@ namespace Core
                         resumeHold.StartHold(this);
                 }
             }
+            else if (spell is IAbility)
+            {
+                _heldAutoSlots.Remove(slotIndex);
+            }
         }
         
         #endregion
@@ -213,15 +247,11 @@ namespace Core
         private void HandleMovement()
         {
             // Input XY maps to world XZ — Y axis is reserved for gravity/height
-            Vector3 targetVelocity = new Vector3(_input.x, 0f, _input.y) * _playerStats.BaseSpeed;
+            Vector3 targetVelocity = new Vector3(_input.x * _playerStats.BaseSpeed, 0f, _input.y * (_playerStats.BaseSpeed * _playerStats.VerticalSpeedMultiplier));
 
             bool isMoving = _input.sqrMagnitude > 0.01f;
-
-            float rate = isMoving
-                ? _playerStats.Acceleration
-                : _playerStats.Deceleration;
-
-            _velocity = Vector3.MoveTowards(_velocity, targetVelocity, rate * Time.deltaTime);
+            
+            _velocity = targetVelocity;
             _rb.velocity = _velocity;
 
             if (isMoving)
@@ -263,12 +293,29 @@ namespace Core
 
             var size = _spriteTransform.localScale.y;
             _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? -size : size, size, size);
+                _facingDirection.x < 0f ? size : -size, size, size);
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
         
-        public void SetVelocity(Vector3 velocity) => _rb.velocity = velocity;
+        public void SetVelocity(Vector3 velocity)
+        {
+            _velocity = velocity;
+            _rb.velocity = velocity;
+        }
+
+        public void TeleportTo(Vector3 pos)
+        {
+            _velocity = Vector3.zero;
+            _rb.velocity = Vector3.zero;
+            
+            var previousInterpolation = _rb.interpolation;
+            _rb.interpolation = RigidbodyInterpolation.None;
+            
+            _rb.position = pos;
+            
+            _rb.interpolation = previousInterpolation;
+        }
         
         #endregion
         
@@ -284,6 +331,17 @@ namespace Core
                 if (_spellSlots[_heldHoldSlots[^1]] is IHoldAbility hold)
                 {
                     hold.HoldTick(Time.deltaTime, this);
+                }
+            }
+            
+            foreach (var slotIndex in _heldAutoSlots)
+            {
+                if (_spellSlots[slotIndex] is IAbility ability && _spellSlots[slotIndex] is SpellInstance instance)
+                {
+                    if (instance.CooldownRemaining <= 0f)
+                    {
+                        ability.Activate(this);
+                    }
                 }
             }
         }

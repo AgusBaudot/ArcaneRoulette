@@ -39,7 +39,11 @@ namespace UI
                 return;
 
             if (_runeIcon != null)
+            {
                 _runeIcon.sprite = rune.Icon;
+                _runeIcon.preserveAspect = true;
+                _runeIcon.rectTransform.localScale = Vector3.one * rune.UIIconScale;
+            }
 
             if (_runeNameText != null)
                 _runeNameText.text = rune.Name;

@@ -10,7 +10,12 @@ namespace UI
 
         public void Setup(ItemData item, int amount)
         {
-            if (Icon != null) Icon.sprite = item != null ? item.Icon : null;
+            if (Icon != null)
+            {
+                Icon.sprite = item != null ? item.Icon : null;
+                Icon.preserveAspect = true;
+                Icon.rectTransform.localScale = Vector3.one * amount;
+            }
             if (AmountText != null) AmountText.text = (amount > 1) ? amount.ToString() : "";
         }
     }

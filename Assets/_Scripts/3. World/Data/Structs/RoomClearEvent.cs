@@ -1,11 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace World 
 {
     public struct RoomClearEvent
     {
-        public int roomId;
+        public int Index;
+        // public bool IsBossRoom;
+        public RoomClearEvent(int index)
+        {
+            Index = index;
+        }
     }
 }

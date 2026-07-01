@@ -12,24 +12,23 @@ namespace UI
         
         [SerializeField] private int _slotIndex;
         [SerializeField] private Image _inputIcon;
-        [SerializeField] private Image _abilityIcon;      
+        [SerializeField] private Image _abilityIcon;
+        [SerializeField] private Image _fillImage;
         [SerializeField] private Color _grayedColor = Color.gray;
-        [SerializeField] private float _iconRecoverSpeed = 5f; // how quickly the icon color approaches the target
-
-        private Slider _cooldownSlider;
         private SpellInstance _instance;
         private Color _iconNormalColor = Color.white;
+        private Color _fillNormalColor = Color.white;
 
         private void Awake()
         {
-            _cooldownSlider = GetComponent<Slider>();
-            
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
 
             // Slider starts full — no spell equipped yet means nothing on cooldown
             // record normal icon color and ensure icon is grayed out until a spell is equipped
             if (_inputIcon != null)
                 _iconNormalColor = _inputIcon.color;
+            if (_fillImage != null)
+                _fillNormalColor = _fillImage.color;
 
             SetSliderNull();
         }
@@ -46,10 +45,7 @@ namespace UI
                 {
                     _instance = spell;
                     RefreshAbilityIcon();
-                    if (_inputIcon != null)
-                        _inputIcon.color = _iconNormalColor;
-                    if (_abilityIcon != null)
-                        _abilityIcon.color = _iconNormalColor;
+                    SetIconTint(IsSpellReady());
                 }
             }
         }
@@ -72,30 +68,10 @@ namespace UI
             }
 
             // CooldownProgress: 1 = ready, 0 = fully on cooldown
-            // Slider.value maps directly — no math needed
-            _cooldownSlider.value = _instance.DisplayProgress;
-
-            // Update icon color: immediately gray when completely empty,
-            // otherwise smoothly move towards the color corresponding to the fill level.
-            var target = Color.Lerp(_grayedColor, _iconNormalColor, _cooldownSlider.value);
-
-            if (_cooldownSlider.value <= 0f)
-            {
-                // If completely empty, set gray immediately
-                if (_inputIcon != null)
-                    _inputIcon.color = _grayedColor;
-                if (_abilityIcon != null)
-                    _abilityIcon.color = _grayedColor;
-            }
-            else
-            {
-                // Smoothly approach target color
-                float t = Mathf.Clamp01(dt * _iconRecoverSpeed);
-                if (_inputIcon != null)
-                    _inputIcon.color = Color.Lerp(_inputIcon.color, target, t);
-                if (_abilityIcon != null)
-                    _abilityIcon.color = Color.Lerp(_abilityIcon.color, target, t);
-            }
+            // fillAmount maps directly — no math needed
+            if (_fillImage != null)
+                _fillImage.fillAmount = _instance.DisplayProgress;
+            SetIconTint(IsSpellReady());
         }
 
         private void OnSpellEquipped(SpellEquippedEvent evt)
@@ -107,15 +83,34 @@ namespace UI
 
             // Update the ability icon to reflect the current cast rune automatically.
             RefreshAbilityIcon();
+            SetIconTint(IsSpellReady());
+        }
+
+        private bool IsSpellReady()
+        {
+            if (_instance == null)
+                return false;
+
+            if (_instance is HoldSpellInstance hold)
+                return !hold.Energy.IsBroken && hold.Energy.Current > 0f;
+
+            return _instance.DisplayProgress >= 1f;
+        }
+
+        private void SetIconTint(bool isReady)
+        {
+            var iconTint = isReady ? _iconNormalColor : _grayedColor;
 
             if (_inputIcon != null)
-            {
-                _inputIcon.color = _iconNormalColor;
-            }
+                _inputIcon.color = iconTint;
 
             if (_abilityIcon != null)
+                _abilityIcon.color = iconTint;
+
+            if (_fillImage != null)
             {
-                _abilityIcon.color = _iconNormalColor;
+                var fillTint = isReady ? _fillNormalColor : _grayedColor;
+                _fillImage.color = fillTint;
             }
         }
 
@@ -142,7 +137,8 @@ namespace UI
 
         private void SetSliderNull()
         {
-            _cooldownSlider.value = 0f;
+            if (_fillImage != null)
+                _fillImage.fillAmount = 0f;
             if (_inputIcon != null)
                 _inputIcon.color = _grayedColor;
             if (_abilityIcon != null)
@@ -151,6 +147,8 @@ namespace UI
                 _abilityIcon.enabled = false;
                 _abilityIcon.color = _grayedColor;
             }
+            if (_fillImage != null)
+                _fillImage.color = _grayedColor;
         }
     }
 }

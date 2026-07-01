@@ -8,9 +8,11 @@ namespace Core
     public class ShieldAbilityRune : AbilityRuneSO
     {
         [Header("Stats")]
-        [SerializeField] private GameObject _shieldVisualPrefab;
+        [SerializeField] private GameObject _defaultShieldPrefab;
+        [SerializeField] private ElementalGameObject[] _elementalShields;
         [SerializeField] private GameObject _shockwavePrefab;
         [SerializeField] private float _abilityThreshold = 1.5f; // seconds held to spawn shockwave
+        
         [Header("Audio")]
         [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
@@ -38,6 +40,15 @@ namespace Core
                 if (map.Element == element) return map.CastSound;
             }
             return _defaultCastSound;
+        }
+
+        private GameObject GetShieldPrefab(ElementType element)
+        {
+            foreach (var mapping in _elementalShields)
+            {
+                if (mapping.Element == element) return mapping.Reference;
+            }
+            return _defaultShieldPrefab;
         }
 
         internal void ConfigureAndStartHold(SpellContext ctx, HoldSpellInstance source, ShieldActivationArgs args)
@@ -71,8 +82,10 @@ namespace Core
             // ── Instantiate once per source instance ────────────────────────────
             if (!_visuals.TryGetValue(source, out var visual) || visual == null)
             {
+                GameObject prefabToSpawn = GetShieldPrefab(ctx.AttackerElement);
+                
                 visual = Instantiate(
-                    _shieldVisualPrefab,
+                    prefabToSpawn,
                     player.transform.position + new Vector3(-0.2f, 1f, 1f),
                     Quaternion.identity,
                     player.transform);

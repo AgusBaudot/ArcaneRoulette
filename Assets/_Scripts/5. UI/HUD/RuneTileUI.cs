@@ -74,7 +74,11 @@ namespace UI
 
             _icon.sprite = hasRune ? rune.Icon : null;
             _icon.enabled = hasRune;
-            _icon.preserveAspect = true;
+            if (hasRune)
+            {
+                _icon.preserveAspect = true;
+                _icon.rectTransform.localScale = Vector3.one * rune.UIIconScale;
+            }
 
             if (_countText != null)
                 _countText.enabled = false;

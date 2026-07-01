@@ -1,7 +1,5 @@
 using System.Collections;
-using Core;
 using Foundation;
-using World;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,38 +7,28 @@ namespace UI
 {
     public class SceneController : MonoBehaviour
     {
-        [SerializeField] private float _sceneFadeDuration;
+        [SerializeField] private float _sceneFadeDuration = 1f;
+        [SerializeField] private float _delayBeforeDeathFade = 2f;
         [SerializeField] private string _mainMenuSceneName = "MainMenu";
 
         private SceneFade _sceneFade;
-        private PlayerHealth _playerHealth;
-        private FloorManager _floorManager;
-        private bool _isLoadingMainMenu;
+        private bool _isTransitioning;
 
         private void Awake()
         {
             _sceneFade = GetComponentInChildren<SceneFade>();
-            _playerHealth = FindObjectOfType<PlayerHealth>();
-            _floorManager = FindObjectOfType<FloorManager>();
-            if (_playerHealth != null)
-                _playerHealth.OnDeath += HandlePlayerDeath;
         }
 
         private void OnEnable()
         {
-            EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Subscribe<EndFloorClearEvent>(HandleFloorCleared);
+            EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
-        }
-
-        private void OnDestroy()
-        {
-            if (_playerHealth != null)
-                _playerHealth.OnDeath -= HandlePlayerDeath;
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<EndFloorClearEvent>(HandleFloorCleared);
+            EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
         }
 
         private IEnumerator Start()
@@ -48,39 +36,38 @@ namespace UI
             yield return StartCoroutine(_sceneFade.FadeIn(_sceneFadeDuration));
         }
 
-        private void HandlePlayerDeath()
+        private void HandleFloorCleared(EndFloorClearEvent evt)
         {
-            if (_isLoadingMainMenu)
-                return;
-
-            _isLoadingMainMenu = true;
-            StartCoroutine(LoadMainMenuCoroutine());
+            if (_isTransitioning) return;
+            _isTransitioning = true;
+            
+            StartCoroutine(LoadSceneCoroutine(SceneManager.GetActiveScene().name));
         }
 
-        private void HandleRoomCleared(RoomClearEvent evt)
+        private void HandlePlayerDeath(PlayerDiedEvent _)
         {
-            if (_isLoadingMainMenu) return;
-            if (_floorManager == null) return;
+            if (_isTransitioning) return;
+            _isTransitioning = true;
 
-            bool isFinalRoom = evt.roomId == _floorManager.EndOfTheFloor;
-            Debug.Log($"Cambio de room = {evt.roomId} | {isFinalRoom}");
-            if (!isFinalRoom) return;
-
-            Debug.Log($"FIN de floor = {evt.roomId}");
-            _isLoadingMainMenu = true;
-            StartCoroutine(LoadMainMenuCoroutine());
+            StartCoroutine(DeathTransitionCoroutine());
         }
 
-        private IEnumerator LoadMainMenuCoroutine()
+        private IEnumerator DeathTransitionCoroutine()
         {
+            yield return CoroutineUtils.GetWait(_delayBeforeDeathFade);
+
             yield return StartCoroutine(_sceneFade.FadeOut(_sceneFadeDuration));
-            SceneManager.LoadScene(_mainMenuSceneName);
+
+            EventBus.Publish(new EndRunRequestEvent(_mainMenuSceneName));
         }
 
         public void LoadScene(string sceneName)
         {
+            if (_isTransitioning) return;
+            _isTransitioning = true;
             StartCoroutine(LoadSceneCoroutine(sceneName));
         }
+
         private IEnumerator LoadSceneCoroutine(string sceneName)
         {
             yield return StartCoroutine(_sceneFade.FadeOut(_sceneFadeDuration));
@@ -88,4 +75,3 @@ namespace UI
         }
     }
 }
-

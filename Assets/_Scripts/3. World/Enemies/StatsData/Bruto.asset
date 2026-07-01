@@ -13,9 +13,18 @@ MonoBehaviour:
   m_Name: Bruto
   m_EditorClassIdentifier: 
   MaxHp: 18
-  ElementType: 4
+  ElementType: 2
+  ViewDistance: 15
+  ObsMask:
+    serializedVersion: 2
+    m_Bits: 0
   ChaseSpeed: 4
   PatrolSpeed: 2
   AttackDamage: 4
   AttackRange: 4
-  AttackSpeed: 0.8
+  ExitAttackRange: 5
+  AttackRadius: 4
+  AttackSpeed: 2
+  HitLayer:
+    serializedVersion: 2
+    m_Bits: 256

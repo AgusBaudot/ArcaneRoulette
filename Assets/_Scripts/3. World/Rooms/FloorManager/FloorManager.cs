@@ -1,7 +1,7 @@
-using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using Core;
+using Foundation;
 using UnityEngine;
 
 namespace World
@@ -25,34 +25,29 @@ namespace World
         [Tooltip("Don't assign it anything, it shouldn't break, but it won't do anything.")]
         [Header("RunInfo")] // info solo para leer desde el inspector
         [SerializeField] private int _roomsVisited;
-        [SerializeField] public int EndOfTheFloor;
         [SerializeField] private int LobbyIndex;
 
         public static FloorManager instance;
 
         private void Awake()
         {
-            _mapGenerator = new MapGenerator();
+            instance = this;
+            _mapGenerator = new MapGenerator(_generatorData);
             _mapSpawner = new MapSpawner();
-
             _encounterGenerator = GetComponent<EncounterGenerator>();
-
-            _mapGenerator.Init(_generatorData);
             _mapSpawner.Init(_spawnerData);
 
             if (_player == null)
             {
-                Debug.Log($"<color=red>FAIL:</color> player reference null =  {_player}");
+                Debug.Log($"<color=red>FAIL:</color> player reference is =  {_player == null}");
             }
         }
         private void Start()
         {
-            instance = this;
             StartCoroutine(GenerateFloor());
         }
         private IEnumerator GenerateFloor()
         {
-
             var (rooms, success) = _mapGenerator.SetupDungeon();
 
             if (!success)
@@ -64,13 +59,52 @@ namespace World
             yield return null;
 
             _mapSpawner.InstantiateRooms(rooms, _mapGenerator.getFloorPlan);
-            EndOfTheFloor = _mapGenerator.BossRoomIndex;
             LobbyIndex = _mapGenerator.LobbyRoomIndex;
 
             yield return null;
 
+            BuildAndSendMapStateToFoundation();
+            
             StartRun(EdgeDirection.Up);
         }
+
+        private void BuildAndSendMapStateToFoundation()
+        {
+            Dictionary<int, VolatileRunState.RoomMapData> layout = new();
+            int[] plan = _mapGenerator.getFloorPlan;
+
+            foreach (var kvp in _mapSpawner.RoomLookup)
+            {
+                int idx = kvp.Key;
+                RoomManager room = kvp.Value;
+
+                List<int> neighbors = new();
+        
+                int upIndex = idx - DungeonGrid.GRID_WIDTH;
+                if (upIndex >= 0 && plan[upIndex] != 0) neighbors.Add(upIndex);
+        
+                int downIndex = idx + DungeonGrid.GRID_WIDTH;
+                if (downIndex < plan.Length && plan[downIndex] != 0) neighbors.Add(downIndex);
+        
+                int x = DungeonGrid.GetX(idx);
+                if (x > 0 && plan[idx - 1] != 0) neighbors.Add(idx - 1);
+                if (x < DungeonGrid.GRID_WIDTH - 1 && plan[idx + 1] != 0) neighbors.Add(idx + 1);
+
+                layout[idx] = new VolatileRunState.RoomMapData
+                {
+                    Index = idx,
+                    X = x,
+                    Y = DungeonGrid.GetY(idx),
+                    Type = room.Type,
+                    IsCleared = room.Cleared,
+                    IsDiscovered = false,
+                    NeighborIndices = neighbors.ToArray()
+                };
+            }
+
+            GameStateManager.RunState.InitializeFloorMap(layout);
+        }
+        
         private void StartRun(EdgeDirection dir)
         {
             if (_mapSpawner.RoomLookup.TryGetValue(_mapGenerator.LobbyRoomIndex, out RoomManager room))
@@ -79,12 +113,7 @@ namespace World
                 room.gameObject.SetActive(true);
                 SetupRoomEncounter(room);
                 room.EnableRoom();
-                // Reemplazo
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
-                _player.transform.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca
+                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
             }
         }
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)
@@ -112,12 +141,9 @@ namespace World
                 _currentRoom.gameObject.SetActive(false);
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
-                // cambiar esto
-                _player.SetCanMove(false);
-                _player.Rb.velocity = Vector3.zero;
-                _player.Rb.position = room.GetRoomConnections.GetPlayerSpawn(dir);
-                _player.SetCanMove(true);
-                // hasta aca, por un metodo del player
+
+                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
+
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();
             }

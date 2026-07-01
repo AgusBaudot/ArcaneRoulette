@@ -1,74 +1,94 @@
-using UnityEngine;
 using Foundation;
-using UnityEngine.SceneManagement;
+using UnityEngine;
 
 namespace UI
 {
+    [RequireComponent(typeof(CanvasGroup))]
     public sealed class PauseMenu : MonoBehaviour
     {
-        [Header("Pause Menu")]
+        [Header("Pause Menu Overlays")]
         [SerializeField] private GameObject _pausePanel;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _menuOpenSound;
+        [SerializeField] private AudioEventSO _menuCloseSound;
 
+        private CanvasGroup _canvasGroup;
         private bool _isOpen;
 
         private void Awake()
         {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            
             _isOpen = false;
-            if (_pausePanel != null)
-                _pausePanel.SetActive(false);
-
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
+            SetOverlayState(false);
         }
 
         private void OnEnable()
         {
             Helpers.Input.OnPausePressed += TogglePauseMenu;
-            EventBus.Subscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Subscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Subscribe<OnRunQuitEvent>(OnRunQuit);
+            EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
+            EventBus.Subscribe<OnGameResumedEvent>(ClosePauseMenu);
         }
 
         private void OnDisable()
         {
             Helpers.Input.OnPausePressed -= TogglePauseMenu;
-            EventBus.Unsubscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Unsubscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Unsubscribe<OnRunQuitEvent>(OnRunQuit);
+            EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
+            EventBus.Subscribe<OnGameResumedEvent>(ClosePauseMenu);
         }
 
         private void TogglePauseMenu()
         {
             if (_isOpen)
-                EventBus.Publish<OnGameResumedEvent>(new OnGameResumedEvent());
+                ClosePauseMenu(new OnGameResumedEvent());
             else
-                EventBus.Publish<OnGamePausedEvent>(new OnGamePausedEvent());
+                OpenPauseMenu();
         }
 
         private void OpenPauseMenu()
         {
             _isOpen = true;
-
-            if (_pausePanel != null)
-                _pausePanel.SetActive(true);
+            SetOverlayState(true);
 
             Time.timeScale = 0f;
+            AudioListener.pause = true;
+            Helpers.Input.EnableUIInput();
+
+            if (_menuOpenSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = _menuOpenSound });
         }
 
-        private void ClosePauseMenu()
+        public void ClosePauseMenu(OnGameResumedEvent _)
         {
             _isOpen = false;
-
-            if (_pausePanel != null)
-                _pausePanel.SetActive(false);
+            SetOverlayState(false);
 
             Time.timeScale = 1f;
+            Helpers.Input.EnablePlayerInput();
+
+            if (_menuCloseSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });
         }
         
+        public void QuitToMainMenu(OnRunQuitEvent _)
+        {
+            AudioListener.pause = false;
+            Time.timeScale = 1f;
+    
+            Helpers.Input.EnablePlayerInput(); 
 
-        private void OnGamePaused(OnGamePausedEvent _) => OpenPauseMenu();
-        private void OnGameResumed(OnGameResumedEvent _) => ClosePauseMenu();
-        private void OnRunQuit(OnRunQuitEvent _) => SceneManager.LoadScene(1);
+            EventBus.Publish(new EndRunRequestEvent("Main Menu"));
+        }
+
+        private void SetOverlayState(bool isActive)
+        {
+            if (_pausePanel != null)
+                _pausePanel.SetActive(isActive);
+
+            _canvasGroup.alpha = isActive ? 1f : 0f;
+            _canvasGroup.blocksRaycasts = isActive;
+            _canvasGroup.interactable = isActive;
+        }
     }
 }
-
