@@ -8,7 +8,7 @@ namespace Foundation
     /// </summary>
     public abstract class AbilityRuneSO : RuneDefinitionSO
     {
-        public override float UIIconScale => 1.25f;
+        public override float UIIconScale => 1f;
         
         public abstract AbilityType Type { get; }
         public abstract bool IsHoldAbility { get; }
