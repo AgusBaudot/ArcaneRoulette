@@ -216,9 +216,9 @@ namespace Core
         {
             if (!_isAlive)
                 return;
-            
+    
             ISpellSlot spell = _spellSlots[slotIndex];
-            if (spell == null || Time.deltaTime == 0)
+            if (spell == null)
                 return;
 
             if (spell is IHoldAbility hold)
@@ -236,8 +236,20 @@ namespace Core
             }
             else if (spell is IAbility)
             {
-                _heldAutoSlots.Remove(slotIndex);
+                _heldAutoSlots.Remove(slotIndex); 
             }
+        }
+        
+        public void ClearHeldInputs()
+        {
+            foreach (var slotIndex in _heldHoldSlots)
+            {
+                if (_spellSlots[slotIndex] is IHoldAbility hold)
+                    hold.StopHold(this);
+            }
+    
+            _heldHoldSlots.Clear();
+            _heldAutoSlots.Clear();
         }
         
         #endregion
