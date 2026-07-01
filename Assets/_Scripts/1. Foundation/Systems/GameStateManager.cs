@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using World;
 
 namespace Foundation
 {
@@ -26,6 +27,11 @@ namespace Foundation
         private void InitializeNewRun()
         {
             RunState = new VolatileRunState(100f);
+            EventBus.Subscribe<PlayerEnteredRoomEvent>(e => RunState.UpdatePlayerRoom(e.Index));
+            EventBus.Subscribe<RoomClearEvent>(e => RunState.MarkRoomCleared(e.Index));
+            EventBus.Subscribe<EndFloorClearEvent>(e => RunState.MarkRoomCleared(e.Index));
+            EventBus.Subscribe<PassiveRoomClearEvent>(e => RunState.MarkRoomCleared(e.Index));
+            
             OnRunStateInitialized?.Invoke(RunState);
         }
     }

@@ -26,7 +26,8 @@ namespace World
         {
             foreach (RoomManager room in _roomLookup.Values)
             {
-                UnityEngine.Object.Destroy(room.gameObject);
+                Object.Destroy(room.gameObject);
+                Object.Destroy(room.gameObject);
             }
             _roomLookup.Clear();
 
@@ -94,7 +95,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                // save index of neighbours
+                // save index of neighbors
                 int upIndex = rooms.Index - DungeonGrid.GRID_WIDTH;
                 int downIndex = rooms.Index + DungeonGrid.GRID_WIDTH;
                 int leftIndex = rooms.Index - 1;

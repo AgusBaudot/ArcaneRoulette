@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using World;
 
 namespace Foundation
 {
@@ -45,9 +46,22 @@ namespace Foundation
 
         // ── Floor / Room progress ────────────────────────────────────────────
 
-        public int CurrentFloor { get; private set; }
-        public int CurrentRoom { get; private set; }
-        public event Action<int, int> OnRoomChanged; // floor, room
+        public struct RoomMapData
+        {
+            public int Index;
+            public int X;
+            public int Y;
+            public RoomType Type;
+            public bool IsCleared;
+            public bool IsDiscovered;
+            public int[] NeighborIndices;
+        }
+        public Dictionary<int, RoomMapData> FloorMap { get; private set; } = new();
+        public int CurrentRoomIndex { get; private set; } = -1;
+
+        public event Action<int> OnPlayerEnteredRoom;
+        public event Action<int> OnRoomStateChanged; 
+        public event Action OnFloorMapGenerated;
 
         // ── Modifier pipeline ────────────────────────────────────────────────
         // Owned here, subscribed to by InventorySystem (artifact hooks).
@@ -146,11 +160,43 @@ namespace Foundation
 
         // ── Room ─────────────────────────────────────────────────────────────
 
-        public void SetRoom(int floor, int room)
+        public void InitializeFloorMap(Dictionary<int, RoomMapData> layout)
         {
-            CurrentFloor = floor;
-            CurrentRoom = room;
-            OnRoomChanged?.Invoke(floor, room);
+            FloorMap = layout;
+            OnFloorMapGenerated?.Invoke();
+        }
+
+        //Listens to PlayerEnteredRoomEvent via GameStateManager
+        public void UpdatePlayerRoom(int newIndex)
+        {
+            if (FloorMap.TryGetValue(newIndex, out var room))
+            {
+                CurrentRoomIndex = newIndex;
+                room.IsDiscovered = true;
+                FloorMap[newIndex] = room;
+
+                foreach (int neighbor in room.NeighborIndices)
+                {
+                    if (FloorMap.TryGetValue(neighbor, out var neighborRoom))
+                    {
+                        neighborRoom.IsDiscovered = true;
+                        FloorMap[neighbor] = neighborRoom;
+                    }
+                }
+                
+                OnPlayerEnteredRoom?.Invoke(newIndex);
+            }
+        }
+
+        // Listens to RoomClearEvent/ EndFloorClearEvent via GameStateManager
+        public void MarkRoomCleared(int index)
+        {
+            if (FloorMap.TryGetValue(index, out var room))
+            {
+                room.IsCleared = true;
+                FloorMap[index] = room;
+                OnRoomStateChanged?.Invoke(index);
+            }
         }
 
         // ── Pipeline fire methods ────────────────────────────────────────────
@@ -183,7 +229,8 @@ namespace Foundation
             _runeAllocated.Clear();
 
             // Room progress
-            OnRoomChanged = null;
+            // OnRoomChanged = null;
+            Debug.LogError("Cleanup for rooms is missing");
 
             // Modifier pipeline
             OnCalculateDamageOut = null;

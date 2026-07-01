@@ -20,13 +20,31 @@ namespace World
             transform.GetChild(0).gameObject.SetActive(false);
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            if (Input.GetKeyDown(KeyCode.E) && _playerInside)
+            Helpers.Input.OnInteractPressed += HandleInteraction;
+        }
+
+        private void OnDisable()
+        {
+            if (Helpers.Input != null)
+                Helpers.Input.OnInteractPressed -= HandleInteraction;
+        }
+
+        private void HandleInteraction()
+        {
+            if (!_playerInside)
+                return;
+            
+            FindObjectOfType<PlayerHealth>().Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
+
+            var room = GetComponentInParent<RoomManager>();
+            if (room != null)
             {
-                FindObjectOfType<PlayerHealth>().Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
-                Destroy(gameObject);
+                room.MarkAsCleared();
             }
+            
+            Destroy(gameObject);
         }
 
         private void OnTriggerEnter(Collider other)

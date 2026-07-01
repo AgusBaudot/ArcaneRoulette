@@ -1,8 +1,8 @@
 public struct EndFloorClearEvent
 {
-    public int roomId;
-    public EndFloorClearEvent(int roomId)
+    public int Index;
+    public EndFloorClearEvent(int index)
     {
-        this.roomId = roomId;
+        Index = index;
     }
 }
