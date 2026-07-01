@@ -56,7 +56,7 @@ namespace World
 
             if (!_cleared)
             {
-                if (_roomType == RoomType.Regular /*|| _roomType == RoomType.Boss*/)
+                if (_roomType == RoomType.Combat /*|| _roomType == RoomType.Boss*/)
                 {
                     _entityController.RoomIsClear -= RoomClearedEvent;
                     _entityController.RoomIsClear += RoomClearedEvent;

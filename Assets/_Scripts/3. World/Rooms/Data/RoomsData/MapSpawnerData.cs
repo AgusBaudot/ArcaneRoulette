@@ -6,7 +6,7 @@ namespace World
     public class MapSpawnerData : ScriptableObject
     {
         [Tooltip("Regular = Combat room with normal enemies.")]
-        public RoomManager[] RegularRoomPrefab;
+        public RoomManager[] CombatRoomPrefab;
         [Tooltip("Resting = Passive room where you can heal.")]
         public RoomManager RestingRoomPrefab;
         [Tooltip("Shop = Passive room where you can buy something.")]
@@ -16,7 +16,7 @@ namespace World
         [Tooltip("Lobby = Entry room of the floor.")]
         public RoomManager LobbyRoomPrefab;
         [Tooltip("Secret = just a normal room surrounded by many rooms.")]
-        public RoomManager EventRoomPrefab;
+        public RoomManager PortalRoomPrefab;
         [Tooltip("Secret = just a normal room surrounded by many rooms.")]
         public RoomManager ArtifactRoomPrefab;
         [Tooltip("Select Material and de RoomType for that room.")]

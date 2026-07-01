@@ -27,7 +27,7 @@ namespace World
             foreach (RoomManager room in _roomLookup.Values)
             {
                 Object.Destroy(room.gameObject);
-                //Destroy(room.gameObject);
+                Object.Destroy(room.gameObject);
             }
             _roomLookup.Clear();
 
@@ -50,9 +50,9 @@ namespace World
 
             switch (roomType)
             {
-                case RoomType.Regular:
-                    int rand = Random.Range(0, data.RegularRoomPrefab.Length);
-                    prefab = data.RegularRoomPrefab[rand];
+                case RoomType.Combat:
+                    int rand = Random.Range(0, data.CombatRoomPrefab.Length);
+                    prefab = data.CombatRoomPrefab[rand];
                     break;
 
                 case RoomType.Boss:
@@ -63,8 +63,8 @@ namespace World
                     prefab = data.RestingRoomPrefab;
                     break;
 
-                case RoomType.Event:
-                    prefab = data.EventRoomPrefab;
+                case RoomType.Portal:
+                    prefab = data.PortalRoomPrefab;
                     break;
 
                 case RoomType.Shop:
@@ -122,7 +122,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                rooms.gameObject.SetActive(false);
+                //rooms.gameObject.SetActive(false);
             }
         }
         private DoorInfo CreateDoorInfo(bool hasBounds, int neighbourIndex, int[] floorPlan)
