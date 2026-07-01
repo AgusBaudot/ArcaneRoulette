@@ -100,6 +100,19 @@ namespace Core
             Helpers.Input.OnSlot0Canceled += HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
+            
+            _heldAutoSlots.Clear();
+            _heldHoldSlots.Clear();
+            if (_runAudioHandle != null && _runAudioHandle.IsValid)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _runAudioHandle,
+                    FadeOut = false
+                });
+                
+                _runAudioHandle = null;
+            }
         }
 
         private void OnDisable()

@@ -32,9 +32,19 @@ public sealed class StartRuneSeeder : MonoBehaviour
     [SerializeField] private int _abilityRuneCount = 1;
     [SerializeField] private int _otherRuneCount = 5;
 
+    // Track the exact RunState instance we seeded.
+    private static VolatileRunState _seededRunState = null;
+
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
-    private void Start() => SeedInventory();
+    private void Start()
+    {
+        if (_seededRunState != GameStateManager.RunState)
+        {
+            SeedInventory();
+            _seededRunState = GameStateManager.RunState;
+        }
+    }
 
     // ── Inventory ────────────────────────────────────────────────────────────
 
@@ -47,7 +57,7 @@ public sealed class StartRuneSeeder : MonoBehaviour
         s.AddRune(_dashRune, _abilityRuneCount);
         s.AddRune(_shieldRune, _abilityRuneCount);
         
-        //Seed other runes
+        // Seed other runes
         List<RuneDefinitionSO> otherRunes = new()
         {
             _fireRune, _waterRune, _lightningRune, _earthRune,
