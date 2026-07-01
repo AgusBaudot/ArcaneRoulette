@@ -43,20 +43,16 @@ namespace Foundation
 
         public void EndRun(string destinationScene)
         {
-            // 1. Audio Teardown
             EventBus.Publish(new AudioCrossfadeRequest { NewTrack = null, Duration = 1.0f });
 
-            // 2. State Teardown
             if (RunState != null)
             {
                 RunState.Reset(); 
                 RunState = null; // <-- CRITICAL: Kill the static reference!
             }
             
-            // 3. System Teardown
-            EventBus.Clear(); 
+            // EventBus.Clear();
 
-            // 4. Scene Transition
             UnityEngine.SceneManagement.SceneManager.LoadScene(destinationScene);
         }
 

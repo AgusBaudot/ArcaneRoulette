@@ -28,18 +28,20 @@ namespace UI
         {
             Helpers.Input.OnPausePressed += TogglePauseMenu;
             EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
+            EventBus.Subscribe<OnGameResumedEvent>(ClosePauseMenu);
         }
 
         private void OnDisable()
         {
             Helpers.Input.OnPausePressed -= TogglePauseMenu;
             EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
+            EventBus.Subscribe<OnGameResumedEvent>(ClosePauseMenu);
         }
 
         private void TogglePauseMenu()
         {
             if (_isOpen)
-                ClosePauseMenu();
+                ClosePauseMenu(new OnGameResumedEvent());
             else
                 OpenPauseMenu();
         }
@@ -57,7 +59,7 @@ namespace UI
                 EventBus.Publish(new AudioPlayRequest { Event = _menuOpenSound });
         }
 
-        public void ClosePauseMenu()
+        public void ClosePauseMenu(OnGameResumedEvent _)
         {
             _isOpen = false;
             SetOverlayState(false);

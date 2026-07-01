@@ -292,7 +292,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 880743e9d3b50ed4eb3fc30453ea8811, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 995f0345e5d28bc4c8bb28a021df726a, type: 2}
   m_BuildHeightMesh: 0
 --- !u!1 &1564542082751386289
 GameObject:
@@ -623,7 +623,7 @@ MonoBehaviour:
   _upDoor: {fileID: 6988980652255380297}
   _leftDoor: {fileID: 1356746885301934034}
   _rightDoor: {fileID: 6890379905485293620}
-  _offsetSpawn: 3
+  _offsetSpawn: 5
   _liftDoors: 5
 --- !u!114 &1914884113007971262
 MonoBehaviour:
@@ -6348,19 +6348,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6858843841964626996, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
         type: 3}
       propertyPath: m_Name
       value: SM_PRP_MagicalCauldron (1)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6809201616384138694, guid: 083e5d46cf4e6cd439aa33074ff7da66, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+    - targetCorrespondingSourceObject: {fileID: 2574952410407805912, guid: 083e5d46cf4e6cd439aa33074ff7da66,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3081185415758963919}
+      addedObject: {fileID: 3214061976050553977}
   m_SourcePrefab: {fileID: 100100000, guid: 083e5d46cf4e6cd439aa33074ff7da66, type: 3}
 --- !u!4 &647074990888245668 stripped
 Transform:
@@ -6368,19 +6374,19 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 6388656600325870179}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2829421755268602553 stripped
+--- !u!1 &8868995896973750715 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+  m_CorrespondingSourceObject: {fileID: 2574952410407805912, guid: 083e5d46cf4e6cd439aa33074ff7da66,
     type: 3}
   m_PrefabInstance: {fileID: 6388656600325870179}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3081185415758963919
+--- !u!114 &3214061976050553977
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2829421755268602553}
+  m_GameObject: {fileID: 8868995896973750715}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
@@ -6837,33 +6843,45 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6858843841964626996, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
         type: 3}
       propertyPath: m_Name
       value: SM_PRP_MagicalCauldron
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6809201616384138694, guid: 083e5d46cf4e6cd439aa33074ff7da66, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+    - targetCorrespondingSourceObject: {fileID: 2574952410407805912, guid: 083e5d46cf4e6cd439aa33074ff7da66,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2197089121444927834}
+      addedObject: {fileID: 7915129724029594261}
   m_SourcePrefab: {fileID: 100100000, guid: 083e5d46cf4e6cd439aa33074ff7da66, type: 3}
---- !u!1 &1572939732478020907 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9218078215404046554, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+--- !u!4 &4209400022909947446 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5788196526170704839, guid: 083e5d46cf4e6cd439aa33074ff7da66,
     type: 3}
   m_PrefabInstance: {fileID: 7654154635680122353}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2197089121444927834
+--- !u!1 &5297663099820254761 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2574952410407805912, guid: 083e5d46cf4e6cd439aa33074ff7da66,
+    type: 3}
+  m_PrefabInstance: {fileID: 7654154635680122353}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7915129724029594261
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1572939732478020907}
+  m_GameObject: {fileID: 5297663099820254761}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
@@ -6876,12 +6894,6 @@ MonoBehaviour:
   m_IgnoreFromBuild: 0
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
---- !u!4 &4209400022909947446 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5788196526170704839, guid: 083e5d46cf4e6cd439aa33074ff7da66,
-    type: 3}
-  m_PrefabInstance: {fileID: 7654154635680122353}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8214896747767623380
 PrefabInstance:
   m_ObjectHideFlags: 0
