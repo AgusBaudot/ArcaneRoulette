@@ -7,46 +7,50 @@ namespace World
     [RequireComponent(typeof(EntityController))]
     public class RoomManager : MonoBehaviour
     {
-        //[serializefield] is Just for testing
         [Header("Room Data")]
         [SerializeField] private int _index;
         [SerializeField] private RoomType _roomType;
         [SerializeField] private RoomState _state;
         [SerializeField] private bool _cleared = false;
 
-        //Getters
+        [Header("Portal Spawning")]
+        [Tooltip("The portal prefab to spawn when this room is cleared (Boss/Portal rooms only).")]
+        [SerializeField] private GameObject _portalPrefab;
+        [Tooltip("Where to spawn the portal. If null, uses the room's transform.position.")]
+        [SerializeField] private Transform _portalSpawnPoint;
+
         public int Index => _index;
         public RoomType Type => _roomType;
         public bool Cleared => _cleared;
 
-        [Header("ReferenceToMap")]
         private RoomConnections _roomConnections;
         private EntityController _entityController;
         public RoomConnections GetRoomConnections => _roomConnections;
 
-        // ---- Init a Room ----
         public void Awake()
         {
             _roomConnections = GetComponent<RoomConnections>();
             _entityController = GetComponent<EntityController>();
         }
+
         public void Init(RoomInfo info)
         {
             _index = info.index;
             _roomType = info.roomType;
             _state = RoomState.Idle;
         }
+
         public void InitDoors(AllDoorsInfo info)
         {
             _roomConnections.SetDoorColors(info);
             _roomConnections.CalculateSpawnsEntry();
         }
+
         public void InitEntity(RoomEncounterData data)
         {
             _entityController.SaveEnemiesData(data);
         }
 
-        // ---- Room Events ----
         public void EnableRoom()
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
@@ -56,26 +60,25 @@ namespace World
 
             if (!_cleared)
             {
-                if (_roomType == RoomType.Combat /*|| _roomType == RoomType.Boss*/)
+                if (_roomType == RoomType.Combat || _roomType == RoomType.Boss)
                 {
                     _entityController.RoomIsClear -= RoomClearedEvent;
                     _entityController.RoomIsClear += RoomClearedEvent;
                     _entityController.PlayEntityController();
                 }
-                else if (_roomType == RoomType.Boss) 
-                {
-                    RoomClearedEvent();
-                }
                 else if (_roomType == RoomType.Resting)
                 {
-                    //Do not set cleared here, so the map stays green.
+                    _roomConnections.RoomCleared();
+                }
+                else if (_roomType == RoomType.Portal)
+                {
                     _roomConnections.RoomCleared();
                 }
                 else
                 {
                     _cleared = true;
                     _state = RoomState.Cleared;
-                    _roomConnections.RoomCleared(); // abre puertas
+                    _roomConnections.RoomCleared();
                 }
             }
 
@@ -84,12 +87,14 @@ namespace World
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
         }
+
         public void DisableRoom()
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _entityController.RoomIsClear -= RoomClearedEvent;
             _roomConnections.DisableConnections();
         }
+
         private void RoomClearedEvent()
         {
             _entityController.RoomIsClear -= RoomClearedEvent;
@@ -102,22 +107,21 @@ namespace World
                 _roomConnections.RoomCleared();
             }
     
-            // --- NEW ROUTING LOGIC ---
             if (_roomType == RoomType.Boss)
             {
-                EventBus.Publish(new EndFloorClearEvent(_index));
+                // EventBus.Publish(new EndFloorClearEvent(_index));
+                //This should spawn the portal instead.
             }
             else if (_roomType == RoomType.Resting)
             {
-                // Tell the UI/State the room is cleared, but DO NOT drop loot!
                 EventBus.Publish(new PassiveRoomClearEvent(_index));
             }
             else
             {
-                // Regular Combat Rooms
                 EventBus.Publish(new RoomClearEvent(_index));
             }
         }
+
         private void HandleDoorTransition(EdgeDirection direction)
         {
             FloorManager.instance.TeleportPlayer(direction, Index);
@@ -125,9 +129,7 @@ namespace World
 
         public void MarkAsCleared()
         {
-            if (_cleared)
-                return;
-            
+            if (_cleared) return;
             RoomClearedEvent();
         }
     }

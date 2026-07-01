@@ -11,6 +11,7 @@ namespace World
         [SerializeField] private float _radius = 2f;
 
         private bool _playerInside;
+        private PlayerHealth _playerHealth;
 
         private void Awake()
         {
@@ -33,10 +34,10 @@ namespace World
 
         private void HandleInteraction()
         {
-            if (!_playerInside)
+            if (!_playerInside || _playerHealth == null)
                 return;
             
-            FindObjectOfType<PlayerHealth>().Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
+            _playerHealth.Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
 
             var room = GetComponentInParent<RoomManager>();
             if (room != null)
@@ -51,6 +52,8 @@ namespace World
         {
             if (other.CompareTag("Player"))
             {
+                _playerHealth = other.GetComponentInParent<PlayerHealth>();
+                
                 transform.GetChild(0).gameObject.SetActive(true);
                 _playerInside = true;
             }
@@ -60,6 +63,7 @@ namespace World
         {
             if (other.CompareTag("Player"))
             {
+                _playerHealth = null; // Clear the cache
                 transform.GetChild(0).gameObject.SetActive(false);
                 _playerInside = false;
             }

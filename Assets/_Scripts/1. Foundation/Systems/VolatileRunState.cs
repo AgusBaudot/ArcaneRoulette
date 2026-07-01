@@ -46,6 +46,8 @@ namespace Foundation
 
         // ── Floor / Room progress ────────────────────────────────────────────
 
+        public int CurrentFloor = 1;
+        
         public struct RoomMapData
         {
             public int Index;

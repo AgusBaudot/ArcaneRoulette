@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
-
 
 namespace World
 {
@@ -22,6 +19,7 @@ namespace World
             _topologyGenerator = new GridTopologyGenerator(_data);
             _typeAssigner = new RoomTypeAssigner(_data);
         }
+
         public (List<RoomInfo> rooms, bool success) SetupDungeon()
         {
             int attempts = 0;
@@ -31,18 +29,41 @@ namespace World
             {
                 attempts++;
 
-                // Generate GridTopology
                 var (topology, geoSuccess) = _topologyGenerator.ExecuteLayoutGeneration();
                 if (!geoSuccess) continue;
 
-                // Assign RoomType to rooms
                 var (finalRooms, assignSuccess) = _typeAssigner.AssignRoles(topology);
                 if (!assignSuccess) continue;
 
+                if (!IsEndRoomFarEnough()) continue;
+
                 return (finalRooms, true);
             }
-
+            
+            Debug.LogWarning($"<color=yellow>MapGenerator:</color> Failed to generate a valid dungeon after {maxAttempts} attempts. The grid might be too constrained.");
             return (null, false);
+        }
+
+        private bool IsEndRoomFarEnough()
+        {
+            int lobbyIdx = LobbyRoomIndex;
+            int targetIdx = BossRoomIndex; 
+
+            if (lobbyIdx == -1 || targetIdx == -1) 
+            {
+                Debug.LogWarning("MapGenerator: Lobby or Target index is -1. Check RoomTypeAssigner logic.");
+                return false;
+            }
+
+            int lobbyX = DungeonGrid.GetX(lobbyIdx);
+            int lobbyY = DungeonGrid.GetY(lobbyIdx);
+
+            int targetX = DungeonGrid.GetX(targetIdx);
+            int targetY = DungeonGrid.GetY(targetIdx);
+
+            int distance = Mathf.Abs(targetX - lobbyX) + Mathf.Abs(targetY - lobbyY);
+
+            return distance >= 3;
         }
     }
 }

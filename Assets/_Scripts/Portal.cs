@@ -2,38 +2,57 @@ using UnityEngine;
 using Foundation;
 using Core;
 
-public class Portal : MonoBehaviour
+namespace World
 {
-    [SerializeField] private float _radius;
+    public enum PortalType { NextFloor, StartNewRun }
 
-    private void Start()
+    [RequireComponent(typeof(SphereCollider))]
+    public class Portal : MonoBehaviour
     {
-        var col = GetComponent<SphereCollider>();
-        col.radius = _radius / 2;
-        col.isTrigger = true;
-    }
+        [SerializeField] private float _radius = 1.5f;
+        [SerializeField] private PortalType _type = PortalType.NextFloor;
+        [SerializeField] private string _firstLevelSceneName = "Core loop";
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.TryGetComponent<PlayerHurtBox>(out _))
-            return;
+        private bool _hasTriggered = false;
 
-        Debug.LogWarning("Clean this up later.");
-        EventBus.Publish(new StartRunEvent());
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Core loop");
-    }
+        private void Start()
+        {
+            var col = GetComponent<SphereCollider>();
+            col.radius = _radius;
+            col.isTrigger = true;
+        }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (!other.TryGetComponent<PlayerHurtBox>(out _))
-            return;
+        private void OnTriggerEnter(Collider other)
+        {
+            if (_hasTriggered) return;
 
-        //Leave this here in case the player has to press an input to enter.
-    }
+            if (other.TryGetComponent<PlayerHurtBox>(out _))
+            {
+                _hasTriggered = true;
 
-    public void OnDrawGizmos()
-    {
-        Gizmos.color = Color.white;
-        Gizmos.DrawWireSphere(transform.position, _radius);
+                if (_type == PortalType.NextFloor)
+                {
+                    int currentRoomIndex = GameStateManager.RunState.CurrentRoomIndex;
+                    EventBus.Publish(new EndFloorClearEvent(currentRoomIndex));
+                }
+                else if (_type == PortalType.StartNewRun)
+                {
+                    var gameState = FindObjectOfType<GameStateManager>();
+                    
+                    if (gameState != null)
+                        gameState.EndRun();
+
+                    var sceneController = FindObjectOfType<UI.SceneController>();
+                    if (sceneController != null) sceneController.LoadScene(_firstLevelSceneName);
+                    else UnityEngine.SceneManagement.SceneManager.LoadScene(_firstLevelSceneName);
+                }
+            }
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = _type == PortalType.NextFloor ? Color.cyan : Color.green;
+            Gizmos.DrawWireSphere(transform.position, _radius);
+        }
     }
 }
