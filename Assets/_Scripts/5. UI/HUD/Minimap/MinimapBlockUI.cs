@@ -71,7 +71,7 @@ namespace UI
 
         private bool IsMutableRoom(RoomType type)
         {
-            return type == RoomType.Regular || type == RoomType.Resting || type == RoomType.Artifact;
+            return type == RoomType.Combat || type == RoomType.Resting || type == RoomType.Artifact;
         }
     }
 }
