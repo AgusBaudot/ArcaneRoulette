@@ -161,5 +161,11 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
             OnToggleTooltip?.Invoke();
     }
 
+    void PlayerInputActions.IUIActions.OnPauseGame(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            OnPausePressed?.Invoke();
+    }
+
     #endregion
 }

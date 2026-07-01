@@ -329,6 +329,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PauseGame"",
+                    ""type"": ""Button"",
+                    ""id"": ""043902b0-c24a-4320-bd84-df499211f30a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -408,6 +417,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""ToggleTooltip"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4dbd4cbf-4e47-4ff8-ad8d-788428968e3c"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PauseGame"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -430,6 +450,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_UI_CarouselLeft = m_UI.FindAction("CarouselLeft", throwIfNotFound: true);
         m_UI_CarouselRight = m_UI.FindAction("CarouselRight", throwIfNotFound: true);
         m_UI_ToggleTooltip = m_UI.FindAction("ToggleTooltip", throwIfNotFound: true);
+        m_UI_PauseGame = m_UI.FindAction("PauseGame", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -597,6 +618,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_CarouselLeft;
     private readonly InputAction m_UI_CarouselRight;
     private readonly InputAction m_UI_ToggleTooltip;
+    private readonly InputAction m_UI_PauseGame;
     public struct UIActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -605,6 +627,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @CarouselLeft => m_Wrapper.m_UI_CarouselLeft;
         public InputAction @CarouselRight => m_Wrapper.m_UI_CarouselRight;
         public InputAction @ToggleTooltip => m_Wrapper.m_UI_ToggleTooltip;
+        public InputAction @PauseGame => m_Wrapper.m_UI_PauseGame;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -626,6 +649,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started += instance.OnToggleTooltip;
             @ToggleTooltip.performed += instance.OnToggleTooltip;
             @ToggleTooltip.canceled += instance.OnToggleTooltip;
+            @PauseGame.started += instance.OnPauseGame;
+            @PauseGame.performed += instance.OnPauseGame;
+            @PauseGame.canceled += instance.OnPauseGame;
         }
 
         private void UnregisterCallbacks(IUIActions instance)
@@ -642,6 +668,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started -= instance.OnToggleTooltip;
             @ToggleTooltip.performed -= instance.OnToggleTooltip;
             @ToggleTooltip.canceled -= instance.OnToggleTooltip;
+            @PauseGame.started -= instance.OnPauseGame;
+            @PauseGame.performed -= instance.OnPauseGame;
+            @PauseGame.canceled -= instance.OnPauseGame;
         }
 
         public void RemoveCallbacks(IUIActions instance)
@@ -676,5 +705,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnCarouselLeft(InputAction.CallbackContext context);
         void OnCarouselRight(InputAction.CallbackContext context);
         void OnToggleTooltip(InputAction.CallbackContext context);
+        void OnPauseGame(InputAction.CallbackContext context);
     }
 }
