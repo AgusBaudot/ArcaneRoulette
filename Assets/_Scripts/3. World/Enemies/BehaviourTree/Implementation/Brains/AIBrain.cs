@@ -141,12 +141,12 @@ namespace World
         
         protected virtual bool IsInStableDistance(Transform target)
         {
-            if (target == null)
-            {
+            if (target == null) 
+                return false;
+            
                 var p = GameObject.FindGameObjectWithTag("Player");
                 if (p != null) target = p.transform;
                 else return false;
-            }
 
             float distance = Vector3.Distance(transform.position, target.position);
             bool result;
