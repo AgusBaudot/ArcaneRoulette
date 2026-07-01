@@ -15,6 +15,10 @@ namespace UI
         
         [Header("Animation")]
         [SerializeField] private float _fadeDuration = 0.3f;
+        
+        [Header("Cleared State Colors")]
+        [SerializeField] private Color _clearedActiveColor = new(0.4f, 0.4f, 0.4f, 1f);
+        [SerializeField] private Color _clearedDimmedColor = new(0.3f, 0.3f, 0.3f, 1f);
 
         private VolatileRunState.RoomMapData _currentData;
         private RoomStyleConfig _currentStyle;
@@ -53,7 +57,7 @@ namespace UI
     
             if (_currentData.IsCleared && IsMutableRoom(_currentData.Type))
             {
-                targetColor = isCurrentRoom ? new Color(0.4f, 0.4f, 0.4f, 1f) : new Color(0.3f, 0.3f, 0.3f, 1f);
+                targetColor = isCurrentRoom ? _clearedActiveColor : _clearedDimmedColor;
             }
 
             _backgroundImage.DOColor(targetColor, _fadeDuration).SetUpdate(true);
