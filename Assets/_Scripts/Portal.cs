@@ -11,7 +11,7 @@ namespace World
     {
         [SerializeField] private float _radius = 1.5f;
         [SerializeField] private PortalType _type = PortalType.NextFloor;
-        [SerializeField] private string _firstLevelSceneName = "Core loop";
+        [SerializeField] private string _targetSceneName = "Core loop";
 
         private bool _hasTriggered = false;
 
@@ -26,25 +26,20 @@ namespace World
         {
             if (_hasTriggered) return;
 
+            // Perfectly respects your conventions: PlayerHurtBox is the physical trigger
             if (other.TryGetComponent<PlayerHurtBox>(out _))
             {
                 _hasTriggered = true;
 
                 if (_type == PortalType.NextFloor)
                 {
-                    int currentRoomIndex = GameStateManager.RunState.CurrentRoomIndex;
-                    EventBus.Publish(new EndFloorClearEvent(currentRoomIndex));
+                    // Aligned with your defined EventBus convention structs
+                    EventBus.Publish(new EndFloorClearEvent());
                 }
                 else if (_type == PortalType.StartNewRun)
                 {
-                    var gameState = FindObjectOfType<GameStateManager>();
-                    
-                    if (gameState != null)
-                        gameState.EndRun();
-
-                    var sceneController = FindObjectOfType<UI.SceneController>();
-                    if (sceneController != null) sceneController.LoadScene(_firstLevelSceneName);
-                    else UnityEngine.SceneManagement.SceneManager.LoadScene(_firstLevelSceneName);
+                    // Delegate the teardown and scene load securely to Foundation
+                    EventBus.Publish(new EndRunRequestEvent(_targetSceneName));
                 }
             }
         }

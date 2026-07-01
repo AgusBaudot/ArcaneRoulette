@@ -1,6 +1,5 @@
-using UnityEngine;
 using Foundation;
-using UnityEngine.SceneManagement;
+using UnityEngine;
 
 namespace UI
 {
@@ -9,88 +8,85 @@ namespace UI
     {
         [Header("Pause Menu Overlays")]
         [SerializeField] private GameObject _pausePanel;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _menuOpenSound;
+        [SerializeField] private AudioEventSO _menuCloseSound;
 
-        [Tooltip("Use this to handle overlay visibility and UI input blocking")]
-        [SerializeField] private CanvasGroup _canvasGroup;
-
+        private CanvasGroup _canvasGroup;
         private bool _isOpen;
 
         private void Awake()
         {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            
             _isOpen = false;
-            ClosePauseMenu();
-
-            if (_canvasGroup != null)
-                _canvasGroup = GetComponent<CanvasGroup>();
-
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
+            SetOverlayState(false);
         }
 
         private void OnEnable()
         {
             Helpers.Input.OnPausePressed += TogglePauseMenu;
-            EventBus.Subscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Subscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Subscribe<OnRunQuitEvent>(OnRunQuit);
+            EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
         }
 
         private void OnDisable()
         {
             Helpers.Input.OnPausePressed -= TogglePauseMenu;
-            EventBus.Unsubscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Unsubscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Unsubscribe<OnRunQuitEvent>(OnRunQuit);
+            EventBus.Subscribe<OnRunQuitEvent>(QuitToMainMenu);
         }
 
         private void TogglePauseMenu()
         {
             if (_isOpen)
-                EventBus.Publish<OnGameResumedEvent>(new OnGameResumedEvent());
+                ClosePauseMenu();
             else
-                EventBus.Publish<OnGamePausedEvent>(new OnGamePausedEvent());
+                OpenPauseMenu();
         }
 
         private void OpenPauseMenu()
         {
             _isOpen = true;
-
             SetOverlayState(true);
 
+            Time.timeScale = 0f;
+            AudioListener.pause = true;
             Helpers.Input.EnableUIInput();
 
-            Time.timeScale = 0f;
+            if (_menuOpenSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = _menuOpenSound });
         }
 
-        private void ClosePauseMenu()
+        public void ClosePauseMenu()
         {
             _isOpen = false;
-
-            Helpers.Input.EnablePlayerInput();
-
             SetOverlayState(false);
 
             Time.timeScale = 1f;
+            Helpers.Input.EnablePlayerInput();
+
+            if (_menuCloseSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });
         }
         
-        //Visual and interactive state of the pause menu overlay handler
+        public void QuitToMainMenu(OnRunQuitEvent _)
+        {
+            AudioListener.pause = false;
+            Time.timeScale = 1f;
+    
+            Helpers.Input.EnablePlayerInput(); 
+
+            EventBus.Publish(new EndRunRequestEvent("Main Menu"));
+        }
+
         private void SetOverlayState(bool isActive)
         {
             if (_pausePanel != null)
                 _pausePanel.SetActive(isActive);
 
-            if (_canvasGroup != null)
-            {
-                _canvasGroup.alpha = isActive ? 1f : 0f;
-                _canvasGroup.blocksRaycasts = isActive;
-                _canvasGroup.interactable = isActive;
-            }
+            _canvasGroup.alpha = isActive ? 1f : 0f;
+            _canvasGroup.blocksRaycasts = isActive;
+            _canvasGroup.interactable = isActive;
         }
-
-        // Event Handlers
-        private void OnGamePaused(OnGamePausedEvent _) => OpenPauseMenu();
-        private void OnGameResumed(OnGameResumedEvent _) => ClosePauseMenu();
-        private void OnRunQuit(OnRunQuitEvent _) => SceneManager.LoadScene("Main Menu");
     }
 }
-
