@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 using Foundation;
 
 namespace Core
@@ -85,7 +84,6 @@ namespace Core
             {
                 _spriteRenderer.color = red ? Color.red : Color.white;
                 red = !red;
-                //Unscaled: flash keeps running during hitstop
                 yield return new WaitForSecondsRealtime(_stats.IFrameFlashInterval);
                 elapsed += _stats.IFrameFlashInterval;
             }
