@@ -22,7 +22,7 @@ namespace World
             {
                 new WeightedRoom { Type = RoomType.Shop, CurrentWeight = startingWeight },
                 new WeightedRoom { Type = RoomType.Resting, CurrentWeight = startingWeight },
-                new WeightedRoom { Type = RoomType.Artifact, CurrentWeight = startingWeight },
+                // new WeightedRoom { Type = RoomType.Artifact, CurrentWeight = startingWeight },
             };
         }
 

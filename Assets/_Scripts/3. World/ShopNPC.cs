@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core;
 using Foundation;
+using UI;
 using UnityEngine;
 
 namespace World
@@ -24,7 +25,8 @@ namespace World
         private void Awake()
         {
             GenerateStock();
-            if (_interactPrompt) _interactPrompt.SetActive(false);
+            if (_interactPrompt)
+                _interactPrompt.SetActive(false);
         }
 
         private void OnEnable()
@@ -96,7 +98,10 @@ namespace World
             if (other.GetComponentInParent<PlayerController>() != null)
             {
                 _playerInside = true;
-                if (_interactPrompt) _interactPrompt.SetActive(true);
+                if (!_interactPrompt)
+                    _interactPrompt = FindObjectOfType<ShopUI>().gameObject;
+                    
+                _interactPrompt.SetActive(true);
             }
         }
 
@@ -105,7 +110,8 @@ namespace World
             if (other.GetComponentInParent<PlayerController>() != null)
             {
                 _playerInside = false;
-                if (_interactPrompt) _interactPrompt.SetActive(false);
+                if (_interactPrompt)
+                    _interactPrompt.SetActive(false);
             }
         }
     }
