@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace World
 {
-    public sealed class ShopNPC : MonoBehaviour
+    public sealed class ShopNPC : MonoBehaviour, IShop
     {
         [Header("Config")] [SerializeField] private PickupDropPool _runePool;
 
@@ -16,11 +16,14 @@ namespace World
         private bool _playerInside;
 
         // Stock state lives on the NPC, so closing and reopening preserves it
-        public List<RuneDefinitionSO> StockRunes { get; private set; } = new List<RuneDefinitionSO>();
+        public IReadOnlyList<RuneDefinitionSO> StockRunes => _stockRunes;
 
         // public List<ArtifactDefinitionSO> StockArtifacts { get; private set; } = new List<ArtifactDefinitionSO>(); // Uncomment once artifacts are implemented 
-        public List<bool> RunePurchasedState { get; private set; } = new List<bool>();
+        public IReadOnlyList<bool> RunePurchasedState => _runePurchasedState;
         public List<bool> ArtifactPurchasedState { get; private set; } = new List<bool>();
+        
+        private List<RuneDefinitionSO> _stockRunes = new();
+        private List<bool> _runePurchasedState = new();
 
         private void Awake()
         {
@@ -45,23 +48,23 @@ namespace World
             if (!isReroll)
             {
                 // Initial Generation: Wipe everything and roll 4 fresh runes
-                StockRunes.Clear();
-                RunePurchasedState.Clear();
+                _stockRunes.Clear();
+                _runePurchasedState.Clear();
 
                 var newRunes = _runePool.GetRandomRunes(4);
                 foreach (var rune in newRunes)
                 {
-                    StockRunes.Add(rune);
-                    RunePurchasedState.Add(false); // Default to not purchased
+                    _stockRunes.Add(rune);
+                    _runePurchasedState.Add(false); // Default to not purchased
                 }
             }
             else
             {
                 // Reroll Generation: Only replace slots that are not sold
                 int neededRunes = 0;
-                for (int i = 0; i < RunePurchasedState.Count; i++)
+                for (int i = 0; i < _runePurchasedState.Count; i++)
                 {
-                    if (!RunePurchasedState[i]) neededRunes++;
+                    if (!_runePurchasedState[i]) neededRunes++;
                 }
 
                 if (neededRunes > 0)
@@ -70,19 +73,27 @@ namespace World
                     var newRunes = _runePool.GetRandomRunes(neededRunes);
                     int rollIndex = 0;
 
-                    for (int i = 0; i < RunePurchasedState.Count; i++)
+                    for (int i = 0; i < _runePurchasedState.Count; i++)
                     {
-                        if (!RunePurchasedState[i])
+                        if (!_runePurchasedState[i])
                         {
                             // Safety check in case the pool has fewer total runes than we requested
                             if (rollIndex < newRunes.Length)
                             {
-                                StockRunes[i] = newRunes[rollIndex];
+                                _stockRunes[i] = newRunes[rollIndex];
                                 rollIndex++;
                             }
                         }
                     }
                 }
+            }
+        }
+
+        public void MarkRunePurchased(int index)
+        {
+            if (index >= 0 && index < _runePurchasedState.Count)
+            {
+                _runePurchasedState[index] = true;
             }
         }
 

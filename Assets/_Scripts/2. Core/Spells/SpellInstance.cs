@@ -42,9 +42,10 @@ namespace Core
         public SpellRecipe Recipe => _recipe;
         public AbilityType AbilityType => _recipe.Ability.Type;
         public bool IsHoldAbility => false;
-        public bool IsReady => _cooldownRemaining <= 0f;
+        public virtual bool IsReady => _cooldownRemaining <= 0f;
         public ElementType SpellElement
             => _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral;
+        public Sprite Icon => _recipe.Ability?.StoneLessIcon;
         
         public virtual ShieldInstanceState ShieldState => null;
         public virtual float DisplayProgress => CooldownProgress;

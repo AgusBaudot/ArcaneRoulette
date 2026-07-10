@@ -85,7 +85,6 @@ namespace Core
             
             // 8. Bind into the slot and notify PlayerController via bus.
             _attunement.Bind(slot, result);
-            EventBus.Publish(new SpellCraftedEvent(slot, result));
             
             return true;
         }

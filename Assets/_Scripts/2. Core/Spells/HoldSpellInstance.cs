@@ -15,6 +15,7 @@ namespace Core
         
         public override ShieldInstanceState ShieldState { get; } = new();
         public override float DisplayProgress => Energy.Current / Energy.Max;
+        public override bool IsReady => !Energy.IsBroken && Energy.Current > 0f;
         
         internal HoldSpellInstance(SpellRecipe recipe) : base(recipe) { }
 

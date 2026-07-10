@@ -164,7 +164,7 @@ namespace Meta
             if (req.Handle == null || !req.Handle.IsValid)
                 return;
 
-            var emitter = req.Handle.Emitter as AudioEmitter;
+            var emitter = req.Handle.Emitter;
             if (emitter == null)
                 return;
             
@@ -205,7 +205,7 @@ namespace Meta
             if (req.Handle == null || !req.Handle.IsValid)
                 return;
 
-            var emitter = req.Handle.Emitter as AudioEmitter;
+            var emitter = req.Handle.Emitter;
             if (emitter == null)
                 return;
             
@@ -213,7 +213,7 @@ namespace Meta
                 emitter.SetPitch(req.Pitch.Value);
             
             if (req.Volume.HasValue)
-                emitter.SetPitch(req.Volume.Value);
+                emitter.SetVolume(req.Volume.Value);
         }
 
         #endregion

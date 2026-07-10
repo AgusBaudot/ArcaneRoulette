@@ -2,6 +2,6 @@ namespace Foundation
 {
     public struct ShopOpenRequestEvent
     {
-        public World.ShopNPC ShopInstance;
+        public IShop ShopInstance;
     }
 }

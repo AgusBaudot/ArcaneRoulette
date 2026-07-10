@@ -1,7 +1,5 @@
-using System;
 using Foundation;
 using UnityEngine;
-using World;
 
 namespace UI
 {
@@ -17,7 +15,7 @@ namespace UI
         [SerializeField] private AudioEventSO _menuCloseSound;
         [SerializeField] private AudioEventSO _rerollSound;
 
-        private ShopNPC _currentShop;
+        private IShop _currentShop;
 
         private void Awake()
         {
@@ -108,7 +106,7 @@ namespace UI
                 if (isRune)
                 {
                     GameStateManager.RunState.AddRune(_currentShop.StockRunes[index]);
-                    _currentShop.RunePurchasedState[index] = true;
+                    _currentShop.MarkRunePurchased(index);
                 }
                 else
                 {
