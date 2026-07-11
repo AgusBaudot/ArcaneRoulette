@@ -41,6 +41,7 @@ namespace Meta
         /// </summary>
         internal void Init(
             AudioEventSO audioEvent,
+            AudioClip clipToPlay,
             AudioMixerGroup mixerGroup,
             Vector3 worldPosition,
             AudioHandle handle,
@@ -53,7 +54,7 @@ namespace Meta
             transform.position = audioEvent.Is3D ? worldPosition : Vector3.zero;
             
             // ── AudioSource configuration ────────────────────────────────────
-            _source.clip = audioEvent.PickClip();
+            _source.clip = clipToPlay;
             _source.outputAudioMixerGroup = mixerGroup;
             _source.loop = audioEvent.Loop;
             _source.ignoreListenerPause = (audioEvent.Bus == MixerBus.UI || audioEvent.Bus == MixerBus.Music); 

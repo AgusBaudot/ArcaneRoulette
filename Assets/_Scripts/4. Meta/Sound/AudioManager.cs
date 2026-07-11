@@ -70,6 +70,9 @@ namespace Meta
         //Per-event cooldown tracking (uses unscaled time)
         private readonly Dictionary<AudioEventSO, float> _lastPlayTime = new();
         
+        //Per-event clip index tracking
+        private readonly Dictionary<AudioEventSO, int> _lastPlayedClipIndex = new();
+        
         // ── Music Crossfade State ──────────────────────────────────────────────
         private AudioEmitter _musicSlotA;
         private AudioEmitter _musicSlotB;
@@ -273,11 +276,40 @@ namespace Meta
             emitter.gameObject.SetActive(true);
             emitter.Init(
                 audioEvent,
+                GetNextClip(audioEvent),
                 GetMixerGroup(audioEvent.Bus),
                 worldPos,
                 handle,
                 onNaturalEnd: e => ReturnToPool(audioEvent, e)
             );
+        }
+        
+        /// <summary>
+        /// Resolves the next clip to play, guaranteeing no consecutive repeats 
+        /// if multiple clips are available.
+        /// </summary>
+        private AudioClip GetNextClip(AudioEventSO audioEvent)
+        {
+            if (audioEvent.Clips == null || audioEvent.Clips.Length == 0)
+            {
+                Debug.LogWarning($"[AudioManager] AudioEvent '{audioEvent.name}' has no clips assigned.");
+                return null;
+            }
+
+            if (audioEvent.Clips.Length == 1)
+                return audioEvent.Clips[0];
+
+            int lastIndex = _lastPlayedClipIndex.GetValueOrDefault(audioEvent, -1);
+            int newIndex;
+
+            do
+            {
+                newIndex = Random.Range(0, audioEvent.Clips.Length);
+            } 
+            while (newIndex == lastIndex);
+
+            _lastPlayedClipIndex[audioEvent] = newIndex;
+            return audioEvent.Clips[newIndex];
         }
 
         #endregion
@@ -309,7 +341,7 @@ namespace Meta
                     _musicSlotA = nextEmitter;
 
                 nextEmitter.gameObject.SetActive(true);
-                nextEmitter.Init(newTrack, GetMixerGroup(MixerBus.Music), Vector3.zero, null,
+                nextEmitter.Init(newTrack, GetNextClip(newTrack), GetMixerGroup(MixerBus.Music), Vector3.zero, null,
                     onNaturalEnd: e => ReturnToPool(newTrack, e));
                 
                 //Immediately set to 0 volume; we'll fade it in.

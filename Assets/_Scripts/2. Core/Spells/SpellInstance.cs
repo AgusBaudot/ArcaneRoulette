@@ -72,7 +72,7 @@ namespace Core
         // Called by SpellCrafter.Dismantle before slot deallocation.
         // Drains _cleanupActions — each closure unsubscribes one delegate.
         // Safe to call more than once (list is cleared after drain).
-        internal void Cleanup()
+        internal virtual void Cleanup()
         {
             foreach (var action in _cleanupActions) action();
             _cleanupActions.Clear();
@@ -121,7 +121,8 @@ namespace Core
             MonoBehaviour runner,
             AbilityType abilityTypeForContext,
             bool excludeBounceCastRune,
-            Vector3 attackerDirection = default)
+            Vector3 attackerDirection = default,
+            bool isSecondaryHit = false)
         {
             int[] castCounts = _castCounts;
             if (excludeBounceCastRune)
@@ -136,15 +137,11 @@ namespace Core
                 }
             }
             
-            //The callback captures 'this' and 'runner' - secondary hits re-enter TriggerOnHit
-            //on this same SpellInstance, propagating the full OnHit rune chain.
-            Action<Vector3, GameObject, Vector3> secondary = (pos, tgt, secDir)
-                => TriggerOnHit(pos, tgt, runner, abilityTypeForContext, excludeBounceCastRune, secDir);
-
             var ctx = SpellContext.ForHit(
                 abilityTypeForContext, castCounts, _onHitCounts, position, target, runner,
                 _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral,
-                secondary, _recipe.Ability, this, attackerDirection);
+                _recipe.Ability, this, attackerDirection, isSecondaryHit);
+                
             FireOnHitRunes(ctx);
         }
 
@@ -154,7 +151,7 @@ namespace Core
         protected SpellContext BuildCastContext(MonoBehaviour runner)
             => SpellContext.ForCast(
                 _recipe.Ability.Type, _castCounts, _onHitCounts,
-                runner, SpellElement, _recipe.Ability, this);
+                runner, SpellElement, _recipe.Ability, this, false);
 
         protected void FireOnHitRunes(SpellContext ctx)
         {
