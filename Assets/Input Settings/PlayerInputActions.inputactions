@@ -273,7 +273,7 @@
             "id": "8d909b14-8eb6-4b6f-a4c2-9f5eb87c7cba",
             "actions": [
                 {
-                    "name": "ToggleCrafting",
+                    "name": "CloseMenu",
                     "type": "Button",
                     "id": "aefa3560-a5c3-4389-8e68-f065d1a806ca",
                     "expectedControlType": "Button",
@@ -307,15 +307,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "PauseGame",
-                    "type": "Button",
-                    "id": "043902b0-c24a-4320-bd84-df499211f30a",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -326,7 +317,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ToggleCrafting",
+                    "action": "CloseMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -337,7 +328,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "ToggleCrafting",
+                    "action": "CloseMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "56218265-14c8-4cc5-8d89-82bcc0efc2c9",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CloseMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -393,17 +395,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleTooltip",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "4dbd4cbf-4e47-4ff8-ad8d-788428968e3c",
-                    "path": "<Keyboard>/escape",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "PauseGame",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

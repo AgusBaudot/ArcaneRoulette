@@ -26,20 +26,15 @@ namespace UI
         {
             EventBus.Subscribe<ShopOpenRequestEvent>(OnShopOpenRequested);
 
-            if (Helpers.Input != null)
-            {
-                Helpers.Input.OnCloseCrafting += HandleCloseInput;
-            }
+
+            Helpers.Input.OnCloseMenu += HandleCloseInput;
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<ShopOpenRequestEvent>(OnShopOpenRequested);
-            
-            if (Helpers.Input != null)
-            {
-                Helpers.Input.OnCloseCrafting -= HandleCloseInput;
-            }
+
+            Helpers.Input.OnCloseMenu -= HandleCloseInput;
         }
 
         private void OnShopOpenRequested(ShopOpenRequestEvent evt)
@@ -67,7 +62,7 @@ namespace UI
         {
             _panel.SetActive(false);
             TooltipSystem.Instance?.Hide();
-            
+
             Time.timeScale = 1f;
             Helpers.Input.EnablePlayerInput();
 

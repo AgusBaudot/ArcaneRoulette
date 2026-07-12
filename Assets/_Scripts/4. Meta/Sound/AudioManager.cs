@@ -84,12 +84,9 @@ namespace Meta
         private readonly Dictionary<MixerBus, float> _activeDuckDepths = new();
         private readonly Dictionary<MixerBus, Coroutine> _duckCoroutines = new();
         
-        // ── PlayerPrefs Keys ───────────────────────────────────────────────────
-        private const string PrefMaster = "Audio_Master";
-        private const string PrefMusic = "Audio_Music";
-        private const string PrefSFX = "Audio_SFX";
-        private const string PrefUI = "Audio_UI";
-        private const string PrefAmbience = "Audio_Ambience";
+        // ── Save Load System ───────────────────────────────────────────────────
+        private ISettingsSave _saveSystem;
+        private SettingsSaveData _currentSettings;
 
         #endregion
 
@@ -111,6 +108,10 @@ namespace Meta
 
         private void Start()
         {
+            //Initialize the save system here.
+            //Later on, Bootstrapper can inject this.
+            _saveSystem = new SaveLoadSystem();
+            
             LoadVolumePrefs();
         }
 
@@ -425,30 +426,66 @@ namespace Meta
 
         /// <summary>
         /// Set the volume for a bus. normalizedVolume is 0-1.
-        /// Persists to PlayerPrefs. Call from the setting UI sliders.
+        /// Updates memory and mixer instantly. Call CommitSettingsToDisk() to save.
         /// </summary>
         public void SetBusVolume(MixerBus bus, float normalizedVolume)
         {
             string param = GetVolumeParam(bus);
-            string pref = GetPrefKey(bus);
             SetMixerVolume(param, normalizedVolume);
-            PlayerPrefs.SetFloat(pref, normalizedVolume);
-            PlayerPrefs.Save();
+
+            if (_currentSettings != null)
+            {
+                switch (bus)
+                {
+                    case MixerBus.Master: _currentSettings.MasterVolume = normalizedVolume; break;
+                    case MixerBus.Music: _currentSettings.MusicVolume = normalizedVolume; break;
+                    case MixerBus.SFX: _currentSettings.SFXVolume = normalizedVolume; break;
+                    case MixerBus.UI: _currentSettings.UIVolume = normalizedVolume; break;
+                    case MixerBus.Ambience: _currentSettings.AmbienceVolume = normalizedVolume; break;
+                }
+            }
         }
 
         /// <summary>
         /// Returns the current normalised volume (0-1) for a bus.
         /// </summary>
         public float GetBusVolume(MixerBus bus)
-            => PlayerPrefs.GetFloat(GetPrefKey(bus), 1f);
+        {
+            if (_currentSettings == null)
+                return 1f;
+
+            return bus switch
+            {
+                MixerBus.Master => _currentSettings.MasterVolume,
+                MixerBus.Music => _currentSettings.MusicVolume,
+                MixerBus.SFX => _currentSettings.SFXVolume,
+                MixerBus.UI => _currentSettings.UIVolume,
+                MixerBus.Ambience => _currentSettings.AmbienceVolume,
+                _ => 1f
+            };
+        }
 
         private void LoadVolumePrefs()
         {
-            SetMixerVolume(_masterVolumeParam, PlayerPrefs.GetFloat(PrefMaster, 1f));
-            SetMixerVolume(_musicVolumeParam, PlayerPrefs.GetFloat(PrefMusic, 1f));
-            SetMixerVolume(_sfxVolumeParam, PlayerPrefs.GetFloat(PrefSFX, 1f));
-            SetMixerVolume(_uiVolumeParam, PlayerPrefs.GetFloat(PrefUI, 1f));
-            SetMixerVolume(_ambienceVolumeParam, PlayerPrefs.GetFloat(PrefAmbience, 1f));
+            _currentSettings = _saveSystem.LoadSettings();
+            
+            SetMixerVolume(_masterVolumeParam, _currentSettings.MasterVolume);
+            SetMixerVolume(_musicVolumeParam, _currentSettings.MusicVolume);
+            SetMixerVolume(_sfxVolumeParam, _currentSettings.SFXVolume);
+            SetMixerVolume(_uiVolumeParam, _currentSettings.UIVolume);
+            SetMixerVolume(_ambienceVolumeParam, _currentSettings.AmbienceVolume);
+        }
+
+        /// <summary>
+        /// Writes the cached volume settings to the JSON file.
+        /// Should be called by AudioSettingsUI.OnDisable().
+        /// </summary>
+        public void CommitSettingsToDisk()
+        {
+            if (_saveSystem != null && _currentSettings != null)
+            {
+                _saveSystem.SaveSettings(_currentSettings);
+            }
         }
         
         //AudioMixer uses decibels; we expose normalized 0-1 to the UI and convert here.
@@ -533,16 +570,6 @@ namespace Meta
                 MixerBus.UI => _uiVolumeParam,
                 MixerBus.Ambience => _ambienceVolumeParam,
                 _ => _masterVolumeParam
-            };
-
-        private static string GetPrefKey(MixerBus bus)
-            => bus switch
-            {
-                MixerBus.Music => PrefMusic,
-                MixerBus.SFX => PrefSFX,
-                MixerBus.UI => PrefUI,
-                MixerBus.Ambience => PrefAmbience,
-                _ => PrefMaster
             };
 
         #endregion

@@ -98,7 +98,7 @@ namespace UI
             Helpers.Input.OnCraftingMenuPressed += OpenCraftingUI;
             
             //Listen for UI interactions
-            Helpers.Input.OnCloseCrafting += CloseCraftingUI;
+            Helpers.Input.OnCloseMenu += CloseCraftingUI;
             Helpers.Input.OnCarouselLeft += OnLeftArrow;
             Helpers.Input.OnCarouselRight += OnRightArrow;
             if (_tooltip != null)
@@ -109,7 +109,7 @@ namespace UI
         {
             Helpers.Input.OnCraftingMenuPressed -= OpenCraftingUI;
             
-            Helpers.Input.OnCloseCrafting -= CloseCraftingUI;
+            Helpers.Input.OnCloseMenu -= CloseCraftingUI;
             Helpers.Input.OnCarouselLeft -= OnLeftArrow;
             Helpers.Input.OnCarouselRight -= OnRightArrow;
             if (_tooltip != null)
