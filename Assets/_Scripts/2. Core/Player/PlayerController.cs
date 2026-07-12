@@ -303,9 +303,11 @@ namespace Core
             if (_spriteTransform == null) 
                 return;
 
-            var size = _spriteTransform.localScale.y;
-            _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? size : -size, size, size);
+            //COMMENTED OUT FOR ANIMATIONS
+            
+            // var size = _spriteTransform.localScale.y;
+            // _spriteTransform.localScale = new Vector3(
+            //     _facingDirection.x < 0f ? size : -size, size, size);
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;
