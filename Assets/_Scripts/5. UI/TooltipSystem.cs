@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using Foundation;
-using Core;
+using UnityEngine.UI;
 
 namespace UI
 {
@@ -12,8 +12,7 @@ namespace UI
     {
         public static TooltipSystem Instance { get; private set; }
 
-        [Header("Panel")]
-        [SerializeField] private GameObject _panel;
+        [Header("Panel references")]
         [SerializeField] private RectTransform _panelRect;
 
         [Header("Text fields")]
@@ -25,8 +24,9 @@ namespace UI
         [Tooltip("Pixel offset from the tile's pivot in screen space.")]
         [SerializeField] private Vector2 _offset = new(10f, -10f);
 
-        private bool _enabled = true;
+        private CanvasGroup _canvasGroup;
         private Canvas _canvas;
+        private bool _enabled = true;
 
         private void Awake()
         {
@@ -37,13 +37,17 @@ namespace UI
             }
 
             Instance = this;
+            
+            _canvasGroup = GetComponent<CanvasGroup>();
             _canvas = GetComponent<Canvas>();
-            _panel.SetActive(false);
+
+            Hide();
         }
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            if (Instance == this) 
+                Instance = null;
         }
 
         // Called by RuneTileUI.OnPointerEnter
@@ -55,19 +59,22 @@ namespace UI
             _nameText.text = rune.Name;
             _typeText.text = rune.Type;
             _descriptionText.text = rune.Description;
-
-            _panel.SetActive(true);
-
-            // Force layout rebuild so _panelRect.sizeDelta is accurate before clamping
-            UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRect);
-
+            
+            _canvasGroup.alpha = 1f;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
+            
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRect);
+            
             PositionTooltip(tileRect);
         }
 
         // Called by RuneTileUI.OnPointerExit
         public void Hide()
         {
-            _panel.SetActive(false);
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
         }
 
         private void PositionTooltip(RectTransform tileRect)
@@ -110,17 +117,5 @@ namespace UI
             _enabled = !_enabled;
             Hide();
         }
-
-        // private static string GetRuneTypeLabel(RuneDefinitionSO rune)
-        // {
-        //     return rune switch
-        //     {
-        //         AbilityRuneSO  => "Ability",
-        //         ElementRuneSO  => "Element",
-        //         CastRuneSO     => "Cast",
-        //         OnHitRuneSO    => "On Hit",
-        //         _              => "Rune"
-        //     };
-        // }
     }
 }

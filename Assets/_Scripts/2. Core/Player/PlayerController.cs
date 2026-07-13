@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
@@ -140,6 +141,11 @@ namespace Core
                 
                 _runAudioHandle = null;
             }
+        }
+
+        private void Start()
+        {
+            Helpers.Input.EnablePlayerInput();
         }
 
         #endregion

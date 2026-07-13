@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6449086455185370045}
-  - component: {fileID: 1920845819614307614}
+  - component: {fileID: 5058041063243993570}
   - component: {fileID: 3292331256749651293}
   m_Layer: 5
-  m_Name: ShopUI_Container
+  m_Name: Shop_Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -38,14 +38,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &1920845819614307614
-CanvasRenderer:
+--- !u!225 &5058041063243993570
+CanvasGroup:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 232455375879349917}
-  m_CullTransparentMesh: 1
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &3292331256749651293
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58,7 +62,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d605d735f3d74061919e1912cd721183, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _panel: {fileID: 8804966756659069840}
+  _panel: {fileID: 0}
   _runeSlots:
   - {fileID: 6675176778881004695}
   - {fileID: 7093374524911466506}
@@ -1351,10 +1355,50 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4611880625761341396, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4611880625761341396, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4611880625761341396, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 21.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4611880625761341396, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -50
+      objectReference: {fileID: 0}
     - target: {fileID: 5657603673032506389, guid: e982cc3a97875d74a843bc3ca0722f98,
         type: 3}
       propertyPath: m_Name
       value: ShopItemSlot
+      objectReference: {fileID: 0}
+    - target: {fileID: 6289789409215553687, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6289789409215553687, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6289789409215553687, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 63.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 6289789409215553687, guid: e982cc3a97875d74a843bc3ca0722f98,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -50
       objectReference: {fileID: 0}
     - target: {fileID: 8804023055516391337, guid: e982cc3a97875d74a843bc3ca0722f98,
         type: 3}

@@ -18,7 +18,15 @@ namespace Meta
             try
             {
                 string json = File.ReadAllText(SettingsFilePath);
-                return JsonUtility.FromJson<SettingsSaveData>(json) ?? new SettingsSaveData();
+                var data = JsonUtility.FromJson<SettingsSaveData>(json) ?? new SettingsSaveData();
+
+                data.MasterVolume = Mathf.Clamp01(data.MasterVolume);
+                data.MusicVolume = Mathf.Clamp01(data.MusicVolume);
+                data.SFXVolume = Mathf.Clamp01(data.SFXVolume);
+                data.UIVolume = Mathf.Clamp01(data.UIVolume);
+                data.AmbienceVolume = Mathf.Clamp01(data.AmbienceVolume);
+
+                return data;
             }
             catch (Exception e)
             {

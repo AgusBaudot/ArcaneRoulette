@@ -5,5 +5,5 @@ using Foundation;
 public class QuitRunButton : MonoBehaviour
 {
      private void Start() => GetComponent<Button>().onClick.AddListener(
-            () => EventBus.Publish(new OnRunQuitEvent()));
+            () => EventBus.Publish(new EndRunRequestEvent("Main Menu")));
 }

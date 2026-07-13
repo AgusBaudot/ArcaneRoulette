@@ -19,8 +19,6 @@ namespace Foundation
             }
             else
             {
-                // We just changed floors! The state survived. 
-                // Re-wire the new scene's events to the existing run state.
                 SubscribeEvents();
                 OnRunStateInitialized?.Invoke(RunState);
             }
@@ -43,6 +41,10 @@ namespace Foundation
 
         public void EndRun(string destinationScene)
         {
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            Helpers.Input.EnablePlayerInput();
+            
             EventBus.Publish(new AudioCrossfadeRequest { NewTrack = null, Duration = 1.0f });
 
             if (RunState != null)
@@ -59,6 +61,9 @@ namespace Foundation
         private void InitializeNewRun()
         {
             RunState = new VolatileRunState(100f);
+            
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
             
             // TODO: Per your conventions document, StartRun() is supposed to 
             // "seed one of each ability rune" here to give the player a starting loadout!
