@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using DG.Tweening;
 using Foundation;
 using UnityEngine;
@@ -53,7 +52,8 @@ namespace UI
 
             foreach (var kvp in GameStateManager.RunState.FloorMap)
             {
-                if (kvp.Value.IsDiscovered) SpawnBlock(kvp.Value);
+                if (kvp.Value.IsDiscovered) 
+                    SpawnBlock(kvp.Value);
             }
 
             CenterMapOnIndex(GameStateManager.RunState.CurrentRoomIndex, instant: true);

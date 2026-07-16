@@ -80,11 +80,13 @@ namespace Core
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
             EventBus.Subscribe((PlayerDiedEvent _) => _isAlive = false);
+            EventBus.Subscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
         private void OnDestroy()
         {
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
+            EventBus.Unsubscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
         private void OnEnable()
@@ -322,7 +324,7 @@ namespace Core
             _rb.velocity = velocity;
         }
 
-        public void TeleportTo(Vector3 pos)
+        public void TeleportTo(PlayerTeleportRequestEvent evt)
         {
             _velocity = Vector3.zero;
             _rb.velocity = Vector3.zero;
@@ -330,7 +332,7 @@ namespace Core
             var previousInterpolation = _rb.interpolation;
             _rb.interpolation = RigidbodyInterpolation.None;
             
-            _rb.position = pos;
+            _rb.position = evt.Position;
             
             _rb.interpolation = previousInterpolation;
         }

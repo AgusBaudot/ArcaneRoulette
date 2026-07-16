@@ -231,8 +231,10 @@ namespace Foundation
             _runeAllocated.Clear();
 
             // Room progress
-            // OnRoomChanged = null;
-            Debug.LogError("Cleanup for rooms is missing");
+            FloorMap.Clear();
+            CurrentRoomIndex = -1;
+            OnPlayerEnteredRoom = null;
+            OnFloorMapGenerated = null;
 
             // Modifier pipeline
             OnCalculateDamageOut = null;

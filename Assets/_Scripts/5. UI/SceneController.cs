@@ -11,7 +11,7 @@ namespace UI
         [Header("Settings")]
         [SerializeField] private float _sceneFadeDuration = 1f;
         [SerializeField] private float _delayBeforeDeathFade = 2f;
-        [SerializeField] private string _mainMenuSceneName = "MainMenu";
+        [SerializeField] private string _mainMenuSceneName = SceneNames.MainMenu;
 
         private CanvasGroup _canvasGroup;
         private bool _isTransitioning;
@@ -28,14 +28,16 @@ namespace UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<EndFloorClearEvent>(HandleFloorCleared);
+            EventBus.Subscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
+            EventBus.Subscribe<QuitRunRequestEvent>(HandleQuitRequest);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<EndFloorClearEvent>(HandleFloorCleared);
+            EventBus.Unsubscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
+            EventBus.Unsubscribe<QuitRunRequestEvent>(HandleQuitRequest);
         }
 
         private void Start()
@@ -47,16 +49,17 @@ namespace UI
 
         // ── Triggers ─────────────────────────────────────────────────────────
 
-        private void HandleFloorCleared(EndFloorClearEvent evt)
+        private void HandleFloorCleared(FloorClearedEvent evt)
         {
             if (_isTransitioning) return;
             _isTransitioning = true;
             
             _canvasGroup.blocksRaycasts = true;
-            
+            string currentScene = SceneManager.GetActiveScene().name;
+
             _canvasGroup.DOFade(1f, _sceneFadeDuration)
                 .SetUpdate(true)
-                .OnComplete(() => SceneManager.LoadScene(SceneManager.GetActiveScene().name));
+                .OnComplete(() => EventBus.Publish(new FloorTransitionRequestEvent(currentScene)));
         }
 
         private void HandlePlayerDeath(PlayerDiedEvent _)
@@ -76,6 +79,19 @@ namespace UI
                 EventBus.Publish(new EndRunRequestEvent(_mainMenuSceneName));
             });
         }
+
+        private void HandleQuitRequest(QuitRunRequestEvent evt)
+        {
+            if (_isTransitioning) 
+                return;
+            
+            _isTransitioning = true;
+            
+            _canvasGroup.blocksRaycasts = true;
+            _canvasGroup.DOFade(1f, _sceneFadeDuration)
+                .SetUpdate(true)
+                .OnComplete(() => EventBus.Publish(new EndRunRequestEvent(evt.DestinationScene)));
+        }
         
         public void LoadScene(string sceneName)
         {
@@ -83,10 +99,10 @@ namespace UI
             _isTransitioning = true;
             
             _canvasGroup.blocksRaycasts = true;
-            
+
             _canvasGroup.DOFade(1f, _sceneFadeDuration)
                 .SetUpdate(true)
-                .OnComplete(() => SceneManager.LoadScene(sceneName));
+                .OnComplete(() => EventBus.Publish(new FloorTransitionRequestEvent(sceneName)));
         }
     }
 }

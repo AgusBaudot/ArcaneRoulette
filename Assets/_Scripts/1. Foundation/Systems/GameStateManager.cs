@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using World;
 
 namespace Foundation
@@ -7,6 +8,9 @@ namespace Foundation
     [DefaultExecutionOrder(-500)]
     public class GameStateManager : MonoBehaviour
     {
+        [Header("Starting Loadout")] [SerializeField]
+        private AbilityRuneSO[] _startingRunes;
+        
         public static VolatileRunState RunState { get; private set; }
         
         public static event Action<VolatileRunState> OnRunStateInitialized;
@@ -27,11 +31,14 @@ namespace Foundation
         private void OnEnable()
         {
             EventBus.Subscribe<EndRunRequestEvent>(HandleRunQuit);
+            EventBus.Subscribe<FloorTransitionRequestEvent>(HandleFloorTransition);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<EndRunRequestEvent>(HandleRunQuit);
+            EventBus.Unsubscribe<FloorTransitionRequestEvent>(HandleFloorTransition);
+            UnsubscribeRoomEvents();
         }
         
         private void HandleRunQuit(EndRunRequestEvent payload)
@@ -39,23 +46,38 @@ namespace Foundation
             EndRun(payload.DestinationScene);
         }
 
-        public void EndRun(string destinationScene)
+        private void HandleFloorTransition(FloorTransitionRequestEvent payload)
+        {
+            AdvanceFloor(payload.DestinationScene);
+        }
+
+        private void EndRun(string destinationScene)
+        {
+            EventBus.Publish(new AudioCrossfadeRequest { NewTrack = null, Duration = 1.0f });
+            
+            if (RunState != null)
+            {
+                RunState.Reset();
+                RunState = null;
+            }
+
+            // EventBus.Clear();
+
+            SanitizeGlobalStateAndLoad(destinationScene);
+        }
+
+        private void AdvanceFloor(string destinationScene)
+        {
+            SanitizeGlobalStateAndLoad(destinationScene);
+        }
+
+        private void SanitizeGlobalStateAndLoad(string sceneName)
         {
             Time.timeScale = 1f;
             AudioListener.pause = false;
             Helpers.Input.EnablePlayerInput();
             
-            EventBus.Publish(new AudioCrossfadeRequest { NewTrack = null, Duration = 1.0f });
-
-            if (RunState != null)
-            {
-                RunState.Reset(); 
-                RunState = null;
-            }
-            
-            // EventBus.Clear();
-
-            UnityEngine.SceneManagement.SceneManager.LoadScene(destinationScene);
+            SceneManager.LoadScene(sceneName);
         }
 
         private void InitializeNewRun()
@@ -65,8 +87,14 @@ namespace Foundation
             Time.timeScale = 1f;
             AudioListener.pause = false;
             
-            // TODO: Per your conventions document, StartRun() is supposed to 
-            // "seed one of each ability rune" here to give the player a starting loadout!
+            if (_startingRunes != null)
+            {
+                foreach (var rune in _startingRunes)
+                {
+                    if (rune != null)
+                        RunState.AddRune(rune);
+                }
+            }
 
             SubscribeEvents();
             OnRunStateInitialized?.Invoke(RunState);
@@ -74,15 +102,22 @@ namespace Foundation
 
         private void SubscribeEvents()
         {
-            EventBus.Unsubscribe<PlayerEnteredRoomEvent>(OnPlayerEnteredRoom);
-            EventBus.Unsubscribe<RoomClearEvent>(OnRoomClear);
-            EventBus.Unsubscribe<EndFloorClearEvent>(OnEndFloorClear);
-            EventBus.Unsubscribe<PassiveRoomClearEvent>(OnPassiveRoomClear);
+            UnsubscribeRoomEvents();
 
             EventBus.Subscribe<PlayerEnteredRoomEvent>(OnPlayerEnteredRoom);
             EventBus.Subscribe<RoomClearEvent>(OnRoomClear);
             EventBus.Subscribe<EndFloorClearEvent>(OnEndFloorClear);
             EventBus.Subscribe<PassiveRoomClearEvent>(OnPassiveRoomClear);
+            EventBus.Subscribe<FloorClearedEvent>(OnFloorCleared);
+        }
+
+        private void UnsubscribeRoomEvents()
+        {
+            EventBus.Unsubscribe<PlayerEnteredRoomEvent>(OnPlayerEnteredRoom);
+            EventBus.Unsubscribe<RoomClearEvent>(OnRoomClear);
+            EventBus.Unsubscribe<EndFloorClearEvent>(OnEndFloorClear);
+            EventBus.Unsubscribe<PassiveRoomClearEvent>(OnPassiveRoomClear);
+            EventBus.Unsubscribe<FloorClearedEvent>(OnFloorCleared);
         }
 
         // Named wrappers
@@ -90,5 +125,16 @@ namespace Foundation
         private void OnRoomClear(RoomClearEvent e) => RunState.MarkRoomCleared(e.Index);
         private void OnEndFloorClear(EndFloorClearEvent e) => RunState.MarkRoomCleared(e.Index);
         private void OnPassiveRoomClear(PassiveRoomClearEvent e) => RunState.MarkRoomCleared(e.Index);
+
+        private void OnFloorCleared(FloorClearedEvent e)
+        {
+            if (RunState == null)
+            {
+                Debug.LogWarning("FloorClearedEvent received with no active RunState");
+                return;
+            }
+            
+            RunState.CurrentFloor++;
+        }
     }
 }

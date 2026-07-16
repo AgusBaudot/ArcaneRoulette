@@ -39,7 +39,7 @@ namespace UI
             Instance = this;
             
             _canvasGroup = GetComponent<CanvasGroup>();
-            _canvas = GetComponent<Canvas>();
+            _canvas = GetComponentInParent<Canvas>();
 
             Hide();
         }

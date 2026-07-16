@@ -31,7 +31,7 @@ namespace UI
         {
             RequestClose();
             
-            EventBus.Publish(new EndRunRequestEvent("MainMenu"));
+            EventBus.Publish(new QuitRunRequestEvent(SceneNames.MainMenu));
         }
     }
 }
