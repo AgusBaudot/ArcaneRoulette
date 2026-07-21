@@ -63,10 +63,16 @@ namespace World
                 switch (_roomType)
                 {
                     case RoomType.Combat:
+                        _entityController.RoomIsClear -= RoomClearedEvent;
+                        _entityController.RoomIsClear += RoomClearedEvent;
+                        _entityController.PlayEntityController();
+                        break;
+                    
                     case RoomType.Boss:
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
+                        EventBus.Publish(new EndFloorClearEvent(_index));
                         break;
 
                     case RoomType.Start:

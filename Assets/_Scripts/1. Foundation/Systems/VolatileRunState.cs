@@ -234,6 +234,7 @@ namespace Foundation
             FloorMap.Clear();
             CurrentRoomIndex = -1;
             OnPlayerEnteredRoom = null;
+            OnRoomStateChanged = null;
             OnFloorMapGenerated = null;
 
             // Modifier pipeline

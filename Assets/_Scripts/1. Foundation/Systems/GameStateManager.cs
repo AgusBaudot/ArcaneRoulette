@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using World;
@@ -23,6 +24,7 @@ namespace Foundation
             }
             else
             {
+                RunState.InitializeFloorMap(new Dictionary<int, VolatileRunState.RoomMapData>());
                 SubscribeEvents();
                 OnRunStateInitialized?.Invoke(RunState);
             }
