@@ -1,8 +1,7 @@
-using Core;
 using Foundation;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using Core;
 
 public class Cheats : MonoBehaviour, IUpdatable
 {
@@ -14,12 +13,16 @@ public class Cheats : MonoBehaviour, IUpdatable
 
     public void Tick(float dt)
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Keyboard.current.rKey.wasPressedThisFrame)
         {
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+            Helpers.Input.EnablePlayerInput();
+            
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
 
-        if (Input.GetKeyDown(KeyCode.T))
+        if (Keyboard.current.tKey.wasPressedThisFrame)
         {
             GameStateManager.RunState.AddCurrency(5);
         }

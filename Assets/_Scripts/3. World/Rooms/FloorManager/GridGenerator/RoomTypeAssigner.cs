@@ -169,7 +169,7 @@ namespace World
             Dictionary<int, RoomType> typeMap = new Dictionary<int, RoomType>();
 
             typeMap[_bossRoomIndex] = _data.GenerateBossRoom ? RoomType.Boss : RoomType.Portal;
-            typeMap[_lobbyRoomIndex] = RoomType.Lobby;
+            typeMap[_lobbyRoomIndex] = RoomType.Start;
 
             foreach (int i in _regularRoomIndices) typeMap[i] = RoomType.Combat;
             foreach (int i in _restingRoomIndices) typeMap[i] = RoomType.Resting;

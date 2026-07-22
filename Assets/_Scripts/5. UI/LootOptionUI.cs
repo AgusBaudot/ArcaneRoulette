@@ -33,7 +33,8 @@ namespace UI
         public void Init(RuneDefinitionSO rune, Action onClicked)
         {
             Rune = rune;
-            _onClicked = onClicked;
+            if (onClicked != null)
+                _onClicked = onClicked;
 
             if (rune == null)
                 return;

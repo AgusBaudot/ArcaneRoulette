@@ -1,6 +1,5 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Foundation;
+using UnityEngine;
 
 namespace UI
 {
@@ -24,7 +23,7 @@ namespace UI
             EventBus.Unsubscribe<OnSettingsUIClosedEvent>(OnSettingsClosed);
         }
 
-        private void OnPlay(OnPlayClickedEvent _) => SceneManager.LoadScene(1);
+        private void OnPlay(OnPlayClickedEvent _) => EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
 
         private void OnSettings(OnSettingsClickedEvent _)
             => _settingsPanel.SetActive(!_settingsPanel.activeSelf);

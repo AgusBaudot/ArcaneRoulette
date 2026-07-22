@@ -1,80 +1,40 @@
-using System;
 using Foundation;
 using UnityEngine;
-using World;
 
 namespace UI
 {
-    public sealed class ShopUI : MonoBehaviour
+    public sealed class ShopUI : BaseUIPanel
     {
-        [Header("References")] [SerializeField]
-        private GameObject _panel;
-
+        [Header("References")]
         [SerializeField] private ShopItemSlotUI[] _runeSlots;
         [SerializeField] private ShopItemSlotUI[] _artifactSlots;
 
-        [Header("Audio")] [SerializeField] private AudioEventSO _menuOpenSound;
-        [SerializeField] private AudioEventSO _menuCloseSound;
+        [Header("Audio")]
         [SerializeField] private AudioEventSO _rerollSound;
 
-        private ShopNPC _currentShop;
+        private IShop _currentShop;
 
-        private void Awake()
+        // ── Initialization ────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Called by the UIManager to inject the specific shop's data 
+        /// right before calling Show().
+        /// </summary>
+        public void Bind(IShop shopInstance)
         {
-            _panel.SetActive(false);
-        }
-
-        private void OnEnable()
-        {
-            EventBus.Subscribe<ShopOpenRequestEvent>(OnShopOpenRequested);
-
-            if (Helpers.Input != null)
-            {
-                Helpers.Input.OnCloseCrafting += HandleCloseInput;
-            }
-        }
-
-        private void OnDisable()
-        {
-            EventBus.Unsubscribe<ShopOpenRequestEvent>(OnShopOpenRequested);
-            
-            if (Helpers.Input != null)
-            {
-                Helpers.Input.OnCloseCrafting -= HandleCloseInput;
-            }
-        }
-
-        private void OnShopOpenRequested(ShopOpenRequestEvent evt)
-        {
-            _currentShop = evt.ShopInstance;
-            _panel.SetActive(true);
-
-            Time.timeScale = 0f;
-            Helpers.Input.EnableUIInput();
-
-            EventBus.Publish(new AudioPlayRequest { Event = _menuOpenSound });
-
+            _currentShop = shopInstance;
             RefreshDisplay();
         }
 
-        private void HandleCloseInput()
-        {
-            if (_panel.activeSelf)
-            {
-                Close();
-            }
-        }
+        // ── Show / Hide Overrides ─────────────────────────────────────────────
 
-        private void Close()
+        public override void Hide()
         {
-            _panel.SetActive(false);
+            base.Hide();
             TooltipSystem.Instance?.Hide();
-            
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
-
-            EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });
         }
+
+        // ── Display Logic ─────────────────────────────────────────────────────
 
         private void RefreshDisplay()
         {
@@ -100,7 +60,9 @@ namespace UI
             // }
             // Finish uncomment once artifacts are implemented
         }
-
+        
+        // ── Interaction ───────────────────────────────────────────────────────
+        
         public void AttemptPurchase(int index, int cost, bool isRune, ShopItemSlotUI slotUI)
         {
             if (GameStateManager.RunState.TrySpend(cost))
@@ -108,7 +70,7 @@ namespace UI
                 if (isRune)
                 {
                     GameStateManager.RunState.AddRune(_currentShop.StockRunes[index]);
-                    _currentShop.RunePurchasedState[index] = true;
+                    _currentShop.MarkRunePurchased(index);
                 }
                 else
                 {
@@ -137,6 +99,8 @@ namespace UI
                 RefreshDisplay();
             }
         }
+        
+        // ── Artifact Helpers ──────────────────────────────────────────────────
 
         // Uncomment once artifacts are implemented
         // private int GetArtifactPrice(ArtifactDefinitionSO artifact)

@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-using Foundation;
+using System;
 using UnityEngine;
+using Foundation;
 
 namespace Core
 {
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Shield")]
-    public class ShieldAbilityRune : AbilityRuneSO
+    public sealed class ShieldAbilityRune : AbilityRuneSO
     {
         [Header("Stats")]
         [SerializeField] private GameObject _defaultShieldPrefab;
@@ -17,49 +17,102 @@ namespace Core
         [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
 
+        // ── Implemented Abstract Properties ───────────────────────────────────
         public override AbilityType Type => AbilityType.Shield;
         public override bool IsHoldAbility => true;
         public override float CooldownDuration => 0f;
-        
-        //One visual per HoldSpellInstance - keyed by ISpellSource identity
-        //Cleared on eun end when SpellInstances are dismantled
-        private readonly Dictionary<ISpellSource, GameObject> _visuals = new();
-        private readonly Dictionary<ISpellSource, AudioHandle> _audioHandles = new();
-        
+
+        public override void Activate(SpellContext ctx) 
+        { 
+            // Intentionally empty — handled by Hold interface
+        }
+
         public override void StartHold(SpellContext ctx)
         {
-            var args = new ShieldActivationArgs();
+            if (ctx.Source is not HoldSpellInstance hold) return;
+
+            var args = new ShieldActivationArgs
+            {
+                AllowEnemyThrough = false,
+                ReflectsProjectiles = false,
+                ReflectCount = 0,
+                ReflectSpread = 0f,
+                RadiusMultiplier = 1f,
+                HomingCount = 0
+            };
+
+            // Fire cast rune hooks to modify args
             (ctx.Source as ISpellEventSource)?.RaiseBeforeStartHold(args);
-            ConfigureAndStartHold(ctx, ctx.Source as HoldSpellInstance, args);
-        }
-        
-        private AudioEventSO GetHoldSound(ElementType element)
-        {
-            foreach (var map in _elementalSounds)
-            {
-                if (map.Element == element) return map.CastSound;
-            }
-            return _defaultCastSound;
+
+            ConfigureAndStartHold(ctx, hold, args);
         }
 
-        private GameObject GetShieldPrefab(ElementType element)
+        private void ConfigureAndStartHold(SpellContext ctx, HoldSpellInstance hold, ShieldActivationArgs args)
         {
-            foreach (var mapping in _elementalShields)
-            {
-                if (mapping.Element == element) return mapping.Reference;
-            }
-            return _defaultShieldPrefab;
-        }
+            if (!hold.Energy.TryStartDrain()) return;
 
-        internal void ConfigureAndStartHold(SpellContext ctx, HoldSpellInstance source, ShieldActivationArgs args)
-        {
-            if (source == null)
-                return;
-            
-            if (!source.Energy.TryStartDrain())
-                return;
-            
-            if (!_audioHandles.ContainsKey(ctx.Source))
+            // 1. Visuals setup (Created once per instance)
+            if (hold.ActiveShieldVisual == null)
+            {
+                GameObject prefabToSpawn = GetShieldPrefab(ctx.AttackerElement);
+                if (prefabToSpawn != null)
+                {
+                    var player = (PlayerController)ctx.Runner;
+                    
+                    hold.ActiveShieldVisual = Instantiate(
+                        prefabToSpawn,
+                        player.transform.position + new Vector3(-0.2f, 1f, 1f),
+                        Quaternion.identity,
+                        player.transform);
+
+                    hold.ActiveShieldVisual.SetActive(false); // prevent events during setup
+
+                    if (hold.ActiveShieldVisual.TryGetComponent<ShieldCollider>(out var shieldCollider))
+                    {
+                        shieldCollider.Bind(hold, ctx.Runner);
+                        shieldCollider.UnsubscribeListeners();
+                        
+                        shieldCollider.OnProjectileAbsorbed += (pos, target) =>
+                            hold.TriggerOnHit(pos, target, ctx.Runner);
+                        shieldCollider.OnEnemyBodyContact += (pos, target) =>
+                            hold.TriggerOnHit(pos, target, ctx.Runner);
+                        shieldCollider.OnShieldDamaged += player.DamageShield;
+                    }
+                }
+            }
+
+            // Apply runtime modifiers
+            if (hold.ActiveShieldVisual != null)
+            {
+                hold.ActiveShieldVisual.transform.localScale = Vector3.one * args.RadiusMultiplier;
+
+                if (hold.ActiveShieldVisual.TryGetComponent<ShieldCollider>(out var shield))
+                {
+                    shield.ReflectsProjectiles = args.ReflectsProjectiles;
+                    shield.ReflectCount = args.ReflectCount;
+                    shield.ReflectSpread = args.ReflectSpread;
+                }
+
+                if (hold.ActiveShieldVisual.TryGetComponent<Collider>(out var col))
+                {
+                    col.isTrigger = args.AllowEnemyThrough;
+                }
+
+                if (hold.ActiveShieldVisual.TryGetComponent<ShieldDamageZone>(out var dmgZone))
+                {
+                    dmgZone.Active = args.AllowEnemyThrough;
+
+                    if (args.AllowEnemyThrough)
+                    {
+                        dmgZone.Bind(ctx.AttackerElement);
+                    }
+                }
+
+                hold.ActiveShieldVisual.SetActive(true);
+            }
+
+            // 2. Audio setup
+            if (!hold.ActiveHoldAudio.IsValid)
             {
                 AudioEventSO sound = GetHoldSound(ctx.AttackerElement);
                 if (sound != null)
@@ -68,135 +121,100 @@ namespace Core
                     {
                         Event = sound,
                         WorldPosition = ctx.Runner.transform.position,
-                        OnHandleReady = handle => _audioHandles[ctx.Source] = handle
+                        OnHandleReady = handle => hold.ActiveHoldAudio = handle
                     });
                 }
             }
 
-            var state = source.ShieldState;
-            state.Active = true;
-            state.TimeHeld = 0f;
-
-            var player = (PlayerController)ctx.Runner;
-
-            // ── Instantiate once per source instance ────────────────────────────
-            if (!_visuals.TryGetValue(source, out var visual) || visual == null)
-            {
-                GameObject prefabToSpawn = GetShieldPrefab(ctx.AttackerElement);
-                
-                visual = Instantiate(
-                    prefabToSpawn,
-                    player.transform.position + new Vector3(-0.2f, 1f, 1f),
-                    Quaternion.identity,
-                    player.transform);
-
-                visual.SetActive(false); // prevent events during setup
-                _visuals[source] = visual;
-            }
-            
-            // ── Wire every activation — source may have changed ─────────────────
-            var shield = visual.GetComponent<ShieldCollider>();
-            shield.Bind(source, ctx.Runner);         
-
-            // Unsubscribe previous listeners before re-subscribing.
-            shield.UnsubscribeListeners();
-
-            shield.OnProjectileAbsorbed += (pos, target) =>
-                source.TriggerOnHit(pos, target, ctx.Runner);
-            shield.OnEnemyBodyContact += (pos, target) =>
-                source.TriggerOnHit(pos, target, ctx.Runner);
-            shield.OnShieldDamaged += player.DamageShield;
-            
-            // ── Update collider properties every activation ──────────────────────
-            visual.transform.localScale = Vector3.one * args.RadiusMultiplier;
-            
-            shield.ReflectsProjectiles = args.ReflectsProjectiles;
-            shield.ReflectCount = args.ReflectCount;
-            shield.ReflectSpread = args.ReflectSpread;
-            
-            //Piercing toggles trigger mode - update every activation
-            var col = visual.GetComponent<Collider>();
-            col.isTrigger = args.AllowEnemyThrough;
-
-            var damageZone = visual.GetComponent<ShieldDamageZone>();
-            
-            if (damageZone != null)
-                damageZone.Active = args.AllowEnemyThrough;
-            
-            visual.SetActive(true);
-
+            // 3. Homing setup
             if (args.HomingCount > 0)
-                SpawnHomingFromShield(ctx, args.HomingCount);
-        }
-
-        public override void HoldTick(SpellContext ctx, float deltaTime)
-        {
-            var source = ctx.Source as HoldSpellInstance;
-            if (source == null)
-                return;
-            
-            var state = source.ShieldState;
-            if (!state.Active)
-                return;
-
-            //PlayerEnergy.Tick() already handles draining at stats rate.
-            //Shield just watches for depletion and reacts.
-            if (source.Energy.IsBroken)
             {
-                StopHold(ctx);
-                return;
+                SpawnHomingFromShield(ctx, args.HomingCount);
             }
-
-            state.TimeHeld += deltaTime;
-            if (state.TimeHeld >= _abilityThreshold)
-                state.TimeHeld -= _abilityThreshold;
+            
+            // 4. State setup
+            var state = hold.ShieldState;
+            if (state != null)
+            {
+                state.Active = true;
+                state.TimeHeld = 0f;
+            }
         }
 
         public override void StopHold(SpellContext ctx)
         {
-            var source = ctx.Source as HoldSpellInstance;
-            if (source == null)
-                return;
-            
-            var state = ctx.Source.ShieldState;
-            state.Active = false;
-            state.TimeHeld = 0f;
-            
-            source.Energy.StopDrain();
-            
-            if (_visuals.TryGetValue(source, out var visual) && visual != null)
-                visual.SetActive(false);
+            if (ctx.Source is not HoldSpellInstance hold) return;
 
-            if (_audioHandles.TryGetValue(ctx.Source, out var handle))
+            var state = hold.ShieldState;
+            if (state != null)
             {
-                EventBus.Publish(new AudioStopRequest
-                {
-                    Handle = handle,
-                    FadeOut = true
+                state.Active = false;
+                state.TimeHeld = 0f;
+            }
+            
+            hold.Energy.StopDrain();
+
+            if (hold.ActiveShieldVisual != null)
+            {
+                hold.ActiveShieldVisual.SetActive(false);
+            }
+
+            if (hold.ActiveHoldAudio.IsValid)
+            {
+                EventBus.Publish(new AudioStopRequest 
+                { 
+                    Handle = hold.ActiveHoldAudio, 
+                    FadeOut = true 
                 });
-                _audioHandles.Remove(ctx.Source);
+                
+                hold.ActiveHoldAudio = default; 
             }
         }
 
-        //Called by SpellCrafter.Dismantle - cleans up the visual for this instance
-        public void CleanupInstance(ISpellSource source)
+        public override void HoldTick(SpellContext ctx, float dt)
         {
-            if (_visuals.TryGetValue(source, out var visual) && visual != null)
-                Destroy(visual);
+            if (ctx.Source is not HoldSpellInstance hold) return;
+            
+            var state = hold.ShieldState;
+            if (state == null || !state.Active) return;
 
-            if (_audioHandles.TryGetValue(source, out var handle))
+            if (hold.Energy.IsBroken)
             {
-                EventBus.Publish(new AudioStopRequest
-                {
-                    Handle = handle,
-                    FadeOut = true
-                });
-                _audioHandles.Remove(source);
+                StopHold(ctx);
+                return;
             }
             
-            _visuals.Remove(source);
+            state.TimeHeld += dt;
+            if (state.TimeHeld >= _abilityThreshold)
+            {
+                state.TimeHeld -= _abilityThreshold;
+                
+                // Shockwave logic utilizing _shockwavePrefab goes here
+            }
         }
 
+        private GameObject GetShieldPrefab(ElementType element)
+        {
+            if (_elementalShields == null || _elementalShields.Length == 0) return _defaultShieldPrefab;
+            
+            foreach (var mapping in _elementalShields)
+            {
+                if (mapping.Element == element) return mapping.Reference;
+            }
+            return _defaultShieldPrefab;
+        }
+
+        private AudioEventSO GetHoldSound(ElementType element)
+        {
+            if (_elementalSounds == null || _elementalSounds.Length == 0) return _defaultCastSound;
+            
+            foreach (var snd in _elementalSounds)
+            {
+                if (snd.Element == element) return snd.CastSound;
+            }
+            return _defaultCastSound;
+        }
+        
         private void SpawnHomingFromShield(SpellContext ctx, int count)
         {
             if (ctx.Source is not SpellInstance si)
@@ -218,10 +236,6 @@ namespace Core
 
                 break;
             }
-        }
-        
-        public override void Activate(SpellContext ctx)
-        {
         }
     }
 }

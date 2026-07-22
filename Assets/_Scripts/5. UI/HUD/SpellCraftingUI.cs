@@ -9,17 +9,13 @@ using Core;
 
 namespace UI
 {
-    public sealed class SpellCraftingUI : MonoBehaviour
+    public sealed class SpellCraftingUI : BaseUIPanel
     {
-        [Header("Panel")]
-        [SerializeField] private GameObject _craftingPanel;
-
         [Header("Slot Panels — assign First, Second, Third in fixed order")] 
         [SerializeField] private SpellSlotPanel[] _slotPanels; // always length 3
 
         [Header("Carousel Navigation")]
         [SerializeField] private Button _leftArrowButton;
-
         [SerializeField] private Button _rightArrowButton;
 
         [Header("Overlay — sits between center and back panels")] 
@@ -62,7 +58,6 @@ namespace UI
         private SpellCrafter _spellCrafter;
         private RuneDefinitionSO _pendingRune;
         private int _pendingRuneIndex = -1;
-        private static bool _isOpen;
         private int _centerIndex; // which _slotPanels[] index is currently centered
         private RuneFilter _currentFilter = RuneFilter.All;
         
@@ -72,78 +67,72 @@ namespace UI
 
         private void Awake()
         {
-            // Reset stale scene state after a scene reload so UI toggle behaves correctly.
-            _isOpen = false;
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
+            base.Awake();
 
             _spellCrafter = FindObjectOfType<SpellCrafter>();
 
             _inventoryPanel.Init(this);
             foreach (var panel in _slotPanels)
+            {
                 panel.Init(this);
-
+            }
+            
             _leftArrowButton.onClick.AddListener(OnLeftArrow);
             _rightArrowButton.onClick.AddListener(OnRightArrow);
-            
-            foreach(var tab in _filterTabs)
+
+            foreach (var tab in _filterTabs)
+            {
                 tab.Init(OnFilterTabClicked);
-            
-            _craftingPanel.SetActive(false);
+            }
         }
 
-        private void OnEnable()
-        {
-            //Listen for the player wanting to open the menu
-            Helpers.Input.OnCraftingMenuPressed += OpenCraftingUI;
-            
-            //Listen for UI interactions
-            Helpers.Input.OnCloseCrafting += CloseCraftingUI;
-            Helpers.Input.OnCarouselLeft += OnLeftArrow;
-            Helpers.Input.OnCarouselRight += OnRightArrow;
-            if (_tooltip != null)
-                Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
-        }
-
-        private void OnDisable()
-        {
-            Helpers.Input.OnCraftingMenuPressed -= OpenCraftingUI;
-            
-            Helpers.Input.OnCloseCrafting -= CloseCraftingUI;
-            Helpers.Input.OnCarouselLeft -= OnLeftArrow;
-            Helpers.Input.OnCarouselRight -= OnRightArrow;
-            if (_tooltip != null)
-                Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
-        }
+        // private void OnEnable()
+        // {
+        //     //Listen for the player wanting to open the menu
+        //     Helpers.Input.OnCraftingMenuPressed += OpenCraftingUI;
+        //     
+        //     //Listen for UI interactions
+        //     Helpers.Input.OnCloseMenu += CloseCraftingUI;
+        //     Helpers.Input.OnCarouselLeft += OnLeftArrow;
+        //     Helpers.Input.OnCarouselRight += OnRightArrow;
+        //     if (_tooltip != null)
+        //         Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
+        // }
+        //
+        // private void OnDisable()
+        // {
+        //     Helpers.Input.OnCraftingMenuPressed -= OpenCraftingUI;
+        //     
+        //     Helpers.Input.OnCloseMenu -= CloseCraftingUI;
+        //     Helpers.Input.OnCarouselLeft -= OnLeftArrow;
+        //     Helpers.Input.OnCarouselRight -= OnRightArrow;
+        //     if (_tooltip != null)
+        //         Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
+        // }
 
         #endregion
 
-        // ── Open / Close ─────────────────────────────────────────────────────
+        // ── Show / Hide ────────────────────────────────────────────────────
 
-        private void OpenCraftingUI()
+        public override void Show()
         {
-            if (_isOpen)
-                return;
-            
-            _isOpen = true;
+            base.Show();
+
             _pendingRune = null;
             _pendingRuneIndex = -1;
-
-            _craftingPanel.SetActive(true);
-            Time.timeScale = 0f;
-            AudioListener.pause = true;
             
-            EventBus.Publish(new AudioPlayRequest
+            Helpers.Input.OnCarouselLeft += OnLeftArrow;
+            Helpers.Input.OnCarouselRight += OnRightArrow;
+            if (_tooltip != null)
             {
-                Event = Helpers.UIAudio.MenuOpen
-            });
-            
-            //Switch to Input Map
-            Helpers.Input.EnableUIInput();
+                Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
+            }
 
             foreach (var panel in _slotPanels)
+            {
                 panel.PopulateFromRunState();
-            
+            }
+
             _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
             ApplyCarouselLayout();
             RefreshAll();
@@ -151,28 +140,75 @@ namespace UI
             EventSystem.current.SetSelectedGameObject(null);
         }
 
-        private void CloseCraftingUI()
+        public override void Hide()
         {
-            if (!_isOpen)
-                return;
+            base.Hide();
             
-            _isOpen = false;
+            _tooltip?.Hide();
             _pendingRune = null;
             _pendingRuneIndex = -1;
-
-            _tooltip?.Hide();
-            _craftingPanel.SetActive(false);
-            AudioListener.pause = false;
-            Time.timeScale = 1f;
             
-            EventBus.Publish(new AudioPlayRequest
+            Helpers.Input.OnCarouselLeft -= OnLeftArrow;
+            Helpers.Input.OnCarouselRight -= OnRightArrow;
+            if (_tooltip != null)
             {
-                Event = Helpers.UIAudio.MenuClose
-            });
-            
-            //Switch to Player Map
-            Helpers.Input.EnablePlayerInput();
+                Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
+            }
         }
+        
+        // private void OpenCraftingUI()
+        // {
+        //     if (_isOpen)
+        //         return;
+        //     
+        //     _isOpen = true;
+        //     _pendingRune = null;
+        //     _pendingRuneIndex = -1;
+        //
+        //     _craftingPanel.SetActive(true);
+        //     Time.timeScale = 0f;
+        //     AudioListener.pause = true;
+        //     
+        //     EventBus.Publish(new AudioPlayRequest
+        //     {
+        //         Event = Helpers.UIAudio.MenuOpen
+        //     });
+        //     
+        //     //Switch to Input Map
+        //     Helpers.Input.EnableUIInput();
+        //
+        //     foreach (var panel in _slotPanels)
+        //         panel.PopulateFromRunState();
+        //     
+        //     _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
+        //     ApplyCarouselLayout();
+        //     RefreshAll();
+        //     RefreshTabVisuals();
+        //     EventSystem.current.SetSelectedGameObject(null);
+        // }
+        //
+        // private void CloseCraftingUI()
+        // {
+        //     if (!_isOpen)
+        //         return;
+        //     
+        //     _isOpen = false;
+        //     _pendingRune = null;
+        //     _pendingRuneIndex = -1;
+        //
+        //     _tooltip?.Hide();
+        //     _craftingPanel.SetActive(false);
+        //     AudioListener.pause = false;
+        //     Time.timeScale = 1f;
+        //     
+        //     EventBus.Publish(new AudioPlayRequest
+        //     {
+        //         Event = Helpers.UIAudio.MenuClose
+        //     });
+        //     
+        //     //Switch to Player Map
+        //     Helpers.Input.EnablePlayerInput();
+        // }
 
         // ── Arrow navigation ─────────────────────────────────────────────────
 

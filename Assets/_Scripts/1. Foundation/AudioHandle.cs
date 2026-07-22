@@ -32,7 +32,7 @@ namespace Foundation
         
         //Internal reference - Meta band only.
         //Never expose this outside the AudioSystem assembly.
-        internal object Emitter; //typed as object to avoid exposing AudioEmitter to Foundation
+        internal IAudioEmitter Emitter;
         
         internal AudioHandle() {}
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using DG.Tweening;
 using Foundation;
 using UnityEngine;
@@ -26,6 +25,7 @@ namespace UI
         [SerializeField] private Sprite _portalIcon;
 
         private Dictionary<int, MinimapBlockUI> _spawnedBlocks = new();
+        private bool _hasCenteredOnce;
 
         private void OnEnable()
         {
@@ -50,13 +50,13 @@ namespace UI
         {
             foreach (var block in _spawnedBlocks.Values) Destroy(block.gameObject);
             _spawnedBlocks.Clear();
+            _hasCenteredOnce = false;
 
             foreach (var kvp in GameStateManager.RunState.FloorMap)
             {
-                if (kvp.Value.IsDiscovered) SpawnBlock(kvp.Value);
+                if (kvp.Value.IsDiscovered) 
+                    SpawnBlock(kvp.Value);
             }
-
-            CenterMapOnIndex(GameStateManager.RunState.CurrentRoomIndex, instant: true);
         }
 
         private void SpawnBlock(VolatileRunState.RoomMapData data)
@@ -64,7 +64,7 @@ namespace UI
             GameObject go = Instantiate(_roomBlockPrefab, _mapContainer);
             RectTransform rect = go.GetComponent<RectTransform>();
 
-            rect.anchoredPosition = new Vector2(data.X * _blockSize.x, -data.Y * _blockSize.y);
+            rect.anchoredPosition = new Vector2(data.X * _blockSize.x, data.Y * _blockSize.y);
 
             if (go.TryGetComponent<MinimapBlockUI>(out var blockUI))
             {
@@ -83,7 +83,8 @@ namespace UI
                 }
             }
 
-            CenterMapOnIndex(newIndex, instant: false);
+            CenterMapOnIndex(newIndex, instant: !_hasCenteredOnce);
+            _hasCenteredOnce = true;
 
             foreach (var block in _spawnedBlocks)
             {
@@ -107,7 +108,7 @@ namespace UI
         {
             if (!GameStateManager.RunState.FloorMap.TryGetValue(targetIndex, out var data)) return;
 
-            Vector2 targetPos = new Vector2(-data.X * _blockSize.x, data.Y * _blockSize.y);
+            Vector2 targetPos = new Vector2(-data.X * _blockSize.x, -data.Y * _blockSize.y);
 
             _mapContainer.DOKill();
 
@@ -132,7 +133,7 @@ namespace UI
                 }
             }
 
-            if (data.Type == RoomType.Boss)
+            if (data.Type == RoomType.Boss && data.IsCleared)
             {
                 config.Icon = _portalIcon;
             }
