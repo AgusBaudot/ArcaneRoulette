@@ -48,7 +48,7 @@ namespace Foundation
             if (RunState != null)
             {
                 RunState.Reset(); 
-                RunState = null; // <-- CRITICAL: Kill the static reference!
+                RunState = null;
             }
             
             // EventBus.Clear();

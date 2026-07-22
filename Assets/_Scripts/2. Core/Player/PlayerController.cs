@@ -216,9 +216,9 @@ namespace Core
         {
             if (!_isAlive)
                 return;
-            
+    
             ISpellSlot spell = _spellSlots[slotIndex];
-            if (spell == null || Time.deltaTime == 0)
+            if (spell == null)
                 return;
 
             if (spell is IHoldAbility hold)
@@ -236,8 +236,20 @@ namespace Core
             }
             else if (spell is IAbility)
             {
-                _heldAutoSlots.Remove(slotIndex);
+                _heldAutoSlots.Remove(slotIndex); 
             }
+        }
+        
+        public void ClearHeldInputs()
+        {
+            foreach (var slotIndex in _heldHoldSlots)
+            {
+                if (_spellSlots[slotIndex] is IHoldAbility hold)
+                    hold.StopHold(this);
+            }
+    
+            _heldHoldSlots.Clear();
+            _heldAutoSlots.Clear();
         }
         
         #endregion
@@ -291,9 +303,11 @@ namespace Core
             if (_spriteTransform == null) 
                 return;
 
-            var size = _spriteTransform.localScale.y;
-            _spriteTransform.localScale = new Vector3(
-                _facingDirection.x < 0f ? size : -size, size, size);
+            //COMMENTED OUT FOR ANIMATIONS
+            
+            // var size = _spriteTransform.localScale.y;
+            // _spriteTransform.localScale = new Vector3(
+            //     _facingDirection.x < 0f ? size : -size, size, size);
         }
         
         public void SetCanMove(bool canMove) => _canMove = canMove;

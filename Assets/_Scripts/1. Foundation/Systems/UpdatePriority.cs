@@ -12,8 +12,9 @@ namespace Foundation
         public const int Spells = 300; //Spell cooldowns, hold ticks
         public const int Projectile = 400; //Projectile state after spells
         public const int AI = 500; //Enemies react after projectiles move
-        public const int FX = 600; //Visual feedback last
-        public const int UI = 700; //UI reads everything else's final state
-        public const int Camera = 800; //Camera renders and draw calls are called last
+        public const int Animations = 600; //Animations execute after AI & Player logic.
+        public const int FX = 700; //Visual feedback last
+        public const int UI = 800; //UI reads everything else's final state
+        public const int Camera = 900; //Camera renders and draw calls are called last
     }
 }

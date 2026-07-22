@@ -7,7 +7,6 @@ namespace World
     {
         #region SerializeField
         [SerializeField] private HealingArea _healingAreaPrefab;
-        [SerializeField] private KnockbackHandler _knockback;
         [SerializeField] private float _spellLifetime = 2f;
         [SerializeField] private float _spellPulseFrequency = 0.5f;
         #endregion
@@ -15,7 +14,6 @@ namespace World
         private IAlly _ally;
         protected override void Awake()
         {
-            _knockback = GetComponent<KnockbackHandler>();
             base.Awake();
         }
         public bool SearchInjuredAlly()
@@ -94,13 +92,15 @@ namespace World
             // ---- Heal ally ----
             SequenceNode HealSequence = new SequenceNode("Heal");
             HealSequence.AddChild(new LeafNode("SearchInjuredAlly", new ConditionNode(() => SearchInjuredAlly())));
-            HealSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_ally.Transform))));
+            HealSequence.AddChild(new LeafNode("IsInRange", new ConditionNode(() => IsInStableDistance(_ally != null ? _ally.Transform : null))));
+
             LeafNode HealAction = new LeafNode("Heal", new Attack(_animator, _agent, () => EffectiveAttackSpeed, "HealerPHanim"));
             CooldownDecorator attackCooldown = new CooldownDecorator(HealAction, () => EffectiveAttackSpeed);
             HealSequence.AddChild(attackCooldown);
 
             // ---- Follow Ally ----
             SequenceNode Move = new SequenceNode("Move");
+            Move.AddChild(new LeafNode("HasTargetAlly", new ConditionNode(() => _ally != null)));
             Move.AddChild(new LeafNode("Follow", new FollowAlly(() => _ally.Transform, transform, _agent, () => EffectiveChaseSpeed)));
 
             SelectorNode behavior = new SelectorNode("Behavior");
@@ -108,7 +108,6 @@ namespace World
             behavior.AddChild(Move);
             behavior.AddChild(new LeafNode("Wait", new Wait(2f)));
 
-            root.AddChild(new LeafNode("NotKnockedBack", new ConditionNode(() => !_knockback.IsKnockedBack)));
             root.AddChild(behavior);
             tree.AddChild(root);
             return tree;

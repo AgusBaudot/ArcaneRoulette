@@ -133,17 +133,17 @@ namespace World
                 transform.position = hit.position;
                 _aiBrain.Agent.enabled = true;
                 _aiBrain.Agent.Warp(hit.position);
-
-                // Successfully bound! Start the AI ticks.
-                CustomUpdateEnemyManager.Instance.Register(this);
             }
             else
             {
-                Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to find NavMesh at {searchPos}. " +
-                               $"Check your NavMesh surface and ensure it covers the spawn colliders!");
-                               
-                CustomUpdateEnemyManager.Instance.Register(this);
+                Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to find NavMesh at {searchPos}. " + "Check your NavMesh surface and ensure it covers the spawn colliders!");      
             }
+            while (CustomUpdateEnemyManager.Instance == null) 
+            {
+                yield return null;
+            }
+            Debug.Log($"<color=green>SUCCESS:</color> {gameObject.name} Succesfuly register to CustomUpdateEnemyManager.");
+            CustomUpdateEnemyManager.Instance.Register(this);
         }
         
         public void DeathEvent()
