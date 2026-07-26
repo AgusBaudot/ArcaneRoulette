@@ -23,7 +23,6 @@ namespace Core
         private bool _excludeBounceCastRuneForOnHitContext;
         private ElementType _cachedElement;
 
-        // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
 
         private readonly Dictionary<TrailRenderer, float> _baseTrailWidths = new();
@@ -122,30 +121,24 @@ namespace Core
             {
                 if (ev.Reference == null) continue;
 
-                // 1. Scale the container transform
                 if (_baseVisualScales.TryGetValue(ev.Reference, out Vector3 baseScale))
                 {
                     ev.Reference.transform.localScale = baseScale * sizeMultiplier;
                 }
 
-                // 2. Safely scale particles WITHOUT double-scaling
                 foreach (var ps in ev.Reference.GetComponentsInChildren<ParticleSystem>(true))
                 {
                     var main = ps.main;
 
-                    // Check if the Transform scaling we just did ALREADY scaled this particle system.
-                    // Hierarchy always scales with parents. Local only scales if the PS is directly on the scaled object.
                     bool isAlreadyScaling = main.scalingMode == ParticleSystemScalingMode.Hierarchy ||
                                             (main.scalingMode == ParticleSystemScalingMode.Local &&
                                              ps.gameObject == ev.Reference);
 
                     if (isAlreadyScaling)
                     {
-                        // The Transform scale handled it! Do NOT touch startSize, or it will double-scale.
                         continue;
                     }
 
-                    // If we are here, the PS ignored the Transform scale. We must scale it manually.
                     if (_baseParticleSizes.TryGetValue(ps, out Vector3 baseSize3D))
                     {
                         if (main.startSize3D)
@@ -156,13 +149,11 @@ namespace Core
                         }
                         else
                         {
-                            // Fall back to uniform scaling if the 3D checkbox is not ticked
                             main.startSizeMultiplier = baseSize3D.x * sizeMultiplier;
                         }
                     }
                 }
 
-                // 3. Trails ALWAYS ignore Transforms, so they ALWAYS need manual scaling
                 foreach (var trail in ev.Reference.GetComponentsInChildren<TrailRenderer>(true))
                 {
                     if (_baseTrailWidths.TryGetValue(trail, out float baseWidth))
@@ -178,17 +169,14 @@ namespace Core
 
         protected override void OnHitDamageable(Collider other)
         {
-            // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
             var damageable = other.GetComponentInParent<IDamageable>(true)
                              ?? other.GetComponent<IDamageable>();
 
             if (damageable == null)
                 return;
 
-            // Unity-friendly: IDamageable is an interface, so derive GameObject via Component.
             var damageableGo = (damageable as Component)?.gameObject ?? other.gameObject;
 
-            // Already hit this target this flight — ignore
             if (!_hitTargets.Add(damageableGo)) return;
 
             var batch = new DamageBatch();
@@ -211,7 +199,6 @@ namespace Core
             }
 
             _pierceCount--;
-            // Projectile continues — _hitTargets prevents re-hitting this enemy
         }
 
         protected override void OnHitWall(Collider other)
@@ -223,6 +210,8 @@ namespace Core
                 _abilityTypeForOnHit,
                 _excludeBounceCastRuneForOnHitContext,
                 Rb.velocity.normalized);
+
+            other.GetComponentInParent<IDestructible>()?.OnDeath(transform.position);
 
             if (!TryBounce())
             {
@@ -236,7 +225,6 @@ namespace Core
 
             ApplyVisualScale(1f);
 
-            //Prevent memory leaks
             _source = null;
             _runner = null;
             _hitTargets.Clear();

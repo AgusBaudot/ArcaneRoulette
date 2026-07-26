@@ -14,6 +14,9 @@ namespace Core
         [SerializeField] private float _cooldownDuration = 0.8f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
+        [Tooltip("Layer(s) your destructible/wall geometry sits on. Separate from " +
+                 "EnemyLayerMask since destructibles aren't enemies.")]
+        [SerializeField] private LayerMask _destructibleLayerMask;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
         
         [Header("VFX")]
@@ -132,6 +135,23 @@ namespace Core
                 }
                 
                 batch.Commit(Helpers.Combat.NormalDMG);
+
+                // ── Destructible collision — breaks on contact, no rune gating, ──
+                // still fires TriggerOnHit like every other hit type (e.g. AoE splash).
+                // No dedup set needed: IDestructible.OnDeath is already idempotent.
+                var obstacles = Physics.OverlapSphere(
+                    player.transform.position, _dashHitRadius, _destructibleLayerMask);
+
+                foreach (var hit in obstacles)
+                {
+                    var destructible = hit.GetComponentInParent<IDestructible>();
+                    if (destructible == null)
+                        continue;
+
+                    ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
+                        AbilityType.Dash, false, dir);
+                    destructible.OnDeath(hit.transform.position);
+                }
 
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
                 if (args.ReflectCount > 0 && _reflectedProjectilePrefab != null)

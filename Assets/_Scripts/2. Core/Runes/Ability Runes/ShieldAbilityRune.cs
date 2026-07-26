@@ -1,6 +1,5 @@
-using System;
-using UnityEngine;
 using Foundation;
+using UnityEngine;
 
 namespace Core
 {
@@ -41,7 +40,6 @@ namespace Core
                 HomingCount = 0
             };
 
-            // Fire cast rune hooks to modify args
             (ctx.Source as ISpellEventSource)?.RaiseBeforeStartHold(args);
 
             ConfigureAndStartHold(ctx, hold, args);
@@ -51,7 +49,6 @@ namespace Core
         {
             if (!hold.Energy.TryStartDrain()) return;
 
-            // 1. Visuals setup (Created once per instance)
             if (hold.ActiveShieldVisual == null)
             {
                 GameObject prefabToSpawn = GetShieldPrefab(ctx.AttackerElement);
@@ -65,7 +62,7 @@ namespace Core
                         Quaternion.identity,
                         player.transform);
 
-                    hold.ActiveShieldVisual.SetActive(false); // prevent events during setup
+                    hold.ActiveShieldVisual.SetActive(false);
 
                     if (hold.ActiveShieldVisual.TryGetComponent<ShieldCollider>(out var shieldCollider))
                     {
@@ -81,7 +78,6 @@ namespace Core
                 }
             }
 
-            // Apply runtime modifiers
             if (hold.ActiveShieldVisual != null)
             {
                 hold.ActiveShieldVisual.transform.localScale = Vector3.one * args.RadiusMultiplier;
@@ -111,7 +107,6 @@ namespace Core
                 hold.ActiveShieldVisual.SetActive(true);
             }
 
-            // 2. Audio setup
             if (!hold.ActiveHoldAudio.IsValid)
             {
                 AudioEventSO sound = GetHoldSound(ctx.AttackerElement);
@@ -126,13 +121,11 @@ namespace Core
                 }
             }
 
-            // 3. Homing setup
             if (args.HomingCount > 0)
             {
                 SpawnHomingFromShield(ctx, args.HomingCount);
             }
             
-            // 4. State setup
             var state = hold.ShieldState;
             if (state != null)
             {

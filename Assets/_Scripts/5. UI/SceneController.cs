@@ -30,14 +30,14 @@ namespace UI
         {
             EventBus.Subscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
-            EventBus.Subscribe<QuitRunRequestEvent>(HandleQuitRequest);
+            EventBus.Subscribe<EndRunRequestEvent>(HandleQuitRequest);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
-            EventBus.Unsubscribe<QuitRunRequestEvent>(HandleQuitRequest);
+            EventBus.Unsubscribe<EndRunRequestEvent>(HandleQuitRequest);
         }
 
         private void Start()
@@ -80,7 +80,7 @@ namespace UI
             });
         }
 
-        private void HandleQuitRequest(QuitRunRequestEvent evt)
+        private void HandleQuitRequest(EndRunRequestEvent evt)
         {
             if (_isTransitioning) 
                 return;
