@@ -20,7 +20,8 @@ namespace World
         [Tooltip("Disabled the instant this breaks, so it stops registering hits " +
                  "or blocking movement while the destroy animation plays. Falls " +
                  "back to GetComponent<Collider>() if left empty.")]
-        [SerializeField] private Collider _hitboxCollider;
+        [SerializeField] private Collider _hitboxCollider; //Trigger collider for collisions.
+        [SerializeField] private Collider _hardCollider; //Non-trigger collider for "wall-like" pre-destruction.
 
         [Header("Animation")]
         [SerializeField] private Animator _animator;
@@ -49,6 +50,16 @@ namespace World
             if (_hitboxCollider == null)
             {
                 _hitboxCollider = GetComponent<Collider>();
+            }
+            
+            if (_hitboxCollider != null)
+            {
+                _hitboxCollider.isTrigger = true;
+            }
+ 
+            if (_hardCollider != null)
+            {
+                _hardCollider.isTrigger = false;
             }
 
 #if UNITY_EDITOR
@@ -79,6 +90,11 @@ namespace World
             if (_hitboxCollider != null)
             {
                 _hitboxCollider.enabled = false;
+            }
+
+            if (_hardCollider != null)
+            {
+                _hardCollider.enabled = false;
             }
 
             if (_animator != null)

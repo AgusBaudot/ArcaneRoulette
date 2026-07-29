@@ -107,7 +107,7 @@ namespace Core
                 hold.ActiveShieldVisual.SetActive(true);
             }
 
-            if (!hold.ActiveHoldAudio.IsValid)
+            if (hold.ActiveHoldAudio == null || !hold.ActiveHoldAudio.IsValid)
             {
                 AudioEventSO sound = GetHoldSound(ctx.AttackerElement);
                 if (sound != null)
@@ -152,7 +152,7 @@ namespace Core
                 hold.ActiveShieldVisual.SetActive(false);
             }
 
-            if (hold.ActiveHoldAudio.IsValid)
+            if (hold.ActiveHoldAudio != null && hold.ActiveHoldAudio.IsValid)
             {
                 EventBus.Publish(new AudioStopRequest 
                 { 

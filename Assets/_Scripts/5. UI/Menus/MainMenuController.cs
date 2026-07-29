@@ -23,7 +23,13 @@ namespace UI
             EventBus.Unsubscribe<OnSettingsUIClosedEvent>(OnSettingsClosed);
         }
 
-        private void OnPlay(OnPlayClickedEvent _) => EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+        private void OnPlay(OnPlayClickedEvent _)
+        { 
+            //TODO(save system): once run persistence exists, check for a saved
+            //in-progress run here and resume it instead of always starting fresh.
+            
+            EventBus.Publish(new StartRunRequestEvent(SceneNames.Lobby));
+        }
 
         private void OnSettings(OnSettingsClickedEvent _)
             => _settingsPanel.SetActive(!_settingsPanel.activeSelf);

@@ -30,14 +30,12 @@ namespace UI
         {
             EventBus.Subscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
-            EventBus.Subscribe<EndRunRequestEvent>(HandleQuitRequest);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<FloorClearedEvent>(HandleFloorCleared);
             EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
-            EventBus.Unsubscribe<EndRunRequestEvent>(HandleQuitRequest);
         }
 
         private void Start()
@@ -78,19 +76,6 @@ namespace UI
             {
                 EventBus.Publish(new EndRunRequestEvent(_mainMenuSceneName));
             });
-        }
-
-        private void HandleQuitRequest(EndRunRequestEvent evt)
-        {
-            if (_isTransitioning) 
-                return;
-            
-            _isTransitioning = true;
-            
-            _canvasGroup.blocksRaycasts = true;
-            _canvasGroup.DOFade(1f, _sceneFadeDuration)
-                .SetUpdate(true)
-                .OnComplete(() => EventBus.Publish(new EndRunRequestEvent(evt.DestinationScene)));
         }
         
         public void LoadScene(string sceneName)

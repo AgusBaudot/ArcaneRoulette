@@ -12,8 +12,8 @@ namespace World
         [SerializeField] private float _radius = 1.5f;
         [SerializeField] private PortalType _type = PortalType.NextFloor;
 
-        private string _targetSceneName = SceneNames.GameLevel;
-        private bool _hasTriggered = false;
+        private readonly string _targetSceneName = SceneNames.GameLevel;
+        private bool _hasTriggered;
 
         private void Start()
         {
@@ -36,7 +36,7 @@ namespace World
                 }
                 else if (_type == PortalType.StartNewRun)
                 {
-                    EventBus.Publish(new EndRunRequestEvent(_targetSceneName));
+                    EventBus.Publish(new StartRunRequestEvent(_targetSceneName));
                 }
             }
         }
