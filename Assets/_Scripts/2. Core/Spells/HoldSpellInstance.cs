@@ -63,7 +63,7 @@ namespace Core
                 Object.Destroy(ActiveShieldVisual);
             }
 
-            if (ActiveHoldAudio.IsValid)
+            if (ActiveHoldAudio != null && ActiveHoldAudio.IsValid)
             {
                 EventBus.Publish(new AudioStopRequest
                 {
