@@ -203,6 +203,13 @@ namespace Core
 
         protected override void OnHitWall(Collider other)
         {
+            var destructible = other.GetComponentInParent<IDestructible>();
+
+            if (destructible != null && destructible.IsDestroyed)
+            {
+                return;
+            }
+            
             _source?.TriggerOnHit(
                 transform.position,
                 other.gameObject,
@@ -211,7 +218,7 @@ namespace Core
                 _excludeBounceCastRuneForOnHitContext,
                 Rb.velocity.normalized);
 
-            other.GetComponentInParent<IDestructible>()?.OnDeath(transform.position);
+            destructible?.OnDeath(transform.position);
 
             if (!TryBounce())
             {

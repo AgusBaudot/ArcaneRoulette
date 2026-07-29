@@ -23,7 +23,7 @@ namespace Core
         public void Bind(SpellInstance source, MonoBehaviour runner)
         {
             _boundInstance = source;
-            _runner        = runner;
+            _runner = runner;
         }
 
         private void OnCollisionEnter(Collision other)
@@ -44,11 +44,14 @@ namespace Core
                 else
                 {
                     var destructible = other.GetComponentInParent<IDestructible>();
-                    if (destructible != null)
+                    
+                    if (destructible != null && destructible.IsDestroyed)
                     {
-                        destructible.OnDeath(contactPoint);
-                        OnShieldDamaged?.Invoke();
+                        return;
                     }
+
+                    destructible?.OnDeath(contactPoint);
+                    OnShieldDamaged?.Invoke();
                 }
                 return;
             }

@@ -145,7 +145,7 @@ namespace Core
                 foreach (var hit in obstacles)
                 {
                     var destructible = hit.GetComponentInParent<IDestructible>();
-                    if (destructible == null)
+                    if (destructible == null || destructible.IsDestroyed)
                         continue;
 
                     ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
