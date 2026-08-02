@@ -46,34 +46,11 @@ namespace World
 
         public override NodeState Process()
         {
-
             if (_children.Count == 0)
                 return NodeState.Failure;
 
             return _children[0].Process();
-
-            /*
-            while (_currentChild < _children.Count) 
-            {
-                var status = _children[_currentChild].Process();
-                if (status != NodeState.Success) 
-                {
-                    return status;
-                }
-                _currentChild++;
-            }
-            //Reset(); //solo test
-            Debug.Log("Termino???");
-            return NodeState.Success;*/
         }
-        /*
-        public override NodeState Process()
-        {
-            NodeState status = _children[_currentChild].Process();
-
-            _currentChild = (_currentChild + 1) % _children.Count;
-            return NodeState.Running;
-        }*/
     }
     public class LeafNode : Node
     {
@@ -111,6 +88,61 @@ namespace World
             return Node.NodeState.Success;
         }
     }
+    /// <summary>
+    /// Runs an optional one-time start callback, an optional per-tick callback (fed
+    /// the real elapsed seconds since its own last invocation), and reports Running
+    /// until getDuration() elapses, then Success. Added for phases that take real
+    /// time to play out — ActionNode can only ever return Success instantly,
+    /// ConditionNode never does anything — neither fits a windup, a swing, or a dash.
+    ///
+    /// Uses Time.time (absolute) rather than accumulating Time.deltaTime across
+    /// Process() calls: this tree isn't ticked every frame — CustomUpdateEnemyManager
+    /// staggers enemies to ~0.1-0.2s intervals — so Time.deltaTime (the last
+    /// frame's duration alone) badly undercounts how much time actually passed
+    /// between two Process() calls on the same node.
+    /// </summary>
+    public class TimedActionStrategy : IStrategy
+    {
+        private readonly Action _onStart;
+        private readonly Action<float> _onTick;
+        private readonly Func<float> _getDuration;
+        private float _startTime;
+        private float _lastTickTime;
+        private bool _started;
+
+        public TimedActionStrategy(Action onStart, Func<float> getDuration, Action<float> onTick = null)
+        {
+            _onStart = onStart;
+            _getDuration = getDuration;
+            _onTick = onTick;
+        }
+
+        public Node.NodeState Process()
+        {
+            float now = Time.time;
+
+            if (!_started)
+            {
+                _started = true;
+                _startTime = now;
+                _lastTickTime = now;
+                _onStart?.Invoke();
+            }
+
+            float elapsed = now - _startTime;
+            _onTick?.Invoke(now - _lastTickTime); // delta since this node's own last tick
+            _lastTickTime = now;
+
+            return elapsed >= Mathf.Max(0.0001f, _getDuration())
+                ? Node.NodeState.Success
+                : Node.NodeState.Running;
+        }
+
+        public void Reset()
+        {
+            _started = false;
+        }
+    }
     public class SequenceNode : Node
     {
         public SequenceNode(string name, int priority = 0) : base(name, priority) { }
@@ -122,14 +154,18 @@ namespace World
                 switch (_children[_currentChild].Process())
                 {
                     case NodeState.Running:
-                        _currentChild = 0; // Esto se tiene que chequear
                         return NodeState.Running;
                     case NodeState.Failure:
                         Reset();
                         return NodeState.Failure;
                     default:
                         _currentChild++;
-                        return _currentChild == _children.Count ? NodeState.Success : NodeState.Running; // if it is last node the Sequence return success
+                        if (_currentChild == _children.Count)
+                        {
+                            Reset();
+                            return NodeState.Success;
+                        }
+                        return NodeState.Running;
                 }
             }
 
@@ -149,7 +185,6 @@ namespace World
                 switch (_children[_currentChild].Process())
                 {
                     case NodeState.Running:
-                        //_currentChild = 0; // este nodo deberia ser como el de prioridad
                         return NodeState.Running;
                     case NodeState.Success:
                         Reset();
@@ -303,7 +338,6 @@ namespace World
     public class CooldownDecorator : Node
     {
         private readonly Node _child;
-        private readonly float _cooldown;
         private float _lastExecutionTime = -Mathf.Infinity;
         private Func<float> _getCooldown;
         public CooldownDecorator(Node child, Func<float> cooldown)
@@ -313,7 +347,7 @@ namespace World
         }
         public override NodeState Process()
         {
-            if (Time.time - _lastExecutionTime < _cooldown)
+            if (Time.time - _lastExecutionTime < _getCooldown())
                 return NodeState.Failure;
 
             NodeState result = _child.Process();
@@ -325,4 +359,3 @@ namespace World
         }
     }
 }
-

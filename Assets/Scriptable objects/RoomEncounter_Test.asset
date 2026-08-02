@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ef7c986693040d3b5919ba6422b2198, type: 3}
+  m_Name: RoomEncounter_Test
+  m_EditorClassIdentifier: 
+  _waves:
+  - Entries:
+    - EnemyPrefab: {fileID: 507659681514517688, guid: eefb6b8a00be6874d9e71a5fc4d19672,
+        type: 3}
+      Count: 2
+    - EnemyPrefab: {fileID: 1587132943988073490, guid: d786dafe6a00d1b4b81b5a4fc4eac429,
+        type: 3}
+      Count: 3
+  - Entries:
+    - EnemyPrefab: {fileID: 507659681514517688, guid: eefb6b8a00be6874d9e71a5fc4d19672,
+        type: 3}
+      Count: 3
+    - EnemyPrefab: {fileID: 1587132943988073490, guid: d786dafe6a00d1b4b81b5a4fc4eac429,
+        type: 3}
+      Count: 1
+  _interWaveDelay: 1
+  _telegraphLeadTime: 0.6
+  _crystalReward: 10
+  _possibleRuneDrops: []

@@ -17,6 +17,13 @@ namespace World
         public GameObject[] Prefabs;
     }
 
+    [Serializable]
+    public struct RoomEncounterPool
+    {
+        public RoomType Type;
+        public RoomEncounterSO[] Encounters;
+    }
+
     [CreateAssetMenu(menuName = "ScriptableObjects/World/Zone Definition", fileName = "ZoneDefinition_")]
     public class ZoneDefinitionSO : ScriptableObject
     {
@@ -38,6 +45,10 @@ namespace World
 
         [Header("Room Prefab Pools")] [SerializeField]
         private RoomPrefabPool[] _roomPrefabPools;
+
+        [Header("Room Encounter Pools")]
+        [Tooltip("Combat/Boss rooms pick a random RoomEncounterSO from here at floor-gen time. Other room types don't need an entry.")]
+        [SerializeField] private RoomEncounterPool[] _roomEncounterPools;
 
         [Header("Door/Wall Materials")] [SerializeField]
         private Material _openDoorMaterial;
@@ -67,14 +78,26 @@ namespace World
             Debug.LogError($"ZoneDefinitionSO '{name}' has no prefabs registered for {type}.");
             return null;
         }
+
+        public RoomEncounterSO GetRandomEncounter(RoomType type, System.Random rng)
+        {
+            foreach (var pool in _roomEncounterPools)
+            {
+                if (pool.Type != type || pool.Encounters == null || pool.Encounters.Length == 0)
+                    continue;
+
+                return pool.Encounters[rng.Next(pool.Encounters.Length)];
+            }
+
+            // Unlike GetRandomPrefab, no error here — most RoomTypes legitimately
+            // have no encounter (Start/Resting/Artifact/Shop/Portal). The caller
+            // decides whether a miss for Combat/Boss specifically is worth a warning.
+            return null;
+        }
         
         #if UNITY_EDITOR
         private void OnValidate()
         {
-            // Same precedent as the old GridTopologyGenerator: clamp designer data so this
-            // can never request more Combat Rooms than the floor has room for once Start,
-            // the guaranteed Rest Room, and Boss/Portal are accounted for. Delegates to
-            // FloorLayoutGenerator so the formula only lives in one place.
             var (min, max) = FloorLayoutGenerator.ClampCombatRange(_totalRoomsPerFloor, _combatRoomMin, _combatRoomMax);
             _combatRoomMin = min;
             _combatRoomMax = max;
