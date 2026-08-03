@@ -187,8 +187,8 @@ namespace World
         {
             RedirectTowardPlayer();
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
-            ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
             
+            ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
             _isStepping = true;
         }
 
@@ -238,8 +238,40 @@ namespace World
                 Debug.LogWarning($"{name}: no MeleeWeaponHitbox assigned — this swing deals no damage.");
                 return;
             }
-            _hitbox.Configure(damage, MeleeStats.ElementType, size);
+            _hitbox.Configure(damage, MeleeStats.ElementType, size, _lastAttackDirection);
             _hitbox.Activate();
         }
+        
+#if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            if (_enemyStats == null) return;
+
+            // Attack Range Sphere
+            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
+
+            // Vision Sphere
+            Gizmos.color = new Color(0f, 0f, 1f, 0.5f);
+            Gizmos.DrawWireSphere(transform.position, _enemyStats.ViewDistance);
+
+            // ---- ATTACK HITBOX PREVIEW ----
+            if (_enemyStats is MeleeEnemyStats stats)
+            {
+                Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f); // Solid Orange outline
+                
+                // Draw a preview of the hitbox facing forward
+                Matrix4x4 oldMatrix = Gizmos.matrix;
+                Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+                
+                Vector3 previewSize = stats.Attack1HitboxSize;
+                Vector3 previewCenter = new Vector3(0, 0, previewSize.z / 2f); // Offset forward
+                
+                Gizmos.DrawWireCube(previewCenter, previewSize);
+                
+                Gizmos.matrix = oldMatrix;
+            }
+        }
+#endif
     }
 }
