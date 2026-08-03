@@ -25,6 +25,8 @@ namespace World
                 Debug.LogError("FloorSpawner: no active RunState — GameLevel loaded without a run in progress.");
                 return;
             }
+            
+            SwarmManager.ClearAll();
 
             int currentFloor = GameStateManager.RunState.CurrentFloor;
             int zoneIndex = (currentFloor - 1) / 3;

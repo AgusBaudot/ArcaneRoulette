@@ -1,26 +1,65 @@
+using System;
+using Core;
+using Foundation;
 using UnityEngine;
 
 namespace World
 {
-    public sealed class MeleeAIBrain : AIBrain
+    public sealed class MeleeAIBrain : AIBrain, IUpdatable
     {
+        public int UpdatePriority => Foundation.UpdatePriority.AI;
+        
         [Header("Melee-specific")]
         [Tooltip("Assign once the weapon/rig exists — a child BoxCollider under the sword's socket.")]
         [SerializeField] private MeleeWeaponHitbox _hitbox;
 
         private MeleeEnemyStats MeleeStats => _enemyStats as MeleeEnemyStats;
 
+        private PlayerController _playerController;
         private Vector3 _lastAttackDirection;
         private float _dashDistanceMoved;
+        private bool _isStepping;
+        private bool _isDashing;
+
+        private void OnEnable()
+        {
+            UpdateManager.Instance.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            UpdateManager.Instance.Unregister(this);
+            SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
+        }
 
         public override void ResetComponent()
         {
             base.ResetComponent();
-            // Guards against a mid-swing death leaving the hitbox live on next spawn —
-            // Reset() rewinds the tree's position but doesn't run strategy cleanup,
-            // so this has to happen explicitly.
+            _isStepping = false;
+            _isDashing = false;
+            SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
             if (_hitbox != null)
+            {
                 _hitbox.Deactivate();
+            }
+        }
+        
+        public void Tick(float dt)
+        {
+            if (_agent == null || !IsState(AIState.Attack)) return;
+
+            if (_isStepping)
+            {
+                float speed = EffectiveChaseSpeed * MeleeStats.Attack1MovementSpeedMultiplier;
+                _agent.Move(_lastAttackDirection * speed * dt);
+            }
+            else if (_isDashing && _dashDistanceMoved < MeleeStats.Attack3DashDistance)
+            {
+                float speed = EffectiveChaseSpeed * MeleeStats.Attack3DashSpeedMultiplier;
+                float step = Mathf.Min(speed * dt, MeleeStats.Attack3DashDistance - _dashDistanceMoved);
+                _agent.Move(_lastAttackDirection * step);
+                _dashDistanceMoved += step;
+            }
         }
 
         protected override BehaviorTree BuildTree()
@@ -62,9 +101,29 @@ namespace World
             SetState(AIState.Chase);
             Transform player = GetPlayer();
             if (player == null || _agent == null) return;
+
+            if (_playerController == null) _playerController = player.GetComponentInParent<PlayerController>();
+
             _agent.isStopped = false;
             _agent.speed = EffectiveChaseSpeed;
-            _agent.SetDestination(player.position);
+
+            if (!IsInLos())
+            {
+                _agent.SetDestination(player.position);
+                return;
+            }
+
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+            float predictionTime = Mathf.Clamp(distanceToPlayer / EffectiveChaseSpeed, 0f, MeleeStats.MaxPredictionTime);
+
+            Vector3 futurePos = player.position + (_playerController.LogicalVelocity * predictionTime);
+            Vector3 basePoint = Vector3.Lerp(player.position, futurePos, MeleeStats.TargetPredictionWeight);
+
+            Vector3 rawSlotOffset = SwarmManager.GetOrClaimSlot(gameObject.GetInstanceID()) * MeleeStats.FormationRadius;
+            
+            rawSlotOffset.z *= Helpers.PlayerStats.VerticalSpeedMultiplier; 
+
+            _agent.SetDestination(basePoint + rawSlotOffset);
         }
 
         // ---- Attack ----
@@ -84,17 +143,19 @@ namespace World
                 new TimedActionStrategy(BeginWindup, () => MeleeStats.WindupDuration)));
 
             sequence.AddChild(new LeafNode("Swing1",
-                new TimedActionStrategy(() => BeginSwing(0), GetAttack12Duration, TickStepMovement)));
+                new TimedActionStrategy(() => BeginSwing(0), GetAttack12Duration)));
+
             sequence.AddChild(new LeafNode("Gap1",
                 new TimedActionStrategy(EndSwing, () => MeleeStats.Attack1EndDelay)));
 
             sequence.AddChild(new LeafNode("Swing2",
-                new TimedActionStrategy(() => BeginSwing(1), GetAttack12Duration, TickStepMovement)));
+                new TimedActionStrategy(() => BeginSwing(1), GetAttack12Duration)));
+
             sequence.AddChild(new LeafNode("Gap2",
                 new TimedActionStrategy(EndSwing, () => MeleeStats.Attack2EndDelay)));
 
             sequence.AddChild(new LeafNode("Swing3Dash",
-                new TimedActionStrategy(BeginSwing3Dash, GetAttack3Duration, TickDashMovement)));
+                new TimedActionStrategy(BeginSwing3Dash, GetAttack3Duration)));
             sequence.AddChild(new LeafNode("Recomposing",
                 new TimedActionStrategy(BeginRecomposing, () => MeleeStats.RecomposingDuration)));
 
@@ -127,16 +188,15 @@ namespace World
             RedirectTowardPlayer();
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
             ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
+            
+            _isStepping = true;
         }
 
-        private void TickStepMovement(float dt)
+        private void EndSwing()
         {
-            if (_agent == null) return;
-            float speed = EffectiveChaseSpeed * MeleeStats.Attack1MovementSpeedMultiplier;
-            _agent.Move(_lastAttackDirection * speed * dt);
+            _hitbox?.Deactivate();
+            _isStepping = false;
         }
-
-        private void EndSwing() => _hitbox?.Deactivate();
 
         private float GetAttack3Duration() =>
             EffectiveAttackSpeed / Mathf.Max(0.01f, MeleeStats.Attack3SwingSpeedMultiplier);
@@ -148,29 +208,18 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack3DamageMultiplier);
             Vector3 size = MeleeStats.Attack1HitboxSize * (1f + MeleeStats.Attack3HitboxSizeMultiplier);
             ActivateHitbox(damage, size);
-        }
-
-        // See chat for why this is a specific interpretation, not a confirmed one:
-        // the swing's own (Attack Speed-derived) duration is what gates the whole
-        // phase; the dash moves at its own (Movement Speed-derived) rate toward
-        // its fixed distance within that window, and simply stops early if it
-        // gets there first.
-        private void TickDashMovement(float dt)
-        {
-            if (_agent == null) return;
-            if (_dashDistanceMoved >= MeleeStats.Attack3DashDistance) return;
-
-            float speed = EffectiveChaseSpeed * MeleeStats.Attack3DashSpeedMultiplier;
-            float step = Mathf.Min(speed * dt, MeleeStats.Attack3DashDistance - _dashDistanceMoved);
-            _agent.Move(_lastAttackDirection * step);
-            _dashDistanceMoved += step;
+            
+            _isDashing = true;
         }
 
         private void BeginRecomposing()
         {
             _hitbox?.Deactivate();
-            SetState(AIState.Attack); // still locked out of Chase until this ends
+            SetState(AIState.Attack);
             _agent.isStopped = true;
+            
+            _isStepping = false;
+            _isDashing = false;
         }
 
         private void RedirectTowardPlayer()

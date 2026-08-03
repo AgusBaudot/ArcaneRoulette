@@ -8,6 +8,14 @@ namespace World
         [Header("Spawn")]
         [Tooltip("Seconds of spawn animation before the enemy starts acting.")]
         public float SpawnDuration = 3f;
+        
+        [Header("Swarm & Pursuit")]
+        [Range(0f, 1f)] [Tooltip("0 = Chases exact current position. 1 = Predicts future movement.")]
+        public float TargetPredictionWeight = 0.5f;
+        [Tooltip("How far away the enemy parks from the player in its Swarm Slot.")]
+        public float FormationRadius = 2.5f;
+        [Tooltip("Maximum seconds into the future the enemy is allowed to predict.")]
+        public float MaxPredictionTime = 1.5f;
 
         [Header("Attacking — shared")]
         [Tooltip("Max degrees the enemy may redirect toward the player between attacks 1->2 and 2->3.")]
