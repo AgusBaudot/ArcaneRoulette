@@ -15,6 +15,7 @@ namespace UI
         [SerializeField] private ShopUI _shopPrefab;
         [SerializeField] private PauseMenu _pauseMenuPrefab;
         [SerializeField] private LootSelectionUI _lootSelectionPrefab;
+        [SerializeField] private ConsoleUI _consolePrefab;
 
         [Header("Universal Audio")]
         [SerializeField] private AudioEventSO _menuOpenSound;
@@ -26,6 +27,7 @@ namespace UI
         private ShopUI _shopInstance;
         private PauseMenu _pauseMenuInstance;
         private LootSelectionUI _lootSelectionInstance;
+        private ConsoleUI _consoleUIInstance;
 
         private BaseUIPanel _currentActivePanel;
 
@@ -37,6 +39,7 @@ namespace UI
             _shopInstance = Instantiate(_shopPrefab, _staticCanvasRoot);
             _pauseMenuInstance = Instantiate(_pauseMenuPrefab, _staticCanvasRoot);
             _lootSelectionInstance = Instantiate(_lootSelectionPrefab, _staticCanvasRoot);
+            _consoleUIInstance = Instantiate(_consolePrefab, _staticCanvasRoot);
         }
 
         private void OnEnable()
@@ -47,6 +50,7 @@ namespace UI
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
             Helpers.Input.OnPausePressed += HandlePauseToggle;
             Helpers.Input.OnCloseMenu += HandleCancelInput;
+            Helpers.Input.OnConsolePressed += HandleToggleConsole;
         }
 
         private void OnDisable()
@@ -57,6 +61,7 @@ namespace UI
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
             Helpers.Input.OnPausePressed -= HandlePauseToggle;
             Helpers.Input.OnCloseMenu -= HandleCancelInput;
+            Helpers.Input.OnConsolePressed -= HandleToggleConsole;
         }
 
         // ── Triggers ─────────────────────────────────────────────────────────
@@ -96,6 +101,31 @@ namespace UI
             if (_currentActivePanel != null)
             {
                 CloseCurrentPanel();
+            }
+        }
+
+        private void HandleToggleConsole()
+        {
+            if (!_consoleUIInstance.CanvasGroup.interactable)
+            {
+                Time.timeScale = 0f;
+                AudioListener.pause = true;
+                Helpers.Input.EnableUIInput();
+    
+                _consoleUIInstance.Show();
+            }
+            else
+            {
+                _consoleUIInstance.Hide();
+
+                AudioListener.pause = false;
+                Time.timeScale = 1f;
+                Helpers.Input.EnablePlayerInput();
+    
+                if (Helpers.UIAudio != null && Helpers.UIAudio.MenuClose != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.MenuClose });
+                }
             }
         }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 public abstract class BaseUIPanel : MonoBehaviour
 {
     public event Action OnCloseRequested;
+    public CanvasGroup CanvasGroup => _canvasGroup;
     
     private CanvasGroup _canvasGroup;
     private Tween _fadeTween;

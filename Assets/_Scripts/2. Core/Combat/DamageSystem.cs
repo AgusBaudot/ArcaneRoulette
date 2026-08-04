@@ -22,6 +22,12 @@ namespace Core
             int baseDamage,
             ElementType attackerElement)
         {
+            if (Cheats.GodMode && target is MonoBehaviour mono && mono.GetComponentInParent<PlayerController>() != null)
+            {
+                return DamageResult.None;
+                // return new DamageResult { DidDamage = false, FinalDamage = 0, Effectiveness = Effectiveness.Normal };
+            }
+            
             if (target == null)
                 return DamageResult.None;
 
