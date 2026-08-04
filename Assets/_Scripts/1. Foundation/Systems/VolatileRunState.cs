@@ -236,6 +236,7 @@ namespace Foundation
             OnPlayerEnteredRoom = null;
             OnRoomStateChanged = null;
             OnFloorMapGenerated = null;
+            SwarmManager.ClearAll();
 
             // Modifier pipeline
             OnCalculateDamageOut = null;

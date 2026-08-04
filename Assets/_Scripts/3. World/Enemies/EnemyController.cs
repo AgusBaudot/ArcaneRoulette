@@ -1,16 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 using UnityEngine.AI;
-using Foundation;
-using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
+    [RequireComponent(typeof(AIBrain))]
     public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
         #region Parameters

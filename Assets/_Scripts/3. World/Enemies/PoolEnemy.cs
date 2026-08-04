@@ -13,15 +13,20 @@ namespace World
 
         public static PoolEnemy Instance { get; private set; }
         private bool _isReady = false;
+
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Debug.LogWarning($"Duplicate PoolEnemy on '{name}' — destroying it, keeping '{Instance.name}'.", this);
+                Destroy(this);
+                return;
+            }
             Instance = this;
             _pools = new Dictionary<EnemyType, ObjectPool<IPoolable>>();
-        }
-        private void Start()
-        {
             InitializePools();
         }
+
         private void InitializePools()
         {
             foreach (var poolConfig in _poolConfigs)
@@ -59,16 +64,30 @@ namespace World
         {
             if (!_isReady) return null;
 
-            _pools.TryGetValue(enemyType, out var pool);
+            if (!_pools.TryGetValue(enemyType, out var pool))
+            {
+                Debug.LogError($"PoolEnemy: no PoolConfig registered for {enemyType}.");
+                return null;
+            }
+
             var entity = pool.Get() as EnemyController;
-            
+            if (entity == null)
+            {
+                Debug.LogError($"PoolEnemy: pooled object for {enemyType} has no EnemyController component.");
+                return null;
+            }
+
             entity.Transform.position = position;
-            
             return entity;
         }
+
         public void Release(EnemyType enemyType, IPoolable obj)
         {
-            _pools.TryGetValue(enemyType, out var pool);
+            if (!_pools.TryGetValue(enemyType, out var pool))
+            {
+                Debug.LogError($"PoolEnemy: no PoolConfig registered for {enemyType} — {((MonoBehaviour)obj).name} can't be released and will leak.");
+                return;
+            }
             pool.Release(obj);
         } 
     }
