@@ -15,6 +15,9 @@ namespace Core
         public Rigidbody Rigidbody => _rb;
         public PlayerHealth Health => _health;
         public GameObject Hurtbox => _hurtBox;
+
+        public Vector3 LogicalVelocity =>
+            new Vector3(_input.x, 0f, _input.y).normalized * Helpers.PlayerStats.BaseSpeed;
         //True when a HoldSpellInstance with an active ShieldState is the last-pressed hold.
         public bool IsShielding
         {

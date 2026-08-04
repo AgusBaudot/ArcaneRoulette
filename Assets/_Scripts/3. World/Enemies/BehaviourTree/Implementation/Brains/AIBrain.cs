@@ -31,7 +31,9 @@ namespace World
 
         [Header("Stats")]
         protected EnemyStats _enemyStats;
-        protected AIState _currentState; 
+        protected AIState _currentState;
+
+        private EnemyHealth _enemyHealth;
 
         protected float EffectiveAttackSpeed
         {
@@ -79,13 +81,42 @@ namespace World
 
             _waypoints ??= new List<Transform>();
 
+            GetPlayer(); // best-effort now; every real call site retries via GetPlayer() too
+            if (_player != null)
+                _waypoints.Add(_player);
+
+            // AIBrain and EnemyHealth are siblings, not related by inheritance —
+            // this listens to EnemyHealth's already-public OnDeath rather than
+            // EnemyHealth needing to reach a protected member on a different
+            // component. Awake() only ever runs once per pooled instance's
+            // lifetime, so a plain += here is safe without an unsub/resub dance.
+            _enemyHealth = GetComponent<EnemyHealth>();
+            if (_enemyHealth != null)
+                _enemyHealth.OnDeath += HandleDeath;
+        }
+
+        private void HandleDeath() => SetState(AIState.Death);
+
+        /// <summary>
+        /// Single source of truth for the player reference. Retries the tag
+        /// lookup every call until it succeeds once, then just returns the
+        /// cached Transform. Use this everywhere instead of reading _player
+        /// directly — a direct read never retries, and if it's called before
+        /// the real Player exists in the scene (pool pre-warming runs during
+        /// Awake now, which can beat the Player's own setup), _player stays
+        /// null forever with nothing to notice or recover.
+        /// </summary>
+        protected Transform GetPlayer()
+        {
             if (_player == null)
             {
-                _player = GameObject.FindGameObjectWithTag("Player").transform;
+                var playerGO = GameObject.FindGameObjectWithTag("Player");
+                if (playerGO != null)
+                    _player = playerGO.transform;
             }
-            _waypoints.Add(_player);
+            return _player;
         }
-        
+
         public void InitComponent(EnemyStats stats, Blackboard bb)
         {
             _blackboard = bb;
@@ -98,11 +129,12 @@ namespace World
             _tree = BuildTree();
         }
         
-        public void ResetComponent()
+        public virtual void ResetComponent()
         {
             _debuffs = null;
             _tree?.Reset();
             _wasInRange = false;
+            _currentState = default;
 
             if (_animator != null)
             {
@@ -131,10 +163,11 @@ namespace World
             if (_blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
                 return true;
 
-            if (_player == null)
-                _player = GameObject.FindGameObjectWithTag("Player").transform;
+            Transform player = GetPlayer();
+            if (player == null)
+                return false;
 
-            bool hasLOS = _los.CheckRange(_player) && _los.CheckView(_player);
+            bool hasLOS = _los.CheckRange(player) && _los.CheckView(player);
             _blackboard.SetValue(hasSeenPlayerKey, hasLOS);
             return hasLOS;
         }
@@ -143,10 +176,6 @@ namespace World
         {
             if (target == null) 
                 return false;
-            
-                var p = GameObject.FindGameObjectWithTag("Player");
-                if (p != null) target = p.transform;
-                else return false;
 
             float distance = Vector3.Distance(transform.position, target.position);
             bool result;
@@ -165,6 +194,8 @@ namespace World
         #region Gizmos
         private void OnDrawGizmosSelected()
         {
+            if (_enemyStats == null) return;
+
             //attack Range
             Color Color1 = Color.red;
             Color1.a = 0.5f;

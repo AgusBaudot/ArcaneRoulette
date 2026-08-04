@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace World
 {
+    [RequireComponent(typeof(DamageFlash))]
     public class EnemyHealth : MonoBehaviour, IEnemyComponent, IDamageable, IElemental, IDebuffReceiver, IHealable
     {
         [Header("Stats")]
@@ -44,8 +45,6 @@ namespace World
         {
             _currentHp = Mathf.Max(0f, _currentHp - amount);
             UpdateUI();
-
-            _flashComponent.Flash();
 
             if (_currentHp <= 0f)
                 Die();

@@ -70,7 +70,7 @@ namespace World
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError($"[CustomUpdateEnemyManager] Error en el tick del enemigo en índice {i}: {e.Message}\n{e.StackTrace}");
+                    Debug.LogError($"[CustomUpdateEnemyManager] Error en el tick del enemigo en indice {i}: {e.Message}\n{e.StackTrace}");
                 }
             }
         }

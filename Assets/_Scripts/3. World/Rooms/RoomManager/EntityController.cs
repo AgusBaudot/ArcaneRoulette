@@ -13,6 +13,7 @@ namespace World
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
         [SerializeField] private float _spawnDelay;
+        [SerializeField] private float _interWaveDelay = 1.0f; // FDD: "brief 1.0-second delay" between waves
         [SerializeField] private GameObject _dangerImage;
         [SerializeField] private GameObject _effect;
         [SerializeField] private float _warningDuration;
@@ -140,6 +141,7 @@ namespace World
         }
         private void OnEnemyDeath(EnemyController enemy)
         {
+            _spawnedEnemies.Remove(enemy);
             PoolEnemy.Instance.Release(enemy.Type, enemy);
             _enemiesAlive--;
 
@@ -147,10 +149,15 @@ namespace World
             {
                 _currentWave++;
                 if (_currentWave < _encounterData.Waves.Length)
-                    SpawnWave(_currentWave);
+                    StartCoroutine(NextWaveAfterDelay());
                 else
                     RoomIsClear?.Invoke();
             }
+        }
+        private IEnumerator NextWaveAfterDelay()
+        {
+            yield return CoroutineUtils.GetWait(_interWaveDelay);
+            SpawnWave(_currentWave);
         }
         public void DisableAllHazards()
         {

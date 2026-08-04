@@ -25,6 +25,8 @@ namespace World
                 Debug.LogError("FloorSpawner: no active RunState — GameLevel loaded without a run in progress.");
                 return;
             }
+            
+            SwarmManager.ClearAll();
 
             int currentFloor = GameStateManager.RunState.CurrentFloor;
             int zoneIndex = (currentFloor - 1) / 3;
@@ -81,10 +83,16 @@ namespace World
 
                 room.Init(new RoomInfo { index = node.Index, roomType = node.Type });
                 room.InitDoors(BuildDoorsInfo(zone, node, layout));
-                // InitEntity(RoomEncounterData) intentionally not called — no encounter
-                // authoring pipeline yet, and enemies are being rewritten regardless.
-                // EntityController already treats empty encounter data as an instant clear,
-                // so nothing breaks — Combat/Boss rooms will just clear on entry for now.
+
+                if (node.Type == RoomType.Combat || node.Type == RoomType.Boss)
+                {
+                    RoomEncounterSO encounter = zone.GetRandomEncounter(node.Type, rng);
+                    if (encounter != null)
+                        room.InitEntity(encounter.ToRoomEncounterData());
+                    else
+                        Debug.LogWarning(
+                            $"FloorSpawner: no RoomEncounterSO registered for {node.Type} at room {node.Index} — it will clear on entry with no enemies.");
+                }
 
                 _roomsByIndex[node.Index] = room;
             }
