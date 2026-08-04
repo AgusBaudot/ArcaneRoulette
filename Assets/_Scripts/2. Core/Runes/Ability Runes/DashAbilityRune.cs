@@ -14,7 +14,15 @@ namespace Core
         [SerializeField] private float _cooldownDuration = 0.8f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
+        [Tooltip("Layer(s) your destructible/wall geometry sits on. Separate from " +
+                 "EnemyLayerMask since destructibles aren't enemies.")]
+        [SerializeField] private LayerMask _destructibleLayerMask;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
+        
+        [Header("VFX")]
+        [SerializeField] private PooledVFX _defaultDashVfx;
+        [SerializeField] private ElementalPooledVFX[] _elementalDashVfx;
+        
         [Header("Audio")]
         [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
@@ -37,8 +45,22 @@ namespace Core
             
             var args = new DashActivationArgs();
             (ctx.Source as ISpellEventSource)?.RaiseBeforeActivate(args);
+
+            PooledVFX vfxPrefab = GetDashVfx(ctx.AttackerElement);
+            PooledVFX activeVfx = null;
+
+            if (vfxPrefab != null)
+            {
+                activeVfx = Helpers.ProjFactory.Spawn(
+                    vfxPrefab, 
+                    ctx.Runner.transform.position, 
+                    ctx.Runner.transform.rotation
+                );
+                activeVfx.AttachTo(ctx.Runner.transform);
+            }
+            
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
-                _baseDashDuration * args.DurationMultiplier, args));
+                _baseDashDuration * args.DurationMultiplier, args, activeVfx));
         }
 
         private AudioEventSO GetCastSound(ElementType element)
@@ -51,8 +73,18 @@ namespace Core
 
             return _defaultCastSound;
         }
+        
+        private PooledVFX GetDashVfx(ElementType element)
+        {
+            foreach (var mapping in _elementalDashVfx)
+            {
+                if (mapping.Element == element) return mapping.Prefab;
+            }
+            
+            return _defaultDashVfx;
+        }
 
-        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args)
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args, PooledVFX vfx)
         {
             // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
@@ -60,6 +92,8 @@ namespace Core
             
             if (dir == Vector3.zero) 
                 dir = player.transform.forward;
+
+            Vector3 dashVelocity = new Vector3(dir.x * _dashSpeed, 0f, dir.z * _dashSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier);
 
             // Invincibility — distinct from IFrames per locked decisions
             player.SetCanMove(false);
@@ -102,20 +136,43 @@ namespace Core
                 
                 batch.Commit(Helpers.Combat.NormalDMG);
 
+                // ── Destructible collision — breaks on contact, no rune gating, ──
+                // still fires TriggerOnHit like every other hit type (e.g. AoE splash).
+                // No dedup set needed: IDestructible.OnDeath is already idempotent.
+                var obstacles = Physics.OverlapSphere(
+                    player.transform.position, _dashHitRadius, _destructibleLayerMask);
+
+                foreach (var hit in obstacles)
+                {
+                    var destructible = hit.GetComponentInParent<IDestructible>();
+                    if (destructible == null || destructible.IsDestroyed)
+                        continue;
+
+                    ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
+                        AbilityType.Dash, false, dir);
+                    destructible.OnDeath(hit.transform.position);
+                }
+
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
                 if (args.ReflectCount > 0 && _reflectedProjectilePrefab != null)
                 {
                     ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance, args);
                 }
-                
-                player.Rigidbody.velocity = dir * _dashSpeed;
+
+                player.Rigidbody.velocity = dashVelocity;
                 elapsed += Time.fixedDeltaTime;
                 yield return new WaitForFixedUpdate();
             }
 
-            player.Rigidbody.velocity = Vector3.zero;
+            player.SetVelocity(Vector3.zero);
             player.SetCanMove(true);
             player.Hurtbox.SetActive(true);
+
+            if (vfx != null)
+            {
+                vfx.transform.SetParent(null);
+                vfx.StopEmitting();
+            }
         }
 
         private void SpawnHomingFromDash(SpellContext ctx, Vector3 dir, int count)

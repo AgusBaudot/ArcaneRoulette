@@ -3,68 +3,139 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
+using Random = UnityEngine.Random;
 
-namespace World 
+namespace World
 {
     public class EntityController : MonoBehaviour
     {
         [Header("Room spawn settings")]
-        [SerializeField] private Transform[] _enemySpawns;
-        [SerializeField] private int _enemiesAlive = 0;
-        [SerializeField] private int _currentWave = 0;
-        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
-        private RoomEncounterData _encounterData;
+        [SerializeField] private BoxCollider[] _enemySpawns;
+        [SerializeField] private int _spawnAtSameTime;
+        [SerializeField] private float _spawnDelay;
+        [SerializeField] private GameObject _dangerImage;
+        [SerializeField] private GameObject _effect;
+        [SerializeField] private float _warningDuration;
+
 
         [Header("Hazards")]
-        [SerializeField] MonoBehaviour[] hazards; //overkill me quedo sin tiempo xd
+        [SerializeField] MonoBehaviour[] hazards; //overkill
 
+        [Header("Read only info")]
+        [SerializeField] private int _enemiesAlive;
+        [SerializeField] private int _currentWave;
+
+        private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
+        private RoomEncounterData _encounterData;
+        private List<EnemyType> _spawnList;
         public event Action RoomIsClear;
+
         public void SaveEnemiesData(RoomEncounterData encounterData)
         {
             _encounterData = encounterData;
             _currentWave = 0;
         }
-        public void SpawnEnemies()
+        private Vector3 GetRandomSpawnPosition(int spawn)
         {
-            if (_encounterData.Waves == null || _encounterData.Waves.Length == 0)
+            Bounds bounds = _enemySpawns[spawn].bounds;
+            return new Vector3(
+                Random.Range(bounds.min.x, bounds.max.x),
+                bounds.min.y,
+                Random.Range(bounds.min.z, bounds.max.z)
+            );
+        }
+
+        // ---- Entry function ----
+        public void PlayEntityController()
+        {
+            if (_encounterData.Waves == null || _encounterData.Waves.Length == 0 || _enemySpawns.Length == 0)
             {
                 RoomIsClear?.Invoke();
                 return;
             }
             SpawnWave(_currentWave);
         }
+
+        // ---- Core Wave System ----
         private void SpawnWave(int waveIndex)
         {
             EnemySpawnData wave = _encounterData.Waves[waveIndex];
             _enemiesAlive = 0;
-
+            // ---- Create a list with all enemy Types ----
+            _spawnList = new List<EnemyType>();
             for (int i = 0; i < wave.EnemyType.Length; i++)
             {
-                EnemyType type = wave.EnemyType[i];
-                int amount = wave.Amounts[i];
-
-                for (int j = 0; j < amount; j++)
+                for (int j = 0; j < wave.Amounts[i]; j++)
                 {
-                    if (_enemySpawns.Length == 0)
+                    _spawnList.Add(wave.EnemyType[i]);
+                    _enemiesAlive++;
+                }
+            }
+            // ---- shuffle the list ----
+            for (int i = _spawnList.Count - 1; i > 0; i--)
+            {
+                int rand = Random.Range(0, i + 1);
+                EnemyType e = _spawnList[i];
+                _spawnList[i] = _spawnList[rand];
+                _spawnList[rand] = e;
+            }
+
+            StartCoroutine(SpawnEnemies(_spawnList));
+        }
+        private IEnumerator SpawnEnemies(List<EnemyType> enemiesToSpawn)
+        {
+            int spawnedSoFar = 0;
+
+            while (spawnedSoFar < enemiesToSpawn.Count)
+            {
+                int batchSize = Mathf.Max(1, Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar));
+                List<Vector3> batchPositions = new List<Vector3>();
+                List<GameObject> batchIndicators = new List<GameObject>();
+
+                for (int i = 0; i < batchSize; i++)
+                {
+                    int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
+                    Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
+                    batchPositions.Add(spawn);
+                    GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0))); // the exact rotation as the camera
+                    batchIndicators.Add(indicator);
+                }
+                yield return CoroutineUtils.GetWait(_warningDuration);
+
+                for (int i = 0; i < batchSize; i++)
+                {
+                    if (_effect != null)
                     {
-                        continue;
+                        GameObject effect = Instantiate(_effect, batchPositions[i], Quaternion.identity);
+                        Destroy(effect, 3f);
                     }
                     
-                    Transform spawn = _enemySpawns[_enemiesAlive % _enemySpawns.Length];
-                    IPoolable enemy = PoolEnemy.Instance.Get(type, spawn.position);
+                    EnemyType type = enemiesToSpawn[spawnedSoFar + i];
+                    IPoolable enemy = PoolEnemy.Instance.Get(type, batchPositions[i]);
 
-                    // el enemigo avisa cuando muere
-                    if (enemy is EnemyController ec)
+                    if (enemy != null && enemy is EnemyController ec)
                     {
                         ec.Type = type;
                         ec.OnDeathEvent -= OnEnemyDeath;
                         ec.OnDeathEvent += OnEnemyDeath;
-                        StartCoroutine(VerifySubscription(ec));
+                        _spawnedEnemies.Add(enemy);
+                    }
+                    else
+                    {
+                        Debug.LogError($"[EntityController] Pool failed to spawn: {type}!");
+                        _enemiesAlive--; // CRITICAL: Decrement so the room can still clear!
                     }
 
-                    _spawnedEnemies.Add(enemy);
-                    _enemiesAlive++;
+                    if (batchIndicators[i] != null)
+                    {
+                        Destroy(batchIndicators[i].gameObject);
+                    }
                 }
+
+                spawnedSoFar += batchSize;
+
+                if (spawnedSoFar < enemiesToSpawn.Count)
+                    yield return CoroutineUtils.GetWait(_spawnDelay);
             }
         }
         private void OnEnemyDeath(EnemyController enemy)
@@ -81,41 +152,13 @@ namespace World
                     RoomIsClear?.Invoke();
             }
         }
-        public void DisableAllHazards() 
+        public void DisableAllHazards()
         {
             for (int i = 0; i < hazards.Length; i++)
             {
                 if (hazards[i] is IHazard hazard)
                     hazard.Disable();
             }
-        }
-        private IEnumerator VerifySubscription(EnemyController ec)
-        {
-            int attempts = 0;
-            int maxAttempts = 10;
-
-            while (attempts < maxAttempts)
-            {
-                yield return null; // espera un frame
-
-                if (ec == null || !ec.gameObject.activeSelf) yield break;
-
-                if (!ec.HasDeathListeners())
-                {
-                    Debug.LogWarning($"[VerifySubscription] {ec.name} sin listeners, resuscribiendo. Intento {attempts + 1}");
-                    ec.OnDeathEvent -= OnEnemyDeath;
-                    ec.OnDeathEvent += OnEnemyDeath;
-                }
-                else
-                {
-                    //Debug.Log($"[VerifySubscription] {ec.name} suscripto correctamente");
-                    yield break; // todo bien, salir
-                }
-
-                attempts++;
-            }
-
-            Debug.LogError($"[VerifySubscription] {ec.name} no pudo suscribirse despu�s de {maxAttempts} intentos");
         }
     }
 

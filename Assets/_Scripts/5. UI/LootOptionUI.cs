@@ -33,13 +33,18 @@ namespace UI
         public void Init(RuneDefinitionSO rune, Action onClicked)
         {
             Rune = rune;
-            _onClicked = onClicked;
+            if (onClicked != null)
+                _onClicked = onClicked;
 
             if (rune == null)
                 return;
 
             if (_runeIcon != null)
+            {
                 _runeIcon.sprite = rune.Icon;
+                _runeIcon.preserveAspect = true;
+                _runeIcon.rectTransform.localScale = Vector3.one * rune.UIIconScale;
+            }
 
             if (_runeNameText != null)
                 _runeNameText.text = rune.Name;

@@ -19,7 +19,12 @@ namespace Foundation
         {
             Time.timeScale = slowScale;
             yield return new WaitForSecondsRealtime(duration);
-            Time.timeScale = 1f;
+
+            if (Helpers.Input.PlayerActions)
+            {
+                Time.timeScale = 1f;
+            }
+
             _current = null;
         }
 

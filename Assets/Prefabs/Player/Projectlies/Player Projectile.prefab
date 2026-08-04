@@ -97,15 +97,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _elementVisuals:
   - Element: 0
-    VisualGO: {fileID: 6070581733378216830}
+    Reference: {fileID: 6070581733378216830}
   - Element: 1
-    VisualGO: {fileID: 8643539968334231293}
+    Reference: {fileID: 8643539968334231293}
   - Element: 2
-    VisualGO: {fileID: 2755956193012625446}
+    Reference: {fileID: 2755956193012625446}
   - Element: 3
-    VisualGO: {fileID: 4344398420175442745}
+    Reference: {fileID: 4344398420175442745}
   - Element: 4
-    VisualGO: {fileID: 2113728280394749721}
+    Reference: {fileID: 2113728280394749721}
 --- !u!1 &1329053254717342096
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,11 +135,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 5659828425928070282}
   - {fileID: 8072638782814820330}
-  - {fileID: 8056573235464487941}
-  - {fileID: 4819128054822031447}
   - {fileID: 281849154647690454}
+  - {fileID: 4819128054822031447}
+  - {fileID: 5659828425928070282}
+  - {fileID: 8056573235464487941}
   m_Father: {fileID: 6409559081883753345}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &219743845142468141
@@ -360,45 +360,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2879546907640654074, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: InitialModule.startSize.scalar
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2879546907640654074, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: InitialModule.startSizeY.scalar
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2879546907640654074, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: InitialModule.startSizeZ.scalar
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 8963633579968282811, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
         type: 3}
       propertyPath: m_Name
       value: EarthProjectile
-      objectReference: {fileID: 0}
-    - target: {fileID: 8963633579968282811, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9152375373645258377, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9152375373645258377, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9152375373645258377, guid: 1b0c467dac6618e43bc7cfef2a2ef261,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

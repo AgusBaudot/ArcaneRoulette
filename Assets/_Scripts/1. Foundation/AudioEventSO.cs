@@ -89,38 +89,7 @@ namespace Foundation
         public int PolyphonyLimit => _polyphonyLimit;
         public float CooldownSeconds => _cooldownSeconds;
         
-        // ── Clip Selection ──────────────────────────────────────────────────────────────
-        //Tracks last-played index per SO asset to avoid consecutive repeats.
-        //Mutable SO state - safe in single-player sequential playback.
-        private int _lastClipIndex = -1;
-        
 
         #endregion
-
-        /// <summary>
-        /// Returns a clip, avoiding consecutive repeats when the array has more than one entry.
-        /// </summary>
-        public AudioClip PickClip()
-        {
-            if (_clips == null || _clips.Length == 0)
-            {
-                Debug.LogWarning($"[AudioEventSO] '{name}' has no clips assigned.", this);
-                return null;
-            }
-
-            if (_clips.Length == 1)
-                return _clips[0];
-
-            //Pick any index that isn't the last one played.
-            int index;
-            do
-            {
-                index = Random.Range(0, _clips.Length);
-            } 
-            while (index == _lastClipIndex);
-
-            _lastClipIndex = index;
-            return _clips[index];
-        }
     }
 }

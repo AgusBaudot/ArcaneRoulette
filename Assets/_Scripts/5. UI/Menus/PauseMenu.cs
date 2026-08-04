@@ -1,74 +1,37 @@
-using UnityEngine;
 using Foundation;
-using UnityEngine.SceneManagement;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
-    public sealed class PauseMenu : MonoBehaviour
+    [RequireComponent(typeof(CanvasGroup))]
+    public sealed class PauseMenu : BaseUIPanel
     {
-        [Header("Pause Menu")]
-        [SerializeField] private GameObject _pausePanel;
-
-        private bool _isOpen;
+        [Header("Buttons")]
+        [SerializeField] private Button _resumeButton;
+        [SerializeField] private Button _quitButton;
 
         private void Awake()
         {
-            _isOpen = false;
-            if (_pausePanel != null)
-                _pausePanel.SetActive(false);
-
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
+            base.Awake();
+            
+            if (_resumeButton != null)
+                _resumeButton.onClick.AddListener(OnResumeClicked);
+            
+            if (_quitButton != null)
+                _quitButton.onClick.AddListener(OnQuitClicked);
         }
 
-        private void OnEnable()
+        private void OnResumeClicked()
         {
-            Helpers.Input.OnPausePressed += TogglePauseMenu;
-            EventBus.Subscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Subscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Subscribe<OnRunQuitEvent>(OnRunQuit);
+            RequestClose();
         }
 
-        private void OnDisable()
+        private void OnQuitClicked()
         {
-            Helpers.Input.OnPausePressed -= TogglePauseMenu;
-            EventBus.Unsubscribe<OnGamePausedEvent>(OnGamePaused);
-            EventBus.Unsubscribe<OnGameResumedEvent>(OnGameResumed);
-            EventBus.Unsubscribe<OnRunQuitEvent>(OnRunQuit);
+            RequestClose();
+            
+            EventBus.Publish(new EndRunRequestEvent(SceneNames.MainMenu));
         }
-
-        private void TogglePauseMenu()
-        {
-            if (_isOpen)
-                EventBus.Publish<OnGameResumedEvent>(new OnGameResumedEvent());
-            else
-                EventBus.Publish<OnGamePausedEvent>(new OnGamePausedEvent());
-        }
-
-        private void OpenPauseMenu()
-        {
-            _isOpen = true;
-
-            if (_pausePanel != null)
-                _pausePanel.SetActive(true);
-
-            Time.timeScale = 0f;
-        }
-
-        private void ClosePauseMenu()
-        {
-            _isOpen = false;
-
-            if (_pausePanel != null)
-                _pausePanel.SetActive(false);
-
-            Time.timeScale = 1f;
-        }
-        
-
-        private void OnGamePaused(OnGamePausedEvent _) => OpenPauseMenu();
-        private void OnGameResumed(OnGameResumedEvent _) => ClosePauseMenu();
-        private void OnRunQuit(OnRunQuitEvent _) => SceneManager.LoadScene(1);
     }
 }
-

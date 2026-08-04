@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace World
 {
     public class MapSpawner
@@ -27,8 +26,7 @@ namespace World
         {
             foreach (RoomManager room in _roomLookup.Values)
             {
-                UnityEngine.Object.Destroy(room.gameObject);
-                //Destroy(room.gameObject);
+                Object.Destroy(room.gameObject);
             }
             _roomLookup.Clear();
 
@@ -51,9 +49,9 @@ namespace World
 
             switch (roomType)
             {
-                case RoomType.Regular:
-                    int rand = Random.Range(0, data.RegularRoomPrefab.Length);
-                    prefab = data.RegularRoomPrefab[rand];
+                case RoomType.Combat:
+                    int rand = Random.Range(0, data.CombatRoomPrefab.Length);
+                    prefab = data.CombatRoomPrefab[rand];
                     break;
 
                 case RoomType.Boss:
@@ -64,15 +62,15 @@ namespace World
                     prefab = data.RestingRoomPrefab;
                     break;
 
-                case RoomType.Event:
-                    prefab = data.EventRoomPrefab;
+                case RoomType.Portal:
+                    prefab = data.PortalRoomPrefab;
                     break;
 
                 case RoomType.Shop:
                     prefab = data.ShopRoomPrefab;
                     break;
 
-                case RoomType.Lobby:
+                case RoomType.Start:
                     prefab = data.LobbyRoomPrefab;
                     break;
 
@@ -96,7 +94,7 @@ namespace World
         {
             foreach (RoomManager rooms in _roomLookup.Values)
             {
-                // save index of neighbours
+                // save index of neighbors
                 int upIndex = rooms.Index - DungeonGrid.GRID_WIDTH;
                 int downIndex = rooms.Index + DungeonGrid.GRID_WIDTH;
                 int leftIndex = rooms.Index - 1;
@@ -139,7 +137,7 @@ namespace World
             else
             {
                 info.UnlockOnClear = false;
-                info.Material = _doorLookup[RoomType.None];
+                // info.Material = _doorLookup[RoomType.None];
             }
 
             return info;

@@ -40,9 +40,9 @@ namespace World
             }
         }
     }
-    public class BehaviourTree : Node
+    public class BehaviorTree : Node
     {
-        public BehaviourTree(string name) : base(name) { }
+        public BehaviorTree(string name) : base(name) { }
 
         public override NodeState Process()
         {
@@ -143,7 +143,7 @@ namespace World
 
         public override NodeState Process()
         {
-            Debug.Log("Hijo Actual=" + _children[_currentChild]._name);
+            //Debug.Log("Hijo Actual=" + _children[_currentChild]._name);
             if (_currentChild < _children.Count)
             {
                 switch (_children[_currentChild].Process())
@@ -298,6 +298,30 @@ namespace World
                 return NodeState.Failure;
             }
             return NodeState.Running;
+        }
+    }
+    public class CooldownDecorator : Node
+    {
+        private readonly Node _child;
+        private readonly float _cooldown;
+        private float _lastExecutionTime = -Mathf.Infinity;
+        private Func<float> _getCooldown;
+        public CooldownDecorator(Node child, Func<float> cooldown)
+        {
+            _child = child;
+            _getCooldown = cooldown;
+        }
+        public override NodeState Process()
+        {
+            if (Time.time - _lastExecutionTime < _cooldown)
+                return NodeState.Failure;
+
+            NodeState result = _child.Process();
+
+            if (result == NodeState.Success)
+                _lastExecutionTime = Time.time;
+
+            return result;
         }
     }
 }

@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Foundation;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-namespace Foundation
-{
-    public class Cheats : MonoBehaviour, IUpdatable
+public class Cheats : MonoBehaviour, IUpdatable
     {
         public int UpdatePriority => Foundation.UpdatePriority.Input;
-
-        private readonly string _scene1 = "Core Loop";
-        private readonly string _scene2 = "Hardcore Room";
 
         private static readonly Dictionary<string, CommandEntry> _commands = new();
 
@@ -28,23 +25,18 @@ namespace Foundation
 
         public void Tick(float dt)
         {
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Keyboard.current.rKey.wasPressedThisFrame)
             {
+                Time.timeScale = 1f;
+                AudioListener.pause = false;
+                Helpers.Input.EnablePlayerInput();
+                
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
 
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            if (Keyboard.current.tKey.wasPressedThisFrame)
             {
-                if (SceneManager.GetActiveScene().name == _scene1)
-                    return;
-                SceneManager.LoadScene(_scene1);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                if (SceneManager.GetActiveScene().name == _scene2)
-                    return;
-                SceneManager.LoadScene(_scene2);
+                GameStateManager.RunState.AddCurrency(5);
             }
         }
 
@@ -80,5 +72,3 @@ namespace Foundation
             }
         }
     }
-
-}

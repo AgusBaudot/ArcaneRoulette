@@ -35,26 +35,10 @@ namespace World
         }
         public void Tick()
         {
-            /*
-            if (Input.GetKeyDown(KeyCode.M))
-            {
-                if (_blackboard.TryGetValue(isDead, out bool dead))
-                {
-                    _blackboard.SetValue(isDead, !dead);
-                    Debug.Log($"{isDead.Name}: {dead}");
-                }
-            }
-            */
-
-
             if (_ghostFill == null || _hpFill == null) return;
 
             // Ghost bar trails the real bar
-            _ghostFill.fillAmount = Mathf.Lerp(
-                _ghostFill.fillAmount,
-                _hpFill.fillAmount,
-                _ghostSpeed * Time.deltaTime
-            );
+            _ghostFill.fillAmount = Mathf.Lerp(_ghostFill.fillAmount, _hpFill.fillAmount, _ghostSpeed);
         }
         public bool TakeDamage(int amount, ElementType elementType)
         {

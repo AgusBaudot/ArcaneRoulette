@@ -6,11 +6,8 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    public sealed class LootSelectionUI : MonoBehaviour
+    public sealed class LootSelectionUI : BaseUIPanel
     {
-        [Header("Panel")]
-        [SerializeField] private GameObject _panel;
-
         [Header("Rune Display")]
         [SerializeField] private Transform _runeContainer;
         [SerializeField] private LootOptionUI _lootOptionPrefab;
@@ -30,86 +27,111 @@ namespace UI
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
-        private LootOptionUI[] _options;
-
+        private readonly List<LootOptionUI> _optionPool = new();
         private readonly List<int> _selectionOrder = new();
-
-        // Effective m, clamped to actual rune count each Show().
         private int _effectiveMax;
-
-        private bool _isShowing;
 
         // ── Unity ────────────────────────────────────────────────────────────
 
         private void Awake()
         {
+            base.Awake();
+            
             _confirmButton.onClick.AddListener(OnConfirm);
-            _panel.SetActive(false);
-        }
 
-        private void OnEnable()
-        {
-            EventBus.Subscribe<RoomClearEvent>(OnRoomCleared);
-        }
-
-        private void OnDisable()
-        {
-            EventBus.Unsubscribe<RoomClearEvent>(OnRoomCleared);
-        }
-
-        // ── Event handler ─────────────────────────────────────────────────────
-
-        private void OnRoomCleared(RoomClearEvent evt)
-        {
-            if (_isShowing)
-                return;
-
-            Show();
+            for (int i = 0; i < _runesToShow; i++)
+            {
+                int capturedIndex = i;
+                
+                LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
+                
+                option.Init(null, () => OnOptionClicked(capturedIndex));
+                option.gameObject.SetActive(false);
+                
+                _optionPool.Add(option);
+            }
         }
 
         // ── Show / Hide ───────────────────────────────────────────────────────
 
-        private void Show()
+        public override void Show()
         {
             if (_dropPool == null)
             {
                 Debug.LogWarning("[LootSelectionUI] No PickupDropPool assigned.");
                 return;
             }
-
-            _isShowing = true;
+            
             _selectionOrder.Clear();
 
             RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
             _effectiveMax = Mathf.Min(_runesToSelect, runes.Length);
 
-            // Clear any previously spawned option tiles.
-            foreach (Transform child in _runeContainer)
-                Destroy(child.gameObject);
-
-            _options = new LootOptionUI[runes.Length];
-
-            for (int i = 0; i < runes.Length; i++)
+            for (int i = 0; i < _optionPool.Count; i++)
             {
-                int captured = i;
-                LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
-                option.Init(runes[i], () => OnOptionClicked(captured));
-                _options[i] = option;
+                if (i < runes.Length)
+                {
+                    _optionPool[i].Init(runes[i], null);
+                    _optionPool[i].SetSelected(false);
+                    _optionPool[i].gameObject.SetActive(true);
+                }
+                else
+                {
+                    _optionPool[i].SetSelected(false);
+                }
             }
-
-            _panel.SetActive(true);
-            Time.timeScale = 0f;
-            Helpers.Input.EnableUIInput();
+            
+            base.Show();
         }
 
-        private void Hide()
+        public override void Hide()
         {
-            _panel.SetActive(false);
+            base.Hide();
+            
             _selectionOrder.Clear();
-            _isShowing = false;
-            Time.timeScale = 1f;
-            Helpers.Input.EnablePlayerInput();
         }
+        
+        // private void Show()
+        // {
+        //     if (_dropPool == null)
+        //     {
+        //         Debug.LogWarning("[LootSelectionUI] No PickupDropPool assigned.");
+        //         return;
+        //     }
+        //
+        //     _isShowing = true;
+        //     _selectionOrder.Clear();
+        //
+        //     RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
+        //     _effectiveMax = Mathf.Min(_runesToSelect, runes.Length);
+        //
+        //     // Clear any previously spawned option tiles.
+        //     foreach (Transform child in _runeContainer)
+        //         Destroy(child.gameObject);
+        //
+        //     _options = new LootOptionUI[runes.Length];
+        //
+        //     for (int i = 0; i < runes.Length; i++)
+        //     {
+        //         int captured = i;
+        //         LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
+        //         option.Init(runes[i], () => OnOptionClicked(captured));
+        //         _options[i] = option;
+        //     }
+        //
+        //     _panel.SetActive(true);
+        //     Time.timeScale = 0f;
+        //     Helpers.Input.EnableUIInput();
+        // }
+        //
+        // private void Hide()
+        // {
+        //     _panel.SetActive(false);
+        //     _selectionOrder.Clear();
+        //     _isShowing = false;
+        //     Time.timeScale = 1f;
+        //     Helpers.Input.EnablePlayerInput();
+        // }
 
         // ── Selection logic ───────────────────────────────────────────────────
 
@@ -125,13 +147,13 @@ namespace UI
                 {
                     int evicted = _selectionOrder[0];
                     _selectionOrder.RemoveAt(0);
-                    _options[evicted].SetSelected(false);
+                    _optionPool[evicted].SetSelected(false);
                 }
 
                 _selectionOrder.Add(index);
             }
 
-            _options[index].SetSelected(_selectionOrder.Contains(index));
+            _optionPool[index].SetSelected(_selectionOrder.Contains(index));
         }
 
         // ── Confirm ───────────────────────────────────────────────────────────
@@ -140,9 +162,9 @@ namespace UI
         {
             // 0 selected is a valid no-op — loop simply doesn't execute.
             foreach (int index in _selectionOrder)
-                GameStateManager.RunState.AddRune(_options[index].Rune);
+                GameStateManager.RunState.AddRune(_optionPool[index].Rune);
 
-            Hide();
+            RequestClose();
         }
     }
 }

@@ -89,6 +89,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""1741d626-c965-4cb2-967a-b91d05ec2c3a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -267,6 +276,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""ToggleCrafting"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""df4a43b5-33c7-4a15-9fd5-73c7d1cfe39e"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -275,7 +295,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             ""id"": ""8d909b14-8eb6-4b6f-a4c2-9f5eb87c7cba"",
             ""actions"": [
                 {
-                    ""name"": ""ToggleCrafting"",
+                    ""name"": ""CloseMenu"",
                     ""type"": ""Button"",
                     ""id"": ""aefa3560-a5c3-4389-8e68-f065d1a806ca"",
                     ""expectedControlType"": ""Button"",
@@ -319,7 +339,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ToggleCrafting"",
+                    ""action"": ""CloseMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -330,7 +350,18 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ToggleCrafting"",
+                    ""action"": ""CloseMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""56218265-14c8-4cc5-8d89-82bcc0efc2c9"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CloseMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -403,9 +434,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Slot2 = m_Player.FindAction("Slot2", throwIfNotFound: true);
         m_Player_ToggleCrafting = m_Player.FindAction("ToggleCrafting", throwIfNotFound: true);
         m_Player_PauseGame = m_Player.FindAction("Pause Game", throwIfNotFound: true);
+        m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
-        m_UI_ToggleCrafting = m_UI.FindAction("ToggleCrafting", throwIfNotFound: true);
+        m_UI_CloseMenu = m_UI.FindAction("CloseMenu", throwIfNotFound: true);
         m_UI_CarouselLeft = m_UI.FindAction("CarouselLeft", throwIfNotFound: true);
         m_UI_CarouselRight = m_UI.FindAction("CarouselRight", throwIfNotFound: true);
         m_UI_ToggleTooltip = m_UI.FindAction("ToggleTooltip", throwIfNotFound: true);
@@ -477,6 +509,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Slot2;
     private readonly InputAction m_Player_ToggleCrafting;
     private readonly InputAction m_Player_PauseGame;
+    private readonly InputAction m_Player_Interact;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -488,6 +521,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @Slot2 => m_Wrapper.m_Player_Slot2;
         public InputAction @ToggleCrafting => m_Wrapper.m_Player_ToggleCrafting;
         public InputAction @PauseGame => m_Wrapper.m_Player_PauseGame;
+        public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -518,6 +552,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @PauseGame.started += instance.OnPauseGame;
             @PauseGame.performed += instance.OnPauseGame;
             @PauseGame.canceled += instance.OnPauseGame;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -543,6 +580,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @PauseGame.started -= instance.OnPauseGame;
             @PauseGame.performed -= instance.OnPauseGame;
             @PauseGame.canceled -= instance.OnPauseGame;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -564,7 +604,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     // UI
     private readonly InputActionMap m_UI;
     private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
-    private readonly InputAction m_UI_ToggleCrafting;
+    private readonly InputAction m_UI_CloseMenu;
     private readonly InputAction m_UI_CarouselLeft;
     private readonly InputAction m_UI_CarouselRight;
     private readonly InputAction m_UI_ToggleTooltip;
@@ -572,7 +612,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     {
         private @PlayerInputActions m_Wrapper;
         public UIActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
-        public InputAction @ToggleCrafting => m_Wrapper.m_UI_ToggleCrafting;
+        public InputAction @CloseMenu => m_Wrapper.m_UI_CloseMenu;
         public InputAction @CarouselLeft => m_Wrapper.m_UI_CarouselLeft;
         public InputAction @CarouselRight => m_Wrapper.m_UI_CarouselRight;
         public InputAction @ToggleTooltip => m_Wrapper.m_UI_ToggleTooltip;
@@ -585,9 +625,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
-            @ToggleCrafting.started += instance.OnToggleCrafting;
-            @ToggleCrafting.performed += instance.OnToggleCrafting;
-            @ToggleCrafting.canceled += instance.OnToggleCrafting;
+            @CloseMenu.started += instance.OnCloseMenu;
+            @CloseMenu.performed += instance.OnCloseMenu;
+            @CloseMenu.canceled += instance.OnCloseMenu;
             @CarouselLeft.started += instance.OnCarouselLeft;
             @CarouselLeft.performed += instance.OnCarouselLeft;
             @CarouselLeft.canceled += instance.OnCarouselLeft;
@@ -601,9 +641,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
 
         private void UnregisterCallbacks(IUIActions instance)
         {
-            @ToggleCrafting.started -= instance.OnToggleCrafting;
-            @ToggleCrafting.performed -= instance.OnToggleCrafting;
-            @ToggleCrafting.canceled -= instance.OnToggleCrafting;
+            @CloseMenu.started -= instance.OnCloseMenu;
+            @CloseMenu.performed -= instance.OnCloseMenu;
+            @CloseMenu.canceled -= instance.OnCloseMenu;
             @CarouselLeft.started -= instance.OnCarouselLeft;
             @CarouselLeft.performed -= instance.OnCarouselLeft;
             @CarouselLeft.canceled -= instance.OnCarouselLeft;
@@ -639,10 +679,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnSlot2(InputAction.CallbackContext context);
         void OnToggleCrafting(InputAction.CallbackContext context);
         void OnPauseGame(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
-        void OnToggleCrafting(InputAction.CallbackContext context);
+        void OnCloseMenu(InputAction.CallbackContext context);
         void OnCarouselLeft(InputAction.CallbackContext context);
         void OnCarouselRight(InputAction.CallbackContext context);
         void OnToggleTooltip(InputAction.CallbackContext context);

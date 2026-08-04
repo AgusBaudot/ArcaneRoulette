@@ -1,8 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
-
 
 namespace World 
 {
@@ -18,9 +16,16 @@ namespace World
             Instance = this;
         }
         // ---- Register & UnRegister from UpdateManager ----
-        public void OnEnable()
+        public void Start()
         {
-            UpdateManager.Instance?.Register(this);
+            if (UpdateManager.Instance != null)
+            {
+                UpdateManager.Instance.Register(this);
+            }
+            else
+            {
+                Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to register to UpdateManager!!!");
+            }
         }
         public void OnDisable()
         {
@@ -33,7 +38,8 @@ namespace World
             if (_enemyUpdatables.Contains(enemy)) 
                 return;
             //Esto lo puedo cambiar por un parametro que (si el enemigo es mas importante) actualice mas rapido o mas lento segun el intervalo.
-            enemy.interval = Random.Range(0,0);
+            enemy.interval = Random.Range(0.1f, 0.2f);
+            enemy.timer = Random.Range(0f, enemy.interval);
             _enemyUpdatables.Add(enemy);
         }
         public void Unregister(IEnemyUpdate enemy)
@@ -44,21 +50,29 @@ namespace World
         // ---- Tick Method ----
         public void Tick(float dt)
         {
-            TickEnemies();
+            TickEnemies(dt);
         }
-        public void TickEnemies()
+        public void TickEnemies(float dt)
         {
             for (int i = 0; i <_enemyUpdatables.Count; i++) 
             {
-                float dt = Time.deltaTime;
-                _enemyUpdatables[i].timer += dt;
+                if (_enemyUpdatables[i] == null) continue;
+
+                try
+                {
+                    _enemyUpdatables[i].timer += dt;
+
                     if (_enemyUpdatables[i].timer >= _enemyUpdatables[i].interval)
                     {
                         _enemyUpdatables[i].timer = 0f;
                         _enemyUpdatables[i].Tick();
                     }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"[CustomUpdateEnemyManager] Error en el tick del enemigo en índice {i}: {e.Message}\n{e.StackTrace}");
+                }
             }
         }
     }
-
 }

@@ -11,6 +11,7 @@ namespace World
         [SerializeField] private float _radius = 2f;
 
         private bool _playerInside;
+        private PlayerHealth _playerHealth;
 
         private void Awake()
         {
@@ -20,19 +21,39 @@ namespace World
             transform.GetChild(0).gameObject.SetActive(false);
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            if (Input.GetKeyDown(KeyCode.E) && _playerInside)
+            Helpers.Input.OnInteractPressed += HandleInteraction;
+        }
+
+        private void OnDisable()
+        {
+            if (Helpers.Input != null)
+                Helpers.Input.OnInteractPressed -= HandleInteraction;
+        }
+
+        private void HandleInteraction()
+        {
+            if (!_playerInside || _playerHealth == null)
+                return;
+            
+            _playerHealth.Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
+
+            var room = GetComponentInParent<RoomManager>();
+            if (room != null)
             {
-                FindObjectOfType<PlayerHealth>().Heal(Mathf.RoundToInt(GameStateManager.RunState.MaxHp * _healAmount));
-                Destroy(gameObject);
+                room.MarkAsCleared();
             }
+            
+            Destroy(gameObject);
         }
 
         private void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {
+                _playerHealth = other.GetComponentInParent<PlayerHealth>();
+                
                 transform.GetChild(0).gameObject.SetActive(true);
                 _playerInside = true;
             }
@@ -42,6 +63,7 @@ namespace World
         {
             if (other.CompareTag("Player"))
             {
+                _playerHealth = null; // Clear the cache
                 transform.GetChild(0).gameObject.SetActive(false);
                 _playerInside = false;
             }

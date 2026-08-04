@@ -10,12 +10,10 @@ namespace Core
         [SerializeField] private int _baseDamage = 5;
         [SerializeField] private LayerMask _enemyMask;
         [SerializeField] private GameObject _aoeFX;
-        
-        private bool _isExpanding;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
-            if (_isExpanding)
+            if (ctx.IsSecondaryHit)
                 return;
 
             float radius = _baseRadius * stackCount;
@@ -23,7 +21,6 @@ namespace Core
 
             Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
 
-            _isExpanding = true;
             var batch = new DamageBatch();
 
             foreach (var hit in hits)
@@ -43,13 +40,12 @@ namespace Core
                 }
                 
                 //Full OnHit chain on each secondary target.
-                //_isExpanding blocks AoEOnHitRune from firing again - all other
+                //IsSecondaryHit blocks AoEOnHitRune from firing again - all other
                 //runes (OnCast, OnHit) run normally on secondary targets.
-                ctx.TriggerSecondaryHit?.Invoke(hit.transform.position, hit.gameObject, pushDir);
+                ctx.TriggerSecondaryHit(hit.transform.position, hit.gameObject, pushDir);
             }
 
             batch.Commit(Helpers.Combat.BigDMG);
-            _isExpanding = false;
         }
     }
 }

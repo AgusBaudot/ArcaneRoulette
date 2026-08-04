@@ -58,6 +58,8 @@ namespace Meta
             _sfxSlider?.onValueChanged.RemoveAllListeners();
             _uiSlider?.onValueChanged.RemoveAllListeners();
             _ambienceSlider?.onValueChanged.RemoveAllListeners();
+            
+            AudioManager.Instance?.CommitSettingsToDisk();
         }
 
         private void InitSlider(Slider slider, MixerBus bus)

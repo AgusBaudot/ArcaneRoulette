@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using World;
 
 namespace Foundation
 {
@@ -12,7 +13,7 @@ namespace Foundation
     {
         // ── HP ──────────────────────────────────────────────────────────────────
 
-        public float MaxHp     { get; private set; }
+        public float MaxHp { get; private set; }
         public float CurrentHp { get; private set; }
         public event Action<float, float> OnHpChanged;
 
@@ -40,30 +41,46 @@ namespace Foundation
         private readonly Dictionary<RuneDefinitionSO, int> _runeAllocated = new();
 
         // Read-only views — CraftingUI polls these directly, no event needed yet.
-        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneInventory  => _runeInventory;
-        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneAllocated  => _runeAllocated;
+        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneInventory => _runeInventory;
+        public IReadOnlyDictionary<RuneDefinitionSO, int> RuneAllocated => _runeAllocated;
 
         // ── Floor / Room progress ────────────────────────────────────────────
 
-        public int CurrentFloor { get; private set; }
-        public int CurrentRoom  { get; private set; }
-        public event Action<int, int> OnRoomChanged; // floor, room
+        public int CurrentFloor = 1;
+        
+        public struct RoomMapData
+        {
+            public int Index;
+            public int X;
+            public int Y;
+            public RoomType Type;
+            public bool IsCleared;
+            public bool IsDiscovered;
+            public int[] NeighborIndices;
+        }
+        public Dictionary<int, RoomMapData> FloorMap { get; private set; } = new();
+        public int CurrentRoomIndex { get; private set; } = -1;
+
+        public event Action<int> OnPlayerEnteredRoom;
+        public event Action<int> OnRoomStateChanged; 
+        public event Action OnFloorMapGenerated;
 
         // ── Modifier pipeline ────────────────────────────────────────────────
         // Owned here, subscribed to by InventorySystem (artifact hooks).
 
         public event Action<DamageContext> OnCalculateDamageOut;
         public event Action<DamageContext> OnCalculateDamageIn;
-        public event Action<KillContext>   OnKill;
-        public event Action<SpellContext>  OnSpellCast;
-        public event Action<DashContext>   OnDash;
+        public event Action<KillContext> OnKill;
+        public event Action<SpellContext> OnSpellCast;
+        public event Action<DashContext> OnDash;
 
         // ── Construction ─────────────────────────────────────────────────────
 
         public VolatileRunState(float maxHp)
         {
-            MaxHp     = maxHp;
+            MaxHp = maxHp;
             CurrentHp = maxHp;
+            Currency = 50;
         }
 
         // ── HP ───────────────────────────────────────────────────────────────
@@ -91,6 +108,16 @@ namespace Foundation
             OnCurrencyChanged?.Invoke(Currency);
         }
 
+        public bool TrySpend(int amount)
+        {
+            if (Currency - amount < 0)
+                return false;
+
+            Currency -= amount;
+            OnCurrencyChanged?.Invoke(Currency);
+            return true;
+        }
+
         // ── Spell slots ──────────────────────────────────────────────────────
 
         public void SetSlot(SlotIndex slot, ISpellSlot instance)
@@ -103,7 +130,7 @@ namespace Foundation
         // AddRune      — called by room reward / debug seeder
         // AllocateRune / DeallocateRune — called exclusively by SpellCrafter
         //                                 on TryCreate / Dismantle
-        
+
         public void AddRune(RuneDefinitionSO rune, int count = 1)
         {
             _runeInventory.TryGetValue(rune, out int current);
@@ -135,11 +162,43 @@ namespace Foundation
 
         // ── Room ─────────────────────────────────────────────────────────────
 
-        public void SetRoom(int floor, int room)
+        public void InitializeFloorMap(Dictionary<int, RoomMapData> layout)
         {
-            CurrentFloor = floor;
-            CurrentRoom  = room;
-            OnRoomChanged?.Invoke(floor, room);
+            FloorMap = layout;
+            OnFloorMapGenerated?.Invoke();
+        }
+
+        //Listens to PlayerEnteredRoomEvent via GameStateManager
+        public void UpdatePlayerRoom(int newIndex)
+        {
+            if (FloorMap.TryGetValue(newIndex, out var room))
+            {
+                CurrentRoomIndex = newIndex;
+                room.IsDiscovered = true;
+                FloorMap[newIndex] = room;
+
+                foreach (int neighbor in room.NeighborIndices)
+                {
+                    if (FloorMap.TryGetValue(neighbor, out var neighborRoom))
+                    {
+                        neighborRoom.IsDiscovered = true;
+                        FloorMap[neighbor] = neighborRoom;
+                    }
+                }
+                
+                OnPlayerEnteredRoom?.Invoke(newIndex);
+            }
+        }
+
+        // Listens to RoomClearEvent/ EndFloorClearEvent via GameStateManager
+        public void MarkRoomCleared(int index)
+        {
+            if (FloorMap.TryGetValue(index, out var room))
+            {
+                room.IsCleared = true;
+                FloorMap[index] = room;
+                OnRoomStateChanged?.Invoke(index);
+            }
         }
 
         // ── Pipeline fire methods ────────────────────────────────────────────
@@ -159,7 +218,7 @@ namespace Foundation
         public void Reset()
         {
             // HP / economy
-            OnHpChanged       = null;
+            OnHpChanged = null;
             OnCurrencyChanged = null;
 
             // Spell slots
@@ -172,14 +231,18 @@ namespace Foundation
             _runeAllocated.Clear();
 
             // Room progress
-            OnRoomChanged = null;
+            FloorMap.Clear();
+            CurrentRoomIndex = -1;
+            OnPlayerEnteredRoom = null;
+            OnRoomStateChanged = null;
+            OnFloorMapGenerated = null;
 
             // Modifier pipeline
             OnCalculateDamageOut = null;
-            OnCalculateDamageIn  = null;
-            OnKill               = null;
-            OnSpellCast          = null;
-            OnDash               = null;
+            OnCalculateDamageIn = null;
+            OnKill = null;
+            OnSpellCast = null;
+            OnDash = null;
         }
     }
 }

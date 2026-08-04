@@ -2,6 +2,12 @@ namespace World
 {
     public enum RoomType
     {
-        Regular, Artifact, Shop, Boss, Resting, Lobby, Event, None
+        Start,
+        Combat, 
+        Resting, 
+        Shop, 
+        Artifact, 
+        Boss,
+        Portal, 
     }
 }
