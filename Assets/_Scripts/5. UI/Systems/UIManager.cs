@@ -15,7 +15,8 @@ namespace UI
         [SerializeField] private ShopUI _shopPrefab;
         [SerializeField] private PauseMenu _pauseMenuPrefab;
         [SerializeField] private LootSelectionUI _lootSelectionPrefab;
-
+        [SerializeField] private ConsoleUI _consolePrefab;
+        
         [Header("Universal Audio")]
         [SerializeField] private AudioEventSO _menuOpenSound;
         [SerializeField] private AudioEventSO _menuCloseSound;
@@ -26,6 +27,7 @@ namespace UI
         private ShopUI _shopInstance;
         private PauseMenu _pauseMenuInstance;
         private LootSelectionUI _lootSelectionInstance;
+        private ConsoleUI _consoleInstance;
 
         private BaseUIPanel _currentActivePanel;
 
@@ -37,6 +39,7 @@ namespace UI
             _shopInstance = Instantiate(_shopPrefab, _staticCanvasRoot);
             _pauseMenuInstance = Instantiate(_pauseMenuPrefab, _staticCanvasRoot);
             _lootSelectionInstance = Instantiate(_lootSelectionPrefab, _staticCanvasRoot);
+            _consoleInstance = Instantiate(_consolePrefab, _staticCanvasRoot);
         }
 
         private void OnEnable()
@@ -47,6 +50,7 @@ namespace UI
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
             Helpers.Input.OnPausePressed += HandlePauseToggle;
             Helpers.Input.OnCloseMenu += HandleCancelInput;
+            Helpers.Input.OnConsolePressed += HandleConsoleToggle;
         }
 
         private void OnDisable()
@@ -57,6 +61,7 @@ namespace UI
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
             Helpers.Input.OnPausePressed -= HandlePauseToggle;
             Helpers.Input.OnCloseMenu -= HandleCancelInput;
+            Helpers.Input.OnConsolePressed -= HandleConsoleToggle;
         }
 
         // ── Triggers ─────────────────────────────────────────────────────────
@@ -88,6 +93,14 @@ namespace UI
             if (_currentActivePanel == null)
                 OpenPanel(_pauseMenuInstance);
             else if (_currentActivePanel == _pauseMenuInstance)
+                CloseCurrentPanel();
+        }
+
+        private void HandleConsoleToggle()
+        {
+            if (_currentActivePanel == null)
+                OpenPanel(_consoleInstance);
+            else if (_currentActivePanel == _consoleInstance)
                 CloseCurrentPanel();
         }
 
