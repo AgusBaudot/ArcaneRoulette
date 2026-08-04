@@ -98,6 +98,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Console"",
+                    ""type"": ""Button"",
+                    ""id"": ""d335b16c-54d8-4bf2-952a-8c0eab90a81e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -287,6 +296,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d2fc952d-b96d-4aa4-8a35-9ab766158d16"",
+                    ""path"": ""<Keyboard>/#(`)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -325,6 +345,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""name"": ""ToggleTooltip"",
                     ""type"": ""Button"",
                     ""id"": ""7145c520-e382-4697-934c-2ef5edf099f8"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Console"",
+                    ""type"": ""Button"",
+                    ""id"": ""b42f2095-93c6-447d-a833-5c95c645b16a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -419,6 +448,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""ToggleTooltip"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bceadeef-a7c9-4017-b799-7068a34de9f1"",
+                    ""path"": ""<Keyboard>/#(`)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -435,12 +475,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_ToggleCrafting = m_Player.FindAction("ToggleCrafting", throwIfNotFound: true);
         m_Player_PauseGame = m_Player.FindAction("Pause Game", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_Console = m_Player.FindAction("Console", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_CloseMenu = m_UI.FindAction("CloseMenu", throwIfNotFound: true);
         m_UI_CarouselLeft = m_UI.FindAction("CarouselLeft", throwIfNotFound: true);
         m_UI_CarouselRight = m_UI.FindAction("CarouselRight", throwIfNotFound: true);
         m_UI_ToggleTooltip = m_UI.FindAction("ToggleTooltip", throwIfNotFound: true);
+        m_UI_Console = m_UI.FindAction("Console", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -510,6 +552,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ToggleCrafting;
     private readonly InputAction m_Player_PauseGame;
     private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_Console;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -522,6 +565,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @ToggleCrafting => m_Wrapper.m_Player_ToggleCrafting;
         public InputAction @PauseGame => m_Wrapper.m_Player_PauseGame;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
+        public InputAction @Console => m_Wrapper.m_Player_Console;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -555,6 +599,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
+            @Console.started += instance.OnConsole;
+            @Console.performed += instance.OnConsole;
+            @Console.canceled += instance.OnConsole;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -583,6 +630,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
+            @Console.started -= instance.OnConsole;
+            @Console.performed -= instance.OnConsole;
+            @Console.canceled -= instance.OnConsole;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -608,6 +658,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_CarouselLeft;
     private readonly InputAction m_UI_CarouselRight;
     private readonly InputAction m_UI_ToggleTooltip;
+    private readonly InputAction m_UI_Console;
     public struct UIActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -616,6 +667,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @CarouselLeft => m_Wrapper.m_UI_CarouselLeft;
         public InputAction @CarouselRight => m_Wrapper.m_UI_CarouselRight;
         public InputAction @ToggleTooltip => m_Wrapper.m_UI_ToggleTooltip;
+        public InputAction @Console => m_Wrapper.m_UI_Console;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -637,6 +689,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started += instance.OnToggleTooltip;
             @ToggleTooltip.performed += instance.OnToggleTooltip;
             @ToggleTooltip.canceled += instance.OnToggleTooltip;
+            @Console.started += instance.OnConsole;
+            @Console.performed += instance.OnConsole;
+            @Console.canceled += instance.OnConsole;
         }
 
         private void UnregisterCallbacks(IUIActions instance)
@@ -653,6 +708,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started -= instance.OnToggleTooltip;
             @ToggleTooltip.performed -= instance.OnToggleTooltip;
             @ToggleTooltip.canceled -= instance.OnToggleTooltip;
+            @Console.started -= instance.OnConsole;
+            @Console.performed -= instance.OnConsole;
+            @Console.canceled -= instance.OnConsole;
         }
 
         public void RemoveCallbacks(IUIActions instance)
@@ -680,6 +738,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnToggleCrafting(InputAction.CallbackContext context);
         void OnPauseGame(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+        void OnConsole(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
@@ -687,5 +746,6 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnCarouselLeft(InputAction.CallbackContext context);
         void OnCarouselRight(InputAction.CallbackContext context);
         void OnToggleTooltip(InputAction.CallbackContext context);
+        void OnConsole(InputAction.CallbackContext context);
     }
 }

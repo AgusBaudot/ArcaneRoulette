@@ -25,6 +25,7 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     public event Action OnCraftingMenuPressed;
     public event Action OnPausePressed;
     public event Action OnInteractPressed;
+    public event Action OnConsolePressed;
 
     #endregion
     
@@ -75,7 +76,7 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     #endregion
 
     #region Player Map Implementation
-    //Player Map Implementation---------------------------
+    
     public void OnMovement(InputAction.CallbackContext context)
     {
         MoveDirection = context.ReadValue<Vector2>();
@@ -129,6 +130,12 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     {
         if (context.phase == InputActionPhase.Performed)
             OnInteractPressed?.Invoke();
+    }
+
+    public void OnConsole(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            OnConsolePressed?.Invoke();
     }
     #endregion
     
