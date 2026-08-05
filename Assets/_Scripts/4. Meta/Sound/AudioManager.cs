@@ -78,6 +78,7 @@ namespace Meta
         private AudioEmitter _musicSlotB;
         private bool _musicSlotAActive; //which slot is currently "main"
         private Coroutine _crossfadeRoutine;
+        private AudioEventSO _currentBgmTrack;
         
         // ── Duck State ─────────────────────────────────────────────────────────
         //Tracks the deepest active duck per bus so concurrent requests don't fight.
@@ -120,7 +121,7 @@ namespace Meta
             EventBus.Subscribe<AudioPlayRequest>(OnPlayRequest);
             EventBus.Subscribe<AudioPlayTrackedRequest>(OnPlayTrackedRequest);
             EventBus.Subscribe<AudioStopRequest>(OnStopRequest);
-            EventBus.Subscribe<AudioCrossfadeRequest>(OnCrosssfadeRequest);
+            EventBus.Subscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Subscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Subscribe<AudioModulateRequest>(OnModulateRequest);
         }
@@ -130,7 +131,7 @@ namespace Meta
             EventBus.Unsubscribe<AudioPlayRequest>(OnPlayRequest);
             EventBus.Unsubscribe<AudioPlayTrackedRequest>(OnPlayTrackedRequest);
             EventBus.Unsubscribe<AudioStopRequest>(OnStopRequest);
-            EventBus.Unsubscribe<AudioCrossfadeRequest>(OnCrosssfadeRequest);
+            EventBus.Unsubscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Unsubscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Unsubscribe<AudioModulateRequest>(OnModulateRequest);
         }
@@ -178,8 +179,13 @@ namespace Meta
                 emitter.StopImmediate();
         }
 
-        private void OnCrosssfadeRequest(AudioCrossfadeRequest req)
+        private void OnCrossfadeRequest(AudioCrossfadeRequest req)
         {
+            if (_currentBgmTrack == req.NewTrack)
+                return;
+
+            _currentBgmTrack = req.NewTrack;
+            
             if (_crossfadeRoutine != null)
                 StopCoroutine(_crossfadeRoutine);
 

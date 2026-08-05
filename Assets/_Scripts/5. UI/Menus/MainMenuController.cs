@@ -5,7 +5,20 @@ namespace UI
 {
     public class MainMenuController : MonoBehaviour
     {
+        [SerializeField] private AudioEventSO _menuMusic;
         [SerializeField] private GameObject _settingsPanel;
+
+        private void Start()
+        {
+            if (_menuMusic != null)
+            {
+                EventBus.Publish(new AudioCrossfadeRequest
+                {
+                    NewTrack = _menuMusic,
+                    Duration = 2f
+                });
+            }
+        }
         
         private void OnEnable()
         {
