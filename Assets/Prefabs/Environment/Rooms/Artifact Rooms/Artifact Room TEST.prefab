@@ -952,6 +952,8 @@ MonoBehaviour:
   _roomType: 0
   _state: 0
   _cleared: 0
+  _portalPrefab: {fileID: 0}
+  _portalSpawnPoint: {fileID: 0}
 --- !u!114 &5155460903403044981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -973,7 +975,6 @@ MonoBehaviour:
   _leftDoor: {fileID: 756284981866713675}
   _rightDoor: {fileID: 7691979350352071799}
   _offsetSpawn: 3
-  _liftDoors: 5
 --- !u!114 &2925910198636934037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -989,6 +990,7 @@ MonoBehaviour:
   _enemySpawns: []
   _spawnAtSameTime: 0
   _spawnDelay: 0
+  _interWaveDelay: 1
   _dangerImage: {fileID: 0}
   _effect: {fileID: 0}
   _warningDuration: 0

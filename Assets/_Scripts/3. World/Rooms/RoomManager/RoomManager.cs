@@ -44,6 +44,7 @@ namespace World
         {
             _roomConnections.SetDoorColors(info);
             _roomConnections.CalculateSpawnsEntry();
+            _roomConnections.InitializeDeadEnds();
         }
 
         public void InitEntity(RoomEncounterData data)
@@ -63,12 +64,14 @@ namespace World
                 switch (_roomType)
                 {
                     case RoomType.Combat:
+                        _roomConnections.LockDoors();
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
                         break;
                     
                     case RoomType.Boss:
+                        _roomConnections.LockDoors();
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
@@ -82,14 +85,16 @@ namespace World
                         break;
 
                     default:
-                        // Resting, Artifact, Shop, Portal: none of these lock doors — always
-                        // open immediately. They differ in what happens AFTER: Resting/Artifact
-                        // become cleared when the player claims their reward (whatever triggers
-                        // that calls MarkAsCleared()). Shop and Portal never call MarkAsCleared
-                        // at all — per the design doc, they can never clear.
+                        // Resting, Artifact, Shop, Portal
                         _roomConnections.RoomCleared();
                         break;
                 }
+            }
+            else 
+            {
+                // If the player backtracks into an already cleared room, 
+                // ensure the doors animate open/stay open.
+                _roomConnections.RoomCleared();
             }
 
             _roomConnections.EnableConnections();
@@ -151,9 +156,6 @@ namespace World
 
         private void HandleDoorTransition(EdgeDirection direction)
         {
-            // Was FloorManager.instance.TeleportPlayer(direction, Index) — the static
-            // singleton your doc already flags. FloorSpawner owns the Index -> RoomManager
-            // map from spawning, so it resolves this instead.
             EventBus.Publish(new RoomTransitionRequestEvent(Index, direction));
         }
 

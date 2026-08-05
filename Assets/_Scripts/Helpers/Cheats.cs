@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Foundation;   
+using Foundation;
 using Core;
 using World;
 
@@ -13,14 +13,21 @@ public class Cheats : MonoBehaviour
 
     private Dictionary<string, Func<string[], string>> _commands = new();
     private Dictionary<string, RuneDefinitionSO> _runeDatabase;
+    private Dictionary<string, GameObject> _enemyDatabase;
 
     private void Awake()
     {
         if (Instance != null) { Destroy(this); return; }
         Instance = this;
 
-        _runeDatabase = Resources.LoadAll<RuneDefinitionSO>("Runes")
+        // Bypass Unity's abstract resource load bug
+        _runeDatabase = Resources.LoadAll<ScriptableObject>("Runes")
+            .OfType<RuneDefinitionSO>()
             .ToDictionary(r => r.name.ToLower().Replace(" ", ""), r => r);
+
+        // Cache all enemy prefabs located in a Resources/Enemies folder
+        _enemyDatabase = Resources.LoadAll<GameObject>("Enemies")
+            .ToDictionary(e => e.name.ToLower().Replace(" ", ""), e => e);
 
         RegisterCommands();
     }
@@ -32,11 +39,12 @@ public class Cheats : MonoBehaviour
             return "<color=#3C3C3C>Available commands:\n" +
                    "  god - Toggles invincibility\n" +
                    "  heal [amount] - Heals player\n" +
-                   "  clearroom - Forces room clear event\n" +
+                   "  clear - Forces room clear event\n" +
                    "  nextfloor - Advances 1 floor\n" +
                    "  floor [number] - Advances to specific floor\n" +
                    "  tp portal - Teleports to portal room\n" +
                    "  give [currency|rune] [id] [amount] - Gives items\n" +
+                   "  spawn [enemy_name] [count] - Spawns enemies\n" +
                    "  help - Shows this list</color>";
         });
 
@@ -50,7 +58,7 @@ public class Cheats : MonoBehaviour
         {
             if (args.Length < 2 || !int.TryParse(args[1], out int amount)) return "<color=#FF0000>Usage: heal [amount]</color>";
             var player = FindObjectOfType<PlayerController>();
-            if (player != null && player.GetComponentInChildren<IHealable>() is IHealable healable)
+            if (player != null && player.GetComponent<IHealable>() is IHealable healable)
             {
                 healable.Heal(amount);
                 return $"Healed player for {amount} HP.";
@@ -58,11 +66,19 @@ public class Cheats : MonoBehaviour
             return "<color=#FF0000>Player or IHealable not found.</color>";
         });
 
-        _commands.Add("clearroom", args =>
+        _commands.Add("clear", args =>
         {
             if (GameStateManager.RunState == null) return "<color=#FF0000>Not in an active run.</color>";
-            EventBus.Publish(new RoomClearEvent(GameStateManager.RunState.CurrentRoomIndex));
-            return "Forced room clear event.";
+            
+            int currentIndex = GameStateManager.RunState.CurrentRoomIndex;
+            var room = FindObjectsOfType<RoomManager>().FirstOrDefault(r => r.Index == currentIndex);
+            
+            if (room != null)
+            {
+                room.MarkAsCleared();
+                return $"Forced clear on Room {currentIndex}.";
+            }
+            return "<color=#FF0000>Active RoomManager not found in scene.</color>";
         });
 
         _commands.Add("nextfloor", args => AdvanceFloor(1));
@@ -84,11 +100,38 @@ public class Cheats : MonoBehaviour
             if (args.Length < 3) return "<color=#FF0000>Usage: give [currency|rune] [amount/id]</color>";
             return ProcessGiveCommand(args);
         });
+
+        _commands.Add("spawn", args =>
+        {
+            if (args.Length < 2) return "<color=#FF0000>Usage: spawn [enemyName] [count]</color>";
+            
+            string enemyId = args[1];
+            int count = args.Length > 2 && int.TryParse(args[2], out int parsedCount) ? parsedCount : 1;
+
+            if (_enemyDatabase.TryGetValue(enemyId, out GameObject prefab))
+            {
+                var player = FindObjectOfType<PlayerController>();
+                if (player == null) return "<color=#FF0000>Player not found.</color>";
+
+                for (int i = 0; i < count; i++)
+                {
+                    // Spawn slightly offset from player in a circle
+                    Vector3 offset = UnityEngine.Random.insideUnitSphere * 3f;
+                    offset.y = 0f;
+                    Instantiate(prefab, player.transform.position + offset, Quaternion.identity);
+                }
+                return $"Spawned {count}x {prefab.name}.";
+            }
+            return $"<color=#FF0000>Enemy '{enemyId}' not found in Resources/Enemies.</color>";
+        });
     }
 
     public string ExecuteCommand(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return "";
+        
+        // Strip TMPro invisible character and trim whitespace
+        input = input.Replace("\u200B", "").Trim();
         
         string[] split = input.ToLower().Split(' ');
         string command = split[0];
@@ -155,7 +198,7 @@ public class Cheats : MonoBehaviour
                 GameStateManager.RunState.AddRune(runeSO, amount);
                 return $"Gave {amount}x {runeSO.Name}.";
             }
-            return $"<color=#FF0000>Rune '{runeId}' not found in Resources.</color>";
+            return $"<color=#FF0000>Rune '{runeId}' not found in Resources/Runes.</color>";
         }
         return "<color=#FF0000>Invalid give parameter. Use 'currency' or 'rune'.</color>";
     }

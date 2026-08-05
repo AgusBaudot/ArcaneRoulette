@@ -76,7 +76,18 @@ namespace UI
 
         private void HandleRoomClear(RoomClearEvent evt)
         {
-            if (_currentActivePanel != null) return;
+            if (_currentActivePanel != null)
+            {
+                if (_currentActivePanel == _consoleInstance)
+                {
+                    CloseCurrentPanel();
+                }
+                else
+                {
+                    return;
+                }
+            }
+    
             OpenPanel(_lootSelectionInstance);
         }
 
