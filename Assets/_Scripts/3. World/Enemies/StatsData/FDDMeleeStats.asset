@@ -21,7 +21,7 @@ MonoBehaviour:
   ChaseSpeed: 8
   PatrolSpeed: 4
   AttackDamage: 2
-  AttackRange: 4
+  AttackRange: 6
   ExitAttackRange: 3
   AttackRadius: 1.5
   AttackSpeed: 1
@@ -29,12 +29,15 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   SpawnDuration: 0
+  TargetPredictionWeight: 0.5
+  FormationRadius: 6
+  MaxPredictionTime: 1.5
   MaxRedirectAngle: 45
   WindupDuration: 0.5
   WindupSlowPercentage: 0.5
   Attack1MovementSpeedMultiplier: 0.2
   Attack1SwingSpeedMultiplier: 1
-  Attack1HitboxSize: {x: 1, y: 1, z: 1.5}
+  Attack1HitboxSize: {x: 2, y: 1, z: 2}
   Attack1DamageMultiplier: 0.5
   Attack1EndDelay: 0.1
   Attack2EndDelay: 0.2
