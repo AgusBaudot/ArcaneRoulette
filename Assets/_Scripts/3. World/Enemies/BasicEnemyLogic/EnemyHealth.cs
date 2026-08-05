@@ -25,29 +25,15 @@ namespace World
         public float DamageMitigationMultiplier { get; set; } = 1.0f;
 
         private IDebuffReadable _debuffs;
-        private Blackboard _blackboard;
-        private DamageFlash _flashComponent;
 
         public ElementType Element => _element;
-
-        private void Awake()
-        {
-            _flashComponent = GetComponent<DamageFlash>();
-        }
-
-        // Standard per-frame update for smooth UI interpolation
-        private void Update()
-        {
-            if (_ghostFill == null || _hpFill == null) return;
-
-            // Ghost bar smoothly trails the real bar using Time.deltaTime
-            _ghostFill.fillAmount = Mathf.Lerp(_ghostFill.fillAmount, _hpFill.fillAmount, _ghostSpeed * Time.deltaTime);
-        }
-
+        
         public void Tick()
         {
-            // Empty. 
-            // Reserved for staggered logic (if you ever add native HP regeneration, etc.)
+            if (_ghostFill == null || _hpFill == null)
+                return;
+            
+            _ghostFill.fillAmount = Mathf.Lerp(_ghostFill.fillAmount, _hpFill.fillAmount, _ghostSpeed * Time.deltaTime);
         }
 
         public bool TakeDamage(int amount, ElementType elementType)
@@ -94,7 +80,6 @@ namespace World
         {
             _maxHp = stats.MaxHp;
             _element = stats.ElementType;
-            _blackboard = blackboard;
             ResetComponent();
         }
 
@@ -102,6 +87,7 @@ namespace World
         {
             _isDead = false;
             _currentHp = _maxHp;
+            DamageMitigationMultiplier = 1.0f;
             UpdateUI();
             
             // Snap the ghost bar full on spawn so it doesn't animate from 0
