@@ -16,10 +16,19 @@ namespace World
 
         // State trackers
         private bool _isUncovering = false;
+        
+        // Commitment flags to prevent priority hijacking mid-sequence
+        private bool _isAttacking = false;
+        private bool _isBlocking = false;
+        private bool _isTeleporting = false;
+        
         private Vector3 _targetPos2;
         private Vector3 _targetPos3;
         
         private int _playerProjectileLayerMask;
+
+        // Helper to check if we are locked into an uninterruptible sequence
+        private bool IsCommitted => _isAttacking || _isBlocking || _isTeleporting;
 
         protected override void Awake()
         {
@@ -32,6 +41,9 @@ namespace World
         {
             base.ResetComponent();
             _isUncovering = false;
+            _isAttacking = false;
+            _isBlocking = false;
+            _isTeleporting = false;
             if (_health != null) _health.DamageMitigationMultiplier = 1.0f;
         }
 
@@ -52,14 +64,14 @@ namespace World
 
             // 2. Teleport (Priority 30)
             var teleportSeq = new SequenceNode("Teleport", priority: 30);
-            teleportSeq.AddChild(new LeafNode("CanTeleport", new ConditionNode(() => IsPlayerInSafeRange() && !_isUncovering)));
+            teleportSeq.AddChild(new LeafNode("CanTeleport", new ConditionNode(() => IsPlayerInSafeRange() && !IsCommitted)));
             teleportSeq.AddChild(new LeafNode("TeleportAnim", new TimedActionStrategy(BeginTeleport, () => RangeStats.TeleportAnimDuration)));
             teleportSeq.AddChild(new LeafNode("ExecuteTeleport", new ActionNode(ExecuteTeleport)));
             root.AddChild(teleportSeq);
 
             // 3. Block (Priority 20)
             var blockSeq = new SequenceNode("Block", priority: 20);
-            blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(AreProjectilesInSafeRange)));
+            blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
             blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout)));
             blockSeq.AddChild(new LeafNode("Uncover", new TimedActionStrategy(BeginUncover, () => RangeStats.BlockUncoverDuration)));
@@ -68,7 +80,7 @@ namespace World
 
             // 4. Attack (Priority 10)
             var attackSeq = new SequenceNode("Attack", priority: 10);
-            attackSeq.AddChild(new LeafNode("CanAttack", new ConditionNode(() => IsInStableDistance(GetPlayer()) && IsInLos())));
+            attackSeq.AddChild(new LeafNode("CanAttack", new ConditionNode(() => IsInStableDistance(GetPlayer()) && IsInLos() && !IsCommitted)));
             attackSeq.AddChild(new LeafNode("Windup1", new TimedActionStrategy(BeginAttack, () => GetClampedWindup(RangeStats.Attack1Windup))));
             attackSeq.AddChild(new LeafNode("Fire1", new ActionNode(FireProjectile1)));
             attackSeq.AddChild(new LeafNode("Windup2", new TimedActionStrategy(null, () => GetClampedWindup(RangeStats.Attack2Windup))));
@@ -100,14 +112,14 @@ namespace World
 
         public bool AreProjectilesInSafeRange()
         {
-            // Highly performant staggered check
             return Physics.CheckSphere(transform.position, RangeStats.SafeRange, _playerProjectileLayerMask);
         }
 
         // --- Block ---
         private void BeginCover()
         {
-            SetState(AIState.Blocking);
+            _isBlocking = true;
+            SetState(AIState.Blocking); // Ensure AIState.Blocking exists in your enum
             _agent.isStopped = true;
             _animator.SetTrigger("Cover");
         }
@@ -120,22 +132,29 @@ namespace World
         private void BeginUncover()
         {
             _isUncovering = true;
-            SetDamageMitigation(1.0f); // Restore normal damage taken
+            SetDamageMitigation(1.0f); 
             _animator.SetTrigger("Uncover");
         }
 
-        private void EndUncover() => _isUncovering = false;
+        private void EndUncover()
+        {
+            _isUncovering = false;
+            _isBlocking = false;
+        }
 
         // --- Teleport ---
         private void BeginTeleport()
         {
-            SetState(AIState.Teleporting);
+            _isTeleporting = true;
+            SetState(AIState.Teleporting); // Ensure AIState.Teleporting exists in your enum
             _agent.isStopped = true;
             _animator.SetTrigger("TeleportStart");
         }
 
         private void ExecuteTeleport()
         {
+            _isTeleporting = false;
+            
             if (EntityController.ActiveController == null) return;
             TeleportZone[] zones = EntityController.ActiveController.TeleportZones;
             if (zones == null || zones.Length == 0) return;
@@ -177,6 +196,7 @@ namespace World
         // --- Attack Sequence ---
         private void BeginAttack()
         {
+            _isAttacking = true;
             SetState(AIState.Attack);
             _agent.isStopped = true;
             if (_playerController == null) _playerController = GetPlayer()?.GetComponentInParent<PlayerController>();
@@ -215,7 +235,6 @@ namespace World
 
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
-            // FIXED: RangeStats.BigProjectilePrefab is now of type DetonatingEnemyProjectile
             var projObj = Helpers.ProjFactory.Spawn<DetonatingEnemyProjectile>(RangeStats.BigProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
             projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, RangeStats.ElementType, gameObject, RangeStats.BigProjectileDrainRate);
         }
@@ -224,12 +243,15 @@ namespace World
         {
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
-            // FIXED: RangeStats.NormalProjectilePrefab is now of type EnemyProjectile
             var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(RangeStats.NormalProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
             proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, RangeStats.ElementType, gameObject);
         }
 
-        private void EndAttack() => _agent.isStopped = false;
+        private void EndAttack()
+        {
+            _agent.isStopped = false;
+            _isAttacking = false;
+        }
 
         // --- Chase ---
         private void DoChase()
@@ -260,18 +282,17 @@ namespace World
         public void OnStart()
         {
             _lastProjectileTime = Time.time;
-            _brain.SetDamageMitigation(0.5f); // 50% Reduction
+            _brain.SetDamageMitigation(0.5f); 
         }
 
         public Node.NodeState Process()
         {
             if (_brain.AreProjectilesInSafeRange())
             {
-                _lastProjectileTime = Time.time; // Reset timer
+                _lastProjectileTime = Time.time; 
                 return Node.NodeState.Running;
             }
             
-            // FDD: "If already blocking and no projectiles inside safe range for 3 seconds"
             if (Time.time - _lastProjectileTime >= _getTimeout())
             {
                 return Node.NodeState.Success; 
