@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c9b4507593484d8c6910e004cd05a7, type: 3}
+  m_Name: FDDRangeStats
+  m_EditorClassIdentifier: 
+  MaxHp: 12
+  ElementType: 1
+  ViewDistance: 16
+  ObsMask:
+    serializedVersion: 2
+    m_Bits: 32768
+  ChaseSpeed: 6
+  PatrolSpeed: 4
+  AttackDamage: 2
+  AttackRange: 12
+  ExitAttackRange: 13
+  AttackRadius: 0
+  AttackSpeed: 4
+  HitLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  SpawnDuration: 3
+  SafeRange: 4
+  MaxWindupDuration: 2
+  Attack1Windup: 1
+  Attack2Windup: 0.3
+  Attack3Windup: 0.3
+  Attack4Windup: 1
+  PredictionTime2: 0.5
+  PredictionTime3: 1.5
+  NormalProjectilePrefab: {fileID: -584952015612557093, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
+    type: 3}
+  BigProjectilePrefab: {fileID: 8560652046546805055, guid: 9d9c47ab0b35ca540ac3f9216f6b621b,
+    type: 3}
+  NormalProjectileSpeed: 12
+  BigProjectileInitialSpeed: 8
+  BigProjectileDrainRate: 1.5
+  BlockCoverDuration: 1
+  BlockUncoverDuration: 1
+  BlockTimeout: 3
+  TeleportAnimDuration: 4

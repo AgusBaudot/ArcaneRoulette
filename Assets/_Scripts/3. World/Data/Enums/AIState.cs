@@ -8,6 +8,8 @@ namespace World
         Attack,
         Flee,
         Stunned,
+        Blocking,
+        Teleporting,
         Death
     }
 }

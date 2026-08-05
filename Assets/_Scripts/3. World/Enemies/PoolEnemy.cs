@@ -33,27 +33,55 @@ namespace World
             {
                 var prefab = poolConfig._enemy;
                 var pool = new ObjectPool<IPoolable>(
-                    () =>
+                    createFunc: () =>
                     {
-                        var obj = Instantiate(prefab);
+                        // 1. Parent to the manager to prevent scene root clutter
+                        var obj = Instantiate(prefab, transform);
 
+                        // 2. Disable agent immediately to prevent origin-snap errors
                         if (obj.TryGetComponent<NavMeshAgent>(out var agent))
                             agent.enabled = false;
+                        
+                        // 3. Keep inactive so they don't flash on screen during instantiation
+                        obj.SetActive(false);
 
                         return obj.GetComponent<EnemyController>();
                     },
-                    obj => obj.OnSpawn(),
-                    obj => obj.OnDespawn(),
-                    obj => Destroy(((MonoBehaviour)obj).gameObject), true, poolConfig._initialSize, poolConfig._maxSize);
+                    actionOnGet: obj => 
+                    { 
+                        // Empty! We handle this manually in Get() to strictly control the order of operations.
+                    },
+                    actionOnRelease: obj => 
+                    {
+                        obj.OnDespawn();
+                        // Guarantee the object disappears, backing up EnemyController's own deactivation
+                        ((MonoBehaviour)obj).gameObject.SetActive(false);
+                    },
+                    actionOnDestroy: obj => Destroy(((MonoBehaviour)obj).gameObject), 
+                    collectionCheck: true, 
+                    defaultCapacity: poolConfig._initialSize, 
+                    maxSize: poolConfig._maxSize
+                );
+                
                 _pools.Add(poolConfig._id, pool);
 
                 Queue<IPoolable> tempQueue = new Queue<IPoolable>();
                 for (int i = 0; i < poolConfig._initialSize; i++)
                 {
-                    tempQueue.Enqueue(pool.Get());
+                    var entity = pool.Get();
+                    var mono = (MonoBehaviour)entity;
+                    
+                    // Manually simulate a safe lifecycle for warmup
+                    mono.transform.position = transform.position; 
+                    mono.gameObject.SetActive(true);
+                    entity.OnSpawn();
+                    
+                    tempQueue.Enqueue(entity);
                 }
+                
                 while (tempQueue.Count > 0)
                 {
+                    // Release triggers actionOnRelease -> OnDespawn() & SetActive(false)
                     pool.Release(tempQueue.Dequeue());
                 }
             }
@@ -77,7 +105,12 @@ namespace World
                 return null;
             }
 
-            entity.Transform.position = position;
+            entity.transform.position = position; 
+            
+            entity.gameObject.SetActive(true);    
+            
+            entity.OnSpawn();                     
+
             return entity;
         }
 

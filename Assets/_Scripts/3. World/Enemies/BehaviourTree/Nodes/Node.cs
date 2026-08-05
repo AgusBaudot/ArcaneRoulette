@@ -358,4 +358,62 @@ namespace World
             return result;
         }
     }
+    
+    /// <summary>
+    /// Runs an optional one-time start callback and reports Running until getDuration() elapses.
+    /// Once the duration expires, it reports Failure FOREVER until the tree is Reset().
+    /// Built to act as a spawn-animation gate as the highest-priority child of a 
+    /// PrioritySelectorNode. Once passed, the selector falls through to normal combat logic.
+    /// </summary>
+    public class OneShotGateStrategy : IStrategy
+    {
+        private readonly Action _onStart;
+        private readonly Func<float> _getDuration;
+        
+        private float _startTime;
+        private bool _started;
+        private bool _isComplete;
+
+        public OneShotGateStrategy(Action onStart, Func<float> getDuration)
+        {
+            _onStart = onStart;
+            _getDuration = getDuration;
+        }
+
+        public Node.NodeState Process()
+        {
+            // Once the gate is passed, permanently fail so the Priority Selector 
+            // instantly falls through to evaluating Combat and Chase in the same tick.
+            if (_isComplete)
+            {
+                return Node.NodeState.Failure;
+            }
+
+            if (!_started)
+            {
+                _started = true;
+                _startTime = Time.time;
+                _onStart?.Invoke();
+            }
+
+            // Check if the duration has elapsed (using absolute time, safe for staggered updates)
+            if (Time.time - _startTime >= Mathf.Max(0.0001f, _getDuration()))
+            {
+                _isComplete = true;
+                return Node.NodeState.Failure;
+            }
+
+            // Still gating
+            return Node.NodeState.Running;
+        }
+
+        public void Reset()
+        {
+            // Called by AIBrain.ResetComponent() -> _tree.Reset() when the enemy 
+            // is despawned, readying the gate for the next pool spawn.
+            _started = false;
+            _isComplete = false;
+        }
+    }
 }
+
