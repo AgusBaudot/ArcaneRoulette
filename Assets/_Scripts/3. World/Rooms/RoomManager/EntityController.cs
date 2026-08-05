@@ -9,6 +9,11 @@ namespace World
 {
     public class EntityController : MonoBehaviour
     {
+        public event Action RoomIsClear;
+
+        public static EntityController ActiveController { get; private set; }
+        public TeleportZone[] TeleportZones { get; private set; }
+
         [Header("Room spawn settings")]
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
@@ -17,8 +22,7 @@ namespace World
         [SerializeField] private GameObject _dangerImage;
         [SerializeField] private GameObject _effect;
         [SerializeField] private float _warningDuration;
-
-
+        
         [Header("Hazards")]
         [SerializeField] MonoBehaviour[] hazards; //overkill
 
@@ -29,13 +33,18 @@ namespace World
         private List<IPoolable> _spawnedEnemies = new List<IPoolable>();
         private RoomEncounterData _encounterData;
         private List<EnemyType> _spawnList;
-        public event Action RoomIsClear;
+
+        private void Awake()
+        {
+            TeleportZones = GetComponentsInChildren<TeleportZone>();
+        }
 
         public void SaveEnemiesData(RoomEncounterData encounterData)
         {
             _encounterData = encounterData;
             _currentWave = 0;
         }
+        
         private Vector3 GetRandomSpawnPosition(int spawn)
         {
             Bounds bounds = _enemySpawns[spawn].bounds;
@@ -49,9 +58,11 @@ namespace World
         // ---- Entry function ----
         public void PlayEntityController()
         {
+            ActiveController = this;
+            
             if (_encounterData.Waves == null || _encounterData.Waves.Length == 0 || _enemySpawns.Length == 0)
             {
-                RoomIsClear?.Invoke();
+                CompleteRoom();
                 return;
             }
             SpawnWave(_currentWave);
@@ -83,6 +94,7 @@ namespace World
 
             StartCoroutine(SpawnEnemies(_spawnList));
         }
+        
         private IEnumerator SpawnEnemies(List<EnemyType> enemiesToSpawn)
         {
             int spawnedSoFar = 0;
@@ -139,6 +151,7 @@ namespace World
                     yield return CoroutineUtils.GetWait(_spawnDelay);
             }
         }
+        
         private void OnEnemyDeath(EnemyController enemy)
         {
             _spawnedEnemies.Remove(enemy);
@@ -151,7 +164,7 @@ namespace World
                 if (_currentWave < _encounterData.Waves.Length)
                     StartCoroutine(NextWaveAfterDelay());
                 else
-                    RoomIsClear?.Invoke();
+                    CompleteRoom();
             }
         }
         private IEnumerator NextWaveAfterDelay()
@@ -159,12 +172,33 @@ namespace World
             yield return CoroutineUtils.GetWait(_interWaveDelay);
             SpawnWave(_currentWave);
         }
+        
         public void DisableAllHazards()
         {
             for (int i = 0; i < hazards.Length; i++)
             {
                 if (hazards[i] is IHazard hazard)
                     hazard.Disable();
+            }
+        }
+
+        private void CompleteRoom()
+        {
+            if (ActiveController == this)
+            {
+                ActiveController = null;
+            }
+            
+            RoomIsClear?.Invoke();
+        }
+        
+        private void OnDisable()
+        {
+            // Defensive cleanup: If the player dies or leaves the floor mid-combat, 
+            // ensure this static reference doesn't hold over into the next run.
+            if (ActiveController == this)
+            {
+                ActiveController = null;
             }
         }
     }
