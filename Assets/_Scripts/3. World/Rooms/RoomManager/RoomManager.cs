@@ -101,6 +101,9 @@ namespace World
 
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
+
+            if (_roomType == RoomType.Portal)
+                SpawnPortal();
         }
 
         public void DisableRoom()
@@ -150,6 +153,7 @@ namespace World
                 Debug.LogError($"RoomManager (Index {_index}, {_roomType}): _portalPrefab not assigned.");
                 return;
             }
+
             Vector3 spawnPos = _portalSpawnPoint != null ? _portalSpawnPoint.position : transform.position;
             Instantiate(_portalPrefab, spawnPos, Quaternion.identity);
         }
