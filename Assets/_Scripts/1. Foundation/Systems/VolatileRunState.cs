@@ -29,6 +29,7 @@ namespace Foundation
         // VolatileRunState to Core). Leaving unchanged to avoid scope creep.
 
         private readonly ISpellSlot[] _slots = new ISpellSlot[3];
+        private readonly float[] _slotProgressCache = new float[3] { 1f, 1f, 1f };
         public ISpellSlot GetSlot(SlotIndex slot) => _slots[(int)slot];
         public event Action<SlotIndex, ISpellSlot> OnSlotChanged; // slot, new instance
 
@@ -124,6 +125,18 @@ namespace Foundation
         {
             _slots[(int)slot] = instance;
             OnSlotChanged?.Invoke(slot, instance);
+        }
+
+        public void SaveSlotProgress(SlotIndex slot, float progress)
+        {
+            _slotProgressCache[(int)slot] = progress;
+        }
+
+        public float RetrieveSlotProgress(SlotIndex slot)
+        {
+            float progress = _slotProgressCache[(int)slot];
+            _slotProgressCache[(int)slot] = 1f;
+            return progress;
         }
 
         // ── Rune inventory ───────────────────────────────────────────────────
@@ -224,7 +237,10 @@ namespace Foundation
             // Spell slots
             OnSlotChanged = null;
             for (int i = 0; i < _slots.Length; i++)
+            {
                 _slots[i] = null;
+                _slotProgressCache[i] = 1f;
+            }
 
             // Rune inventory — clear contents, keep the Dictionary allocations
             _runeInventory.Clear();

@@ -49,6 +49,16 @@ namespace Core
             Energy.Tick(dt);
             base.Tick(dt);
         }
+        
+        internal override void ApplyProgress(float progress)
+        {
+            base.ApplyProgress(progress);
+
+            if (Energy != null)
+            {
+                Energy.InheritProgress(progress);
+            }
+        }
  
         public void HoldTick(float deltaTime, MonoBehaviour runner)
         {

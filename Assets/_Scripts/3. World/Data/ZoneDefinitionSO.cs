@@ -49,10 +49,6 @@ namespace World
         [Header("Room Encounter Pools")]
         [Tooltip("Combat/Boss rooms pick a random RoomEncounterSO from here at floor-gen time. Other room types don't need an entry.")]
         [SerializeField] private RoomEncounterPool[] _roomEncounterPools;
-
-        [Header("Door/Wall Materials")] [SerializeField]
-        private Material _openDoorMaterial;
-        [SerializeField] private Material _wallMaterial;
         
         public ZoneTag ZoneTag => _zoneTag;
         public int FloorAmount => _floorAmount;
@@ -62,8 +58,8 @@ namespace World
         public int StartingRoomWeight => _startingRoomWeight;
         public int WeightPenalty => _weightPenalty;
         public int WeightBonus => _weightBonus;
-        public Material OpenDoorMaterial => _openDoorMaterial;
-        public Material WallMaterial => _wallMaterial;
+        public Material OpenDoorMaterial { get; }
+        public Material WallMaterial { get; }
 
         public GameObject GetRandomPrefab(RoomType type, System.Random rng)
         {

@@ -33,8 +33,6 @@ namespace World
 
             if (!_isIdle) return;
 
-            // Only players and enemies (IDamageable entities) activate the trap.
-            // Projectiles and other objects are ignored.
             if (other.GetComponentInParent<IDamageable>() == null && other.GetComponentInParent<PlayerController>() == null)
                     return;
 
@@ -44,22 +42,15 @@ namespace World
 
         private IEnumerator TrapRoutine()
         {
-            // Windup — spikes partially emerge, telegraphs the hit
             yield return CoroutineUtils.GetWait(_windupDuration);
 
-            // Spikes fully emerge — damage fires exactly here, one OverlapSphere
-            //if (_spikesVisual != null) 
-            //    _spikesVisual.SetActive(true);
             _anim.SetTrigger(_activateHash);
             
             ApplyDamage();
 
-            // Spikes stay visible briefly for readability, then retract
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
             _anim.SetTrigger(_cooldownHash);
-            //if (_spikesVisual != null) _spikesVisual.SetActive(false);
 
-            // Cooldown before trap can activate again
             yield return CoroutineUtils.GetWait(_cooldownDuration);
             _anim.SetTrigger(_idleHash);
 
@@ -78,17 +69,15 @@ namespace World
                 var damageable = hit.GetComponentInParent<IDamageable>()
                                  ?? hit.GetComponent<IDamageable>();
                 if (damageable == null) continue;
-                if (!processed.Add(damageable)) continue; // dedup multi-collider enemies
+                if (!processed.Add(damageable)) continue;
 
                 var go = (damageable as Component)?.gameObject;
                 var player = go?.GetComponentInParent<PlayerController>();
 
                 if (player != null)
                 {
-                    // Dashing — hurtbox is off, skip entirely. No interaction.
                     if (!player.Hurtbox.activeSelf) continue;
 
-                    // Shielding — trap triggers, shield is destroyed, no damage.
                     if (player.IsShielding)
                     {
                         player.ForceDestroyActiveShield();
@@ -104,6 +93,7 @@ namespace World
 
         public void Disable()
         {
+            _anim.SetTrigger(_cooldownHash);
             _isActive = false;
         }
 

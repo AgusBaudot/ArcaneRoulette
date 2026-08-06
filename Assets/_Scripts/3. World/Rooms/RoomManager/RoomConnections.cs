@@ -57,10 +57,26 @@ namespace World
         
         public void InitializeDeadEnds()
         {
-            if (!_allDoorsInfo.Down.UnlockOnClear) SetDoorState(_bottomDoor, LockHash, true);
-            if (!_allDoorsInfo.Up.UnlockOnClear) SetDoorState(_upDoor, LockHash, true);
-            if (!_allDoorsInfo.Left.UnlockOnClear) SetDoorState(_leftDoor, LockHash, true);
-            if (!_allDoorsInfo.Right.UnlockOnClear) SetDoorState(_rightDoor, LockHash, true);
+            if (!_allDoorsInfo.Down.UnlockOnClear) 
+            {
+                SetDoorState(_bottomDoor, LockHash, true);
+                if (_bottom != null) _bottom.gameObject.SetActive(false); // Kill the trigger
+            }
+            if (!_allDoorsInfo.Up.UnlockOnClear) 
+            {
+                SetDoorState(_upDoor, LockHash, true);
+                if (_up != null) _up.gameObject.SetActive(false); // Kill the trigger
+            }
+            if (!_allDoorsInfo.Left.UnlockOnClear) 
+            {
+                SetDoorState(_leftDoor, LockHash, true);
+                if (_left != null) _left.gameObject.SetActive(false); // Kill the trigger
+            }
+            if (!_allDoorsInfo.Right.UnlockOnClear) 
+            {
+                SetDoorState(_rightDoor, LockHash, true);
+                if (_right != null) _right.gameObject.SetActive(false); // Kill the trigger
+            }
         }
 
         private Vector3 GetFlatSpawnPosition(Vector3 doorPosition, Vector3 offset)

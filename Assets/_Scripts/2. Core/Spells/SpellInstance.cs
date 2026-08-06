@@ -85,6 +85,17 @@ namespace Core
             if (_cooldownRemaining > 0f)
                 _cooldownRemaining -= dt;
         }
+        
+        // ── Progress Inheritance ──────────────────────────────────────────────
+        internal virtual void ApplyProgress(float progress)
+        {
+            if (CooldownDuration > 0)
+            {
+                // progress of 1 means fully ready (cooldown remaining = 0)
+                // progress of 0 means fully on cooldown (cooldown remaining = CooldownDuration)
+                _cooldownRemaining = (1f - Mathf.Clamp01(progress)) * CooldownDuration;
+            }
+        }
  
         // ── IAbility ─────────────────────────────────────────────────────────
         
