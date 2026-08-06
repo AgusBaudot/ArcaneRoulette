@@ -75,7 +75,7 @@ namespace World
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
-                        EventBus.Publish(new EndFloorClearEvent(_index));
+                        //EventBus.Publish(new EndFloorClearEvent(_index));
                         break;
 
                     case RoomType.Start:
@@ -132,6 +132,7 @@ namespace World
             switch (_roomType)
             {
                 case RoomType.Boss:
+                    EventBus.Publish(new RoomClearEvent(_index));
                     SpawnPortal();
                     break;
 
@@ -165,7 +166,9 @@ namespace World
 
         public void MarkAsCleared()
         {
-            if (_cleared) return;
+            if (_cleared) 
+                return;
+            
             RoomClearedEvent();
         }
     }
