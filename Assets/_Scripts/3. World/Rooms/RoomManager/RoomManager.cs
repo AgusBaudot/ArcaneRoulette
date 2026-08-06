@@ -155,7 +155,7 @@ namespace World
             }
 
             Vector3 spawnPos = _portalSpawnPoint != null ? _portalSpawnPoint.position : transform.position;
-            Instantiate(_portalPrefab, spawnPos, Quaternion.identity);
+            Instantiate(_portalPrefab, spawnPos, _portalPrefab.transform.rotation);
         }
 
         private void HandleDoorTransition(EdgeDirection direction)
