@@ -1,6 +1,5 @@
 using UnityEngine;
 using Foundation;
-using Core;
 
 namespace World
 {
@@ -11,34 +10,57 @@ namespace World
     {
         [SerializeField] private float _radius = 1.5f;
         [SerializeField] private PortalType _type = PortalType.NextFloor;
+        [SerializeField] private GameObject _keyIcon;
 
         private readonly string _targetSceneName = SceneNames.GameLevel;
         private bool _hasTriggered;
+        private bool _playerInside;
 
         private void Start()
         {
             var col = GetComponent<SphereCollider>();
             col.radius = _radius;
             col.isTrigger = true;
+
+            Helpers.Input.OnInteractPressed += HandleInteraction;
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (_hasTriggered) return;
-
-            if (other.TryGetComponent<PlayerHurtBox>(out _))
+            if (other.CompareTag("Player"))
             {
-                _hasTriggered = true;
-
-                if (_type == PortalType.NextFloor)
-                {
-                    EventBus.Publish(new FloorClearedEvent());
-                }
-                else if (_type == PortalType.StartNewRun)
-                {
-                    EventBus.Publish(new StartRunRequestEvent(_targetSceneName));
-                }
+                _keyIcon.SetActive(true);
+                _playerInside = true;
             }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            if (other.CompareTag("Player"))
+            {
+                _keyIcon.SetActive(false);
+                _playerInside = false;
+            }
+        }
+
+        private void HandleInteraction()
+        {
+            if (!_playerInside || _hasTriggered)
+                return;
+
+            _hasTriggered = true;
+
+            if (_type == PortalType.NextFloor)
+            {
+                EventBus.Publish(new FloorClearedEvent());
+            }
+            else if (_type == PortalType.StartNewRun)
+            {
+                EventBus.Publish(new StartRunRequestEvent(_targetSceneName));
+            }
+
+            _hasTriggered = true;
+            Destroy(gameObject);
         }
 
         private void OnDrawGizmos()

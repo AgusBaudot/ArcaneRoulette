@@ -9,6 +9,7 @@ namespace UI
 
         private void Start()
         {
+            Debug.Log("D");
             Cursor.SetCursor(cursorTexture, hotSpot, CursorMode.ForceSoftware);
         }
     }
