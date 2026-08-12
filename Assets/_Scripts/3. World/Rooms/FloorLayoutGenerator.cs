@@ -115,14 +115,14 @@ namespace World
                 if (occupiedNeighbors.Count == 0)
                     continue; // defensive only — shouldn't be reachable given how frontier is built
 
-                RoomLayoutNode source = occupiedNeighbors[rng.Next(occupiedNeighbors.Count)];
                 var newNode = new RoomLayoutNode(nodesByIndex.Count, cell);
                 nodesByPosition[cell] = newNode;
                 nodesByIndex.Add(newNode);
-                Connect(source, newNode);
 
-                foreach (var c in EmptyNeighbors(cell, nodesByPosition))
-                    frontier.Add(c);
+                foreach (RoomLayoutNode source in occupiedNeighbors)
+                {
+                    Connect(source, newNode);
+                }
             }
 
             // ---- Assign mandatory rooms ----
