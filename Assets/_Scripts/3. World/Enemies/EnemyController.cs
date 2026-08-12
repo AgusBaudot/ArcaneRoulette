@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Foundation;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
+using Foundation;
+using Core;
 
 namespace World
 {
@@ -142,14 +143,20 @@ namespace World
             {
                 yield return null;
             }
-            Debug.Log($"<color=green>SUCCESS:</color> {gameObject.name} Succesfuly register to CustomUpdateEnemyManager.");
+            
             CustomUpdateEnemyManager.Instance.Register(this);
         }
         
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);
+
+            if (TryGetComponent<DoTComponent>(out var dot))
+            {
+                dot.ClearAll();
+            }
         }
+        
         public void Tick()
         {
             _aiBrain.Tick();

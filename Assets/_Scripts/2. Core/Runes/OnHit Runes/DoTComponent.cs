@@ -1,53 +1,118 @@
-using System.Collections;
 using Foundation;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Core
 {
-    public sealed class DoTComponent : MonoBehaviour
+    [RequireComponent(typeof(IDamageable))]
+    public sealed class DoTComponent : MonoBehaviour, IUpdatable
     {
-        private IDamageable _target;
-        private int _damagePerTick;
-        private float _interval;
-        private float _remainingDuration;
-        private ElementType _element;
-        private Coroutine _tickRoutine;
+        public int UpdatePriority => Foundation.UpdatePriority.Spells;
 
-        public void Apply(IDamageable target, int damagePerTick, float tickInterval, float duration,
-            ElementType element)
+        public IReadOnlyList<DoTInstance> ActiveDoTs => _activeDoTs;
+        private readonly List<DoTInstance> _activeDoTs = new List<DoTInstance>();
+
+        private IDamageable _damageable;
+        
+        private float _blinkTimer = 1f;
+        private float _blinkDurationTimer = 0f;
+        private const float BLINK_INTERVAL = 1f;
+
+        private void Awake()
         {
-            _target = target;
-            _damagePerTick = damagePerTick;
-            _interval = tickInterval;
-            _remainingDuration = duration; //refresh on re-apply, never accumulate
-            _element = element;
-
-            if (_tickRoutine == null)
-                _tickRoutine = StartCoroutine(TickRoutine());
+            _damageable = GetComponent<IDamageable>();
         }
 
-        private IEnumerator TickRoutine()
+        public void ClearAll()
         {
-            while (_remainingDuration > 0f)
+            if (UpdateManager.Instance != null)
             {
-                yield return CoroutineUtils.GetWait(_interval);
-                _remainingDuration -= _interval;
-
-                if (_target == null)
-                    break;
-                
-                var batch = new DamageBatch();
-                batch.Deal(_target, gameObject, _damagePerTick, _element);
-                batch.Commit(Helpers.Combat.NoFeedback);
+                UpdateManager.Instance.Unregister(this);
             }
             
-            _tickRoutine = null;
-            Destroy(this);
+            _activeDoTs.Clear();
         }
 
-        public void OnDisable()
+        private void OnEnable()
         {
-            Destroy(this);
+            if (_activeDoTs.Count > 0 && UpdateManager.Instance != null)
+            {
+                UpdateManager.Instance.Register(this);
+            }
+        }
+
+        private void OnDisable()
+        {
+            ClearAll();
+        }
+
+        public void AddDoT(DoTInstance instance)
+        {
+            bool wasEmpty = _activeDoTs.Count == 0;
+            _activeDoTs.Add(instance);
+            
+            if (wasEmpty && enabled && UpdateManager.Instance != null)
+            {
+                UpdateManager.Instance.Register(this);
+                _blinkTimer = BLINK_INTERVAL; 
+            }
+        }
+
+        public void RemoveDoT(DoTInstance instance)
+        {
+            if (_activeDoTs.Remove(instance) && _activeDoTs.Count == 0)
+            {
+                ClearAll();
+            }
+        }
+
+        public void Tick(float dt)
+        {
+            if (_activeDoTs.Count == 0) return;
+
+            ProcessDamage(dt);
+        }
+
+        private void ProcessDamage(float dt)
+        {
+            var batch = new DamageBatch();
+            bool hasRemoved = false;
+
+            for (int i = _activeDoTs.Count - 1; i >= 0; i--)
+            {
+                if (i >= _activeDoTs.Count) continue;
+
+                var dot = _activeDoTs[i];
+                dot.RemainingDuration -= dt;
+                dot.TimeUntilNextTick -= dt;
+
+                if (dot.TimeUntilNextTick <= 0f)
+                {
+                    dot.TimeUntilNextTick += dot.TickInterval;
+                    batch.Deal(_damageable, gameObject, dot.Damage, dot.Element);
+            
+                    if (_activeDoTs.Count == 0)
+                    {
+                        break;
+                    }
+                }
+
+                if (dot.RemainingDuration <= 0f)
+                {
+                    if (i < _activeDoTs.Count && _activeDoTs[i] == dot)
+                    {
+                        _activeDoTs.RemoveAt(i);
+                        hasRemoved = true;
+                    }
+                }
+            }
+
+            batch.Commit(DamageJuice.None);
+
+            if (hasRemoved && _activeDoTs.Count == 0)
+            {
+                ClearAll();
+            }
         }
     }
 }
