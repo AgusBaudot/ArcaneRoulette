@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace World
 {
-    [CreateAssetMenu(fileName = "BruteEnemyStats", menuName = "Stats/Enemies/Brute")]
+    [CreateAssetMenu(fileName = "BruteEnemyStats", menuName = "World/Enemies/Brute Stats")]
     public class BruteEnemyStats : EnemyStats
     {
         [Header("Brute - General")]

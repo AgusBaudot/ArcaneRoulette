@@ -20,6 +20,7 @@ namespace World
         private float _chargeCooldownTimer;
         private float _currentStunDuration;
         private Vector3 _chargeDirection;
+        private Vector3 _lastAttackDirection;
 
         // References to specific mechanics
         [SerializeField] private BruteThrustHitbox _thrustHitbox;
@@ -129,10 +130,11 @@ namespace World
             if (player != null)
             {
                 Vector3 toPlayer = (player.position - transform.position).normalized;
-                toPlayer.y = 0; 
+                toPlayer.y = 0;
+                
                 if (toPlayer != Vector3.zero)
                 {
-                    transform.rotation = Quaternion.LookRotation(toPlayer);
+                    _lastAttackDirection = toPlayer;
                 }
             }
         }
@@ -168,7 +170,7 @@ namespace World
             if (_isCharging && _agent != null && _agent.isOnNavMesh)
             {
                 float frameSpeed = EffectiveChaseSpeed * _bruteStats.ChargeSpeedMultiplier * dt;
-                _agent.Move(_chargeDirection * frameSpeed);
+                _agent.Move(_lastAttackDirection * frameSpeed);
             }
             else if (_isThrusting && _thrustHitbox != null)
             {
@@ -180,10 +182,9 @@ namespace World
         private void StartCharge()
         {
             _isCharging = true;
-            Transform player = GetPlayer();
-            _chargeDirection = player != null ? (player.position - transform.position).normalized : transform.forward;
-            _chargeDirection.y = 0; 
             
+            _chargeDirection = _lastAttackDirection;
+    
             if (_chargeHitbox != null)
             {
                 _chargeHitbox.Activate(_bruteStats, _bruteElement, OnChargeInterrupted);
