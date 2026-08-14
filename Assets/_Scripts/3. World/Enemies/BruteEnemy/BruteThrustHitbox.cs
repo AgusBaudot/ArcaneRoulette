@@ -22,14 +22,20 @@ namespace World
             Deactivate();
         }
 
-        public void Activate(BruteEnemyStats stats, int damage)
+        public void Activate(BruteEnemyStats stats, int damage, Vector3 direction)
         {
             _damage = damage;
             _maxDistance = stats.ThrustHitboxMaxDistance;
             _currentDistance = 0f;
             _hitTargets.Clear();
             _col.enabled = true;
-            
+    
+            // CRITICAL FIX: Rotate the child transform to point at the player
+            if (direction != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
+    
             // Reset box to start position
             _col.size = new Vector3(_col.size.x, _col.size.y, 0.1f);
             _col.center = new Vector3(0, _col.center.y, 0);

@@ -162,7 +162,6 @@ GameObject:
   - component: {fileID: 9162736739425250761}
   - component: {fileID: 2671222585452926215}
   - component: {fileID: 6609402721532654236}
-  - component: {fileID: 1354876219366200651}
   - component: {fileID: 2494622429942246647}
   - component: {fileID: 3785297136978254722}
   - component: {fileID: 5857784219357410502}
@@ -172,6 +171,7 @@ GameObject:
   - component: {fileID: 4269105089531905328}
   - component: {fileID: 3450630076417084078}
   - component: {fileID: 6724373750546845679}
+  - component: {fileID: 2090762635409155138}
   m_Layer: 7
   m_Name: FDD_Brute
   m_TagString: Untagged
@@ -254,18 +254,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _drag: 12
   _maxKnockbackDuration: 2
---- !u!114 &1354876219366200651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326220217148487278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!195 &2494622429942246647
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -435,6 +423,20 @@ MonoBehaviour:
   _earthElement: {fileID: 21300000, guid: a75743d754fd072458362711a4753cc7, type: 3}
   _waterElement: {fileID: 21300000, guid: 3e78a8bf7f3f8b8459371e8792b783f1, type: 3}
   _thunderElement: {fileID: 21300000, guid: 6d79afad7cde55742950264bc16c4d99, type: 3}
+--- !u!114 &2090762635409155138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89b84b06a6454b5a84ca96fc2ac4606b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _brain: {fileID: 3450630076417084078}
+  _sprite: {fileID: 632965395475527778}
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0

@@ -68,22 +68,19 @@ namespace World
             if (MeleeStats == null)
             {
                 Debug.LogError($"{name}: EnemyController's stats asset isn't a MeleeEnemyStats " +
-                    $"(got '{(_enemyStats == null ? "null" : _enemyStats.GetType().Name)}'). " +
-                    "Assign a Melee Stats asset instead — every duration in this tree reads through it.");
-                return tree; // empty tree: BehaviorTree.Process() returns Failure on no children,
-                             // not a crash — the enemy just sits idle instead of NRE-ing every tick.
+                               $"(got '{(_enemyStats == null ? "null" : _enemyStats.GetType().Name)}'). " +
+                               "Assign a Melee Stats asset instead — every duration in this tree reads through it.");
+                return tree;
             }
 
-            var spawning = new LeafNode("Spawning",
-                new TimedActionStrategy(BeginSpawning, () => MeleeStats.SpawnDuration));
+            var root = new PrioritySelectorNode("Melee Root");
 
-            var combat = new PrioritySelectorNode("Combat");
-            combat.AddChild(BuildAttackSequence());
-            combat.AddChild(new LeafNode("Chase", new ActionNode(DoChase), priority: 0));
+            root.AddChild(new LeafNode("Spawning",
+                new OneShotGateStrategy(BeginSpawning, () => MeleeStats.SpawnDuration), priority: 50));
 
-            var root = new SequenceNode("Melee Root");
-            root.AddChild(spawning);
-            root.AddChild(combat);
+            root.AddChild(BuildAttackSequence());
+
+            root.AddChild(new LeafNode("Chase", new ActionNode(DoChase), priority: 0));
 
             tree.AddChild(root);
             return tree;

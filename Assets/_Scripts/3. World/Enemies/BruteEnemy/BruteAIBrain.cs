@@ -19,7 +19,6 @@ namespace World
         
         private float _chargeCooldownTimer;
         private float _currentStunDuration;
-        private Vector3 _chargeDirection;
         private Vector3 _lastAttackDirection;
 
         // References to specific mechanics
@@ -85,8 +84,6 @@ namespace World
         {
             Transform player = GetPlayer();
             if (player == null) return false;
-            
-            // Mirrors the exact math from the base IsInStableDistance implementation you provided
             return Vector3.Distance(transform.position, player.position) <= range;
         }
 
@@ -182,12 +179,11 @@ namespace World
         private void StartCharge()
         {
             _isCharging = true;
-            
-            _chargeDirection = _lastAttackDirection;
     
             if (_chargeHitbox != null)
             {
-                _chargeHitbox.Activate(_bruteStats, _bruteElement, OnChargeInterrupted);
+                // Also pass _lastAttackDirection here so the charge hitbox can orient itself!
+                _chargeHitbox.Activate(_bruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
             }
         }
 
@@ -197,7 +193,9 @@ namespace World
             if (_thrustHitbox != null)
             {
                 int damage = Mathf.RoundToInt(EffectiveAttackDamage);
-                _thrustHitbox.Activate(_bruteStats, damage);
+                
+                // CRITICAL FIX: Pass the locked direction to the hitbox
+                _thrustHitbox.Activate(_bruteStats, damage, _lastAttackDirection);
             }
         }
 

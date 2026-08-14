@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 namespace World
 {
@@ -10,6 +12,8 @@ namespace World
     [RequireComponent(typeof(BlackboardController))]
     public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
+        public event Action<AIState> OnStateChanged;
+        
         public NavMeshAgent Agent => _agent;
 
         [Header("Components Reference")]
@@ -155,7 +159,15 @@ namespace World
         }
         protected abstract BehaviorTree BuildTree();
         protected bool IsState(AIState state) => _currentState == state;
-        protected void SetState(AIState state) => _currentState = state;
+
+        protected void SetState(AIState newState)
+        {
+            if (_currentState == newState)
+                return;
+            
+            _currentState = newState;
+            OnStateChanged?.Invoke(_currentState);
+        }
 
         // ---- Internal Functions ---- 
         protected virtual bool IsInLos()

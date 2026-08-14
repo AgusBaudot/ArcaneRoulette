@@ -20,11 +20,17 @@ namespace World
             Deactivate();
         }
 
-        public void Activate(BruteEnemyStats stats, ElementType element, Action<float> onInterrupted)
+        public void Activate(BruteEnemyStats stats, ElementType element, Vector3 direction, Action<float> onInterrupted)
         {
             _stats = stats;
             _element = element;
             _onInterrupted = onInterrupted;
+            
+            if (direction != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
+
             _col.enabled = true;
         }
 
