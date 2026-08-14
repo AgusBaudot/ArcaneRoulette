@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Foundation
@@ -8,7 +9,10 @@ namespace Foundation
     /// </summary>
     public interface IDebuffReadable
     {
-        public IEnumerable<DebuffType> Types { get; }
+        event Action<DebuffType> OnDebuffApplied;
+        event Action<DebuffType> OnDebuffRemoved;
+        
+        IEnumerable<DebuffType> ActiveTypes { get; }
 
         //Returns the strength reduction for a given stat = (0 = no debuff, 0.5 = 50% reduction).
         //Returns 0 if no debuff of that type is currently active.

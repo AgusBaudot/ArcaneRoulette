@@ -8,7 +8,7 @@ namespace World
     [RequireComponent(typeof(NavMeshAgent))]
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(BlackboardController))]
-    public abstract class AIBrain : MonoBehaviour, IEnemyComponent //Used to have IDebuffReceiver
+    public abstract class AIBrain : MonoBehaviour, IEnemyComponent, IDebuffReceiver
     {
         public NavMeshAgent Agent => _agent;
 
@@ -188,8 +188,8 @@ namespace World
         } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
 
         ////------------ IDebuffReceiver Implementation ------------
-        //public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
-        //public void UnregisterDebuff() => _debuffs = null;
+        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
+        public void UnregisterDebuff() => _debuffs = null;
 
         #region Gizmos
         private void OnDrawGizmosSelected()

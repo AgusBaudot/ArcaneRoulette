@@ -1,8 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Foundation;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Core
@@ -14,7 +13,10 @@ namespace Core
     /// </summary>
     public sealed class DebuffComponent : MonoBehaviour, IDebuffable, IDebuffReadable
     {
-        public IEnumerable<DebuffType> Types => _active.Keys;
+        public event Action<DebuffType> OnDebuffApplied; 
+        public event Action<DebuffType> OnDebuffRemoved; 
+        
+        public IEnumerable<DebuffType> ActiveTypes => _active.Keys;
 
         private readonly Dictionary<DebuffType, DebuffEntry> _active = new();
         private Coroutine _tickRoutine;
@@ -45,8 +47,14 @@ namespace Core
         // ── IDebuffable ──────────────────────────────────────────────────────────
         public void ApplyDebuff(DebuffType type, float strength, float duration)
         {
-            // Refresh duration and strength — does not stack, mirrors DoTComponent
+            bool isNew = !_active.ContainsKey(type);
+            
             _active[type] = new DebuffEntry { Strength = strength, Remaining = duration };
+
+            if (isNew)
+            {
+                OnDebuffApplied?.Invoke(type);
+            }
 
             if (_tickRoutine == null)
                 _tickRoutine = StartCoroutine(TickRoutine());
@@ -83,7 +91,10 @@ namespace Core
                 }
 
                 foreach (var type in toRemove)
+                {
                     _active.Remove(type);
+                    OnDebuffRemoved?.Invoke(type);
+                }
             }
 
             _tickRoutine = null;

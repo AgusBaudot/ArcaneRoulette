@@ -8,9 +8,6 @@ namespace World
     [RequireComponent(typeof(DamageFlash))]
     public class EnemyHealth : MonoBehaviour, IEnemyComponent, IDamageable, IElemental, IDebuffReceiver, IHealable
     {
-        public event Action<DebuffType> OnDebuffApplied;
-        public event Action OnDebuffRemoved;
-
         [Header("Stats")]
         [SerializeField] private float _maxHp; 
         [SerializeField] private float _currentHp;
@@ -103,18 +100,11 @@ namespace World
         //IDebuffReceiver Implementation------------------------
         public void RegisterDebuff(IDebuffReadable debuff)
         {
-            //foreach (DebuffType type in debuff.Types)
-            //{
-            //    Debug.Log(type.ToString());
-            //}
-
-            //OnDebuffApplied?.Invoke(debuff.Types[^1]);
             _debuffs = debuff;
         }
 
         public void UnregisterDebuff()
         {
-            OnDebuffRemoved?.Invoke();
             _debuffs = null;
         }
     }
