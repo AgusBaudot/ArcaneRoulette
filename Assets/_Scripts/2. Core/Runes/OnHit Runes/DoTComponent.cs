@@ -1,3 +1,4 @@
+using System;
 using Foundation;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,11 +6,16 @@ using UnityEngine;
 namespace Core
 {
     [RequireComponent(typeof(IDamageable))]
-    public sealed class DoTComponent : MonoBehaviour, IUpdatable
+    public sealed class DoTComponent : MonoBehaviour, IUpdatable, IDoTReadable
     {
         public int UpdatePriority => Foundation.UpdatePriority.Spells;
 
+        public event Action OnDoTApplied;
+        public event Action OnDoTRemoved;
+        
+        public bool HasActiveDoTs => _activeDoTs.Count > 0;
         public IReadOnlyList<DoTInstance> ActiveDoTs => _activeDoTs;
+        
         private readonly List<DoTInstance> _activeDoTs = new List<DoTInstance>();
 
         private IDamageable _damageable;
@@ -23,18 +29,14 @@ namespace Core
             _damageable = GetComponent<IDamageable>();
         }
 
-        public void ClearAll()
-        {
-            if (UpdateManager.Instance != null)
-            {
-                UpdateManager.Instance.Unregister(this);
-            }
-            
-            _activeDoTs.Clear();
-        }
-
         private void OnEnable()
         {
+            var receivers = GetComponents<IDoTReceiver>();
+            foreach (var receiver in receivers)
+            {
+                receiver.RegisterDoT(this);
+            }
+            
             if (_activeDoTs.Count > 0 && UpdateManager.Instance != null)
             {
                 UpdateManager.Instance.Register(this);
@@ -43,13 +45,41 @@ namespace Core
 
         private void OnDisable()
         {
+            var receivers = GetComponents<IDoTReceiver>();
+            foreach (var receiver in receivers)
+            {
+                receiver.UnregisterDoT();
+            }
+            
             ClearAll();
+        }
+
+        public void ClearAll()
+        {
+            bool hadActiveDoTs = _activeDoTs.Count > 0;
+            
+            if (UpdateManager.Instance != null)
+            {
+                UpdateManager.Instance.Unregister(this);
+            }
+            
+            _activeDoTs.Clear();
+
+            if (hadActiveDoTs)
+            {
+                OnDoTRemoved?.Invoke();
+            }
         }
 
         public void AddDoT(DoTInstance instance)
         {
             bool wasEmpty = _activeDoTs.Count == 0;
             _activeDoTs.Add(instance);
+
+            if (wasEmpty)
+            {
+                OnDoTApplied?.Invoke();
+            }
             
             if (wasEmpty && enabled && UpdateManager.Instance != null)
             {
@@ -62,6 +92,7 @@ namespace Core
         {
             if (_activeDoTs.Remove(instance) && _activeDoTs.Count == 0)
             {
+                OnDoTRemoved?.Invoke();
                 ClearAll();
             }
         }
@@ -111,6 +142,7 @@ namespace Core
 
             if (hasRemoved && _activeDoTs.Count == 0)
             {
+                OnDoTRemoved?.Invoke();
                 ClearAll();
             }
         }

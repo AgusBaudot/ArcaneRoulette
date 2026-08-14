@@ -4,15 +4,17 @@ using UnityEngine.UI;
 
 namespace World
 {
-    public class DebuffVisuals : MonoBehaviour, IDebuffReceiver
+    public class DebuffVisuals : MonoBehaviour, IDebuffReceiver, IDoTReceiver
     {
         [Header("Icons (Place in a Horizontal Layout Group)")]
         [SerializeField] private Image _atkIcon;
         [SerializeField] private Image _speedIcon;
         [SerializeField] private Image _attackSpeedIcon;
         [SerializeField] private Image _antiHealIcon;
+        [SerializeField] private Image _dotIcon;
 
         private IDebuffReadable _debuffs;
+        private IDoTReadable _dots;
 
         private void Awake()
         {
@@ -74,12 +76,56 @@ namespace World
             };
         }
 
+        public void RegisterDoT(IDoTReadable dot)
+        {
+            _dots = dot;
+            _dots.OnDoTApplied += HandleDoTApplied;
+            _dots.OnDoTRemoved += HandleDoTRemoved;
+
+            if (_dots.HasActiveDoTs)
+            {
+                HandleDoTApplied();
+            }
+        }
+
+        public void UnregisterDoT()
+        {
+            if (_dots != null)
+            {
+                _dots.OnDoTApplied -= HandleDoTApplied;
+                _dots.OnDoTRemoved -= HandleDoTRemoved;
+            }
+
+            _dots = null;
+
+            HandleDoTRemoved();
+        }
+
+        private void HandleDoTApplied()
+        {
+            if (_dotIcon != null)
+            {
+                _dotIcon.gameObject.SetActive(true);
+                _dotIcon.transform.SetAsLastSibling();
+                Debug.Log(_dotIcon.sprite.name);
+            }
+        }
+
+        private void HandleDoTRemoved()
+        {
+            if (_dotIcon != null)
+            {
+                _dotIcon.gameObject.SetActive(false);
+            }
+        }
+
         private void HideAllIcons()
         {
             if (_atkIcon) _atkIcon.gameObject.SetActive(false);
             if (_speedIcon) _speedIcon.gameObject.SetActive(false);
             if (_attackSpeedIcon) _attackSpeedIcon.gameObject.SetActive(false);
             if (_antiHealIcon) _antiHealIcon.gameObject.SetActive(false);
+            if (_dotIcon) _dotIcon.gameObject.SetActive(false);
         }
     }
 }
