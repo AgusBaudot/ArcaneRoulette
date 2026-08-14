@@ -98,7 +98,14 @@ namespace World
         }
 
         //IDebuffReceiver Implementation------------------------
-        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
-        public void UnregisterDebuff() => _debuffs = null;
+        public void RegisterDebuff(IDebuffReadable debuff)
+        {
+            _debuffs = debuff;
+        }
+
+        public void UnregisterDebuff()
+        {
+            _debuffs = null;
+        }
     }
 }

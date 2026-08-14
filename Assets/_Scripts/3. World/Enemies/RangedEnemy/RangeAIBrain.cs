@@ -272,6 +272,7 @@ namespace World
         private readonly RangeAIBrain _brain;
         private readonly System.Func<float> _getTimeout;
         private float _lastProjectileTime;
+        private bool _started;
 
         public BlockHoldStrategy(RangeAIBrain brain, System.Func<float> getTimeout)
         {
@@ -279,26 +280,32 @@ namespace World
             _getTimeout = getTimeout;
         }
 
-        public void OnStart()
-        {
-            _lastProjectileTime = Time.time;
-            _brain.SetDamageMitigation(0.5f); 
-        }
-
         public Node.NodeState Process()
         {
+            // Internal start logic replacing the unsupported OnStart()
+            if (!_started)
+            {
+                _started = true;
+                _lastProjectileTime = Time.time;
+                _brain.SetDamageMitigation(0.5f); 
+            }
+
             if (_brain.AreProjectilesInSafeRange())
             {
                 _lastProjectileTime = Time.time; 
                 return Node.NodeState.Running;
             }
-            
+        
             if (Time.time - _lastProjectileTime >= _getTimeout())
             {
                 return Node.NodeState.Success; 
             }
             return Node.NodeState.Running;
         }
-        public void Reset() {}
+
+        public void Reset() 
+        {
+            _started = false;
+        }
     }
 }
