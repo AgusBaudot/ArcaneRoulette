@@ -6,11 +6,6 @@ using UnityEngine;
 
 namespace Core
 {
-    /// <summary>
-    /// Implements IDebuffable (write) and IDebuffReadable (read).
-    /// One component no the enemy GO handles all active debuff types simultaneously.
-    /// EnemyAI reads via IDebuffReadable - never needs to know about Core.
-    /// </summary>
     public sealed class DebuffComponent : MonoBehaviour, IDebuffable, IDebuffReadable
     {
         public event Action<DebuffType> OnDebuffApplied; 
@@ -18,15 +13,11 @@ namespace Core
         
         public IEnumerable<DebuffType> ActiveTypes => _active.Keys;
 
-        private readonly Dictionary<DebuffType, DebuffEntry> _active = new();
+        private readonly Dictionary<DebuffType, List<DebuffEntry>> _active = new();
         private Coroutine _tickRoutine;
-
-        // ── Lifetime registration ────────────────────────────────────────────────
 
         private void OnEnable()
         {
-            // Notify the enemy that a debuff component is now active.
-            // EnemyAI (or handler) caches this reference — no GetComponent needed.
             var receivers = GetComponents<IDebuffReceiver>();
             foreach (var receiver in receivers)
             {
@@ -41,35 +32,67 @@ namespace Core
             {
                 receiver.UnregisterDebuff();
             }
-            Destroy(this);
+            if (_tickRoutine != null)
+            {
+                StopCoroutine(_tickRoutine);
+                _tickRoutine = null;
+            }
         }
         
-        // ── IDebuffable ──────────────────────────────────────────────────────────
+        // Backwards compatibility with the existing IDebuffable interface
         public void ApplyDebuff(DebuffType type, float strength, float duration)
         {
-            bool isNew = !_active.ContainsKey(type);
-            
-            _active[type] = new DebuffEntry { Strength = strength, Remaining = duration };
+            ApplyDebuff(type, strength, duration, "Default");
+        }
 
-            if (isNew)
+        // Overload for source tracking and additive stacking
+        public void ApplyDebuff(DebuffType type, float strength, float duration, string source)
+        {
+            if (!_active.ContainsKey(type))
             {
-                OnDebuffApplied?.Invoke(type);
+                _active[type] = new List<DebuffEntry>();
             }
 
-            if (_tickRoutine == null)
+            var list = _active[type];
+            int existingIndex = list.FindIndex(e => e.Source == source);
+
+            if (existingIndex >= 0)
+            {
+                // Struct requires a copy to modify
+                var entry = list[existingIndex];
+                entry.Strength = strength;
+                entry.Remaining = duration;
+                list[existingIndex] = entry;
+            }
+            else
+            {
+                list.Add(new DebuffEntry { Source = source, Strength = strength, Remaining = duration });
+                
+                if (list.Count == 1)
+                {
+                    OnDebuffApplied?.Invoke(type);
+                }
+            }
+
+            if (_tickRoutine == null && gameObject.activeInHierarchy)
+            {
                 _tickRoutine = StartCoroutine(TickRoutine());
+            }
         }
         
-        // ── IDebuffReadable ──────────────────────────────────────────────────────
-
         public float GetDebuffStrength(DebuffType type)
         {
-            return _active.TryGetValue(type, out var entry) ? entry.Strength : 0f;
+            if (!_active.TryGetValue(type, out var list)) return 0f;
+            
+            float totalStrength = 0f;
+            foreach (var entry in list)
+            {
+                totalStrength += entry.Strength;
+            }
+            return totalStrength;
         }
 
-        public bool IsDebuffed(DebuffType type) => _active.ContainsKey(type);
-
-        // ── Internal tick ────────────────────────────────────────────────────────
+        public bool IsDebuffed(DebuffType type) => _active.ContainsKey(type) && _active[type].Count > 0;
 
         private IEnumerator TickRoutine()
         {
@@ -77,20 +100,33 @@ namespace Core
             {
                 yield return CoroutineUtils.GetWait(0.1f);
 
-                // Tick all entries — collect expired types to remove after iteration
-                var toRemove = new List<DebuffType>();
+                var emptyTypes = new List<DebuffType>();
+
                 foreach (var type in new List<DebuffType>(_active.Keys))
                 {
-                    var entry = _active[type];
-                    entry.Remaining -= 0.1f;
+                    var list = _active[type];
+                    for (int i = list.Count - 1; i >= 0; i--)
+                    {
+                        var entry = list[i];
+                        entry.Remaining -= 0.1f;
+                        
+                        if (entry.Remaining <= 0f)
+                        {
+                            list.RemoveAt(i);
+                        }
+                        else
+                        {
+                            list[i] = entry;
+                        }
+                    }
 
-                    if (entry.Remaining <= 0f)
-                        toRemove.Add(type);
-                    else
-                        _active[type] = entry;
+                    if (list.Count == 0)
+                    {
+                        emptyTypes.Add(type);
+                    }
                 }
 
-                foreach (var type in toRemove)
+                foreach (var type in emptyTypes)
                 {
                     _active.Remove(type);
                     OnDebuffRemoved?.Invoke(type);
@@ -98,7 +134,6 @@ namespace Core
             }
 
             _tickRoutine = null;
-            Destroy(this);
         }
     }
 }

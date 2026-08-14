@@ -10,6 +10,8 @@ namespace World
         Stunned,
         Blocking,
         Teleporting,
+        Healing,
+        Throwing,
         Death
     }
 }

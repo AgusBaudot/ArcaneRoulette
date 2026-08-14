@@ -11,7 +11,6 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    [RequireComponent(typeof(AIBrain))]
     public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
         #region Parameters
@@ -58,6 +57,12 @@ namespace World
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
+            
+            _aiBrain = GetComponent<AIBrain>();
+            if (_aiBrain == null)
+            {
+                Debug.LogError($"{gameObject.name}: EnemyController requires a concrete AIBrain (e.g., MeleeAIBrain, HealerAIBrain) to be attached to this GameObject. Please add one!");
+            }
         }
         
         private void InitSystems()
