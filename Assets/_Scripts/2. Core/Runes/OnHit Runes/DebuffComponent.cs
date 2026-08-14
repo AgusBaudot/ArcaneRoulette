@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Foundation;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Core
@@ -12,9 +14,11 @@ namespace Core
     /// </summary>
     public sealed class DebuffComponent : MonoBehaviour, IDebuffable, IDebuffReadable
     {
+        public IEnumerable<DebuffType> Types => _active.Keys;
+
         private readonly Dictionary<DebuffType, DebuffEntry> _active = new();
         private Coroutine _tickRoutine;
-        
+
         // ── Lifetime registration ────────────────────────────────────────────────
 
         private void OnEnable()

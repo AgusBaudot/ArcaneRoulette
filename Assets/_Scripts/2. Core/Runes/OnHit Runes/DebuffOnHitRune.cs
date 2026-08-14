@@ -29,6 +29,7 @@ namespace Core
                 return;
 
             DebuffType type = ElementToDebuffType(ctx.AttackerElement);
+
             float strength = SampleStrength(ctx.AttackerElement, stackCount);
             
             var debuff = ctx.HitTarget.GetComponent<DebuffComponent>()

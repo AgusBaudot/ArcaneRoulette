@@ -84,6 +84,81 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &270074820917178836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5652230749953031095}
+  - component: {fileID: 8054306717925489780}
+  - component: {fileID: 1822357208819966052}
+  m_Layer: 0
+  m_Name: DebuffIcon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5652230749953031095
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 270074820917178836}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 842734325980703387}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0.854, y: -0.135}
+  m_SizeDelta: {x: 0.5, y: 0.275}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8054306717925489780
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 270074820917178836}
+  m_CullTransparentMesh: 1
+--- !u!114 &1822357208819966052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 270074820917178836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: a2eaf26dde877e64db396748dcc497b3, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &1326220217148487278
 GameObject:
   m_ObjectHideFlags: 0
@@ -105,6 +180,7 @@ GameObject:
   - component: {fileID: 4623077428542360205}
   - component: {fileID: 752664922137135041}
   - component: {fileID: 6769424984879172003}
+  - component: {fileID: 4269105089531905328}
   m_Layer: 7
   m_Name: FDD_Melee
   m_TagString: Untagged
@@ -348,6 +424,23 @@ MonoBehaviour:
   _earthElement: {fileID: 21300000, guid: a75743d754fd072458362711a4753cc7, type: 3}
   _waterElement: {fileID: 21300000, guid: 3e78a8bf7f3f8b8459371e8792b783f1, type: 3}
   _thunderElement: {fileID: 21300000, guid: 6d79afad7cde55742950264bc16c4d99, type: 3}
+--- !u!114 &4269105089531905328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d5d4835322b6624cbdbdcc750edd1a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _redDebuff: {fileID: 21300000, guid: c2ca54c2adb6713478132043c27fe9c2, type: 3}
+  _blueDebuff: {fileID: 21300000, guid: deb65dfbc9d4fab4b970b0b4ac7d7280, type: 3}
+  _greenDebuff: {fileID: 21300000, guid: a2eaf26dde877e64db396748dcc497b3, type: 3}
+  _orangeDebuff: {fileID: 21300000, guid: c819cd40c91edb847b6f5ea08936700b, type: 3}
+  _image: {fileID: 1822357208819966052}
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0
@@ -490,6 +583,7 @@ RectTransform:
   m_Children:
   - {fileID: 1298321618183403603}
   - {fileID: 1603179127982504815}
+  - {fileID: 5652230749953031095}
   m_Father: {fileID: 969515138191483155}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
