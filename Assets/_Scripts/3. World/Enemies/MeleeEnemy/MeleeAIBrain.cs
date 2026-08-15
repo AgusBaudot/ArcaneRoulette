@@ -27,6 +27,11 @@ namespace World
         public event Action OnGapStarted;
         public event Action<float> OnDashStarted;
         public event Action<float> OnRecomposing;
+        public MeleeEnemyStats ActiveMeleeStats => MeleeStats;
+        public float CurrentAttack12Duration => GetAttack12Duration();
+        public float CurrentAttack3Duration => GetAttack3Duration();
+        public Vector3 CurrentAttackDirection => _lastAttackDirection;
+        
 
         private void OnEnable()
         {
