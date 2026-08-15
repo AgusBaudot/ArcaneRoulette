@@ -1,3 +1,4 @@
+using System;
 using Core;
 using Foundation;
 using UnityEngine;
@@ -19,6 +20,13 @@ namespace World
         private float _dashDistanceMoved;
         private bool _isStepping;
         private bool _isDashing;
+        
+        public event Action<float> OnSpawnStarted;
+        public event Action<float> OnWindupStarted;
+        public event Action<int, float> OnSwingStarted;
+        public event Action OnGapStarted;
+        public event Action<float> OnDashStarted;
+        public event Action<float> OnRecomposing;
 
         private void OnEnable()
         {
@@ -89,7 +97,11 @@ namespace World
         // ---- Spawning ----
         // FDD: enemies go straight from Spawning to Chase, no Idle/detection-wake
         // step — matches what you confirmed a few rounds back.
-        private void BeginSpawning() => SetState(AIState.Spawning);
+        private void BeginSpawning()
+        {
+            SetState(AIState.Spawning);
+            OnSpawnStarted?.Invoke(MeleeStats.SpawnDuration);
+        }
 
         // ---- Chase ----
         private void DoChase()
@@ -152,6 +164,7 @@ namespace World
 
             sequence.AddChild(new LeafNode("Swing3Dash",
                 new TimedActionStrategy(BeginSwing3Dash, GetAttack3Duration)));
+                
             sequence.AddChild(new LeafNode("Recomposing",
                 new TimedActionStrategy(BeginRecomposing, () => MeleeStats.RecomposingDuration)));
 
@@ -166,11 +179,8 @@ namespace World
             _lastAttackDirection = player != null
                 ? (player.position - transform.position).normalized
                 : transform.forward;
-            // TODO: WindupSlowPercentage isn't applied to anything yet — there's no
-            // movement during windup itself in the FDD (the step is part of the
-            // swing, not the windup), so it likely only matters once animation
-            // playback rate or a locomotion blend reads it. Left unwired rather
-            // than guessed.
+                
+            OnWindupStarted?.Invoke(MeleeStats.WindupDuration);
         }
 
         // EffectiveAttackSpeed is an interval — seconds per attack, lower is
@@ -186,12 +196,16 @@ namespace World
             
             ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
             _isStepping = true;
+            
+            OnSwingStarted?.Invoke(attackIndex, GetAttack12Duration());
         }
 
         private void EndSwing()
         {
             _hitbox?.Deactivate();
             _isStepping = false;
+            
+            OnGapStarted?.Invoke();
         }
 
         private float GetAttack3Duration() =>
@@ -206,6 +220,8 @@ namespace World
             ActivateHitbox(damage, size);
             
             _isDashing = true;
+            
+            OnDashStarted?.Invoke(GetAttack3Duration());
         }
 
         private void BeginRecomposing()
@@ -216,6 +232,8 @@ namespace World
             
             _isStepping = false;
             _isDashing = false;
+            
+            OnRecomposing?.Invoke(MeleeStats.RecomposingDuration);
         }
 
         private void RedirectTowardPlayer()

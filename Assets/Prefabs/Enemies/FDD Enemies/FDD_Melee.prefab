@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 256194236021795150}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.517, y: 0, z: 0}
   m_LocalScale: {x: 1.2, y: 1.2, z: 0}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -181,7 +181,7 @@ GameObject:
   - component: {fileID: 752664922137135041}
   - component: {fileID: 6769424984879172003}
   - component: {fileID: 4269105089531905328}
-  - component: {fileID: 4222744533996203253}
+  - component: {fileID: 8591454652309403533}
   m_Layer: 7
   m_Name: FDD_Melee
   m_TagString: Untagged
@@ -442,7 +442,7 @@ MonoBehaviour:
   _attackSpeedIcon: {fileID: 7600317021868664958}
   _antiHealIcon: {fileID: 1822357208819966052}
   _dotIcon: {fileID: 7594278297066097783}
---- !u!114 &4222744533996203253
+--- !u!114 &8591454652309403533
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -451,11 +451,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1326220217148487278}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89b84b06a6454b5a84ca96fc2ac4606b, type: 3}
+  m_Script: {fileID: 11500000, guid: 758345331c2b4b9683f0e3c5a6d8878d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _brain: {fileID: 4623077428542360205}
-  _sprite: {fileID: 632965395475527778}
+  _spawnClipLength: 1
+  _windupClipLength: 0.5
+  _swingClipLengths:
+  - 0.4
+  - 0.4
+  _dashClipLength: 0.6
+  _recomposeClipLength: 1
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0
