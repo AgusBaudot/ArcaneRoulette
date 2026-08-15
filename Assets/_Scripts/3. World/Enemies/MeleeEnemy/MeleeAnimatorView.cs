@@ -103,13 +103,13 @@ namespace World
 
             if (index == 0)
             {
-                float totalTime = _brain.CurrentAttack12Duration + stats.Attack1EndDelay;
+                float totalTime = _brain.CurrentAttack1Duration + stats.Attack1EndDelay;
                 SetSpeedMultiplier(_fSwing1Speed, _swing1ClipLength, totalTime);
                 _animator.SetTrigger(_tSwing1);
             }
             else if (index == 1)
             {
-                float totalTime = _brain.CurrentAttack12Duration + stats.Attack2EndDelay;
+                float totalTime = _brain.CurrentAttack2Duration + stats.Attack2EndDelay;
                 SetSpeedMultiplier(_fSwing2Speed, _swing2ClipLength, totalTime);
                 _animator.SetTrigger(_tSwing2);
             }

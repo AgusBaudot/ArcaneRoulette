@@ -28,10 +28,11 @@ namespace World
         public event Action<float> OnDashStarted;
         public event Action<float> OnRecomposing;
         public MeleeEnemyStats ActiveMeleeStats => MeleeStats;
-        public float CurrentAttack12Duration => GetAttack12Duration();
+        
+        public float CurrentAttack1Duration => GetAttack1Duration();
+        public float CurrentAttack2Duration => GetAttack2Duration();
         public float CurrentAttack3Duration => GetAttack3Duration();
         public Vector3 CurrentAttackDirection => _lastAttackDirection;
-        
 
         private void OnEnable()
         {
@@ -59,6 +60,8 @@ namespace World
         public void Tick(float dt)
         {
             if (_agent == null || !IsState(AIState.Attack)) return;
+            
+            base.Tick();
 
             if (_isStepping)
             {
@@ -100,8 +103,6 @@ namespace World
         }
 
         // ---- Spawning ----
-        // FDD: enemies go straight from Spawning to Chase, no Idle/detection-wake
-        // step — matches what you confirmed a few rounds back.
         private void BeginSpawning()
         {
             SetState(AIState.Spawning);
@@ -140,11 +141,6 @@ namespace World
         }
 
         // ---- Attack ----
-        // PrioritySelectorNode checks this branch first every tick, in the same
-        // frame it'd otherwise try Chase. Once this sequence starts and is
-        // Running, it's found before Chase is ever reached — that's what gives
-        // "cannot be interrupted until the combo finishes," with nothing extra
-        // needed to enforce it.
         private Node BuildAttackSequence()
         {
             var sequence = new SequenceNode("Attack", priority: 10);
@@ -156,13 +152,13 @@ namespace World
                 new TimedActionStrategy(BeginWindup, () => MeleeStats.WindupDuration)));
 
             sequence.AddChild(new LeafNode("Swing1",
-                new TimedActionStrategy(() => BeginSwing(0), GetAttack12Duration)));
+                new TimedActionStrategy(() => BeginSwing(0), GetAttack1Duration)));
 
             sequence.AddChild(new LeafNode("Gap1",
                 new TimedActionStrategy(EndSwing, () => MeleeStats.Attack1EndDelay)));
 
             sequence.AddChild(new LeafNode("Swing2",
-                new TimedActionStrategy(() => BeginSwing(1), GetAttack12Duration)));
+                new TimedActionStrategy(() => BeginSwing(1), GetAttack2Duration)));
 
             sequence.AddChild(new LeafNode("Gap2",
                 new TimedActionStrategy(EndSwing, () => MeleeStats.Attack2EndDelay)));
@@ -188,21 +184,22 @@ namespace World
             OnWindupStarted?.Invoke(MeleeStats.WindupDuration);
         }
 
-        // EffectiveAttackSpeed is an interval — seconds per attack, lower is
-        // faster (EnemyStats' own tooltip). Dividing by the per-attack multiplier
-        // so a multiplier above 1 shortens this swing's share of that interval.
-        private float GetAttack12Duration() =>
+        private float GetAttack1Duration() =>
             EffectiveAttackSpeed / Mathf.Max(0.01f, MeleeStats.Attack1SwingSpeedMultiplier);
+
+        private float GetAttack2Duration() =>
+            EffectiveAttackSpeed / Mathf.Max(0.01f, MeleeStats.Attack2SwingSpeedMultiplier);
 
         private void BeginSwing(int attackIndex)
         {
             RedirectTowardPlayer();
-            int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
             
+            int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
             ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
             _isStepping = true;
             
-            OnSwingStarted?.Invoke(attackIndex, GetAttack12Duration());
+            float duration = attackIndex == 0 ? GetAttack1Duration() : GetAttack2Duration();
+            OnSwingStarted?.Invoke(attackIndex, duration);
         }
 
         private void EndSwing()
@@ -277,14 +274,14 @@ namespace World
             // ---- ATTACK HITBOX PREVIEW ----
             if (_enemyStats is MeleeEnemyStats stats)
             {
-                Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f); // Solid Orange outline
+                Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
                 
                 // Draw a preview of the hitbox facing forward
                 Matrix4x4 oldMatrix = Gizmos.matrix;
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 
                 Vector3 previewSize = stats.Attack1HitboxSize;
-                Vector3 previewCenter = new Vector3(0, 0, previewSize.z / 2f); // Offset forward
+                Vector3 previewCenter = new Vector3(0, 0, previewSize.z / 2f);
                 
                 Gizmos.DrawWireCube(previewCenter, previewSize);
                 
