@@ -71,6 +71,17 @@ namespace Core
                 Debug.Log("Reflecting");
                 Vector3 reflectBase = -projectile.Rb.velocity.normalized;
                 reflectBase.y = 0;
+                reflectBase.Normalize();
+
+                if (other.TryGetComponent<ICustomReflectable>(out var customReflectable))
+                {
+                    var playerStats = _runner.GetComponent<IStatResolver>();
+                    if (customReflectable.TryCustomReflect(reflectBase, ReflectCount, playerStats))
+                    {
+                        Helpers.ProjFactory.Despawn(other.gameObject);
+                        return; 
+                    }
+                }
                 
                 float speed = projectile.Rb.velocity.magnitude;
                 var dirs = ReflectionUtils.GetSpreadDirections(
@@ -84,7 +95,7 @@ namespace Core
                     go.SetBounceCount(0);
                 }
                 
-                Destroy(other.gameObject);
+                Helpers.ProjFactory.Despawn(other.gameObject);
             }
             else
             {
@@ -95,7 +106,7 @@ namespace Core
 
                 OnProjectileAbsorbed?.Invoke(contactPoint, onHitTarget);
             
-                Destroy(other.gameObject);
+                Helpers.ProjFactory.Despawn(other.gameObject);
             }
         }
 

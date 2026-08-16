@@ -8,23 +8,23 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
     public sealed class DashAbilityRune : AbilityRuneSO
     {
-        [Header("Stats")]
-        [SerializeField] private float _dashSpeed = 20f;
+        [Header("Stats")] [SerializeField] private float _dashSpeed = 20f;
         [SerializeField] private float _baseDashDuration = 0.2f;
         [SerializeField] private float _cooldownDuration = 0.8f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
+
         [Tooltip("Layer(s) your destructible/wall geometry sits on. Separate from " +
                  "EnemyLayerMask since destructibles aren't enemies.")]
-        [SerializeField] private LayerMask _destructibleLayerMask;
+        [SerializeField]
+        private LayerMask _destructibleLayerMask;
+
         [SerializeField] private Projectile _reflectedProjectilePrefab;
-        
-        [Header("VFX")]
-        [SerializeField] private PooledVFX _defaultDashVfx;
+
+        [Header("VFX")] [SerializeField] private PooledVFX _defaultDashVfx;
         [SerializeField] private ElementalPooledVFX[] _elementalDashVfx;
-        
-        [Header("Audio")]
-        [SerializeField] private AudioEventSO _defaultCastSound;
+
+        [Header("Audio")] [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
 
         public override AbilityType Type => AbilityType.Dash;
@@ -42,7 +42,7 @@ namespace Core
                     WorldPosition = ctx.Runner.transform.position
                 });
             }
-            
+
             var args = new DashActivationArgs();
             (ctx.Source as ISpellEventSource)?.RaiseBeforeActivate(args);
 
@@ -52,13 +52,13 @@ namespace Core
             if (vfxPrefab != null)
             {
                 activeVfx = Helpers.ProjFactory.Spawn(
-                    vfxPrefab, 
-                    ctx.Runner.transform.position, 
+                    vfxPrefab,
+                    ctx.Runner.transform.position,
                     ctx.Runner.transform.rotation
                 );
                 activeVfx.AttachTo(ctx.Runner.transform);
             }
-            
+
             ctx.Runner.StartCoroutine(DashRoutine(ctx, (PlayerController)ctx.Runner,
                 _baseDashDuration * args.DurationMultiplier, args, activeVfx));
         }
@@ -73,45 +73,47 @@ namespace Core
 
             return _defaultCastSound;
         }
-        
+
         private PooledVFX GetDashVfx(ElementType element)
         {
             foreach (var mapping in _elementalDashVfx)
             {
                 if (mapping.Element == element) return mapping.Prefab;
             }
-            
+
             return _defaultDashVfx;
         }
 
-        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration, DashActivationArgs args, PooledVFX vfx)
+        private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration,
+            DashActivationArgs args, PooledVFX vfx)
         {
             // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
             Vector3 dir = new Vector3(raw.x, 0f, raw.y).normalized;
-            
-            if (dir == Vector3.zero) 
+
+            if (dir == Vector3.zero)
                 dir = player.transform.forward;
 
-            Vector3 dashVelocity = new Vector3(dir.x * _dashSpeed, 0f, dir.z * _dashSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier);
+            Vector3 dashVelocity = new Vector3(dir.x * _dashSpeed, 0f,
+                dir.z * _dashSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier);
 
             // Invincibility — distinct from IFrames per locked decisions
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
-            
+
             var hitEnemies = new HashSet<GameObject>();
 
             //Spawn homing projectiles before dash begins
             if (args.HomingCount > 0)
                 SpawnHomingFromDash(ctx, dir, args.HomingCount);
-            
+
             float elapsed = 0f;
-            
+
             while (elapsed < duration)
             {
                 //Enemy collision - OnHit per enemy touched
                 var enemies = Physics.OverlapSphere(
-                    player.transform.position, _dashHitRadius, player.Stats.EnemyLayerMask);
+                    player.transform.position, _dashHitRadius, Helpers.PlayerStats.EnemyLayerMask);
 
                 var batch = new DamageBatch();
 
@@ -119,8 +121,8 @@ namespace Core
                 {
                     if (!hitEnemies.Add(hit.gameObject))
                         continue;
-                    
-                    if (!hit.TryGetComponent<IDamageable>(out var dmg)) 
+
+                    if (!hit.TryGetComponent<IDamageable>(out var dmg))
                         continue;
 
                     // Damage only if PiercingCastRune is slotted
@@ -133,7 +135,7 @@ namespace Core
                     ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
                         AbilityType.Dash, false, dir);
                 }
-                
+
                 batch.Commit(Helpers.Combat.NormalDMG);
 
                 // ── Destructible collision — breaks on contact, no rune gating, ──
@@ -184,7 +186,7 @@ namespace Core
             {
                 if (castRune is not HomingCastRune homing)
                     continue;
-                
+
                 homing.SpawnHomingProjectiles(
                     count,
                     ctx.Runner.transform.position,
@@ -199,27 +201,34 @@ namespace Core
         private void ReflectNearbyProjectiles(PlayerController player, Vector3 dashDir, SpellContext ctx,
             SpellInstance source, DashActivationArgs args)
         {
-            //Detect enemy projectiles in dash radius
             var cols = Physics.OverlapSphere(player.transform.position, _dashHitRadius * 2f);
 
             foreach (var col in cols)
             {
                 if (!col.TryGetComponent<IProjectile>(out var proj))
                     continue;
-                
+
                 if (!proj.IsEnemy)
                     continue;
 
-                //Straight back toward the source - consistent with image and shield behaviour
                 Vector3 reflectBase = -proj.Rb.velocity.normalized;
                 reflectBase.y = 0f;
                 reflectBase.Normalize();
-                
+
+                if (col.TryGetComponent<ICustomReflectable>(out var customReflectable))
+                {
+                    if (customReflectable.TryCustomReflect(reflectBase, args.ReflectCount, ctx.Stats))
+                    {
+                        Helpers.ProjFactory.Despawn(col.gameObject);
+                        continue;
+                    }
+                }
+
                 SpawnReflectedSpread(
                     col.transform.position, reflectBase,
                     proj.Rb.velocity.magnitude, ctx, source, args);
-                
-                Destroy(col.gameObject);
+
+                Helpers.ProjFactory.Despawn(col.gameObject);
             }
         }
 
@@ -233,7 +242,7 @@ namespace Core
             {
                 var go = Helpers.ProjFactory.Spawn(
                     _reflectedProjectilePrefab, origin, Quaternion.LookRotation(d));
-                
+
                 //Reflected projectiles inherit all OnHit runes, no BounceCastRune context
                 go.Init(source, d, speed, _baseDamage, ctx.Runner, AbilityType.Projectile, true);
                 go.SetPierceCount(0);

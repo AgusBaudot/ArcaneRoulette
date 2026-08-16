@@ -230,9 +230,20 @@ namespace World
             Transform player = GetPlayer();
             if (player != null && HealerStats.BottlePrefab != null)
             {
-                Vector3 dir = (player.position - transform.position).normalized;
-                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, transform.position, Quaternion.identity);
-                bottle.InitEnemyBottle(dir, HealerStats.BottleThrowSpeed, Mathf.RoundToInt(EffectiveAttackDamage * 0.5f), HealerStats.ElementType, gameObject, player.position);
+                Vector3 spawnPos = transform.position + Vector3.up * 1f;
+                Vector3 dir = (player.position - spawnPos).normalized;
+                
+                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, spawnPos, Quaternion.identity);
+                
+                bottle.InitEnemyBottle(
+                    HealerStats.BottlePrefab, 
+                    dir, 
+                    HealerStats.BottleThrowSpeed, 
+                    Mathf.RoundToInt(EffectiveAttackDamage * 0.5f), 
+                    HealerStats.ElementType, 
+                    gameObject, 
+                    player.position
+                );
             }
             _throwCooldownEndTime = Time.time + HealerStats.ThrowingCooldown;
         }

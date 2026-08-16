@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace World
 {
-    public class BottleProjectile : BaseProjectile, IEnemyProjectile
+    public class BottleProjectile : BaseProjectile, IEnemyProjectile, ICustomReflectable
     {
         public override bool IsEnemy => _isEnemy;
         public override ElementType SpellElement => Element;
@@ -17,15 +17,20 @@ namespace World
 
         [SerializeField] private BottleHazardArea _hazardPrefab;
         [SerializeField] private float _arcHeight = 3f;
+        [Tooltip("Amount of time before next bottle is thrown.")]
+        [SerializeField] private float _sequenceWait = 0.15f;
 
+        private BottleProjectile _bottlePrefab;
         private bool _isEnemy = true;
         private Vector3 _startPos;
         private Vector3 _targetPos;
         private float _progress;
         private float _travelDuration;
 
-        public void InitEnemyBottle(Vector3 dir, float speed, int damage, ElementType element, GameObject owner, Vector3 targetPos)
+        public void InitEnemyBottle(BottleProjectile prefab, Vector3 dir, float speed, int damage, ElementType element, GameObject owner, Vector3 targetPos)
         {
+            _bottlePrefab = prefab;
+            
             _isEnemy = true;
             Damage = damage;
             Element = element;
@@ -81,15 +86,48 @@ namespace World
             Helpers.ProjFactory.Despawn(gameObject);
         }
         
-        // Fired globally by a manager if a sequence bounce occurs.
-        public void SpawnSequentialReflection(Vector3 dir, float speed, int bounceRunes)
+        public bool TryCustomReflect(Vector3 reflectDir, int bounceRunes, IStatResolver playerStats)
+        {
+            float baseAtk = playerStats != null ? playerStats.AttackDamage : 10f;
+            int reflectionDamage = Mathf.Max(1, Mathf.RoundToInt(baseAtk * 0.5f));
+
+            // Determine where to throw it back! Target the Owner if still alive, else use a fallback.
+            Vector3 targetReturnPos = Owner != null ? Owner.transform.position : transform.position + reflectDir * 10f;
+
+            Helpers.ProjFactory.StartCoroutine(SequentialReflectionRoutine(
+                reflectDir, 
+                Speed, 
+                reflectionDamage, 
+                bounceRunes,
+                targetReturnPos // Pass the target position
+            ));
+
+            return true;
+        }
+        
+        private IEnumerator SequentialReflectionRoutine(Vector3 dir, float speed, int damage, int bounceRunes, Vector3 targetPos)
+        { 
+            Vector3 spawnPoint = transform.position;
+
+            for (int i = 0; i < bounceRunes; i++)
+            {
+                var reflectedBottle = Helpers.ProjFactory.Spawn<BottleProjectile>(_bottlePrefab, spawnPoint, Quaternion.LookRotation(dir));
+                
+                reflectedBottle.SpawnSequentialReflection(dir, speed, damage, targetPos);
+                yield return CoroutineUtils.GetWait(0.15f);
+            }
+        }
+
+        public void SpawnSequentialReflection(Vector3 dir, float speed, int damage, Vector3 targetPos)
         {
             _isEnemy = false;
-            Damage = Mathf.RoundToInt(Helpers.PlayerStats.BaseDamage * 0.5f);
+            Damage = damage;
             
             _startPos = transform.position;
-            _targetPos = transform.position + dir * 10f; 
-            _travelDuration = 10f / speed;
+            _targetPos = targetPos;
+            
+            float distance = Vector3.Distance(_startPos, _targetPos);
+            _travelDuration = distance / Mathf.Max(0.1f, speed);
             _progress = 0f;
             
             SetVelocity(dir, speed);

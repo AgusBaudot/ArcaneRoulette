@@ -10,7 +10,6 @@ namespace Core
         [Header("Stats")]
         [SerializeField] private Projectile _projectilePrefab;
         [SerializeField] private float _projectileSpeed = 18f;
-        [SerializeField] private int _baseDamage = 10;
         [SerializeField] private float _windupDuration = 0.08f;
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
         [SerializeField] private float _offset = 2f;
@@ -78,9 +77,13 @@ namespace Core
 
             Vector3 spawnPos = ctx.Runner.transform.position + dir * _offset;
             
+            float baseDamage = ctx.Stats != null ? ctx.Stats.AttackDamage : 2f;
+            int finalDamage = Mathf.Max(1, Mathf.RoundToInt(baseDamage));
+            
             var go = Helpers.ProjFactory.Spawn(_projectilePrefab, spawnPos, Quaternion.LookRotation(dir));
             go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
-            go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, _baseDamage,
+            
+            go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, finalDamage,
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
             go.SetPierceCount(args.PierceCount);
             go.SetBounceCount(args.BounceCount);

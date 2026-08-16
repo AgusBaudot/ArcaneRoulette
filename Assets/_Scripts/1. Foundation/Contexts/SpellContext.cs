@@ -11,6 +11,7 @@ namespace Foundation
     {
         public readonly AbilityType AbilityType;
         public readonly MonoBehaviour Runner; //coroutine host, always PlayerController.
+        public readonly IStatResolver Stats;
 
         // Parallel to SpellInstance's deduplicated cast/onhit rune lists (same order).
         // Lets any rune inspect the full modifier composition of the spell —
@@ -35,6 +36,7 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType attackerElement,
             AbilityRuneSO ability,
             ISpellSource source,
@@ -47,6 +49,7 @@ namespace Foundation
             HitPosition = hitPosition;
             HitTarget = hitTarget;
             Runner = runner;
+            Stats = stats;
             AttackerElement = attackerElement;
             Ability = ability;
             Source = source;
@@ -68,12 +71,13 @@ namespace Foundation
             int[]       castStackCounts,
             int[]       onHitStackCounts,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType attackerElement,
             AbilityRuneSO ability,
             ISpellSource source,
             bool isSecondaryHit)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                Vector3.zero, null, runner, attackerElement, 
+                Vector3.zero, null, runner, stats, attackerElement, 
                 ability, source, Vector3.zero, isSecondaryHit);
 
         public static SpellContext ForHit(
@@ -83,13 +87,14 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType  attackerElement = ElementType.Neutral,
             AbilityRuneSO ability = null,
             ISpellSource source = null,
             Vector3 attackerDirection = default,
             bool isSecondaryHit = false)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                hitPosition, hitTarget, runner, attackerElement, 
+                                hitPosition, hitTarget, runner, stats, attackerElement, 
                                 ability, source, attackerDirection, 
                                 isSecondaryHit);
     }

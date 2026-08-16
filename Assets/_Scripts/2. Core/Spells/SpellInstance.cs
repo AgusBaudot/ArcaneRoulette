@@ -149,7 +149,7 @@ namespace Core
             }
             
             var ctx = SpellContext.ForHit(
-                abilityTypeForContext, castCounts, _onHitCounts, position, target, runner,
+                abilityTypeForContext, castCounts, _onHitCounts, position, target, runner, runner.GetComponent<IStatResolver>(), 
                 _recipe.HasElement ? _recipe.Element.Element : ElementType.Neutral,
                 _recipe.Ability, this, attackerDirection, isSecondaryHit);
                 
@@ -162,7 +162,7 @@ namespace Core
         protected SpellContext BuildCastContext(MonoBehaviour runner)
             => SpellContext.ForCast(
                 _recipe.Ability.Type, _castCounts, _onHitCounts,
-                runner, SpellElement, _recipe.Ability, this, false);
+                runner, runner.GetComponent<IStatResolver>(), SpellElement, _recipe.Ability, this, false);
 
         protected void FireOnHitRunes(SpellContext ctx)
         {

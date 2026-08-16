@@ -75,8 +75,9 @@ namespace Core
                 return;
             }
 
-            var player = (PlayerController)runner;
-            int damage = Mathf.Max(1, Mathf.RoundToInt(player.Stats.BaseDamage * _damageMultiplier));
+            var stats = runner.GetComponent<IStatResolver>();
+
+            int damage = Mathf.Max(1, Mathf.RoundToInt(stats.AttackDamage * _damageMultiplier));
 
             Vector3[] offsets = GetFormationOffsets(count, _spawnOffset);
             

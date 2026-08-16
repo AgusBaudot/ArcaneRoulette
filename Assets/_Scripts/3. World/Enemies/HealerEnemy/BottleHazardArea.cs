@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Core;
 using Foundation;
 using UnityEngine;
@@ -30,22 +29,28 @@ namespace World
 
             if (_affectsEnemies && other.TryGetComponent<IDebuffReceiver>(out var enemyReceiver))
             {
-                ApplyPuddleDebuffs(other.gameObject);
+                ApplyPuddleDebuffs(((Component)enemyReceiver).gameObject);
             }
-            else if (!_affectsEnemies && other.TryGetComponent<PlayerController>(out _))
+            else if (!_affectsEnemies)
             {
-                ApplyPuddleDebuffs(other.gameObject);
+                var player = other.GetComponentInParent<PlayerController>();
+                if (player != null)
+                {
+                    ApplyPuddleDebuffs(player.gameObject);
+                }
             }
         }
 
-        private void ApplyPuddleDebuffs(GameObject target)
+        private void ApplyPuddleDebuffs(GameObject rootObj)
         {
-            if (target.TryGetComponent<DebuffComponent>(out var debuffComp))
+            var debuffComp = rootObj.GetComponent<DebuffComponent>();
+            if (debuffComp == null)
             {
-                // Refresh interval logic per standard FDD (AoE lasts 10s, debuffs stick for 3s after leaving)
-                debuffComp.ApplyDebuff(DebuffType.Speed, 0.40f, 3f, _sourceId);
-                debuffComp.ApplyDebuff(DebuffType.ATK, 0.20f, 3f, _sourceId);
+                debuffComp = rootObj.AddComponent<DebuffComponent>();
             }
+
+            debuffComp.ApplyDebuff(DebuffType.Speed, 0.40f, 3f, _sourceId);
+            debuffComp.ApplyDebuff(DebuffType.ATK, 0.20f, 3f, _sourceId);
         }
     }
 }
