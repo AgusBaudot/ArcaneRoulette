@@ -36,6 +36,7 @@ namespace World
         public float Attack1EndDelay = 0.1f;
 
         [Header("Attack 2")]
+        public float Attack2SwingSpeedMultiplier = 1f;
         public float Attack2EndDelay = 0.2f;
 
         [Header("Attack 3")]

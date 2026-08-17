@@ -26,13 +26,11 @@ namespace Core
             var dotComponent = ctx.HitTarget.GetComponent<DoTComponent>()
                                ?? ctx.HitTarget.AddComponent<DoTComponent>();
 
-            // Linear duration progression: Stack 1 = 4s, Stack 2 = 5s, etc.
             float duration = _baseDuration + (_additionalDurationPerStack * (stackCount - 1));
-            
-            // Calculate tick damage (Minimum 1 to prevent 0-damage ticks)
-            int tickDamage = Mathf.Max(1, Mathf.RoundToInt(Helpers.PlayerStats.BaseDamage * _damageMultiplier));
 
-            // Each hit creates a completely independent instance
+            float baseDamage = ctx.Stats?.AttackDamage ?? 2f;
+            int tickDamage = Mathf.Max(1, Mathf.RoundToInt(baseDamage * _damageMultiplier));
+
             dotComponent.AddDoT(new DoTInstance(tickDamage, duration, _tickInterval, ctx.AttackerElement));
         }
     }

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b5a1e9992e64c4b950ea279368508f3, type: 3}
+  m_Name: FDDHealerStats
+  m_EditorClassIdentifier: 
+  MaxHp: 12
+  ElementType: 3
+  ViewDistance: 35
+  ObsMask:
+    serializedVersion: 2
+    m_Bits: 32768
+  ChaseSpeed: 6
+  PatrolSpeed: 1
+  AttackDamage: 3
+  AttackRange: 7
+  ExitAttackRange: 9
+  AttackRadius: 10
+  AttackSpeed: 3
+  HitLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  HealingRange: 8
+  ThrowingRange: 12
+  SpacingOffset: 3
+  SpawnDuration: 3
+  HealingDuration: 10
+  HealingCooldown: 8
+  ThrowingDuration: 2
+  ThrowingCooldown: 15
+  BottlePrefab: {fileID: 3441578478036581919, guid: 8dfa4016a723c984395a943713918b72,
+    type: 3}
+  BottleThrowSpeed: 6
