@@ -60,7 +60,18 @@ namespace World
             // Priority 30: AoE Thrust Attack
             var thrustSequence = new SequenceNode("Thrust Sequence", priority: 30);
             thrustSequence.AddChild(new LeafNode("CanThrustCondition", new ConditionNode(() => IsPlayerInDistance(_bruteStats.AoEAttackRange) && !_isCharging)));
-            thrustSequence.AddChild(new LeafNode("ThrustWindup", new TimedActionStrategy(BeginThrustWindup, () => _bruteStats.ThrustWindupDuration)));
+            thrustSequence.AddChild(new LeafNode("ThrustWindup", new TimedActionStrategy(
+                onStart: () => 
+                {
+                    BeginThrustWindup();
+            
+                    _lastAttackDirection = (GetPlayer().transform.position - transform.position).normalized;
+                    _lastAttackDirection.y = 0;
+            
+                    _thrustHitbox.ShowTelegraph(_bruteStats, _lastAttackDirection);
+                }, 
+                getDuration: () => _bruteStats.ThrustWindupDuration
+            )));
             thrustSequence.AddChild(new LeafNode("Thrusting", new TimedActionStrategy(StartThrust, () => EffectiveAttackSpeed)));
             thrustSequence.AddChild(new LeafNode("ThrustRecompose", new TimedActionStrategy(StopThrust, () => _bruteStats.ThrustRecomposeDuration)));
             rootSelector.AddChild(thrustSequence);
