@@ -15,8 +15,9 @@ namespace World
         [SerializeField] private GameObject _explosionVFX;
         [SerializeField] private float _windupExplosion;
 
+        private readonly int _explosionTriggerHash = Animator.StringToHash("t_Explosion");
+        
         private bool _isActive = true;
-
         private bool _triggered;
 
         private void OnTriggerEnter(Collider other)
@@ -45,6 +46,10 @@ namespace World
 
         private IEnumerator Explode()
         {
+            var anim = GetComponentInChildren<Animator>();
+            if (anim != null)
+                anim.SetTrigger(_explosionTriggerHash);
+            
             if (_windupVFX != null)
                 Instantiate(_windupVFX, transform.position, Quaternion.identity);
 

@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 3679297490650308476}
   - component: {fileID: 1411845949391660756}
   - component: {fileID: 7762917993483851709}
-  - component: {fileID: 2503993406363606265}
   - component: {fileID: 3626793338957358747}
+  - component: {fileID: -5469350490143609131}
   m_Layer: 0
   m_Name: Base_ElementalBomb
   m_TagString: Untagged
@@ -85,27 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &2503993406363606265
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8800909533132935534}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3626793338957358747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,3 +105,24 @@ MonoBehaviour:
   _explosionVFX: {fileID: 3437003118755483327, guid: 226217f3176b78444802676f7161d749,
     type: 3}
   _windupExplosion: 1
+--- !u!135 &-5469350490143609131
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8800909533132935534}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
