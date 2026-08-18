@@ -77,7 +77,7 @@ namespace World
             if (_currentState == AIState.Chase && _agent.velocity.sqrMagnitude > 0.01f)
             {
                 _renderer.flipX = _agent.velocity.x > 0.01f;
-                _renderer.transform.localPosition = new Vector3(_renderer.flipX ? 1 : -0.5f, 0, 0);
+                _renderer.transform.localPosition = new Vector3(_renderer.flipX ? 1 : -0.5f, 0.8f, 0);
             }
             else if (_currentState == AIState.Attack)
             {
