@@ -17,7 +17,6 @@ namespace World
         [Tooltip("Define specific weaknesses/resistances. Unlisted elements default to Neutral.")]
         [SerializeField] private List<ElementalAffinity> _affinities = new();
 
-        //Optional: Cache in dictionary for faster lookups at runtime O(1)
         private Dictionary<ElementType, Effectiveness> _affinityMap = new();
 
         private void Awake()
@@ -35,7 +34,6 @@ namespace World
                 return effectiveness;
             }
 
-            //Default to Neutral if the designer didn't explicitly map this element
             return Effectiveness.Neutral;
         }
     } 

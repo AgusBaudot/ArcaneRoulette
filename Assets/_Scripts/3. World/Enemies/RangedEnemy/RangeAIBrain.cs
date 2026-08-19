@@ -14,17 +14,12 @@ namespace World
         private PlayerController _playerController;
         private EnemyHealth _health;
 
-        // State trackers
         private bool _isUncovering = false;
-        
-        // Commitment flags to prevent priority hijacking mid-sequence
         private bool _isAttacking = false;
         private bool _isBlocking = false;
         private bool _isTeleporting = false;
-        
         private Vector3 _targetPos2;
         private Vector3 _targetPos3;
-        
         private int _playerProjectileLayerMask;
 
         // Helper to check if we are locked into an uninterruptible sequence
@@ -58,18 +53,18 @@ namespace World
 
             var root = new PrioritySelectorNode("Range Root");
 
-            // 1. Spawn Gate (Highest Priority)
+            //Spawn Gate (Highest Priority)
             root.AddChild(new LeafNode("Spawning", 
                 new OneShotGateStrategy(BeginSpawning, () => RangeStats.SpawnDuration), priority: 40));
 
-            // 2. Teleport (Priority 30)
+            //Teleport (Priority 30)
             var teleportSeq = new SequenceNode("Teleport", priority: 30);
             teleportSeq.AddChild(new LeafNode("CanTeleport", new ConditionNode(() => IsPlayerInSafeRange() && !IsCommitted)));
             teleportSeq.AddChild(new LeafNode("TeleportAnim", new TimedActionStrategy(BeginTeleport, () => RangeStats.TeleportAnimDuration)));
             teleportSeq.AddChild(new LeafNode("ExecuteTeleport", new ActionNode(ExecuteTeleport)));
             root.AddChild(teleportSeq);
 
-            // 3. Block (Priority 20)
+            //Block (Priority 20)
             var blockSeq = new SequenceNode("Block", priority: 20);
             blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
@@ -78,7 +73,7 @@ namespace World
             blockSeq.AddChild(new LeafNode("EndUncover", new ActionNode(EndUncover)));
             root.AddChild(blockSeq);
 
-            // 4. Attack (Priority 10)
+            //Attack (Priority 10)
             var attackSeq = new SequenceNode("Attack", priority: 10);
             attackSeq.AddChild(new LeafNode("CanAttack", new ConditionNode(() => IsInStableDistance(GetPlayer()) && IsInLos() && !IsCommitted)));
             attackSeq.AddChild(new LeafNode("Windup1", new TimedActionStrategy(BeginAttack, () => GetClampedWindup(RangeStats.Attack1Windup))));
@@ -92,7 +87,7 @@ namespace World
             attackSeq.AddChild(new LeafNode("EndAttack", new ActionNode(EndAttack)));
             root.AddChild(attackSeq);
 
-            // 5. Chase (Priority 0)
+            //Chase (Priority 0)
             root.AddChild(new LeafNode("Chase", new ActionNode(DoChase), priority: 0));
 
             tree.AddChild(root);
@@ -119,7 +114,7 @@ namespace World
         private void BeginCover()
         {
             _isBlocking = true;
-            SetState(AIState.Blocking); // Ensure AIState.Blocking exists in your enum
+            SetState(AIState.Blocking);
             _agent.isStopped = true;
             _animator.SetTrigger("Cover");
         }
@@ -146,7 +141,7 @@ namespace World
         private void BeginTeleport()
         {
             _isTeleporting = true;
-            SetState(AIState.Teleporting); // Ensure AIState.Teleporting exists in your enum
+            SetState(AIState.Teleporting);
             _agent.isStopped = true;
             _animator.SetTrigger("TeleportStart");
         }
@@ -282,7 +277,6 @@ namespace World
 
         public Node.NodeState Process()
         {
-            // Internal start logic replacing the unsupported OnStart()
             if (!_started)
             {
                 _started = true;

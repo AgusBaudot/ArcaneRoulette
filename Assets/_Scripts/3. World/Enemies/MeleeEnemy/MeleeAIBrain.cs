@@ -145,8 +145,9 @@ namespace World
         {
             var sequence = new SequenceNode("Attack", priority: 10);
 
+            // Updated condition to respect reaching the swarm destination
             sequence.AddChild(new LeafNode("CanAttack",
-                new ConditionNode(() => IsInStableDistance(GetPlayer()) && IsInLos())));
+                new ConditionNode(CanInitiateAttack)));
 
             sequence.AddChild(new LeafNode("Windup",
                 new TimedActionStrategy(BeginWindup, () => MeleeStats.WindupDuration)));
@@ -172,10 +173,34 @@ namespace World
             return sequence;
         }
 
+        private bool CanInitiateAttack()
+        {
+            Transform player = GetPlayer();
+            if (player == null || !IsInLos()) return false;
+
+            if (IsInStableDistance(player)) return true;
+
+            if (IsState(AIState.Chase) && _agent != null)
+            {
+                if (!_agent.pathPending && _agent.remainingDistance <= Mathf.Max(_agent.stoppingDistance, 0.5f))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void BeginWindup()
         {
             SetState(AIState.Attack);
+            
             _agent.isStopped = true;
+            if (_agent.hasPath)
+            {
+                _agent.ResetPath();
+            }
+
             Transform player = GetPlayer();
             _lastAttackDirection = player != null
                 ? (player.position - transform.position).normalized
@@ -190,18 +215,6 @@ namespace World
         private float GetAttack2Duration() =>
             EffectiveAttackSpeed / Mathf.Max(0.01f, MeleeStats.Attack2SwingSpeedMultiplier);
 
-        private void BeginSwing(int attackIndex)
-        {
-            RedirectTowardPlayer();
-            
-            int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
-            ActivateHitbox(damage, MeleeStats.Attack1HitboxSize);
-            _isStepping = true;
-            
-            float duration = attackIndex == 0 ? GetAttack1Duration() : GetAttack2Duration();
-            OnSwingStarted?.Invoke(attackIndex, duration);
-        }
-
         private void EndSwing()
         {
             _hitbox?.Deactivate();
@@ -213,17 +226,36 @@ namespace World
         private float GetAttack3Duration() =>
             EffectiveAttackSpeed / Mathf.Max(0.01f, MeleeStats.Attack3SwingSpeedMultiplier);
 
+        private void BeginSwing(int attackIndex)
+        {
+            RedirectTowardPlayer();
+            
+            int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
+            float duration = attackIndex == 0 ? GetAttack1Duration() : GetAttack2Duration();
+            
+            float sweepAngle = attackIndex == 0 ? 140f : -100f; 
+            
+            ActivateHitbox(damage, MeleeStats.Attack1HitboxSize, sweepAngle, duration);
+            _isStepping = true;
+            
+            OnSwingStarted?.Invoke(attackIndex, duration);
+        }
+        
         private void BeginSwing3Dash()
         {
             RedirectTowardPlayer();
             _dashDistanceMoved = 0f;
+            
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack3DamageMultiplier);
             Vector3 size = MeleeStats.Attack1HitboxSize * (1f + MeleeStats.Attack3HitboxSizeMultiplier);
-            ActivateHitbox(damage, size);
+            float duration = GetAttack3Duration();
             
+            float sweepAngle = 140f;
+            
+            ActivateHitbox(damage, size, sweepAngle, duration);
             _isDashing = true;
             
-            OnDashStarted?.Invoke(GetAttack3Duration());
+            OnDashStarted?.Invoke(duration);
         }
 
         private void BeginRecomposing()
@@ -247,15 +279,16 @@ namespace World
             _lastAttackDirection = Vector3.RotateTowards(_lastAttackDirection, toPlayer, maxRadians, 0f).normalized;
         }
 
-        private void ActivateHitbox(int damage, Vector3 size)
+        private void ActivateHitbox(int damage, Vector3 size, float sweepAngle, float duration)
         {
             if (_hitbox == null)
             {
                 Debug.LogWarning($"{name}: no MeleeWeaponHitbox assigned — this swing deals no damage.");
                 return;
             }
-            _hitbox.Configure(damage, MeleeStats.ElementType, size, _lastAttackDirection);
-            _hitbox.Activate();
+            
+            _hitbox.Configure(damage, MeleeStats.ElementType, size, _lastAttackDirection, sweepAngle);
+            _hitbox.Activate(duration);
         }
         
 #if UNITY_EDITOR

@@ -12,7 +12,6 @@ namespace World
         
         private BruteEnemyStats _bruteStats => _enemyStats as BruteEnemyStats;
         
-        // State Flags for per-frame updating
         private bool _isCharging;
         private bool _isThrusting;
         private bool _isStunned;
@@ -21,7 +20,6 @@ namespace World
         private float _currentStunDuration;
         private Vector3 _lastAttackDirection;
 
-        // References to specific mechanics
         [SerializeField] private BruteThrustHitbox _thrustHitbox;
         [SerializeField] private BruteChargeHitbox _chargeHitbox;
         [SerializeField] private ElementType _bruteElement;
@@ -193,7 +191,6 @@ namespace World
     
             if (_chargeHitbox != null)
             {
-                // Also pass _lastAttackDirection here so the charge hitbox can orient itself!
                 _chargeHitbox.Activate(_bruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
             }
         }
@@ -205,7 +202,6 @@ namespace World
             {
                 int damage = Mathf.RoundToInt(EffectiveAttackDamage);
                 
-                // CRITICAL FIX: Pass the locked direction to the hitbox
                 _thrustHitbox.Activate(_bruteStats, damage, _lastAttackDirection);
             }
         }

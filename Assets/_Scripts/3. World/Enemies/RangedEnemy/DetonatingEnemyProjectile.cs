@@ -7,7 +7,6 @@ namespace World
     public sealed class DetonatingEnemyProjectile : BaseProjectile, IEnemyProjectile
     {
         [Header("Detonation Settings")]
-        // FIXED: Strongly typed so it matches Spawn<T> generic constraints
         [SerializeField] private EnemyProjectile _normalProjectilePrefab; 
         
         public override bool IsEnemy => true;
@@ -84,7 +83,6 @@ namespace World
             {
                 Vector3 dir = Quaternion.Euler(0, angle, 0) * _fireDirection;
                 
-                // FIXED: _normalProjectilePrefab is now correctly of type EnemyProjectile
                 var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(_normalProjectilePrefab, transform.position, Quaternion.LookRotation(dir));
                 
                 proj.Init(dir, 12f, Damage, Element, Owner); 

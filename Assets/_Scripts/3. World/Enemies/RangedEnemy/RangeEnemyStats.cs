@@ -24,10 +24,10 @@ namespace World
 
         [Header("Projectiles")]
         [Tooltip("Prefab for the Normal Projectile")]
-        public EnemyProjectile NormalProjectilePrefab; // FIXED: Strictly typed
+        public EnemyProjectile NormalProjectilePrefab;
         
         [Tooltip("Prefab for the Big Projectile")]
-        public DetonatingEnemyProjectile BigProjectilePrefab; // FIXED: Strictly typed
+        public DetonatingEnemyProjectile BigProjectilePrefab;
         
         public float NormalProjectileSpeed = 12f;
         public float BigProjectileInitialSpeed = 8f;

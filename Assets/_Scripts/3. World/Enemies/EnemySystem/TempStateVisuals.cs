@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace World
@@ -22,7 +21,6 @@ namespace World
             if (_brain != null)
                 _brain.OnStateChanged -= HandleStateChanged;
                 
-            // Reset color when despawning to the pool
             if (_sprite != null) 
                 _sprite.color = Color.white;
         }

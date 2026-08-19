@@ -31,7 +31,6 @@ namespace World
         {
             if (_agent == null || !IsState(AIState.Healing)) return;
 
-            // Continuous Repositioning: Stay behind the lowest HP target
             if (_activeHealTargets.Count > 0 && _activeHealTargets[0] != null)
             {
                 Transform target = _activeHealTargets[0].transform;
@@ -108,12 +107,10 @@ namespace World
 
             if (isThrowReady && !isHealReady)
             {
-                // Try to get player into Throwing Range
                 _agent.SetDestination(player.position);
             }
             else if (isHealReady)
             {
-                // Move towards lowest HP ally to get them in range
                 var lowestHpAlly = GetLowestHpAllyGlobal();
                 if (lowestHpAlly != null)
                     _agent.SetDestination(lowestHpAlly.transform.position);
@@ -122,7 +119,6 @@ namespace World
             }
             else
             {
-                // Both on CD: Kite player out of Healing Range
                 Vector3 toPlayer = player.position - transform.position;
                 if (toPlayer.magnitude < HealerStats.HealingRange)
                 {
@@ -131,7 +127,7 @@ namespace World
                 }
                 else
                 {
-                    _agent.isStopped = true; // Safe distance achieved
+                    _agent.isStopped = true;
                 }
             }
         }
@@ -158,7 +154,7 @@ namespace World
                     _activeHealTargets = GetValidHealTargets();
                     if (_activeHealTargets.Count == 0)
                     {
-                        _tree.Reset(); // Hard interrupt if no targets remain
+                        _tree.Reset();
                         return;
                     }
                 }

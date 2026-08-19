@@ -10,7 +10,6 @@ namespace World
         public override bool IsEnemy => _isEnemy;
         public override ElementType SpellElement => Element;
 
-        // IEnemyProjectile implementation
         public int Damage { get; private set; }
         public ElementType Element { get; private set; }
         public GameObject Owner { get; private set; }
@@ -81,7 +80,7 @@ namespace World
             if (_hazardPrefab != null)
             {
                 var hazard = Instantiate(_hazardPrefab, new Vector3(pos.x, 0f, pos.z), Quaternion.identity);
-                hazard.InitHazard(!IsEnemy); // If reflected by player, it affects enemies
+                hazard.InitHazard(!IsEnemy);
             }
             Helpers.ProjFactory.Despawn(gameObject);
         }
@@ -99,7 +98,7 @@ namespace World
                 Speed, 
                 reflectionDamage, 
                 bounceRunes,
-                targetReturnPos // Pass the target position
+                targetReturnPos
             ));
 
             return true;

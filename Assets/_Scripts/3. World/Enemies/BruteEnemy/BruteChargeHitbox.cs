@@ -40,7 +40,6 @@ namespace World
         {
             if (!_col.enabled) return;
 
-            // 1. Check for Player
             var player = other.GetComponentInParent<PlayerController>();
             if (player != null)
             {
@@ -51,7 +50,6 @@ namespace World
                     return;
                 }
                 
-                // Normal Hit
                 var batch = new DamageBatch();
                 int damage = Mathf.RoundToInt(_stats.AttackDamage * _stats.ChargeDamagePercentage);
                 batch.Deal(player.GetComponentInChildren<IDamageable>(), damage, _element);
@@ -61,7 +59,6 @@ namespace World
                 return;
             }
 
-            // 2. Check for Elemental Bomb (Hazard integration)
             var bomb = other.GetComponentInParent<ElementalBomb>();
             if (bomb != null)
             {
@@ -73,7 +70,6 @@ namespace World
                 return;
             }
 
-            // 3. Environment/Solid Object (Obstacle layer)
             if (other.gameObject.layer == LayerMask.NameToLayer("Obstacle"))
             {
                 _onInterrupted?.Invoke(_stats.StunDurationImpact);
