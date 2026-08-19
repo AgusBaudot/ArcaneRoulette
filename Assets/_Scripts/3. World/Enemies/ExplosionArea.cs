@@ -10,7 +10,7 @@ namespace World
         private float _dmgAmount;
         private LayerMask _playerMask;
         private Transform _playerTransform;
-
+        
         public void Init(float radius, float dmgAmount, LayerMask playerMask, Transform playerTransform, float lifetime = 1)
         {
             _radius = radius;

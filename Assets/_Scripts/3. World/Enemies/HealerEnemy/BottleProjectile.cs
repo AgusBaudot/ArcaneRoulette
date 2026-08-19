@@ -18,6 +18,10 @@ namespace World
         [SerializeField] private float _arcHeight = 3f;
         [Tooltip("Amount of time before next bottle is thrown.")]
         [SerializeField] private float _sequenceWait = 0.15f;
+        [Header("Visuals")]
+        [SerializeField] private Transform _visualTransform;
+        [SerializeField] private float _spinSpeed = 1080f;
+        
 
         private BottleProjectile _bottlePrefab;
         private bool _isEnemy = true;
@@ -25,6 +29,14 @@ namespace World
         private Vector3 _targetPos;
         private float _progress;
         private float _travelDuration;
+        private Quaternion _initialRotation;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            _initialRotation = _visualTransform.localRotation;
+        }
 
         public void InitEnemyBottle(BottleProjectile prefab, Vector3 dir, float speed, int damage, ElementType element, GameObject owner, Vector3 targetPos)
         {
@@ -42,7 +54,7 @@ namespace World
             _travelDuration = distance / speed;
             _progress = 0f;
 
-            SetVelocity(dir, speed);
+            Speed = speed;
             BounceCount = 0; 
         }
 
@@ -55,6 +67,11 @@ namespace World
             Vector3 currentPos = Vector3.Lerp(_startPos, _targetPos, _progress);
             currentPos.y += Mathf.Sin(Mathf.Clamp01(_progress) * Mathf.PI) * _arcHeight;
             Rb.MovePosition(currentPos);
+
+            if (_visualTransform != null)
+            {
+                _visualTransform.Rotate(0f, 0f, _spinSpeed * Time.deltaTime, Space.Self);
+            }
 
             if (_progress >= 1f)
             {
@@ -110,7 +127,7 @@ namespace World
 
             for (int i = 0; i < bounceRunes; i++)
             {
-                var reflectedBottle = Helpers.ProjFactory.Spawn<BottleProjectile>(_bottlePrefab, spawnPoint, Quaternion.LookRotation(dir));
+                var reflectedBottle = Helpers.ProjFactory.Spawn<BottleProjectile>(_bottlePrefab, spawnPoint, _bottlePrefab.transform.rotation);
                 
                 reflectedBottle.SpawnSequentialReflection(dir, speed, damage, targetPos);
                 yield return CoroutineUtils.GetWait(0.15f);
@@ -128,8 +145,15 @@ namespace World
             float distance = Vector3.Distance(_startPos, _targetPos);
             _travelDuration = distance / Mathf.Max(0.1f, speed);
             _progress = 0f;
+
+            Speed = speed;
+        }
+
+        public override void OnDespawn()
+        {
+            base.OnDespawn();
             
-            SetVelocity(dir, speed);
+            _visualTransform.localRotation = _initialRotation;
         }
     }
 }

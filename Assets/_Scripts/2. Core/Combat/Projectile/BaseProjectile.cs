@@ -9,8 +9,8 @@ namespace Core
         public Rigidbody Rb { get; private set; }
         public abstract bool IsEnemy { get; }
         public abstract ElementType SpellElement { get; }
-        
-        protected float Speed { get; private set; }
+
+        protected float Speed;
         protected int BounceCount;
 
         private static int _shieldLayer = -1;

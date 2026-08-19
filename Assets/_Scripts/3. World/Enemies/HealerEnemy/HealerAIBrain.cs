@@ -229,7 +229,7 @@ namespace World
                 Vector3 spawnPos = transform.position + Vector3.up * 1f;
                 Vector3 dir = (player.position - spawnPos).normalized;
                 
-                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, spawnPos, Quaternion.identity);
+                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, spawnPos, HealerStats.BottlePrefab.transform.rotation);
                 
                 bottle.InitEnemyBottle(
                     HealerStats.BottlePrefab, 
