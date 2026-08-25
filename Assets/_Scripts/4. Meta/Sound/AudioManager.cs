@@ -124,6 +124,7 @@ namespace Meta
             EventBus.Subscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Subscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Subscribe<AudioModulateRequest>(OnModulateRequest);
+            EventBus.Subscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
         }
 
         private void OnDisable()
@@ -134,6 +135,7 @@ namespace Meta
             EventBus.Unsubscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Unsubscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Unsubscribe<AudioModulateRequest>(OnModulateRequest);
+            EventBus.Unsubscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
         }
 
         private void OnDestroy()
@@ -224,6 +226,24 @@ namespace Meta
             
             if (req.Volume.HasValue)
                 emitter.SetVolume(req.Volume.Value);
+        }
+
+        private void OnVolumeChanged(AudioVolumeChangedEvent evt)
+        {
+            string param = GetVolumeParam(evt.Bus);
+            SetMixerVolume(param, evt.Volume);
+            
+            if (_currentSettings != null)
+            {
+                switch (evt.Bus)
+                {
+                    case MixerBus.Master: _currentSettings.MasterVolume = evt.Volume; break;
+                    case MixerBus.Music: _currentSettings.MusicVolume = evt.Volume; break;
+                    case MixerBus.SFX: _currentSettings.SFXVolume = evt.Volume; break;
+                    case MixerBus.UI: _currentSettings.UIVolume = evt.Volume; break;
+                    case MixerBus.Ambience: _currentSettings.AmbienceVolume = evt.Volume; break;
+                }
+            }
         }
 
         #endregion
@@ -428,85 +448,6 @@ namespace Meta
 
         #endregion
 
-        #region Volume Settings (called from Settings UI)
-
-        /// <summary>
-        /// Set the volume for a bus. normalizedVolume is 0-1.
-        /// Updates memory and mixer instantly. Call CommitSettingsToDisk() to save.
-        /// </summary>
-        public void SetBusVolume(MixerBus bus, float normalizedVolume)
-        {
-            string param = GetVolumeParam(bus);
-            SetMixerVolume(param, normalizedVolume);
-
-            if (_currentSettings != null)
-            {
-                switch (bus)
-                {
-                    case MixerBus.Master: _currentSettings.MasterVolume = normalizedVolume; break;
-                    case MixerBus.Music: _currentSettings.MusicVolume = normalizedVolume; break;
-                    case MixerBus.SFX: _currentSettings.SFXVolume = normalizedVolume; break;
-                    case MixerBus.UI: _currentSettings.UIVolume = normalizedVolume; break;
-                    case MixerBus.Ambience: _currentSettings.AmbienceVolume = normalizedVolume; break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns the current normalised volume (0-1) for a bus.
-        /// </summary>
-        public float GetBusVolume(MixerBus bus)
-        {
-            if (_currentSettings == null)
-                return 1f;
-
-            return bus switch
-            {
-                MixerBus.Master => _currentSettings.MasterVolume,
-                MixerBus.Music => _currentSettings.MusicVolume,
-                MixerBus.SFX => _currentSettings.SFXVolume,
-                MixerBus.UI => _currentSettings.UIVolume,
-                MixerBus.Ambience => _currentSettings.AmbienceVolume,
-                _ => 1f
-            };
-        }
-
-        private void LoadVolumePrefs()
-        {
-            _currentSettings = _saveSystem.LoadSettings();
-            
-            SetMixerVolume(_masterVolumeParam, _currentSettings.MasterVolume);
-            SetMixerVolume(_musicVolumeParam, _currentSettings.MusicVolume);
-            SetMixerVolume(_sfxVolumeParam, _currentSettings.SFXVolume);
-            SetMixerVolume(_uiVolumeParam, _currentSettings.UIVolume);
-            SetMixerVolume(_ambienceVolumeParam, _currentSettings.AmbienceVolume);
-        }
-
-        /// <summary>
-        /// Writes the cached volume settings to the JSON file.
-        /// Should be called by AudioSettingsUI.OnDisable().
-        /// </summary>
-        public void CommitSettingsToDisk()
-        {
-            if (_saveSystem != null && _currentSettings != null)
-            {
-                _saveSystem.SaveSettings(_currentSettings);
-            }
-        }
-        
-        //AudioMixer uses decibels; we expose normalized 0-1 to the UI and convert here.
-        //0 volume -> -80 dB (effectively silent). 1 -> 0 dB (full).
-        private void SetMixerVolume(string paramName, float normalized)
-        {
-            if (_masterMixer == null)
-                return;
-            
-            float db = normalized > 0.0001f ? 20f * Mathf.Log10(normalized) : -80f;
-            _masterMixer.SetFloat(paramName, db);
-        }
-
-        #endregion
-
         #region Pool Management
 
         private void BuildPool()
@@ -577,6 +518,28 @@ namespace Meta
                 MixerBus.Ambience => _ambienceVolumeParam,
                 _ => _masterVolumeParam
             };
+        
+        private void LoadVolumePrefs()
+        {
+            _currentSettings = _saveSystem.LoadSettings();
+            
+            SetMixerVolume(_masterVolumeParam, _currentSettings.MasterVolume);
+            SetMixerVolume(_musicVolumeParam, _currentSettings.MusicVolume);
+            SetMixerVolume(_sfxVolumeParam, _currentSettings.SFXVolume);
+            SetMixerVolume(_uiVolumeParam, _currentSettings.UIVolume);
+            SetMixerVolume(_ambienceVolumeParam, _currentSettings.AmbienceVolume);
+        }
+        
+        //AudioMixer uses decibels; we expose normalized 0-1 to the UI and convert here.
+        //0 volume -> -80 dB (effectively silent). 1 -> 0 dB (full).
+        private void SetMixerVolume(string paramName, float normalized)
+        {
+            if (_masterMixer == null)
+                return;
+            
+            float db = normalized > 0.0001f ? 20f * Mathf.Log10(normalized) : -80f;
+            _masterMixer.SetFloat(paramName, db);
+        }
 
         #endregion
     }

@@ -6,7 +6,7 @@ namespace UI
     public class MainMenuController : MonoBehaviour
     {
         [SerializeField] private AudioEventSO _menuMusic;
-        [SerializeField] private GameObject _settingsPanel;
+        [SerializeField] private BaseUIPanel _settingsPanel;
 
         private void Start()
         {
@@ -45,10 +45,10 @@ namespace UI
         }
 
         private void OnSettings(OnSettingsClickedEvent _)
-            => _settingsPanel.SetActive(!_settingsPanel.activeSelf);
+            => _settingsPanel.Show();
         
         private void OnSettingsClosed(OnSettingsUIClosedEvent _)
-            => _settingsPanel.SetActive(false);
+            => _settingsPanel.Hide();
         
         private void OnExit(OnExitClickedEvent _) => Application.Quit();
     }

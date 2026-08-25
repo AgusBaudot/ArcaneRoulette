@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Foundation;
 using World;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace UI
         [SerializeField] private PauseMenu _pauseMenuPrefab;
         [SerializeField] private LootSelectionUI _lootSelectionPrefab;
         [SerializeField] private ConsoleUI _consolePrefab;
+        [SerializeField] private SettingsUI _settingsPrefab;
         
         [Header("Universal Audio")]
         [SerializeField] private AudioEventSO _menuOpenSound;
@@ -28,8 +30,11 @@ namespace UI
         private PauseMenu _pauseMenuInstance;
         private LootSelectionUI _lootSelectionInstance;
         private ConsoleUI _consoleInstance;
+        private SettingsUI _settingsInstance;
 
         private BaseUIPanel _currentActivePanel;
+
+        private Stack<BaseUIPanel> _panelHistory = new();
 
         // ── Unity ────────────────────────────────────────────────────────────
 
@@ -40,12 +45,14 @@ namespace UI
             _pauseMenuInstance = Instantiate(_pauseMenuPrefab, _staticCanvasRoot);
             _lootSelectionInstance = Instantiate(_lootSelectionPrefab, _staticCanvasRoot);
             _consoleInstance = Instantiate(_consolePrefab, _staticCanvasRoot);
-        }
+            _settingsInstance = Instantiate(_settingsPrefab, _staticCanvasRoot);
+        }   
 
         private void OnEnable()
         {
             EventBus.Subscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
             EventBus.Subscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Subscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
             Helpers.Input.OnPausePressed += HandlePauseToggle;
@@ -57,6 +64,7 @@ namespace UI
         {
             EventBus.Unsubscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
             EventBus.Unsubscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Unsubscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
             Helpers.Input.OnPausePressed -= HandlePauseToggle;
@@ -123,9 +131,14 @@ namespace UI
             }
         }
 
+        private void HandleSettingsOpenRequest(SettingsOpenRequestEvent evt)
+        {
+            OpenPanel(_settingsInstance, true);
+        }
+
         // ── Core Orchestration ───────────────────────────────────────────────
 
-        private void OpenPanel(BaseUIPanel targetPanel)
+        private void OpenPanel(BaseUIPanel targetPanel, bool keepHistory = false)
         {
             if (_currentActivePanel == targetPanel) return;
 
@@ -133,17 +146,28 @@ namespace UI
             {
                 _currentActivePanel.OnCloseRequested -= CloseCurrentPanel;
                 _currentActivePanel.Hide();
+
+                if (keepHistory)
+                {
+                    _panelHistory.Push(_currentActivePanel);
+                }
+                else
+                {
+                    _panelHistory.Clear();
+                }
             }
 
             _currentActivePanel = targetPanel;
             _currentActivePanel.OnCloseRequested += CloseCurrentPanel;
-            
             _currentActivePanel.Show();
 
-            Time.timeScale = 0f;
-            AudioListener.pause = true;
-            
-            Helpers.Input.EnableUIInput(); 
+            if (_panelHistory.Count == 0)
+            {
+                Time.timeScale = 0f;
+                AudioListener.pause = true;
+
+                Helpers.Input.EnableUIInput();
+            }
 
             if (_menuOpenSound != null)
                 EventBus.Publish(new AudioPlayRequest { Event = _menuOpenSound });
@@ -156,6 +180,18 @@ namespace UI
             _currentActivePanel.OnCloseRequested -= CloseCurrentPanel;
             _currentActivePanel.Hide();
             _currentActivePanel = null;
+
+            if (_panelHistory.Count > 0)
+            {
+                _currentActivePanel = _panelHistory.Pop();
+                _currentActivePanel.OnCloseRequested += CloseCurrentPanel;
+                _currentActivePanel.Show();
+                
+                if (_menuCloseSound != null)
+                    EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });
+
+                return;
+            }
 
             AudioListener.pause = false;
             Time.timeScale = 1f;

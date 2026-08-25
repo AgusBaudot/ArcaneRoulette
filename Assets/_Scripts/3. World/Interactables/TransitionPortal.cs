@@ -52,14 +52,20 @@ namespace World
 
             if (_type == PortalType.NextFloor)
             {
-                EventBus.Publish(new FloorClearedEvent());
+                if (GameStateManager.RunState != null && GameStateManager.RunState.CurrentFloor >= 3)
+                {
+                    EventBus.Publish(new EndRunRequestEvent(SceneNames.MainMenu));
+                }
+                else
+                {
+                    EventBus.Publish(new FloorClearedEvent());
+                }
             }
             else if (_type == PortalType.StartNewRun)
             {
                 EventBus.Publish(new StartRunRequestEvent(_targetSceneName));
             }
 
-            _hasTriggered = true;
             Destroy(gameObject);
         }
 

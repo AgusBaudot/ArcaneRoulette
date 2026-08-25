@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Foundation;
 using UnityEngine;
 
 public abstract class BaseUIPanel : MonoBehaviour
@@ -36,6 +37,7 @@ public abstract class BaseUIPanel : MonoBehaviour
 
     protected void RequestClose()
     {
+        EventBus.Publish(new OnSettingsUIClosedEvent());
         OnCloseRequested?.Invoke();
     }
 }

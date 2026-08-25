@@ -1,46 +1,45 @@
-                    using Foundation;
-                    using UnityEngine;
-                    using UnityEngine.UI;
+using Foundation;
+using UnityEngine;
+using UnityEngine.UI;
 
-                    namespace UI
-                    {
-                        [RequireComponent(typeof(CanvasGroup))]
-                        public sealed class PauseMenu : BaseUIPanel
-                        {
-                            [Header("Buttons")]
-                            [SerializeField] private Button _resumeButton;
-                            [SerializeField] private Button _settingsButton;
-                            [SerializeField] private Button _quitButton;
+namespace UI
+{
+    [RequireComponent(typeof(CanvasGroup))]
+    public sealed class PauseMenu : BaseUIPanel
+    {
+        [Header("Buttons")] [SerializeField] private Button _resumeButton;
+        [SerializeField] private Button _settingsButton;
+        [SerializeField] private Button _quitButton;
 
-                            private void Awake()
-                            {
-                                base.Awake();
-                                
-                                if (_resumeButton != null)
-                                    _resumeButton.onClick.AddListener(OnResumeClicked);
-                                
-                                if (_settingsButton != null)
-                                    _settingsButton.onClick.AddListener(OnSettingsClicked);
-                                
-                                if (_quitButton != null)
-                                    _quitButton.onClick.AddListener(OnQuitClicked);
-                            }
+        private void Awake()
+        {
+            base.Awake();
 
-                            private void OnResumeClicked()
-                            {
-                                RequestClose();
-                            }
+            if (_resumeButton != null)
+                _resumeButton.onClick.AddListener(OnResumeClicked);
 
-                            private void OnSettingsClicked()
-                            {
-                                
-                            }
+            if (_settingsButton != null)
+                _settingsButton.onClick.AddListener(OnSettingsClicked);
 
-                            private void OnQuitClicked()
-                            {
-                                RequestClose();
-                                
-                                EventBus.Publish(new EndRunRequestEvent(SceneNames.MainMenu));
-                            }
-                        }
-                    }
+            if (_quitButton != null)
+                _quitButton.onClick.AddListener(OnQuitClicked);
+        }
+
+        private void OnResumeClicked()
+        {
+            RequestClose();
+        }
+
+        private void OnSettingsClicked()
+        {
+            EventBus.Publish(new SettingsOpenRequestEvent());
+        }
+
+        private void OnQuitClicked()
+        {
+            RequestClose();
+
+            EventBus.Publish(new EndRunRequestEvent(SceneNames.MainMenu));
+        }
+    }
+}

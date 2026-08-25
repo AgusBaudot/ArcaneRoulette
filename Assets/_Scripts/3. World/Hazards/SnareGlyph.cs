@@ -16,11 +16,6 @@ namespace World
         private Collider _collider;
         private Animator _anim;
 
-        public void Disable()
-        {
-            _isActive = false;
-        }
-
         private void Awake()
         {
             _collider = GetComponent<Collider>();
@@ -72,6 +67,14 @@ namespace World
                 player.SetCanMove(true);
 
             //Animation disappearing duration.
+            Destroy(gameObject, 0.7f);
+        }
+        
+        public void Disable()
+        {
+            _isActive = false;
+            _activateObject.SetActive(true);
+            _anim.SetTrigger(_disappearHash);
             Destroy(gameObject, 0.7f);
         }
     }
