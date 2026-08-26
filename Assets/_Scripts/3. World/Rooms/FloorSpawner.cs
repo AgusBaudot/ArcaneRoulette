@@ -25,12 +25,24 @@ namespace World
                 Debug.LogError("FloorSpawner: no active RunState — GameLevel loaded without a run in progress.");
                 return;
             }
-            
+    
             SwarmManager.ClearAll();
 
             int currentFloor = GameStateManager.RunState.CurrentFloor;
-            int zoneIndex = (currentFloor - 1) / 3;
-            bool isBossFloor = currentFloor % 3 == 0;
+            int zoneIndex = 0;
+            int floorsPassed = 0;
+            bool isBossFloor = false;
+
+            for (int i = 0; i < _zones.Length; i++)
+            {
+                floorsPassed += _zones[i].FloorAmount;
+                if (currentFloor <= floorsPassed)
+                {
+                    zoneIndex = i;
+                    isBossFloor = (currentFloor == floorsPassed);
+                    break;
+                }
+            }
 
             if (zoneIndex < 0 || zoneIndex >= _zones.Length || _zones[zoneIndex] == null)
             {
@@ -47,7 +59,8 @@ namespace World
 
             var rng = new System.Random();
             IReadOnlyList<RoomLayoutNode> layout = FloorLayoutGenerator.Generate(zone, isBossFloor, rng);
-            if (layout == null) return; // already logged why
+            if (layout == null) 
+                return;
 
             _currentLayout = layout;
             GameStateManager.RunState.InitializeFloorMap(BuildRoomMapData(layout));
