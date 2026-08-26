@@ -13,6 +13,10 @@ namespace Core
         [Header("Projectile Impacts")]
         [SerializeField] private PooledVFX _enemyProjectileImpact;
         [SerializeField] private ElementalPooledVFX[] _playerProjectileImpacts;
+        
+        [Header("Projectile Impact Audio")]
+        [SerializeField] private AudioEventSO _defaultEnemyImpactSound;
+        [SerializeField] private ElementalImpactAudio[] _playerElementalImpactSounds;
 
         public PooledVFX GetImpactVFX(bool isEnemy, ElementType element)
         {
@@ -24,6 +28,21 @@ namespace Core
                 where elementalVFX.Element == element 
                 select elementalVFX.Prefab)
                 .FirstOrDefault();
+        }
+
+        public AudioEventSO GetProjectileImpactSound(bool isEnemy, ElementType element)
+        {
+            if (isEnemy)
+                return _defaultEnemyImpactSound;
+
+            foreach (var audioData in _playerElementalImpactSounds)
+            {
+                if (audioData.Element == element)
+                    return audioData.ImpactSound;
+            }
+
+            Debug.LogWarning($"Sound for element {element} not found. Check CombatSettings SO.");
+            return null;
         }
         
         [Header("Damage Juice Presets")]
