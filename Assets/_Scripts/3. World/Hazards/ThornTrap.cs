@@ -21,6 +21,7 @@ namespace World
 
         private bool _isActive = true;
         private bool _isIdle = true;
+        private Coroutine _activeRoutine;
 
         private readonly int _activateHash = Animator.StringToHash("Activate_Up");
         private readonly int _cooldownHash = Animator.StringToHash("Activate_Cooldown");
@@ -31,13 +32,14 @@ namespace World
             if (!_isActive)
                 return;
 
-            if (!_isIdle) return;
+            if (!_isIdle)
+                return;
 
             if (other.GetComponentInParent<IDamageable>() == null && other.GetComponentInParent<PlayerController>() == null)
                     return;
 
             _isIdle = false;
-            StartCoroutine(TrapRoutine());
+            _activeRoutine = StartCoroutine(TrapRoutine());
         }
 
         private IEnumerator TrapRoutine()
@@ -55,6 +57,7 @@ namespace World
             _anim.SetTrigger(_idleHash);
 
             _isIdle = true;
+            _activeRoutine = null;
         }
 
         private void ApplyDamage()
@@ -93,6 +96,12 @@ namespace World
 
         public void Disable()
         {
+            if (_activeRoutine != null)
+            {
+                StopCoroutine(_activeRoutine);
+                _activeRoutine = null;
+            }
+            
             _anim.SetTrigger(_cooldownHash);
             _isActive = false;
         }
