@@ -134,7 +134,7 @@ namespace World
             if (leaves.Count == 0)
                 throw new GenerationFailure("No eligible leaf for Boss/Portal.");
 
-            if (isBossFloor)
+            if (isBossFloor && zone.HasBossEncounter)
             {
                 RoomLayoutNode boss = leaves[leaves.Count - 1];
                 boss.Type = RoomType.Boss;

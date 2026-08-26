@@ -7,7 +7,8 @@ namespace World
     {
         First,
         Second,
-        Third
+        Third,
+        Fourth
     }
 
     [Serializable]
@@ -30,7 +31,9 @@ namespace World
         [Header("Identity")] [SerializeField] private ZoneTag _zoneTag;
 
         [Header("Structure")] [SerializeField, Min(1)]
-        private int _floorAmount = 3;
+        private int _floorAmount = 2;
+        [Tooltip("If true, the final floor of this zone generates a Boss room. If false, it generates a standard Portal/Exit room.")]
+        [SerializeField] private bool _hasBossEncounter = false;
         [SerializeField, Min(4)] private int _totalRoomsPerFloor = 7;
         [SerializeField] private int _combatRoomMin = 3;
         [SerializeField] private int _combatRoomMax = 4;
@@ -52,6 +55,7 @@ namespace World
         
         public ZoneTag ZoneTag => _zoneTag;
         public int FloorAmount => _floorAmount;
+        public bool HasBossEncounter => _hasBossEncounter;
         public int TotalRoomsPerFloor => _totalRoomsPerFloor;
         public int CombatRoomMin => _combatRoomMin;
         public int CombatRoomMax => _combatRoomMax;
