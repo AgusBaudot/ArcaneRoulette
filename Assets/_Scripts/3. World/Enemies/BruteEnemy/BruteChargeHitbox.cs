@@ -62,11 +62,15 @@ namespace World
             var bomb = other.GetComponentInParent<ElementalBomb>();
             if (bomb != null)
             {
-                // Architectural Bridge: The Bomb currently strictly expects a PlayerProjectile. 
-                // We'll need a slight tweak on ElementalBomb to expose an internal Detonate(ElementType) 
-                // method that we can call right here if elements match, granting the bonus stun:
-                // if (bomb.Element == _element) { bomb.Detonate(); stun += _stats.StunDurationBombBonus; }
-                _onInterrupted?.Invoke(_stats.StunDurationImpact + _stats.StunDurationBombBonus);
+                float totalStun = _stats.StunDurationImpact;
+                
+                // If elements match, the bomb triggers and the brute takes bonus stun
+                if (bomb.TryDetonate(_element))
+                {
+                    totalStun += _stats.StunDurationBombBonus;
+                }
+                
+                _onInterrupted?.Invoke(totalStun);
                 return;
             }
 

@@ -6,7 +6,7 @@ using Core;
 
 namespace World
 {
-    public sealed class ElementalBomb : MonoBehaviour , IHazard
+    public sealed class ElementalBomb : MonoBehaviour, IHazard
     {
         [SerializeField] private ElementType _element;
         [SerializeField] private int _damage = 25;
@@ -20,28 +20,32 @@ namespace World
         private bool _isActive = true;
         private bool _triggered;
 
+        public bool TryDetonate(ElementType incomingElement)
+        {
+            if (!_isActive || _triggered) 
+                return false;
+
+            if (incomingElement != _element) 
+                return false;
+
+            _triggered = true;
+            StartCoroutine(Explode());
+            return true;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
-            if(!_isActive) 
+            if (!_isActive || _triggered) 
                 return;
 
-            if (_triggered) 
-                return;
-
-            // Only player projectiles (IProjectile, not enemy) set off the bomb.
+            // Only player projectiles (IProjectile, not enemy) set off the bomb via physics.
             if (!other.TryGetComponent<IProjectile>(out var projectile)) 
                 return;
             
             if (projectile.IsEnemy)
                 return;
             
-            // Element must match the bomb's pre-imbued element.
-            if (projectile.SpellElement != _element)
-                return;
-            
-
-            _triggered = true;
-            StartCoroutine(Explode());
+            TryDetonate(projectile.SpellElement);
         }
 
         private IEnumerator Explode()
@@ -58,7 +62,6 @@ namespace World
             if (_explosionVFX != null)
                 Instantiate(_explosionVFX, transform.position, Quaternion.identity);
                 
-            
             var hits = Physics.OverlapSphere(new Vector3(transform.position.x, 0, transform.position.z), _explosionRadius);
             var processed = new HashSet<IDamageable>();
 
@@ -80,20 +83,25 @@ namespace World
 
                 if (player != null)
                 {
-                    // Dashing — skip entirely.
+                    // Dashing: skip entirely.
                     if (!player.Hurtbox.activeSelf)
                         continue;
 
-                    // Shielding — bomb triggers, shield is destroyed, no damage.
+                    // Shielding: bomb triggers, shield is destroyed, no damage.
                     if (player.IsShielding)
                     {
                         player.ForceDestroyActiveShield();
                         continue;
                     }
+                    
+                    // Player takes Neutral damage explicitly
+                    batch.Deal(damageable, go, _damage, ElementType.Neutral);
                 }
-                
-                // Friendly fire enabled — player takes elemental damage if not dashing/shielding.
-                batch.Deal(damageable, go, _damage, _element);
+                else
+                {
+                    // Enemies (and anything else) take Elemental damage
+                    batch.Deal(damageable, go, _damage, _element);
+                }
             }
 
             batch.Commit(Helpers.Combat.BombExplosion);
@@ -108,7 +116,6 @@ namespace World
 
         public void Disable()
         {
-            Debug.Log("Esto cuando se llama?");
             _isActive = false;
         }
     }
