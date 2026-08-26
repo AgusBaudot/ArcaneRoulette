@@ -11,5 +11,8 @@ namespace Foundation
         public int   BounceCount    = 0;
         public float SizeMultiplier = 1f;
         public int   HomingCount    = 0;
+
+        public AudioEventSO[] PierceSounds;
+        public float[] PierceHitStops;
     }
 }

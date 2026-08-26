@@ -31,6 +31,10 @@ namespace Core
         private SphereCollider _collider;
         private float _baseColliderRadius;
 
+        private AudioEventSO[] _pierceSounds;
+        private float[] _pierceHitStops;
+        private int _piercesDone;
+
         protected override void Awake()
         {
             base.Awake();
@@ -87,6 +91,7 @@ namespace Core
             BounceCount = 0;
             _pierceCount = 0;
             _hitTargets.Clear();
+            _piercesDone = 0;
 
             UpdateActiveVisual(SpellElement);
 
@@ -164,6 +169,12 @@ namespace Core
             }
         }
 
+        public void SetPierceFeedback(AudioEventSO[] sounds, float[] hitStops)
+        {
+            _pierceSounds = sounds;
+            _pierceHitStops = hitStops;
+        }
+
         public void SetPierceCount(int count) => _pierceCount = count;
         public void SetBounceCount(int count) => BounceCount = count;
 
@@ -181,8 +192,24 @@ namespace Core
 
             var batch = new DamageBatch();
             batch.Deal(damageable, damageableGo, _baseDamage, _source.SpellElement);
-            batch.Commit(Helpers.Combat.NormalDMG);
 
+            DamageJuice juice = Helpers.Combat.NormalDMG;
+            juice.ImpactPosition = transform.position;
+
+            if (_pierceSounds != null && _pierceSounds.Length > 0)
+            {
+                int audioIndex = Mathf.Min(_piercesDone, _pierceSounds.Length - 1);
+                if (_pierceSounds[audioIndex] != null)
+                    juice.ImpactSound = _pierceSounds[audioIndex];
+            }
+
+            if (_pierceHitStops != null && _pierceHitStops.Length > 0)
+            {
+                int hitStopIndex = Mathf.Min(_piercesDone, _pierceHitStops.Length - 1);
+                juice.HitStop = _pierceHitStops[hitStopIndex];
+            }
+
+            batch.Commit(juice);
 
             _source?.TriggerOnHit(
                 transform.position,
@@ -199,6 +226,7 @@ namespace Core
             }
 
             _pierceCount--;
+            _piercesDone++;
         }
 
         protected override void OnHitWall(Collider other)

@@ -33,8 +33,8 @@ namespace Core
                 });
             }
             
-            var args = new ProjectileFireArgs(); //Default values = baseline.
-            (ctx.Source as ISpellEventSource)?.RaiseBeforeFire(args); //Cast runes write into args.
+            var args = new ProjectileFireArgs();
+            (ctx.Source as ISpellEventSource)?.RaiseBeforeFire(args);
             ctx.Runner.StartCoroutine(WindUpThenFire(ctx, args));
         }
         
@@ -85,8 +85,11 @@ namespace Core
             
             go.Init(ctx.Source as SpellInstance, dir, _projectileSpeed, finalDamage,
                 ctx.Runner, AbilityType.Projectile, excludeBounceCastRuneForOnHitContext: false);
+            
             go.SetPierceCount(args.PierceCount);
             go.SetBounceCount(args.BounceCount);
+            
+            go.SetPierceFeedback(args.PierceSounds, args.PierceHitStops);
             
             go.ApplyVisualScale(args.SizeMultiplier);
 
