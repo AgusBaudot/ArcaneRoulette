@@ -29,7 +29,7 @@ namespace World
         private void OnEnable() => UpdateManager.Instance.Register(this);
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister(this);
+            UpdateManager.Instance?.Unregister(this);
         }
 
         protected override BehaviorTree BuildTree()

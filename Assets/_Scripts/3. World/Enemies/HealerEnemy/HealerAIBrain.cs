@@ -17,7 +17,7 @@ namespace World
         private List<EnemyHealth> _activeHealTargets = new();
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
-        private void OnDisable() => UpdateManager.Instance.Unregister(this);
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
 
         public override void ResetComponent()
         {

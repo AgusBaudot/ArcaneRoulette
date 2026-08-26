@@ -41,7 +41,7 @@ namespace World
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister(this);
+            UpdateManager.Instance?.Unregister(this);
             SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
         }
 
