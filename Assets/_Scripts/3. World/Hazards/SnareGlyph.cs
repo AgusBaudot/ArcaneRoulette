@@ -37,6 +37,7 @@ namespace World
 
             // Disable collider immediately — single-use, no re-triggering.
             _collider.enabled = false;
+            _isActive = false;
 
             // Shielding — glyph triggers, shield is destroyed, player is not snared.
             if (player.IsShielding)
@@ -72,6 +73,9 @@ namespace World
         
         public void Disable()
         {
+            if (!_isActive)
+                return;
+
             _isActive = false;
             _activateObject.SetActive(true);
             _anim.SetTrigger(_disappearHash);
