@@ -107,6 +107,8 @@ namespace UI
                 _workingCache.WindowMode,
                 new RefreshRate {numerator = (uint)_workingCache.RefreshRate, denominator = 1}
                 );
+
+            RequestClose();
         }
 
         private void ResetToDefaults()
