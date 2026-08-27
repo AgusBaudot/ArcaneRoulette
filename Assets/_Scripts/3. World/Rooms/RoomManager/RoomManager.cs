@@ -102,8 +102,9 @@ namespace World
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
 
-            if (_roomType == RoomType.Portal)
-                SpawnPortal();
+            //THIS SOMEHOW SPAWNS A PORTAL IN THE INITIAL ROOM WHEN PORTAL ROOM IS CLEARED
+            //if (_roomType == RoomType.Portal)
+            //    SpawnPortal();
         }
 
         public void DisableRoom()
