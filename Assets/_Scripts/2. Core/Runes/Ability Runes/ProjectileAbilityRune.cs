@@ -59,7 +59,7 @@ namespace Core
         {
             Ray ray = CameraUtils.GetCamera().ScreenPointToRay(Helpers.Input.MousePosition);
 
-            if (!Physics.Raycast(ray, out var hit, 200f, LayerMask.GetMask("Floor")))
+            if (!Physics.Raycast(ray, out var hit, 200f, Helpers.PlayerStats.ProjectileFloorMask))
             {
                 Debug.LogError($"{nameof(ProjectileAbilityRune)}: Raycast failed, no floor found.");
                 return;
