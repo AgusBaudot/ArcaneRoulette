@@ -36,7 +36,7 @@ namespace World
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister(this);
+            UpdateManager.Instance?.Unregister(this);
         }
 
         public void Configure(int damage, ElementType element, Vector3 size, Vector3 attackDirection, float sweepAngle)
