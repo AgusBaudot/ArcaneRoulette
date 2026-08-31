@@ -4,18 +4,17 @@ using System.Collections;
 public class ExplodingObject : MonoBehaviour
 {
     [Header("Times")]
-    public float countdownTimer = 10f; // Tiempo de espera antes de explotar
-    public float sinkDelay = 0.5f;     // Segundos que espera en el piso antes de hundirse
+    public float countdownTimer = 3f;   // Tiempo de espera antes de explotar
+    public float minAirTime = 0.2f;     // Tiempo mínimo de vuelo obligatorio (evita autocolisión)
 
     [Header("Force and Gravity")]
-    public float explosionForce = 400f;
-    public float explosionRadius = 5f;
-    public float extraGravity = 50f;   // Gravedad extra para que caiga rápido
+    public float explosionForce = 300f; // Fuerza para separar los fragmentos
+    public float explosionRadius = 3f;
+    public float extraGravity = 25f;    // Gravedad moderada para darle tiro parabólico
 
-    [Header("Disappearing Effeccts")]
-    public float airShrinkSpeed = 2f;  // Velocidad a la que se encogen mientras vuelan
-    public float sinkDepth = 1.5f;     // Profundidad que se hunde en el piso
-    public float sinkSpeed = 6f;       // Velocidad a la que atraviesa el suelo
+    [Header("Disappearing Effects")]
+    public float airShrinkSpeed = 1.5f; // Velocidad para reducir el 40% en el aire
+    public float groundShrinkSpeed = 5f; // Velocidad de desintegración al tocar el piso
 
     private Rigidbody[] fragments;
 
@@ -46,7 +45,7 @@ public class ExplodingObject : MonoBehaviour
             rb.AddTorque(Random.insideUnitSphere * 40f, ForceMode.Impulse);
 
             FragmentBehavior piece = rb.gameObject.AddComponent<FragmentBehavior>();
-            piece.Setup(extraGravity, airShrinkSpeed, sinkDelay, sinkDepth, sinkSpeed);
+            piece.Setup(extraGravity, airShrinkSpeed, groundShrinkSpeed, minAirTime);
         }
     }
 }
@@ -55,35 +54,38 @@ public class FragmentBehavior : MonoBehaviour
 {
     private float extraGravity;
     private float airShrinkSpeed;
-    private float sinkDelay;
-    private float sinkDepth;
-    private float sinkSpeed;
+    private float groundShrinkSpeed;
+    private float minAirTime;
 
     private Rigidbody rb;
+    private Vector3 targetAirScale;
     private bool hasLanded = false;
+    private float spawnTime;
 
-    public void Setup(float gravity, float shrinkSpeedAir, float delay, float depth, float speed)
+    public void Setup(float gravity, float shrinkAir, float shrinkGround, float airTime)
     {
         extraGravity = gravity;
-        airShrinkSpeed = shrinkSpeedAir;
-        sinkDelay = delay;
-        sinkDepth = depth;
-        sinkSpeed = speed;
+        airShrinkSpeed = shrinkAir;
+        groundShrinkSpeed = shrinkGround;
+        minAirTime = airTime;
         rb = GetComponent<Rigidbody>();
+
+        spawnTime = Time.time;
+        // Escala objetivo en aire (60% del tamaño original = reducción del 40%)
+        targetAirScale = transform.localScale * 0.6f;
     }
 
     void Update()
     {
-        // Mientras esté en el aire volando, se achica progresivamente
+        // Se reduce hasta el 60% únicamente mientras vuela
         if (!hasLanded)
         {
-            transform.localScale = Vector3.Lerp(transform.localScale, Vector3.zero, Time.deltaTime * airShrinkSpeed);
+            transform.localScale = Vector3.Lerp(transform.localScale, targetAirScale, Time.deltaTime * airShrinkSpeed);
         }
     }
 
     void FixedUpdate()
     {
-        // Gravedad pesada en el aire
         if (!hasLanded && rb != null && !rb.isKinematic)
         {
             rb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
@@ -92,35 +94,28 @@ public class FragmentBehavior : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // En cuanto toca el piso, detiene el achicamiento aéreo y programa el hundimiento
+        // Ignora cualquier choque que ocurra dentro del tiempo de inmunidad inicial (choque entre piezas)
+        if (Time.time - spawnTime < minAirTime) return;
+
         if (!hasLanded)
         {
             hasLanded = true;
-            StartCoroutine(SinkAndDestroy());
+            StartCoroutine(FinishShrinkingAndDestroy());
         }
     }
 
-    IEnumerator SinkAndDestroy()
+    IEnumerator FinishShrinkingAndDestroy()
     {
-        // Espera en el piso con la escala reducida que le haya quedado al caer
-        yield return new WaitForSeconds(sinkDelay);
-
-        // Apaga colisiones y física para atravesar el piso
-        rb.isKinematic = true;
-        Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
-
-        Vector3 startPos = transform.position;
-        Vector3 targetPos = startPos + (Vector3.down * sinkDepth);
+        Vector3 impactScale = transform.localScale;
         float t = 0;
 
         while (t < 1)
         {
-            t += Time.deltaTime * sinkSpeed;
-            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            t += Time.deltaTime * groundShrinkSpeed;
+            transform.localScale = Vector3.Lerp(impactScale, Vector3.zero, t);
             yield return null;
         }
 
         Destroy(gameObject);
     }
-}   
+}
