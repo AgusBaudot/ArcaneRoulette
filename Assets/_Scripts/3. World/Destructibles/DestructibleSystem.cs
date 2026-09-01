@@ -3,41 +3,28 @@ using Foundation;
 
 namespace World
 {
-    /// <summary>
-    /// Attachable component that turns any prefab into a destructible prop.
-    /// Put this on a GameObject that has (or gets, via fallback below) a trigger
-    /// Collider acting as its hitbox — same layer as your regular wall geometry.
-    /// A destructible IS a wall physically; the only thing that changes is that
-    /// BaseProjectile.OnHitWall also finds an IDestructible on it.
-    ///
-    /// Starts Unbroken. OnDeath() flips to Destroyed exactly once, disables the
-    /// hitbox, fires the break animation + sound, and rolls the crystal drop.
-    /// </summary>
     [DisallowMultipleComponent]
     public sealed class DestructibleSystem : MonoBehaviour, IDestructible
     {
         [Header("Hitbox")]
-        [Tooltip("Disabled the instant this breaks, so it stops registering hits " +
-                 "or blocking movement while the destroy animation plays. Falls " +
-                 "back to GetComponent<Collider>() if left empty.")]
-        [SerializeField] private Collider _hitboxCollider; //Trigger collider for collisions.
-        [SerializeField] private Collider _hardCollider; //Non-trigger collider for "wall-like" pre-destruction.
+        [SerializeField] private Collider _hitboxCollider; 
+        [SerializeField] private Collider _hardCollider; 
 
-        [Header("Animation")]
-        [SerializeField] private Animator _animator;
-        [SerializeField] private string _destroyedTrigger = "Destroyed";
+        [Header("Visual Swap")]
+        [Tooltip("The intact model with 1 mesh (image_e35deb.png)")]
+        [SerializeField] private GameObject _intactModel;
+        
+        [Tooltip("The fractured model containing the ExplodingObject script (image_e35e07.png)")]
+        [SerializeField] private GameObject _fracturedModel;
+        [SerializeField] private ExplodingObject _explosionController;
 
         [Header("Feedback")]
         [SerializeField] private AudioEventSO _breakSound;
+        [SerializeField] private GameObject _explosionVFX;
 
         [Header("Drop Table")]
-        [Tooltip("Chance [0-1] to drop a crystal on destruction. Default 0.4 = 40%.")]
         [SerializeField, Range(0f, 1f)] private float _crystalDropChance = 0.4f;
-        [Tooltip("CurrencyDrop always grants exactly 1 currency (Collect() hardcodes " +
-                 "AddCurrency(1)), so there's no amount field here to configure.")]
         [SerializeField] private CurrencyDrop _currencyDropPrefab;
-
-        private int _destroyedTriggerHash;
 
         public DestructibleState State { get; private set; } = DestructibleState.Unbroken;
         public bool IsDestroyed => State == DestructibleState.Destroyed;
@@ -45,61 +32,37 @@ namespace World
         private void Awake()
         {
             State = DestructibleState.Unbroken;
-            _destroyedTriggerHash = Animator.StringToHash(_destroyedTrigger);
 
-            if (_hitboxCollider == null)
-            {
-                _hitboxCollider = GetComponent<Collider>();
-            }
-            
-            if (_hitboxCollider != null)
-            {
-                _hitboxCollider.isTrigger = true;
-            }
- 
-            if (_hardCollider != null)
-            {
-                _hardCollider.isTrigger = false;
-            }
+            if (_hitboxCollider == null) _hitboxCollider = GetComponent<Collider>();
+            if (_hitboxCollider != null) _hitboxCollider.isTrigger = true;
+            if (_hardCollider != null) _hardCollider.isTrigger = false;
 
-#if UNITY_EDITOR
-            if (_hitboxCollider == null)
+            // Ensure correct starting state
+            if (_intactModel != null) _intactModel.SetActive(true);
+            if (_fracturedModel != null) _fracturedModel.SetActive(false);
+            if (_explosionVFX != null)
             {
-                Debug.LogWarning($"{nameof(DestructibleSystem)} on '{name}' has no hitbox Collider — it can never register a death.", this);
+                _explosionVFX.SetActive(false);
             }
-            if (_animator == null)
-            {
-                Debug.LogWarning($"{nameof(DestructibleSystem)} on '{name}' has no Animator assigned — destroy animation will be skipped.", this);
-            }
-            if (_currencyDropPrefab == null)
-            {
-                Debug.LogWarning($"{nameof(DestructibleSystem)} on '{name}' has no CurrencyDrop prefab assigned — the crystal roll will silently do nothing.", this);
-            }
-#endif
         }
 
         public void OnDeath(Vector3 hitPosition)
         {
-            if (State == DestructibleState.Destroyed)
-            {
-                return;
-            }
+            if (State == DestructibleState.Destroyed) return;
 
             State = DestructibleState.Destroyed;
 
-            if (_hitboxCollider != null)
-            {
-                _hitboxCollider.enabled = false;
-            }
+            if (_hitboxCollider != null) _hitboxCollider.enabled = false;
+            if (_hardCollider != null) _hardCollider.enabled = false;
 
-            if (_hardCollider != null)
+            // Perform the visual swap
+            if (_intactModel != null) _intactModel.SetActive(false);
+            
+            if (_fracturedModel != null && _explosionController != null)
             {
-                _hardCollider.enabled = false;
-            }
-
-            if (_animator != null)
-            {
-                _animator.SetTrigger(_destroyedTriggerHash);
+                _fracturedModel.SetActive(true);
+                _explosionVFX.gameObject.SetActive(true);
+                _explosionController.TriggerExplosion(hitPosition);
             }
 
             if (_breakSound != null)
@@ -112,15 +75,8 @@ namespace World
 
         private void RollDropTable(Vector3 dropPosition)
         {
-            if (Random.value >= _crystalDropChance)
-            {
-                return; // 60% default outcome — nothing drops.
-            }
-
-            if (_currencyDropPrefab == null)
-            {
-                return;
-            }
+            if (Random.value >= _crystalDropChance) return; 
+            if (_currencyDropPrefab == null) return;
 
             var drop = Helpers.ProjFactory.Spawn<CurrencyDrop>(_currencyDropPrefab, dropPosition, Quaternion.identity);
             drop.InitDrop(dropPosition);
