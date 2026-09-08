@@ -9,6 +9,11 @@ namespace Core
         [SerializeField] private float _baseRadius = 3f;
         [SerializeField] private int _baseDamage = 5;
         [SerializeField] private LayerMask _enemyMask;
+        
+        [Header("Destructibles")]
+        [SerializeField] private LayerMask _destructibleMask;
+        
+        [Header("Visuals")]
         [SerializeField] private GameObject _aoeFX;
 
         public override void Apply(SpellContext ctx, int stackCount)
@@ -17,13 +22,13 @@ namespace Core
                 return;
 
             float radius = _baseRadius * stackCount;
-            var hits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
-
+            
             Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
-
+            
+            var enemyHits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
             var batch = new DamageBatch();
 
-            foreach (var hit in hits)
+            foreach (var hit in enemyHits)
             {
                 if (hit.gameObject == ctx.HitTarget)
                     continue;
@@ -36,16 +41,32 @@ namespace Core
                 Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
                 if (pushDir == Vector3.zero)
                 {
-                    Debug.Log("Direction is zero");
+                    Debug.LogWarning("Direction is zero");
                 }
                 
-                //Full OnHit chain on each secondary target.
-                //IsSecondaryHit blocks AoEOnHitRune from firing again - all other
-                //runes (OnCast, OnHit) run normally on secondary targets.
                 ctx.TriggerSecondaryHit(hit.transform.position, hit.gameObject, pushDir);
             }
 
             batch.Commit(Helpers.Combat.BigDMG);
+            
+            var destructibleHits = Physics.OverlapSphere(ctx.HitPosition, radius, _destructibleMask);
+
+            foreach (var hit in destructibleHits)
+            {
+                if (hit.gameObject == ctx.HitTarget)
+                    continue;
+                
+                var destructible = hit.GetComponent<IDestructible>();
+
+                if (destructible == null || destructible.IsDestroyed)
+                    continue;
+
+                destructible.OnDeath(ctx.HitPosition);
+                
+                Vector3 pushDir = (hit.transform.position - ctx.HitPosition).normalized;
+                
+                ctx.TriggerSecondaryHit(hit.transform.position, hit.gameObject, pushDir);
+            }
         }
     }
 }

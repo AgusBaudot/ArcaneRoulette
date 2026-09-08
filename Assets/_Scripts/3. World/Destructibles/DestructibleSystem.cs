@@ -76,7 +76,13 @@ namespace World
         private void RollDropTable(Vector3 dropPosition)
         {
             if (Random.value >= _crystalDropChance) return; 
-            if (_currencyDropPrefab == null) return;
+            if (_currencyDropPrefab == null)
+            {
+                GameStateManager.RunState.AddCurrency(1);
+                return;
+            }
+            
+            //TODO: When art for this is done, integrate the CurrencyDrop logic
 
             var drop = Helpers.ProjFactory.Spawn<CurrencyDrop>(_currencyDropPrefab, dropPosition, Quaternion.identity);
             drop.InitDrop(dropPosition);
