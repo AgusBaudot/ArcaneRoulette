@@ -11,7 +11,7 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly, IOcclusionTarget
     {
         #region Parameters
         public float interval { get; set; }
@@ -21,6 +21,7 @@ namespace World
         public bool IsBeingHealed { get; set; }
         public Transform Transform => transform;
         public Blackboard Blackboard => _blackboard;
+        public Vector3 OcclusionPosition => transform.position;
         #endregion
 
         #region Components
@@ -83,6 +84,8 @@ namespace World
         {
             _enemyHealth.OnDeath -= DeathEvent;
             OnDeathEvent = null; 
+            
+            OcclusionRegistry.Unregister(this);
     
             if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
             {
@@ -95,6 +98,8 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+            
+            OcclusionRegistry.Register(this);
     
             if (!_isInitialized)
             {

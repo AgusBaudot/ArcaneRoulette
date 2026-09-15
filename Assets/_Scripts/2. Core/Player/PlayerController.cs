@@ -6,13 +6,14 @@ namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PlayerHealth))]
-    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable, IDebuffReceiver, IStatResolver
+    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable, IDebuffReceiver, IStatResolver, IOcclusionTarget
     {
         #region Properties
 
         public Rigidbody Rigidbody => _rb;
         public PlayerHealth Health => _health;
         public GameObject Hurtbox => _hurtBox;
+        public Vector3 OcclusionPosition => transform.position;
         
         public float AttackDamage
         {
@@ -141,6 +142,8 @@ namespace Core
             Helpers.Input.OnSlot0Canceled += HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
+
+            OcclusionRegistry.Register(this);
             
             _heldAutoSlots.Clear();
             _heldHoldSlots.Clear();
@@ -170,6 +173,8 @@ namespace Core
             Helpers.Input.OnSlot0Canceled -= HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled -= HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled -= HandleSlot2Release;
+            
+            OcclusionRegistry.Unregister(this);
 
             if (_runAudioHandle != null && _runAudioHandle.IsValid)
             {
