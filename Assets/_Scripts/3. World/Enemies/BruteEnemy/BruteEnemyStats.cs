@@ -1,4 +1,5 @@
 using UnityEngine;
+using Foundation;
 
 namespace World
 {
@@ -17,12 +18,14 @@ namespace World
         public float ThrustHitboxMaxDistance = 5f;
         public float ThrustWindupDuration = 2f;
         public float ThrustRecomposeDuration = 1f;
+        public AudioEventSO ThrustSound;
 
         [Header("Brute - Charge")]
         public float ChargeWindupDuration = 2f;
         public float ChargeCooldown = 20f;
         public float ChargeSpeedMultiplier = 2f; 
         public float ChargeDamagePercentage = 1f; 
+        public AudioEventSO ChargeSound;
 
         [Header("Brute - Stun Durations")]
         public float StunDurationBase = 2f; 

@@ -102,14 +102,12 @@ namespace World
             return tree;
         }
 
-        // ---- Spawning ----
         private void BeginSpawning()
         {
             SetState(AIState.Spawning);
             OnSpawnStarted?.Invoke(MeleeStats.SpawnDuration);
         }
 
-        // ---- Chase ----
         private void DoChase()
         {
             SetState(AIState.Chase);
@@ -140,7 +138,6 @@ namespace World
             _agent.SetDestination(basePoint + rawSlotOffset);
         }
 
-        // ---- Attack ----
         private Node BuildAttackSequence()
         {
             var sequence = new SequenceNode("Attack", priority: 10);
@@ -232,8 +229,18 @@ namespace World
             
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
             float duration = attackIndex == 0 ? GetAttack1Duration() : GetAttack2Duration();
-            
             float sweepAngle = attackIndex == 0 ? 140f : -100f; 
+            
+            // Audio Injection
+            AudioEventSO swingSound = attackIndex == 0 ? MeleeStats.Attack1Sound : MeleeStats.Attack2Sound;
+            if (swingSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = swingSound,
+                    WorldPosition = transform.position,
+                });
+            }
             
             ActivateHitbox(damage, MeleeStats.Attack1HitboxSize, sweepAngle, duration);
             _isStepping = true;
@@ -249,8 +256,16 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack3DamageMultiplier);
             Vector3 size = MeleeStats.Attack1HitboxSize * (1f + MeleeStats.Attack3HitboxSizeMultiplier);
             float duration = GetAttack3Duration();
-            
             float sweepAngle = 140f;
+            
+            if (MeleeStats.Attack3Sound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = MeleeStats.Attack3Sound,
+                    WorldPosition = transform.position,
+                });
+            }
             
             ActivateHitbox(damage, size, sweepAngle, duration);
             _isDashing = true;
@@ -296,20 +311,16 @@ namespace World
         {
             if (_enemyStats == null) return;
 
-            // Attack Range Sphere
             Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
             Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
 
-            // Vision Sphere
             Gizmos.color = new Color(0f, 0f, 1f, 0.5f);
             Gizmos.DrawWireSphere(transform.position, _enemyStats.ViewDistance);
 
-            // ---- ATTACK HITBOX PREVIEW ----
             if (_enemyStats is MeleeEnemyStats stats)
             {
                 Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
                 
-                // Draw a preview of the hitbox facing forward
                 Matrix4x4 oldMatrix = Gizmos.matrix;
                 Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
                 

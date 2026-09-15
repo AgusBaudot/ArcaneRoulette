@@ -1,4 +1,5 @@
 using UnityEngine;
+using Foundation;
 
 namespace World
 {
@@ -17,7 +18,7 @@ namespace World
         [Tooltip("Maximum seconds into the future the enemy is allowed to predict.")]
         public float MaxPredictionTime = 1.5f;
 
-        [Header("Attacking — shared")]
+        [Header("Attacking: shared")]
         [Tooltip("Max degrees the enemy may redirect toward the player between attacks 1->2 and 2->3.")]
         public float MaxRedirectAngle = 45f;
         public float WindupDuration = 0.5f;
@@ -34,10 +35,12 @@ namespace World
         [Range(0f, 1f)]
         public float Attack1DamageMultiplier = 0.5f;
         public float Attack1EndDelay = 0.1f;
+        public AudioEventSO Attack1Sound;
 
         [Header("Attack 2")]
         public float Attack2SwingSpeedMultiplier = 1f;
         public float Attack2EndDelay = 0.2f;
+        public AudioEventSO Attack2Sound;
 
         [Header("Attack 3")]
         public float Attack3SwingSpeedMultiplier = 1f;
@@ -47,6 +50,7 @@ namespace World
         public float Attack3HitboxSizeMultiplier = 0.15f;
         [Range(0f, 1f)]
         public float Attack3DamageMultiplier = 1f;
+        public AudioEventSO Attack3Sound;
 
         [Header("Recomposing")]
         public float RecomposingDuration = 2f;

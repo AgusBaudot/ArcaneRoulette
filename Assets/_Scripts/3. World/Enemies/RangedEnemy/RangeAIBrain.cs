@@ -1,7 +1,8 @@
-using System.Collections.Generic;
+using System;
 using Core;
 using Foundation;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace World
 {
@@ -22,7 +23,6 @@ namespace World
         private Vector3 _targetPos3;
         private int _playerProjectileLayerMask;
 
-        // Helper to check if we are locked into an uninterruptible sequence
         private bool IsCommitted => _isAttacking || _isBlocking || _isTeleporting;
 
         protected override void Awake()
@@ -94,7 +94,6 @@ namespace World
             return tree;
         }
 
-        // --- Logic & Conditions ---
         private float GetClampedWindup(float baseWindup) => Mathf.Min(baseWindup * EffectiveAttackSpeed, RangeStats.MaxWindupDuration);
         
         private void BeginSpawning() => SetState(AIState.Spawning);
@@ -110,7 +109,6 @@ namespace World
             return Physics.CheckSphere(transform.position, RangeStats.SafeRange, _playerProjectileLayerMask);
         }
 
-        // --- Block ---
         private void BeginCover()
         {
             _isBlocking = true;
@@ -137,7 +135,6 @@ namespace World
             _isBlocking = false;
         }
 
-        // --- Teleport ---
         private void BeginTeleport()
         {
             _isTeleporting = true;
@@ -157,7 +154,7 @@ namespace World
             Transform player = GetPlayer();
             Vector3 playerPos = player != null ? player.position : transform.position;
 
-            System.Array.Sort(zones, (a, b) => 
+            Array.Sort(zones, (a, b) => 
                 Vector3.Distance(b.transform.position, playerPos).CompareTo(Vector3.Distance(a.transform.position, playerPos)));
 
             float distanceWeight = 0.8f;
@@ -188,7 +185,6 @@ namespace World
             _agent.Warp(zones[0].transform.position);
         }
 
-        // --- Attack Sequence ---
         private void BeginAttack()
         {
             _isAttacking = true;
@@ -232,6 +228,15 @@ namespace World
             
             var projObj = Helpers.ProjFactory.Spawn<DetonatingEnemyProjectile>(RangeStats.BigProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
             projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, RangeStats.ElementType, gameObject, RangeStats.BigProjectileDrainRate);
+            
+            if (RangeStats.BigProjectileSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = RangeStats.BigProjectileSound, 
+                    WorldPosition = _firePoint.position
+                });
+            }
         }
 
         private void SpawnNormalProjectile(Vector3 dir)
@@ -240,6 +245,15 @@ namespace World
             
             var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(RangeStats.NormalProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
             proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, RangeStats.ElementType, gameObject);
+            
+            if (RangeStats.NormalProjectileSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = RangeStats.NormalProjectileSound,
+                    WorldPosition = _firePoint.position
+                });
+            }
         }
 
         private void EndAttack()
@@ -265,11 +279,11 @@ namespace World
     public class BlockHoldStrategy : IStrategy
     {
         private readonly RangeAIBrain _brain;
-        private readonly System.Func<float> _getTimeout;
+        private readonly Func<float> _getTimeout;
         private float _lastProjectileTime;
         private bool _started;
 
-        public BlockHoldStrategy(RangeAIBrain brain, System.Func<float> getTimeout)
+        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout)
         {
             _brain = brain;
             _getTimeout = getTimeout;

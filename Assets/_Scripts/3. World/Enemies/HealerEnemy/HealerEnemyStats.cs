@@ -1,4 +1,5 @@
 using UnityEngine;
+using Foundation;
 
 namespace World
 {
@@ -20,5 +21,9 @@ namespace World
         [Header("Healer - Projectile")]
         public BottleProjectile BottlePrefab;
         public float BottleThrowSpeed = 6f;
+
+        [Header("Healer - Audio")]
+        public AudioEventSO HealBeamLoopSound;
+        public AudioEventSO BottleThrowSound;
     }
 }

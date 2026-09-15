@@ -1,6 +1,5 @@
-using UnityEngine;
 using Foundation;
-using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AI;
 
 namespace World
@@ -10,7 +9,7 @@ namespace World
     {
         public int UpdatePriority => Foundation.UpdatePriority.AI;
         
-        private BruteEnemyStats _bruteStats => _enemyStats as BruteEnemyStats;
+        private BruteEnemyStats BruteStats => _enemyStats as BruteEnemyStats;
         
         private bool _isCharging;
         private bool _isThrusting;
@@ -36,7 +35,7 @@ namespace World
         {
             var tree = new BehaviorTree("Brute");
 
-            if (_bruteStats == null)
+            if (BruteStats == null)
             {
                 Debug.LogError($"{name}: Missing or incorrect stats. Expected BruteEnemyStats.");
                 return tree;
@@ -46,7 +45,7 @@ namespace World
 
             // Priority 50: Spawn Gate
             rootSelector.AddChild(new LeafNode("Spawning", 
-                new OneShotGateStrategy(BeginSpawning, () => _bruteStats.SpawnDuration), priority: 50));
+                new OneShotGateStrategy(BeginSpawning, () => BruteStats.SpawnDuration), priority: 50));
 
             // Priority 40: Stunned Sequence
             var stunSequence = new SequenceNode("Stun Sequence", priority: 40);
@@ -57,7 +56,7 @@ namespace World
 
             // Priority 30: AoE Thrust Attack
             var thrustSequence = new SequenceNode("Thrust Sequence", priority: 30);
-            thrustSequence.AddChild(new LeafNode("CanThrustCondition", new ConditionNode(() => IsPlayerInDistance(_bruteStats.AoEAttackRange) && !_isCharging)));
+            thrustSequence.AddChild(new LeafNode("CanThrustCondition", new ConditionNode(() => IsPlayerInDistance(BruteStats.AoEAttackRange) && !_isCharging)));
             thrustSequence.AddChild(new LeafNode("ThrustWindup", new TimedActionStrategy(
                 onStart: () => 
                 {
@@ -66,18 +65,18 @@ namespace World
                     _lastAttackDirection = (GetPlayer().transform.position - transform.position).normalized;
                     _lastAttackDirection.y = 0;
             
-                    _thrustHitbox.ShowTelegraph(_bruteStats, _lastAttackDirection);
+                    _thrustHitbox.ShowTelegraph(BruteStats, _lastAttackDirection);
                 }, 
-                getDuration: () => _bruteStats.ThrustWindupDuration
+                getDuration: () => BruteStats.ThrustWindupDuration
             )));
             thrustSequence.AddChild(new LeafNode("Thrusting", new TimedActionStrategy(StartThrust, () => EffectiveAttackSpeed)));
-            thrustSequence.AddChild(new LeafNode("ThrustRecompose", new TimedActionStrategy(StopThrust, () => _bruteStats.ThrustRecomposeDuration)));
+            thrustSequence.AddChild(new LeafNode("ThrustRecompose", new TimedActionStrategy(StopThrust, () => BruteStats.ThrustRecomposeDuration)));
             rootSelector.AddChild(thrustSequence);
 
             // Priority 20: Charge Attack
             var chargeSequence = new SequenceNode("Charge Sequence", priority: 20);
-            chargeSequence.AddChild(new LeafNode("CanChargeCondition", new ConditionNode(() => IsPlayerInDistance(_bruteStats.ChargeAttackRange) && _chargeCooldownTimer <= 0f)));
-            chargeSequence.AddChild(new LeafNode("ChargeWindup", new TimedActionStrategy(BeginChargeWindup, () => _bruteStats.ChargeWindupDuration)));
+            chargeSequence.AddChild(new LeafNode("CanChargeCondition", new ConditionNode(() => IsPlayerInDistance(BruteStats.ChargeAttackRange) && _chargeCooldownTimer <= 0f)));
+            chargeSequence.AddChild(new LeafNode("ChargeWindup", new TimedActionStrategy(BeginChargeWindup, () => BruteStats.ChargeWindupDuration)));
             chargeSequence.AddChild(new LeafNode("Charging", new TimedActionStrategy(StartCharge, () => 5f))); // 5s timeout failsafe
             rootSelector.AddChild(chargeSequence);
 
@@ -88,7 +87,6 @@ namespace World
             return tree;
         }
 
-        // --- Distance Helper ---
         private bool IsPlayerInDistance(float range)
         {
             Transform player = GetPlayer();
@@ -96,7 +94,6 @@ namespace World
             return Vector3.Distance(transform.position, player.position) <= range;
         }
 
-        // --- State Actions ---
         private void BeginSpawning() => SetState(AIState.Spawning);
 
         private void BeginStun()
@@ -161,21 +158,20 @@ namespace World
                 var targetHealth = _defenseTarget.GetComponent<EnemyHealth>();
                 if (targetHealth != null && targetHealth.CurrentHp > 0f)
                 {
-                    targetPos = Vector3.Lerp(player.position, _defenseTarget.transform.position, _bruteStats.DefenseTargetLineRatio);
+                    targetPos = Vector3.Lerp(player.position, _defenseTarget.transform.position, BruteStats.DefenseTargetLineRatio);
                 }
             }
 
             _agent.SetDestination(targetPos);
         }
 
-        // --- IUpdatable Implementation ---
         public void Tick(float dt)
         {
             if (_chargeCooldownTimer > 0) _chargeCooldownTimer -= dt;
 
             if (_isCharging && _agent != null && _agent.isOnNavMesh)
             {
-                float frameSpeed = EffectiveChaseSpeed * _bruteStats.ChargeSpeedMultiplier * dt;
+                float frameSpeed = EffectiveChaseSpeed * BruteStats.ChargeSpeedMultiplier * dt;
                 _agent.Move(_lastAttackDirection * frameSpeed);
             }
             else if (_isThrusting && _thrustHitbox != null)
@@ -184,25 +180,43 @@ namespace World
             }
         }
 
-        // --- Hitbox Hooks ---
         private void StartCharge()
         {
             _isCharging = true;
+            
+            if (BruteStats.ChargeSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = BruteStats.ChargeSound,
+                    WorldPosition = transform.position,
+                });
+            }
     
             if (_chargeHitbox != null)
             {
-                _chargeHitbox.Activate(_bruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
+                _chargeHitbox.Activate(BruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
             }
         }
 
         private void StartThrust()
         {
             _isThrusting = true;
+            
+            if (BruteStats.ThrustSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = BruteStats.ThrustSound,
+                    WorldPosition = transform.position
+                });
+            }
+            
             if (_thrustHitbox != null)
             {
                 int damage = Mathf.RoundToInt(EffectiveAttackDamage);
                 
-                _thrustHitbox.Activate(_bruteStats, damage, _lastAttackDirection);
+                _thrustHitbox.Activate(BruteStats, damage, _lastAttackDirection);
             }
         }
 
@@ -220,7 +234,7 @@ namespace World
             _isCharging = false;
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
             
-            _chargeCooldownTimer = _bruteStats.ChargeCooldown;
+            _chargeCooldownTimer = BruteStats.ChargeCooldown;
             _currentStunDuration = stunDuration;
             _isStunned = true; 
             

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Foundation;
 
 namespace World
 {
@@ -25,9 +26,11 @@ namespace World
         [Header("Projectiles")]
         [Tooltip("Prefab for the Normal Projectile")]
         public EnemyProjectile NormalProjectilePrefab;
+        public AudioEventSO NormalProjectileSound;
         
         [Tooltip("Prefab for the Big Projectile")]
         public DetonatingEnemyProjectile BigProjectilePrefab;
+        public AudioEventSO BigProjectileSound;
         
         public float NormalProjectileSpeed = 12f;
         public float BigProjectileInitialSpeed = 8f;

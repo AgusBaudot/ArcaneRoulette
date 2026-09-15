@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core;
 using Foundation;
 using UnityEngine;
 
@@ -15,6 +14,8 @@ namespace World
         private float _throwCooldownEndTime;
         private float _healTimer;
         private List<EnemyHealth> _activeHealTargets = new();
+        
+        private AudioHandle _healAudioHandle;
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
         private void OnDisable() => UpdateManager.Instance?.Unregister(this);
@@ -25,6 +26,7 @@ namespace World
             _healCooldownEndTime = 0f;
             _throwCooldownEndTime = 0f;
             _activeHealTargets.Clear();
+            StopHealAudio();
         }
 
         public void Tick(float dt)
@@ -137,6 +139,16 @@ namespace World
             SetState(AIState.Healing);
             _healTimer = 0f;
             _activeHealTargets = GetValidHealTargets();
+
+            if (HealerStats.HealBeamLoopSound != null)
+            {
+                EventBus.Publish(new AudioPlayTrackedRequest
+                {
+                    Event = HealerStats.HealBeamLoopSound,
+                    WorldPosition = transform.position,
+                    OnHandleReady = handle => _healAudioHandle = handle
+                });
+            }
         }
 
         private void OnHealingTick(float dt)
@@ -154,6 +166,7 @@ namespace World
                     _activeHealTargets = GetValidHealTargets();
                     if (_activeHealTargets.Count == 0)
                     {
+                        StopHealAudio();
                         _tree.Reset();
                         return;
                     }
@@ -169,6 +182,20 @@ namespace World
         private void EndHealing()
         {
             _healCooldownEndTime = Time.time + HealerStats.HealingCooldown;
+            StopHealAudio();
+        }
+        
+        private void StopHealAudio()
+        {
+            if (_healAudioHandle != null)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _healAudioHandle,
+                    FadeOut = true,
+                });
+                _healAudioHandle = null;
+            }
         }
 
         private List<EnemyHealth> GetValidHealTargets()
@@ -241,6 +268,16 @@ namespace World
                     player.position
                 );
             }
+            
+            if (HealerStats.BottleThrowSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = HealerStats.BottleThrowSound,
+                    WorldPosition = transform.position,
+                });
+            }
+            
             _throwCooldownEndTime = Time.time + HealerStats.ThrowingCooldown;
         }
     }
