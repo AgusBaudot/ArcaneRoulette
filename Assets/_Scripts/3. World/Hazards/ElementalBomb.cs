@@ -6,7 +6,7 @@ using Core;
 
 namespace World
 {
-    public sealed class ElementalBomb : MonoBehaviour, IHazard
+    public sealed class ElementalBomb : MonoBehaviour, IHazard, IElementalDetonatable
     {
         [SerializeField] private ElementType _element;
         [SerializeField] private int _damage = 25;

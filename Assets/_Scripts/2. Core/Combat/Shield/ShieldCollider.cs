@@ -34,13 +34,28 @@ namespace Core
 
         private void HandleContact(Collider other, Vector3 contactPoint)
         {
+            Debug.Log($"Trigger by {other.gameObject.name}");
+            
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
+                // 1. Hazard / Detonatable Body
+                if (other.GetComponentInParent<IElementalDetonatable>() is { } detonatable)
+                {
+                    var element = _boundInstance?.SpellElement ?? ElementType.Neutral;
+                    if (detonatable.TryDetonate(element))
+                    {
+                        OnShieldDamaged?.Invoke();
+                    }
+                    return;
+                }
+
+                // 2. Enemy Body
                 if (other.TryGetComponent<IDamageable>(out _))
                 {
                     OnEnemyBodyContact?.Invoke(contactPoint, other.gameObject);
                     OnShieldDamaged?.Invoke();
                 }
+                // 3. Destructible Body
                 else
                 {
                     var destructible = other.GetComponentInParent<IDestructible>();

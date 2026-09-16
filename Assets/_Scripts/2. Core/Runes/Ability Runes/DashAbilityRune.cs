@@ -138,21 +138,27 @@ namespace Core
 
                 batch.Commit(Helpers.Combat.NormalDMG);
 
-                // ── Destructible collision — breaks on contact, no rune gating, ──
-                // still fires TriggerOnHit like every other hit type (e.g. AoE splash).
-                // No dedup set needed: IDestructible.OnDeath is already idempotent.
+                // ── Destructible & Hazard collision ────────────────────
                 var obstacles = Physics.OverlapSphere(
                     player.transform.position, _dashHitRadius, _destructibleLayerMask);
 
                 foreach (var hit in obstacles)
                 {
+                    // 1. Destructible breaking
                     var destructible = hit.GetComponentInParent<IDestructible>();
-                    if (destructible == null || destructible.IsDestroyed)
-                        continue;
+                    if (destructible != null && !destructible.IsDestroyed)
+                    {
+                        ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
+                            AbilityType.Dash, false, dir);
+                        destructible.OnDeath(hit.transform.position);
+                    }
 
-                    ctx.Source.TriggerOnHit(hit.transform.position, hit.gameObject, ctx.Runner,
-                        AbilityType.Dash, false, dir);
-                    destructible.OnDeath(hit.transform.position);
+                    // 2. Elemental Hazard Detonation
+                    var detonatable = hit.GetComponentInParent<IElementalDetonatable>();
+                    if (detonatable != null)
+                    {
+                        detonatable.TryDetonate(ctx.Source.SpellElement);
+                    }
                 }
 
                 // ── Enemy projectile reflection (Bounce rune) ────────────────────
