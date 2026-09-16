@@ -221,7 +221,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b6a0f498cb1a2e44ac21352bc5ef6ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerTransform: {fileID: 6385582804444609266}
   _occluderLayer:
     serializedVersion: 2
     m_Bits: 32768
@@ -5276,6 +5275,7 @@ Transform:
   - {fileID: 6609821622035585433}
   - {fileID: 8681134882528939266}
   - {fileID: 280565572877095699}
+  - {fileID: 6690634340399260524}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &4998127422443177832
@@ -5412,3 +5412,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e1410dff701b1e4f8b5341d54f5a963, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8279921202416755481
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6690634340399260524}
+  - component: {fileID: 1549392241447142576}
+  m_Layer: 6
+  m_Name: Visual_Feedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6690634340399260524
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8279921202416755481}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6385582804444609266}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1549392241447142576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8279921202416755481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3336d7b5ad3dfa5429873bf294a65ca2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerHealth: {fileID: 3608313254499826404}
+  _healthRecoveryPrefab: {fileID: 4238054730630130303, guid: 6bc6b8d1b2688b24bb5f3fbb0d38cf39,
+    type: 3}
+  _spawnOffset: {x: 0, y: 0, z: 0}
+  _attachToCharacter: 0
