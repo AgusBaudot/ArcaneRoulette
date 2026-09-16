@@ -78,7 +78,6 @@ namespace Core
                     var playerStats = _runner.GetComponent<IStatResolver>();
                     if (customReflectable.TryCustomReflect(reflectBase, ReflectCount, playerStats))
                     {
-                        Helpers.ProjFactory.Despawn(other.gameObject);
                         return; 
                     }
                 }

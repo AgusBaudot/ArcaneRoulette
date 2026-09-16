@@ -107,7 +107,6 @@ namespace World
             float baseAtk = playerStats != null ? playerStats.AttackDamage : 10f;
             int reflectionDamage = Mathf.Max(1, Mathf.RoundToInt(baseAtk * 0.5f));
 
-            // Determine where to throw it back! Target the Owner if still alive, else use a fallback.
             Vector3 targetReturnPos = Owner != null ? Owner.transform.position : transform.position + reflectDir * 10f;
 
             Helpers.ProjFactory.StartCoroutine(SequentialReflectionRoutine(
@@ -117,6 +116,8 @@ namespace World
                 bounceRunes,
                 targetReturnPos
             ));
+
+            Helpers.ProjFactory.Despawn(gameObject);
 
             return true;
         }

@@ -219,7 +219,6 @@ namespace Core
                 {
                     if (customReflectable.TryCustomReflect(reflectBase, args.ReflectCount, ctx.Stats))
                     {
-                        Helpers.ProjFactory.Despawn(col.gameObject);
                         continue;
                     }
                 }
