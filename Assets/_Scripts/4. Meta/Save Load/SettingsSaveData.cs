@@ -12,10 +12,21 @@ namespace Meta
         public float UIVolume = 1f;
         public float AmbienceVolume = 1f;
 
-        public int ResolutionWidth = 1920;
-        public int ResolutionHeight = 1080;
-        public int RefreshRate = 60;
-        public FullScreenMode WindowMode = FullScreenMode.FullScreenWindow;
+        public int ResolutionWidth;
+        public int ResolutionHeight;
+        public int RefreshRate;
+        public FullScreenMode WindowMode;
+
+        public SettingsSaveData()
+        {
+            Resolution currentRes = Screen.currentResolution;
+            
+            ResolutionWidth = currentRes.width;
+            ResolutionHeight = currentRes.height;
+            RefreshRate = Mathf.RoundToInt((float)currentRes.refreshRateRatio.value);
+            
+            WindowMode = FullScreenMode.FullScreenWindow;
+        }
 
         public static SettingsSaveData GetDefault() => new SettingsSaveData();
     }

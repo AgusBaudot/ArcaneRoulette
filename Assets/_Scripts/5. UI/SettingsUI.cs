@@ -142,8 +142,11 @@ namespace UI
             int resIndex = 0;
             for (int i = 0; i < _availableResolutions.Length; i++)
             {
+                int currentHz = Mathf.RoundToInt((float)_availableResolutions[i].refreshRateRatio.value);
+    
                 if (_availableResolutions[i].width == _workingCache.ResolutionWidth &&
-                    _availableResolutions[i].height == _workingCache.ResolutionHeight)
+                    _availableResolutions[i].height == _workingCache.ResolutionHeight &&
+                    currentHz == _workingCache.RefreshRate)
                 {
                     resIndex = i;
                     break;
