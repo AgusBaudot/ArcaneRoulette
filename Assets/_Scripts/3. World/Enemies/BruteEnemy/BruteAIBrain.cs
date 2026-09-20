@@ -17,6 +17,7 @@ namespace World
         
         private float _chargeCooldownTimer;
         private float _currentStunDuration;
+        private float _chargeStuckTimer;
         private Vector3 _lastAttackDirection;
 
         [SerializeField] private BruteThrustHitbox _thrustHitbox;
@@ -78,6 +79,9 @@ namespace World
             chargeSequence.AddChild(new LeafNode("CanChargeCondition", new ConditionNode(() => IsPlayerInDistance(BruteStats.ChargeAttackRange) && _chargeCooldownTimer <= 0f)));
             chargeSequence.AddChild(new LeafNode("ChargeWindup", new TimedActionStrategy(BeginChargeWindup, () => BruteStats.ChargeWindupDuration)));
             chargeSequence.AddChild(new LeafNode("Charging", new TimedActionStrategy(StartCharge, () => 5f))); // 5s timeout failsafe
+            
+            chargeSequence.AddChild(new LeafNode("EndCharge", new ActionNode(EndCharge)));
+            
             rootSelector.AddChild(chargeSequence);
 
             // Priority 10: Chase / Defend
@@ -167,12 +171,31 @@ namespace World
 
         public void Tick(float dt)
         {
-            if (_chargeCooldownTimer > 0) _chargeCooldownTimer -= dt;
+            if (_chargeCooldownTimer > 0)
+            {
+                _chargeCooldownTimer -= dt;
+            }
 
             if (_isCharging && _agent != null && _agent.isOnNavMesh)
             {
                 float frameSpeed = EffectiveChaseSpeed * BruteStats.ChargeSpeedMultiplier * dt;
+                Vector3 startPos = transform.position;
+        
                 _agent.Move(_lastAttackDirection * frameSpeed);
+        
+                float actualDistance = Vector3.Distance(startPos, transform.position);
+                if (actualDistance < frameSpeed * 0.2f)
+                {
+                    _chargeStuckTimer += dt;
+                    if (_chargeStuckTimer > 0.1f)
+                    {
+                        OnChargeInterrupted(0.5f);
+                    }
+                }
+                else
+                {
+                    _chargeStuckTimer = 0f;
+                }
             }
             else if (_isThrusting && _thrustHitbox != null)
             {
@@ -183,6 +206,7 @@ namespace World
         private void StartCharge()
         {
             _isCharging = true;
+            _chargeStuckTimer = 0f;
             
             if (BruteStats.ChargeSound != null)
             {
@@ -232,13 +256,25 @@ namespace World
         private void OnChargeInterrupted(float stunDuration)
         {
             _isCharging = false;
-            if (_chargeHitbox != null) _chargeHitbox.Deactivate();
+            if (_chargeHitbox != null)
+            {
+                _chargeHitbox.Deactivate();
+            }
             
             _chargeCooldownTimer = BruteStats.ChargeCooldown;
             _currentStunDuration = stunDuration;
             _isStunned = true; 
             
             _tree?.Reset();
+        }
+        
+        private void EndCharge()
+        {
+            _isCharging = false;
+            if (_chargeHitbox != null)
+            {
+                _chargeHitbox.Deactivate();
+            }
         }
         
         public override void ResetComponent()
