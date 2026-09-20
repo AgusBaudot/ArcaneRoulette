@@ -32,7 +32,7 @@ namespace Core
         private float _baseColliderRadius;
 
         private AudioEventSO[] _pierceSounds;
-        private float[] _pierceHitStops;
+        private int[] _pierceHitStops;
         private int _piercesDone;
 
         protected override void Awake()
@@ -169,7 +169,7 @@ namespace Core
             }
         }
 
-        public void SetPierceFeedback(AudioEventSO[] sounds, float[] hitStops)
+        public void SetPierceFeedback(AudioEventSO[] sounds, int[] hitStops)
         {
             _pierceSounds = sounds;
             _pierceHitStops = hitStops;
@@ -206,7 +206,7 @@ namespace Core
             if (_pierceHitStops != null && _pierceHitStops.Length > 0)
             {
                 int hitStopIndex = Mathf.Min(_piercesDone, _pierceHitStops.Length - 1);
-                juice.HitStop = _pierceHitStops[hitStopIndex];
+                juice.HitStopFrames = _pierceHitStops[hitStopIndex];
             }
 
             batch.Commit(juice);

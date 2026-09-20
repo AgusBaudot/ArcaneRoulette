@@ -7,17 +7,15 @@ using UnityEngine;
 
 namespace World
 {
-    public sealed class ThornTrap : MonoBehaviour , IHazard
+    public sealed class ThornTrap : MonoBehaviour, IHazard
     {
-        [Header("Stats")]
-        [SerializeField] private int _damage = 15;
+        [Header("Stats")] [SerializeField] private int _damage = 15;
         [SerializeField] private float _windupDuration = 0.5f;
         [SerializeField] private float _spikeDisplayDuration = 0.3f;
         [SerializeField] private float _cooldownDuration = 2f;
         [SerializeField] private Vector3 _boxSize;
 
-        [Header("Animation")]
-        [SerializeField] private Animator _anim;
+        [Header("Animation")] [SerializeField] private Animator _anim;
 
         private bool _isActive = true;
         private bool _isIdle = true;
@@ -35,8 +33,9 @@ namespace World
             if (!_isIdle)
                 return;
 
-            if (other.GetComponentInParent<IDamageable>() == null && other.GetComponentInParent<PlayerController>() == null)
-                    return;
+            if (other.GetComponentInParent<IDamageable>() == null &&
+                other.GetComponentInParent<PlayerController>() == null)
+                return;
 
             _isIdle = false;
             _activeRoutine = StartCoroutine(TrapRoutine());
@@ -47,7 +46,7 @@ namespace World
             yield return CoroutineUtils.GetWait(_windupDuration);
 
             _anim.SetTrigger(_activateHash);
-            
+
             ApplyDamage();
 
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
@@ -66,32 +65,40 @@ namespace World
             var processed = new HashSet<IDamageable>();
 
             var batch = new DamageBatch();
+            bool hitPlayer = false;
 
             foreach (var hit in hits)
             {
                 var damageable = hit.GetComponentInParent<IDamageable>()
                                  ?? hit.GetComponent<IDamageable>();
-                if (damageable == null) continue;
-                if (!processed.Add(damageable)) continue;
+                
+                if (damageable == null) 
+                    continue;
+                
+                if (!processed.Add(damageable)) 
+                    continue;
 
                 var go = (damageable as Component)?.gameObject;
                 var player = go?.GetComponentInParent<PlayerController>();
 
                 if (player != null)
                 {
-                    if (!player.Hurtbox.activeSelf) continue;
+                    if (!player.Hurtbox.activeSelf) 
+                        continue;
 
                     if (player.IsShielding)
                     {
                         player.ForceDestroyActiveShield();
                         continue;
                     }
+
+                    hitPlayer = true;
                 }
-                
+
                 batch.Deal(damageable, go, _damage, ElementType.Neutral);
             }
-            
-            batch.Commit(Helpers.Combat.BigDMG);
+
+            batch.Commit(hitPlayer ? Helpers.Combat.PlayerDamage : Helpers.Combat.BigDMG);
         }
 
         public void Disable()
@@ -101,7 +108,7 @@ namespace World
                 StopCoroutine(_activeRoutine);
                 _activeRoutine = null;
             }
-            
+
             _anim.SetTrigger(_cooldownHash);
             _isActive = false;
         }

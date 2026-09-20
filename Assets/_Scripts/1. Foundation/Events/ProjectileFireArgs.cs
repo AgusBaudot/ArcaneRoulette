@@ -13,6 +13,6 @@ namespace Foundation
         public int   HomingCount    = 0;
 
         public AudioEventSO[] PierceSounds;
-        public float[] PierceHitStops;
+        public int[] PierceHitStops;
     }
 }

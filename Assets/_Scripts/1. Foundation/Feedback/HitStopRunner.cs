@@ -12,6 +12,7 @@ namespace Foundation
 
         public static void Apply(int frames, float slowScale = 0f)
         {
+            Debug.Log(frames);
             if (frames <= 0)
                 return;
             

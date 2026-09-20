@@ -13,7 +13,7 @@ namespace Core
         [SerializeField] private AudioEventSO[] _pierceSounds;
         
         [Tooltip("Hit stop durations for successive pierces. Clamps to the last element.")]
-        [SerializeField] private float[] _pierceHitStops;
+        [SerializeField] private int[] _pierceHitStops;
 
         public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount, List<Action> cleanup)
         {
