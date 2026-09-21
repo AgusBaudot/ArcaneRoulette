@@ -55,7 +55,45 @@ namespace UI
         public void Init(SpellCraftingUI owner)
         {
             _owner = owner;
+            GroupVisuals();
             BuildTiles();
+        }
+
+        private void GroupVisuals()
+        {
+            // 1. Create a wrapper that completely fills the panel root
+            GameObject container = new GameObject("RuntimeVisualRoot");
+            RectTransform containerRect = container.AddComponent<RectTransform>();
+            containerRect.SetParent(this.transform, false);
+            
+            containerRect.anchorMin = Vector2.zero;
+            containerRect.anchorMax = Vector2.one;
+            containerRect.offsetMin = Vector2.zero;
+            containerRect.offsetMax = Vector2.zero;
+            containerRect.localScale = Vector3.one;
+
+            // 2. Parent the background and all anchor empties to this wrapper
+            // (Using worldPositionStays: true keeps their exact visual spacing)
+            _visualRoot.SetParent(containerRect, true);
+            
+            if (_abilityAnchor != null) _abilityAnchor.SetParent(containerRect, true);
+            if (_elementAnchor != null) _elementAnchor.SetParent(containerRect, true);
+            if (_modifierAnchors != null)
+            {
+                foreach (var mod in _modifierAnchors)
+                {
+                    if (mod != null) mod.SetParent(containerRect, true);
+                }
+            }
+
+            // 3. Wipe out the manual Editor offsets used to mock up the Left/Right carousel look.
+            // This ensures the background perfectly aligns with the centered empties.
+            _visualRoot.offsetMin = Vector2.zero;
+            _visualRoot.offsetMax = Vector2.zero;
+            _visualRoot.localScale = Vector3.one;
+
+            // 4. Swap the reference so DOTween targets this entire package
+            _visualRoot = containerRect;
         }
 
         private void BuildTiles()

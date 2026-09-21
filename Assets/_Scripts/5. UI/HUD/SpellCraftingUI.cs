@@ -86,30 +86,6 @@ namespace UI
             }
         }
 
-        // private void OnEnable()
-        // {
-        //     //Listen for the player wanting to open the menu
-        //     Helpers.Input.OnCraftingMenuPressed += OpenCraftingUI;
-        //     
-        //     //Listen for UI interactions
-        //     Helpers.Input.OnCloseMenu += CloseCraftingUI;
-        //     Helpers.Input.OnCarouselLeft += OnLeftArrow;
-        //     Helpers.Input.OnCarouselRight += OnRightArrow;
-        //     if (_tooltip != null)
-        //         Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
-        // }
-        //
-        // private void OnDisable()
-        // {
-        //     Helpers.Input.OnCraftingMenuPressed -= OpenCraftingUI;
-        //     
-        //     Helpers.Input.OnCloseMenu -= CloseCraftingUI;
-        //     Helpers.Input.OnCarouselLeft -= OnLeftArrow;
-        //     Helpers.Input.OnCarouselRight -= OnRightArrow;
-        //     if (_tooltip != null)
-        //         Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
-        // }
-
         #endregion
 
         // ── Show / Hide ────────────────────────────────────────────────────
@@ -156,60 +132,6 @@ namespace UI
             }
         }
         
-        // private void OpenCraftingUI()
-        // {
-        //     if (_isOpen)
-        //         return;
-        //     
-        //     _isOpen = true;
-        //     _pendingRune = null;
-        //     _pendingRuneIndex = -1;
-        //
-        //     _craftingPanel.SetActive(true);
-        //     Time.timeScale = 0f;
-        //     AudioListener.pause = true;
-        //     
-        //     EventBus.Publish(new AudioPlayRequest
-        //     {
-        //         Event = Helpers.UIAudio.MenuOpen
-        //     });
-        //     
-        //     //Switch to Input Map
-        //     Helpers.Input.EnableUIInput();
-        //
-        //     foreach (var panel in _slotPanels)
-        //         panel.PopulateFromRunState();
-        //     
-        //     _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
-        //     ApplyCarouselLayout();
-        //     RefreshAll();
-        //     RefreshTabVisuals();
-        //     EventSystem.current.SetSelectedGameObject(null);
-        // }
-        //
-        // private void CloseCraftingUI()
-        // {
-        //     if (!_isOpen)
-        //         return;
-        //     
-        //     _isOpen = false;
-        //     _pendingRune = null;
-        //     _pendingRuneIndex = -1;
-        //
-        //     _tooltip?.Hide();
-        //     _craftingPanel.SetActive(false);
-        //     AudioListener.pause = false;
-        //     Time.timeScale = 1f;
-        //     
-        //     EventBus.Publish(new AudioPlayRequest
-        //     {
-        //         Event = Helpers.UIAudio.MenuClose
-        //     });
-        //     
-        //     //Switch to Player Map
-        //     Helpers.Input.EnablePlayerInput();
-        // }
-
         // ── Arrow navigation ─────────────────────────────────────────────────
 
         // Right arrow: the right back slot comes to center.
