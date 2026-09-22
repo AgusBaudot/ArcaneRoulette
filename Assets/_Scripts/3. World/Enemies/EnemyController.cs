@@ -59,6 +59,11 @@ namespace World
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
             
+            if (TryGetComponent<EnemyDeathVFX>(out var deathVfx))
+            {
+                _components.Add(deathVfx);
+            }
+            
             _aiBrain = GetComponent<AIBrain>();
             if (_aiBrain == null)
             {

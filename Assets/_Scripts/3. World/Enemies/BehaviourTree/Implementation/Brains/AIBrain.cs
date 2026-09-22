@@ -99,7 +99,20 @@ namespace World
                 _enemyHealth.OnDeath += HandleDeath;
         }
 
-        private void HandleDeath() => SetState(AIState.Death);
+        private void HandleDeath()
+        {
+            SetState(AIState.Death);
+
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = true;
+            }
+
+            foreach (var col in GetComponentsInChildren<Collider>())
+            {
+                col.enabled = false;
+            }
+        }
 
         /// <summary>
         /// Single source of truth for the player reference. Retries the tag
@@ -140,6 +153,11 @@ namespace World
             _wasInRange = false;
             _currentState = default;
 
+            foreach (var col in GetComponentsInChildren<Collider>())
+            {
+                col.enabled = true;
+            }
+
             if (_animator != null)
             {
                 _animator.Rebind();
@@ -155,6 +173,9 @@ namespace World
         
         public void Tick()
         {
+            if (IsState(AIState.Death))
+                return;
+            
             _tree?.Process();
         }
         protected abstract BehaviorTree BuildTree();

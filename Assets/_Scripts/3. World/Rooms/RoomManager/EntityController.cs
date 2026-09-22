@@ -155,7 +155,7 @@ namespace World
         private void OnEnemyDeath(EnemyController enemy)
         {
             _spawnedEnemies.Remove(enemy);
-            PoolEnemy.Instance.Release(enemy.Type, enemy);
+            // PoolEnemy.Instance.Release(enemy.Type, enemy);
             _enemiesAlive--;
 
             if (_enemiesAlive <= 0)

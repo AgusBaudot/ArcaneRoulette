@@ -118,7 +118,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 3d2270637c4329443bb52ea8b07f812b, type: 2}
+  - {fileID: 2100000, guid: 09c53bf96a156d84fa7a43fada39ae01, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -173,6 +173,7 @@ GameObject:
   - component: {fileID: 6724373750546845679}
   - component: {fileID: 2090762635409155138}
   - component: {fileID: 1350628635660100093}
+  - component: {fileID: 8261378931367594234}
   m_Layer: 7
   m_Name: FDD_Brute
   m_TagString: Untagged
@@ -450,6 +451,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9110d1d3fd6445a9a1f3459a5d90f750, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8261378931367594234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91e5d2161ee343168b48a6d64fa2480d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _renderers:
+  - {fileID: 632965395475527778}
+  _dissolveDuration: 2
 --- !u!1 &1623519948289090991
 GameObject:
   m_ObjectHideFlags: 0
