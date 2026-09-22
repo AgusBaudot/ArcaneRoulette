@@ -53,13 +53,10 @@ namespace World
                 
                 mat.DOKill();
                 
-                // 1. Instantly snap the start value to the feet
                 mat.SetFloat(SpawnProgressID, _minSpawnProgress);
 
-                // 2. Calculate the actual physical distance the wave needs to travel
                 float travelDistance = _maxSpawnProgress - _minSpawnProgress;
                 
-                // 3. Apply the toggle logic
                 float finalDuration = _scaleDurationToMaintainSpeed 
                     ? _baseSpawnDuration * (travelDistance / 1.5f) 
                     : _baseSpawnDuration;

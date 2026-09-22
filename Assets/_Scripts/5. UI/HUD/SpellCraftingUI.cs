@@ -110,6 +110,15 @@ namespace UI
             }
 
             _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
+
+            foreach (var panel in _slotPanels)
+            {
+                panel.VisualRoot.DOKill();
+                panel.VisualRoot.offsetMin = Vector2.zero;
+                panel.VisualRoot.offsetMax = Vector2.zero;
+                panel.VisualRoot.localScale = Vector3.one;
+            }
+            
             ApplyCarouselLayout();
             RefreshAll();
             RefreshTabVisuals();

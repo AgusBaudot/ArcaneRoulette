@@ -18,7 +18,7 @@ namespace World
         [SerializeField] private BoxCollider[] _enemySpawns;
         [SerializeField] private int _spawnAtSameTime;
         [SerializeField] private float _spawnDelay;
-        [SerializeField] private float _interWaveDelay = 1.0f; // FDD: "brief 1.0-second delay" between waves
+        [SerializeField] private float _interWaveDelay = 1.0f;
         [SerializeField] private GameObject _dangerImage;
         [SerializeField] private GameObject _effect;
         [SerializeField] private float _warningDuration;
@@ -110,7 +110,7 @@ namespace World
                     int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
                     Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
                     batchPositions.Add(spawn);
-                    GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0))); // the exact rotation as the camera
+                    GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0)));
                     batchIndicators.Add(indicator);
                 }
                 yield return CoroutineUtils.GetWait(_warningDuration);
@@ -136,7 +136,7 @@ namespace World
                     else
                     {
                         Debug.LogError($"[EntityController] Pool failed to spawn: {type}!");
-                        _enemiesAlive--; // CRITICAL: Decrement so the room can still clear!
+                        _enemiesAlive--;
                     }
 
                     if (batchIndicators[i] != null)
@@ -154,8 +154,8 @@ namespace World
         
         private void OnEnemyDeath(EnemyController enemy)
         {
+            //Released after death VFX is completed
             _spawnedEnemies.Remove(enemy);
-            // PoolEnemy.Instance.Release(enemy.Type, enemy);
             _enemiesAlive--;
 
             if (_enemiesAlive <= 0)
