@@ -59,7 +59,7 @@ namespace World
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
             
-            if (TryGetComponent<EnemyDeathVFX>(out var deathVfx))
+            if (TryGetComponent<EnemyVFXController>(out var deathVfx))
             {
                 _components.Add(deathVfx);
             }

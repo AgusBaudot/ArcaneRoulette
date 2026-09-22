@@ -52,7 +52,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 09c53bf96a156d84fa7a43fada39ae01, type: 2}
+  - {fileID: 2100000, guid: 4b128df79c12c9b40ac5ca86536b210f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 7981e0ecb8dfb6140935eee80b392256, type: 3}
+  m_Sprite: {fileID: 1989584654, guid: 4799fabc14b19594fb786dace4034b8a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -475,7 +475,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderers:
   - {fileID: 632965395475527778}
-  _dissolveDuration: 2
+  _spawnMaterial: {fileID: 2100000, guid: 4b128df79c12c9b40ac5ca86536b210f, type: 2}
+  _baseGameplayMaterial: {fileID: 2100000, guid: 09c53bf96a156d84fa7a43fada39ae01,
+    type: 2}
+  _baseSpawnDuration: 3
+  _deathDuration: 1.2
+  _scaleDurationToMaintainSpeed: 1
+  _minSpawnProgress: 0
+  _maxSpawnProgress: 1.5
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0
