@@ -171,9 +171,9 @@ GameObject:
   - component: {fileID: 4269105089531905328}
   - component: {fileID: 3450630076417084078}
   - component: {fileID: 6724373750546845679}
-  - component: {fileID: 2090762635409155138}
   - component: {fileID: 1350628635660100093}
   - component: {fileID: 8261378931367594234}
+  - component: {fileID: 7615716944919139056}
   m_Layer: 7
   m_Name: FDD_Brute
   m_TagString: Untagged
@@ -288,7 +288,7 @@ Animator:
   m_GameObject: {fileID: 1326220217148487278}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 966c6c4ce1ca11640bc4ef75d2a82bca, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -425,20 +425,6 @@ MonoBehaviour:
   _earthElement: {fileID: 21300000, guid: a75743d754fd072458362711a4753cc7, type: 3}
   _waterElement: {fileID: 21300000, guid: 3e78a8bf7f3f8b8459371e8792b783f1, type: 3}
   _thunderElement: {fileID: 21300000, guid: 6d79afad7cde55742950264bc16c4d99, type: 3}
---- !u!114 &2090762635409155138
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326220217148487278}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89b84b06a6454b5a84ca96fc2ac4606b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _brain: {fileID: 3450630076417084078}
-  _sprite: {fileID: 632965395475527778}
 --- !u!114 &1350628635660100093
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -468,8 +454,24 @@ MonoBehaviour:
   _spawnMaterial: {fileID: 2100000, guid: 4b128df79c12c9b40ac5ca86536b210f, type: 2}
   _baseGameplayMaterial: {fileID: 2100000, guid: 09c53bf96a156d84fa7a43fada39ae01,
     type: 2}
-  _spawnDuration: 3
+  _baseSpawnDuration: 3
   _deathDuration: 1
+  _scaleDurationToMaintainSpeed: 1
+  _minSpawnProgress: 0
+  _maxSpawnProgress: 1.5
+--- !u!114 &7615716944919139056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34fc275673054a3d92fe8e5c80439b0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _renderer: {fileID: 632965395475527778}
 --- !u!1 &1623519948289090991
 GameObject:
   m_ObjectHideFlags: 0
