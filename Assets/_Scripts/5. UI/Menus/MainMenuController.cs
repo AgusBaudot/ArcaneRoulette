@@ -1,12 +1,24 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Foundation;
+using UnityEngine;
 
 namespace UI
 {
     public class MainMenuController : MonoBehaviour
     {
-        [SerializeField] private GameObject _settingsPanel;
+        [SerializeField] private AudioEventSO _menuMusic;
+        [SerializeField] private BaseUIPanel _settingsPanel;
+
+        private void Start()
+        {
+            if (_menuMusic != null)
+            {
+                EventBus.Publish(new AudioCrossfadeRequest
+                {
+                    NewTrack = _menuMusic,
+                    Duration = 2f
+                });
+            }
+        }
         
         private void OnEnable()
         {
@@ -24,13 +36,19 @@ namespace UI
             EventBus.Unsubscribe<OnSettingsUIClosedEvent>(OnSettingsClosed);
         }
 
-        private void OnPlay(OnPlayClickedEvent _) => SceneManager.LoadScene(1);
+        private void OnPlay(OnPlayClickedEvent _)
+        { 
+            //TODO(save system): once run persistence exists, check for a saved
+            //in-progress run here and resume it instead of always starting fresh.
+            
+            EventBus.Publish(new StartRunRequestEvent(SceneNames.Lobby));
+        }
 
         private void OnSettings(OnSettingsClickedEvent _)
-            => _settingsPanel.SetActive(!_settingsPanel.activeSelf);
+            => _settingsPanel.Show();
         
         private void OnSettingsClosed(OnSettingsUIClosedEvent _)
-            => _settingsPanel.SetActive(false);
+            => _settingsPanel.Hide();
         
         private void OnExit(OnExitClickedEvent _) => Application.Quit();
     }

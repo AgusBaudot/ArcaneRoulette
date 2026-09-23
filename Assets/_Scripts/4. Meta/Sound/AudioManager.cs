@@ -70,23 +70,24 @@ namespace Meta
         //Per-event cooldown tracking (uses unscaled time)
         private readonly Dictionary<AudioEventSO, float> _lastPlayTime = new();
         
+        //Per-event clip index tracking
+        private readonly Dictionary<AudioEventSO, int> _lastPlayedClipIndex = new();
+        
         // ── Music Crossfade State ──────────────────────────────────────────────
         private AudioEmitter _musicSlotA;
         private AudioEmitter _musicSlotB;
         private bool _musicSlotAActive; //which slot is currently "main"
         private Coroutine _crossfadeRoutine;
+        private AudioEventSO _currentBgmTrack;
         
         // ── Duck State ─────────────────────────────────────────────────────────
         //Tracks the deepest active duck per bus so concurrent requests don't fight.
         private readonly Dictionary<MixerBus, float> _activeDuckDepths = new();
         private readonly Dictionary<MixerBus, Coroutine> _duckCoroutines = new();
         
-        // ── PlayerPrefs Keys ───────────────────────────────────────────────────
-        private const string PrefMaster = "Audio_Master";
-        private const string PrefMusic = "Audio_Music";
-        private const string PrefSFX = "Audio_SFX";
-        private const string PrefUI = "Audio_UI";
-        private const string PrefAmbience = "Audio_Ambience";
+        // ── Save Load System ───────────────────────────────────────────────────
+        private ISettingsSave _saveSystem;
+        private SettingsSaveData _currentSettings;
 
         #endregion
 
@@ -108,6 +109,10 @@ namespace Meta
 
         private void Start()
         {
+            //Initialize the save system here.
+            //Later on, Bootstrapper can inject this.
+            _saveSystem = new SaveLoadSystem();
+            
             LoadVolumePrefs();
         }
 
@@ -116,9 +121,10 @@ namespace Meta
             EventBus.Subscribe<AudioPlayRequest>(OnPlayRequest);
             EventBus.Subscribe<AudioPlayTrackedRequest>(OnPlayTrackedRequest);
             EventBus.Subscribe<AudioStopRequest>(OnStopRequest);
-            EventBus.Subscribe<AudioCrossfadeRequest>(OnCrosssfadeRequest);
+            EventBus.Subscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Subscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Subscribe<AudioModulateRequest>(OnModulateRequest);
+            EventBus.Subscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
         }
 
         private void OnDisable()
@@ -126,9 +132,10 @@ namespace Meta
             EventBus.Unsubscribe<AudioPlayRequest>(OnPlayRequest);
             EventBus.Unsubscribe<AudioPlayTrackedRequest>(OnPlayTrackedRequest);
             EventBus.Unsubscribe<AudioStopRequest>(OnStopRequest);
-            EventBus.Unsubscribe<AudioCrossfadeRequest>(OnCrosssfadeRequest);
+            EventBus.Unsubscribe<AudioCrossfadeRequest>(OnCrossfadeRequest);
             EventBus.Unsubscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Unsubscribe<AudioModulateRequest>(OnModulateRequest);
+            EventBus.Unsubscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
         }
 
         private void OnDestroy()
@@ -164,7 +171,7 @@ namespace Meta
             if (req.Handle == null || !req.Handle.IsValid)
                 return;
 
-            var emitter = req.Handle.Emitter as AudioEmitter;
+            var emitter = req.Handle.Emitter;
             if (emitter == null)
                 return;
             
@@ -174,8 +181,13 @@ namespace Meta
                 emitter.StopImmediate();
         }
 
-        private void OnCrosssfadeRequest(AudioCrossfadeRequest req)
+        private void OnCrossfadeRequest(AudioCrossfadeRequest req)
         {
+            if (_currentBgmTrack == req.NewTrack)
+                return;
+
+            _currentBgmTrack = req.NewTrack;
+            
             if (_crossfadeRoutine != null)
                 StopCoroutine(_crossfadeRoutine);
 
@@ -205,7 +217,7 @@ namespace Meta
             if (req.Handle == null || !req.Handle.IsValid)
                 return;
 
-            var emitter = req.Handle.Emitter as AudioEmitter;
+            var emitter = req.Handle.Emitter;
             if (emitter == null)
                 return;
             
@@ -213,7 +225,25 @@ namespace Meta
                 emitter.SetPitch(req.Pitch.Value);
             
             if (req.Volume.HasValue)
-                emitter.SetPitch(req.Volume.Value);
+                emitter.SetVolume(req.Volume.Value);
+        }
+
+        private void OnVolumeChanged(AudioVolumeChangedEvent evt)
+        {
+            string param = GetVolumeParam(evt.Bus);
+            SetMixerVolume(param, evt.Volume);
+            
+            if (_currentSettings != null)
+            {
+                switch (evt.Bus)
+                {
+                    case MixerBus.Master: _currentSettings.MasterVolume = evt.Volume; break;
+                    case MixerBus.Music: _currentSettings.MusicVolume = evt.Volume; break;
+                    case MixerBus.SFX: _currentSettings.SFXVolume = evt.Volume; break;
+                    case MixerBus.UI: _currentSettings.UIVolume = evt.Volume; break;
+                    case MixerBus.Ambience: _currentSettings.AmbienceVolume = evt.Volume; break;
+                }
+            }
         }
 
         #endregion
@@ -273,11 +303,40 @@ namespace Meta
             emitter.gameObject.SetActive(true);
             emitter.Init(
                 audioEvent,
+                GetNextClip(audioEvent),
                 GetMixerGroup(audioEvent.Bus),
                 worldPos,
                 handle,
                 onNaturalEnd: e => ReturnToPool(audioEvent, e)
             );
+        }
+        
+        /// <summary>
+        /// Resolves the next clip to play, guaranteeing no consecutive repeats 
+        /// if multiple clips are available.
+        /// </summary>
+        private AudioClip GetNextClip(AudioEventSO audioEvent)
+        {
+            if (audioEvent.Clips == null || audioEvent.Clips.Length == 0)
+            {
+                Debug.LogWarning($"[AudioManager] AudioEvent '{audioEvent.name}' has no clips assigned.");
+                return null;
+            }
+
+            if (audioEvent.Clips.Length == 1)
+                return audioEvent.Clips[0];
+
+            int lastIndex = _lastPlayedClipIndex.GetValueOrDefault(audioEvent, -1);
+            int newIndex;
+
+            do
+            {
+                newIndex = Random.Range(0, audioEvent.Clips.Length);
+            } 
+            while (newIndex == lastIndex);
+
+            _lastPlayedClipIndex[audioEvent] = newIndex;
+            return audioEvent.Clips[newIndex];
         }
 
         #endregion
@@ -309,7 +368,7 @@ namespace Meta
                     _musicSlotA = nextEmitter;
 
                 nextEmitter.gameObject.SetActive(true);
-                nextEmitter.Init(newTrack, GetMixerGroup(MixerBus.Music), Vector3.zero, null,
+                nextEmitter.Init(newTrack, GetNextClip(newTrack), GetMixerGroup(MixerBus.Music), Vector3.zero, null,
                     onNaturalEnd: e => ReturnToPool(newTrack, e));
                 
                 //Immediately set to 0 volume; we'll fade it in.
@@ -389,49 +448,6 @@ namespace Meta
 
         #endregion
 
-        #region Volume Settings (called from Settings UI)
-
-        /// <summary>
-        /// Set the volume for a bus. normalizedVolume is 0-1.
-        /// Persists to PlayerPrefs. Call from the setting UI sliders.
-        /// </summary>
-        public void SetBusVolume(MixerBus bus, float normalizedVolume)
-        {
-            string param = GetVolumeParam(bus);
-            string pref = GetPrefKey(bus);
-            SetMixerVolume(param, normalizedVolume);
-            PlayerPrefs.SetFloat(pref, normalizedVolume);
-            PlayerPrefs.Save();
-        }
-
-        /// <summary>
-        /// Returns the current normalised volume (0-1) for a bus.
-        /// </summary>
-        public float GetBusVolume(MixerBus bus)
-            => PlayerPrefs.GetFloat(GetPrefKey(bus), 1f);
-
-        private void LoadVolumePrefs()
-        {
-            SetMixerVolume(_masterVolumeParam, PlayerPrefs.GetFloat(PrefMaster, 1f));
-            SetMixerVolume(_musicVolumeParam, PlayerPrefs.GetFloat(PrefMusic, 1f));
-            SetMixerVolume(_sfxVolumeParam, PlayerPrefs.GetFloat(PrefSFX, 1f));
-            SetMixerVolume(_uiVolumeParam, PlayerPrefs.GetFloat(PrefUI, 1f));
-            SetMixerVolume(_ambienceVolumeParam, PlayerPrefs.GetFloat(PrefAmbience, 1f));
-        }
-        
-        //AudioMixer uses decibels; we expose normalized 0-1 to the UI and convert here.
-        //0 volume -> -80 dB (effectively silent). 1 -> 0 dB (full).
-        private void SetMixerVolume(string paramName, float normalized)
-        {
-            if (_masterMixer == null)
-                return;
-            
-            float db = normalized > 0.0001f ? 20f * Mathf.Log10(normalized) : -80f;
-            _masterMixer.SetFloat(paramName, db);
-        }
-
-        #endregion
-
         #region Pool Management
 
         private void BuildPool()
@@ -502,16 +518,28 @@ namespace Meta
                 MixerBus.Ambience => _ambienceVolumeParam,
                 _ => _masterVolumeParam
             };
-
-        private static string GetPrefKey(MixerBus bus)
-            => bus switch
-            {
-                MixerBus.Music => PrefMusic,
-                MixerBus.SFX => PrefSFX,
-                MixerBus.UI => PrefUI,
-                MixerBus.Ambience => PrefAmbience,
-                _ => PrefMaster
-            };
+        
+        private void LoadVolumePrefs()
+        {
+            _currentSettings = _saveSystem.LoadSettings();
+            
+            SetMixerVolume(_masterVolumeParam, _currentSettings.MasterVolume);
+            SetMixerVolume(_musicVolumeParam, _currentSettings.MusicVolume);
+            SetMixerVolume(_sfxVolumeParam, _currentSettings.SFXVolume);
+            SetMixerVolume(_uiVolumeParam, _currentSettings.UIVolume);
+            SetMixerVolume(_ambienceVolumeParam, _currentSettings.AmbienceVolume);
+        }
+        
+        //AudioMixer uses decibels; we expose normalized 0-1 to the UI and convert here.
+        //0 volume -> -80 dB (effectively silent). 1 -> 0 dB (full).
+        private void SetMixerVolume(string paramName, float normalized)
+        {
+            if (_masterMixer == null)
+                return;
+            
+            float db = normalized > 0.0001f ? 20f * Mathf.Log10(normalized) : -80f;
+            _masterMixer.SetFloat(paramName, db);
+        }
 
         #endregion
     }

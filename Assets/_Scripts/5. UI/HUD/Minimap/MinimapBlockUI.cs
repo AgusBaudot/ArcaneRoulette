@@ -35,7 +35,10 @@ namespace UI
             _currentData = data;
             _currentStyle = style;
 
-            if (_iconImage != null && style.Icon != null)
+            if (_iconImage == null)
+                return;
+
+            if (style.Icon != null)
             {
                 _iconImage.sprite = style.Icon;
                 _iconImage.enabled = true;

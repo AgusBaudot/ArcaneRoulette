@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Foundation;
+using UnityEngine;
 
 namespace Core
 {
@@ -82,10 +81,12 @@ namespace Core
             
             // 7. Construct - IsHoldAbility on the rune decides the class.
             result = recipe.Ability.IsHoldAbility ? new HoldSpellInstance(recipe) : new SpellInstance(recipe);
+
+            float savedProgress = RunState.RetrieveSlotProgress(slot);
+            result.ApplyProgress(savedProgress);
             
             // 8. Bind into the slot and notify PlayerController via bus.
             _attunement.Bind(slot, result);
-            EventBus.Publish(new SpellCraftedEvent(slot, result));
             
             return true;
         }
@@ -96,6 +97,8 @@ namespace Core
             var current = RunState.GetSlot(slot) as SpellInstance;
             if (current == null)
                 return;
+
+            RunState.SaveSlotProgress(slot, current.DisplayProgress);
             
             current.Cleanup();
             
@@ -115,9 +118,6 @@ namespace Core
             //not once per unique rune, to mirror how AllocateRune counted them.
             foreach (var mod in recipe.Modifiers)
                 Free(mod);
-
-            if (current.Recipe.Ability is ShieldAbilityRune shieldRune)
-                shieldRune.CleanupInstance(current);
 
             _attunement.Bind(slot, null);
             EventBus.Publish(new SpellDismantledEvent(slot));

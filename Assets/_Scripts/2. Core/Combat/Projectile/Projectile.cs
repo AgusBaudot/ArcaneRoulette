@@ -23,7 +23,6 @@ namespace Core
         private bool _excludeBounceCastRuneForOnHitContext;
         private ElementType _cachedElement;
 
-        // Enemies hit this flight — prevents re-triggering while passing through
         private readonly HashSet<GameObject> _hitTargets = new();
 
         private readonly Dictionary<TrailRenderer, float> _baseTrailWidths = new();
@@ -31,6 +30,10 @@ namespace Core
         private readonly Dictionary<ParticleSystem, Vector3> _baseParticleSizes = new();
         private SphereCollider _collider;
         private float _baseColliderRadius;
+
+        private AudioEventSO[] _pierceSounds;
+        private int[] _pierceHitStops;
+        private int _piercesDone;
 
         protected override void Awake()
         {
@@ -88,6 +91,7 @@ namespace Core
             BounceCount = 0;
             _pierceCount = 0;
             _hitTargets.Clear();
+            _piercesDone = 0;
 
             UpdateActiveVisual(SpellElement);
 
@@ -122,30 +126,24 @@ namespace Core
             {
                 if (ev.Reference == null) continue;
 
-                // 1. Scale the container transform
                 if (_baseVisualScales.TryGetValue(ev.Reference, out Vector3 baseScale))
                 {
                     ev.Reference.transform.localScale = baseScale * sizeMultiplier;
                 }
 
-                // 2. Safely scale particles WITHOUT double-scaling
                 foreach (var ps in ev.Reference.GetComponentsInChildren<ParticleSystem>(true))
                 {
                     var main = ps.main;
 
-                    // Check if the Transform scaling we just did ALREADY scaled this particle system.
-                    // Hierarchy always scales with parents. Local only scales if the PS is directly on the scaled object.
                     bool isAlreadyScaling = main.scalingMode == ParticleSystemScalingMode.Hierarchy ||
                                             (main.scalingMode == ParticleSystemScalingMode.Local &&
                                              ps.gameObject == ev.Reference);
 
                     if (isAlreadyScaling)
                     {
-                        // The Transform scale handled it! Do NOT touch startSize, or it will double-scale.
                         continue;
                     }
 
-                    // If we are here, the PS ignored the Transform scale. We must scale it manually.
                     if (_baseParticleSizes.TryGetValue(ps, out Vector3 baseSize3D))
                     {
                         if (main.startSize3D)
@@ -156,13 +154,11 @@ namespace Core
                         }
                         else
                         {
-                            // Fall back to uniform scaling if the 3D checkbox is not ticked
                             main.startSizeMultiplier = baseSize3D.x * sizeMultiplier;
                         }
                     }
                 }
 
-                // 3. Trails ALWAYS ignore Transforms, so they ALWAYS need manual scaling
                 foreach (var trail in ev.Reference.GetComponentsInChildren<TrailRenderer>(true))
                 {
                     if (_baseTrailWidths.TryGetValue(trail, out float baseWidth))
@@ -173,28 +169,47 @@ namespace Core
             }
         }
 
+        public void SetPierceFeedback(AudioEventSO[] sounds, int[] hitStops)
+        {
+            _pierceSounds = sounds;
+            _pierceHitStops = hitStops;
+        }
+
         public void SetPierceCount(int count) => _pierceCount = count;
         public void SetBounceCount(int count) => BounceCount = count;
 
         protected override void OnHitDamageable(Collider other)
         {
-            // Resolve to the actual damageable owner so OnHit runes always receive a valid HitTarget.
             var damageable = other.GetComponentInParent<IDamageable>(true)
                              ?? other.GetComponent<IDamageable>();
 
             if (damageable == null)
                 return;
 
-            // Unity-friendly: IDamageable is an interface, so derive GameObject via Component.
             var damageableGo = (damageable as Component)?.gameObject ?? other.gameObject;
 
-            // Already hit this target this flight — ignore
             if (!_hitTargets.Add(damageableGo)) return;
 
             var batch = new DamageBatch();
             batch.Deal(damageable, damageableGo, _baseDamage, _source.SpellElement);
-            batch.Commit(Helpers.Combat.NormalDMG);
 
+            DamageJuice juice = Helpers.Combat.NormalDMG;
+            juice.ImpactPosition = transform.position;
+
+            if (_pierceSounds != null && _pierceSounds.Length > 0)
+            {
+                int audioIndex = Mathf.Min(_piercesDone, _pierceSounds.Length - 1);
+                if (_pierceSounds[audioIndex] != null)
+                    juice.ImpactSound = _pierceSounds[audioIndex];
+            }
+
+            if (_pierceHitStops != null && _pierceHitStops.Length > 0)
+            {
+                int hitStopIndex = Mathf.Min(_piercesDone, _pierceHitStops.Length - 1);
+                juice.HitStopFrames = _pierceHitStops[hitStopIndex];
+            }
+
+            batch.Commit(juice);
 
             _source?.TriggerOnHit(
                 transform.position,
@@ -211,11 +226,18 @@ namespace Core
             }
 
             _pierceCount--;
-            // Projectile continues — _hitTargets prevents re-hitting this enemy
+            _piercesDone++;
         }
 
         protected override void OnHitWall(Collider other)
         {
+            var destructible = other.GetComponentInParent<IDestructible>();
+
+            if (destructible != null && destructible.IsDestroyed)
+            {
+                return;
+            }
+            
             _source?.TriggerOnHit(
                 transform.position,
                 other.gameObject,
@@ -223,6 +245,8 @@ namespace Core
                 _abilityTypeForOnHit,
                 _excludeBounceCastRuneForOnHitContext,
                 Rb.velocity.normalized);
+
+            destructible?.OnDeath(transform.position);
 
             if (!TryBounce())
             {
@@ -236,7 +260,6 @@ namespace Core
 
             ApplyVisualScale(1f);
 
-            //Prevent memory leaks
             _source = null;
             _runner = null;
             _hitTargets.Clear();

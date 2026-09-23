@@ -6,25 +6,12 @@ namespace UI
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class GameOverUI : MonoBehaviour
     {
-        private void OnEnable()
-        {
-            EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDied);
-        }
-
-        private void OnDisable()
-        {
-            EventBus.Unsubscribe<PlayerDiedEvent>(OnPlayerDied);
-        }
-
-        private void OnPlayerDied(PlayerDiedEvent _)
-        {
-            Time.timeScale = 1f;
-            AudioListener.pause = false;
-            
-            Helpers.Input.EnablePlayerInput();
-
-            EventBus.Publish(new EndRunRequestEvent("MainMenu"));
-        }
+        // Not wired to PlayerDiedEvent right now — SceneController.HandlePlayerDeath
+        // already owns death → delay → fade → EndRunRequestEvent. This class used to
+        // subscribe too and fired instantly, winning the race and killing
+        // SceneController's fade before it could play. Build against the sketch below
+        // once this becomes the real results screen.
+        
     //     [SerializeField] private float _delayBeforeUI = 2.0f; // Let the death animation play
     //     [SerializeField] private AudioEventSO _gameOverStinger;
     //     

@@ -113,9 +113,10 @@ namespace World
                 room.gameObject.SetActive(true);
                 SetupRoomEncounter(room);
                 room.EnableRoom();
-                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
+                // _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
             }
         }
+        
         public void TeleportPlayer(EdgeDirection dir, int currentIndexRoom)
         {
             int playerDirection = 0;
@@ -142,7 +143,7 @@ namespace World
                 _currentRoom = room;
                 _currentRoom.gameObject.SetActive(true);
 
-                _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
+                // _player.TeleportTo(room.GetRoomConnections.GetPlayerSpawn(dir));
 
                 SetupRoomEncounter(room);
                 _currentRoom.EnableRoom();

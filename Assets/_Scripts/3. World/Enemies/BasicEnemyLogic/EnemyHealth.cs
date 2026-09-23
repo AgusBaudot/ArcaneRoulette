@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 namespace World
 {
+    [RequireComponent(typeof(DamageFlash))]
     public class EnemyHealth : MonoBehaviour, IEnemyComponent, IDamageable, IElemental, IDebuffReceiver, IHealable
     {
         [Header("Stats")]
-        [SerializeField] private float _maxHp; // Switched to float for clean UI division
+        [SerializeField] private float _maxHp; 
         [SerializeField] private float _currentHp;
         [SerializeField] private bool _isDead;
-        //private BlackboardKey isDead;
         private ElementType _element;
 
         [Header("HP Bar UI (Optional)")]
@@ -22,36 +22,32 @@ namespace World
         public event Action OnDeath;
         public float CurrentHp => _currentHp;
         public float MaxHp => _maxHp;
+        public float DamageMitigationMultiplier { get; set; } = 1.0f;
 
         private IDebuffReadable _debuffs;
-        private Blackboard _blackboard;
-        private DamageFlash _flashComponent;
 
         public ElementType Element => _element;
-
-        private void Awake()
-        {
-            _flashComponent = GetComponent<DamageFlash>();
-        }
+        
         public void Tick()
         {
-            if (_ghostFill == null || _hpFill == null) return;
-
-            // Ghost bar trails the real bar
-            _ghostFill.fillAmount = Mathf.Lerp(_ghostFill.fillAmount, _hpFill.fillAmount, _ghostSpeed);
+            if (_ghostFill == null || _hpFill == null)
+                return;
+            
+            _ghostFill.fillAmount = Mathf.Lerp(_ghostFill.fillAmount, _hpFill.fillAmount, _ghostSpeed * Time.deltaTime);
         }
+
         public bool TakeDamage(int amount, ElementType elementType)
         {
-            _currentHp = Mathf.Max(0f, _currentHp - amount);
+            float finalDamage = amount * DamageMitigationMultiplier;
+            _currentHp = Mathf.Max(0f, _currentHp - finalDamage);
             UpdateUI();
-
-            _flashComponent.Flash();
 
             if (_currentHp <= 0f)
                 Die();
 
             return true;
         }
+
         public void Heal(float amount)
         {
             if (_currentHp <= 0f)
@@ -64,38 +60,52 @@ namespace World
             _currentHp = Mathf.Min(_maxHp, _currentHp + finalHealth);
             UpdateUI();
         }
+
         private void UpdateUI()
         {
             if (_hpFill != null)
                 _hpFill.fillAmount = _currentHp / _maxHp;
         }
+
         private void Die()
         {
             if (_isDead)
                 return;
 
             _isDead = true;
-
             OnDeath?.Invoke();
         }
+
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
             _element = stats.ElementType;
-            _blackboard = blackboard;
-            //isDead = _blackboard.GetOrRegisterKey("isDead");
             ResetComponent();
         }
+
         public void ResetComponent()
         {
-            //_blackboard.SetValue(isDead, false);
             _isDead = false;
             _currentHp = _maxHp;
+            DamageMitigationMultiplier = 1.0f;
             UpdateUI();
+            
+            // Snap the ghost bar full on spawn so it doesn't animate from 0
+            if (_ghostFill != null) 
+            {
+                _ghostFill.fillAmount = 1f;
+            }
         }
 
         //IDebuffReceiver Implementation------------------------
-        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
-        public void UnregisterDebuff() => _debuffs = null;
+        public void RegisterDebuff(IDebuffReadable debuff)
+        {
+            _debuffs = debuff;
+        }
+
+        public void UnregisterDebuff()
+        {
+            _debuffs = null;
+        }
     }
 }

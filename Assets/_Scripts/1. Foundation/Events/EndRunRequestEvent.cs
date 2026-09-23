@@ -1,8 +1,10 @@
+using Foundation;
+
 public struct EndRunRequestEvent
 {
-    public string DestinationScene;
+    public readonly string DestinationScene;
 
-    public EndRunRequestEvent(string destinationScene = "MainMenu")
+    public EndRunRequestEvent(string destinationScene = SceneNames.MainMenu)
     {
         DestinationScene = destinationScene;
     }

@@ -7,20 +7,19 @@ using UnityEngine;
 
 namespace World
 {
-    public sealed class ThornTrap : MonoBehaviour , IHazard
+    public sealed class ThornTrap : MonoBehaviour, IHazard
     {
-        [Header("Stats")]
-        [SerializeField] private int _damage = 15;
+        [Header("Stats")] [SerializeField] private int _damage = 15;
         [SerializeField] private float _windupDuration = 0.5f;
         [SerializeField] private float _spikeDisplayDuration = 0.3f;
         [SerializeField] private float _cooldownDuration = 2f;
         [SerializeField] private Vector3 _boxSize;
 
-        [Header("Animation")]
-        [SerializeField] private Animator _anim;
+        [Header("Animation")] [SerializeField] private Animator _anim;
 
         private bool _isActive = true;
         private bool _isIdle = true;
+        private Coroutine _activeRoutine;
 
         private readonly int _activateHash = Animator.StringToHash("Activate_Up");
         private readonly int _cooldownHash = Animator.StringToHash("Activate_Cooldown");
@@ -31,39 +30,33 @@ namespace World
             if (!_isActive)
                 return;
 
-            if (!_isIdle) return;
+            if (!_isIdle)
+                return;
 
-            // Only players and enemies (IDamageable entities) activate the trap.
-            // Projectiles and other objects are ignored.
-            if (other.GetComponentInParent<IDamageable>() == null && other.GetComponentInParent<PlayerController>() == null)
-                    return;
+            if (other.GetComponentInParent<IDamageable>() == null &&
+                other.GetComponentInParent<PlayerController>() == null)
+                return;
 
             _isIdle = false;
-            StartCoroutine(TrapRoutine());
+            _activeRoutine = StartCoroutine(TrapRoutine());
         }
 
         private IEnumerator TrapRoutine()
         {
-            // Windup — spikes partially emerge, telegraphs the hit
             yield return CoroutineUtils.GetWait(_windupDuration);
 
-            // Spikes fully emerge — damage fires exactly here, one OverlapSphere
-            //if (_spikesVisual != null) 
-            //    _spikesVisual.SetActive(true);
             _anim.SetTrigger(_activateHash);
-            
+
             ApplyDamage();
 
-            // Spikes stay visible briefly for readability, then retract
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
             _anim.SetTrigger(_cooldownHash);
-            //if (_spikesVisual != null) _spikesVisual.SetActive(false);
 
-            // Cooldown before trap can activate again
             yield return CoroutineUtils.GetWait(_cooldownDuration);
             _anim.SetTrigger(_idleHash);
 
             _isIdle = true;
+            _activeRoutine = null;
         }
 
         private void ApplyDamage()
@@ -72,38 +65,51 @@ namespace World
             var processed = new HashSet<IDamageable>();
 
             var batch = new DamageBatch();
+            bool hitPlayer = false;
 
             foreach (var hit in hits)
             {
                 var damageable = hit.GetComponentInParent<IDamageable>()
                                  ?? hit.GetComponent<IDamageable>();
-                if (damageable == null) continue;
-                if (!processed.Add(damageable)) continue; // dedup multi-collider enemies
+                
+                if (damageable == null) 
+                    continue;
+                
+                if (!processed.Add(damageable)) 
+                    continue;
 
                 var go = (damageable as Component)?.gameObject;
                 var player = go?.GetComponentInParent<PlayerController>();
 
                 if (player != null)
                 {
-                    // Dashing — hurtbox is off, skip entirely. No interaction.
-                    if (!player.Hurtbox.activeSelf) continue;
+                    if (!player.Hurtbox.activeSelf) 
+                        continue;
 
-                    // Shielding — trap triggers, shield is destroyed, no damage.
                     if (player.IsShielding)
                     {
                         player.ForceDestroyActiveShield();
                         continue;
                     }
+
+                    hitPlayer = true;
                 }
-                
+
                 batch.Deal(damageable, go, _damage, ElementType.Neutral);
             }
-            
-            batch.Commit(Helpers.Combat.BigDMG);
+
+            batch.Commit(hitPlayer ? Helpers.Combat.PlayerDamage : Helpers.Combat.BigDMG);
         }
 
         public void Disable()
         {
+            if (_activeRoutine != null)
+            {
+                StopCoroutine(_activeRoutine);
+                _activeRoutine = null;
+            }
+
+            _anim.SetTrigger(_cooldownHash);
             _isActive = false;
         }
 

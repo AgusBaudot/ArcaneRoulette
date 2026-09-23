@@ -5,10 +5,13 @@ using Foundation;
 
 namespace Core
 {
-    public class PlayerHealth : MonoBehaviour, IUpdatable
+    public class PlayerHealth : MonoBehaviour, IUpdatable, IHealable
     {
+        //IHealable
+        public float CurrentHp => GameStateManager.RunState.CurrentHp;
+        public float MaxHp => GameStateManager.RunState.MaxHp;
+        
         public event Action OnDeath;
-        public float Current => GameStateManager.RunState.CurrentHp;
         public bool IsInvincible => _iFrameTimer > 0f;
         
         //IUpdatable
@@ -52,27 +55,27 @@ namespace Core
                 Event = Helpers.PlayerAudio.TakeDamage
             });
 
-            float newHp = Current - amount;
+            float newHp = CurrentHp - amount;
             GameStateManager.RunState.SetHp(newHp);
             _iFrameTimer = _stats.IFrameDuration;
 
             StopAllCoroutines();
             StartCoroutine(IFrameFlash());
             
-            if (Current <= 0f)
+            if (CurrentHp <= 0f)
                 Die();
 
             return true;
         }
 
-        public void Heal(int amount)
+        public void Heal(float amount)
         {
             EventBus.Publish(new AudioPlayRequest
             {
                 Event = Helpers.PlayerAudio.Heal
             });
             
-            GameStateManager.RunState.SetHp(Current + amount);
+            GameStateManager.RunState.SetHp(CurrentHp + amount);
         }
         
         private IEnumerator IFrameFlash()

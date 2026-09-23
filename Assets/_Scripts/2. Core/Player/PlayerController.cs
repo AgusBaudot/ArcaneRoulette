@@ -6,14 +6,51 @@ namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PlayerHealth))]
-    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable
+    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable, IDebuffReceiver, IStatResolver, IOcclusionTarget
     {
         #region Properties
 
-        public PlayerStats Stats => _playerStats;
         public Rigidbody Rigidbody => _rb;
         public PlayerHealth Health => _health;
         public GameObject Hurtbox => _hurtBox;
+        public Vector3 OcclusionPosition => transform.position;
+        
+        public float AttackDamage
+        {
+            get
+            {
+                float finalDamage = Helpers.PlayerStats.BaseDamage;
+            
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.ATK))
+                {
+                    finalDamage *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.ATK));
+                }
+
+                // Future: Apply Artifact Modifiers here
+                // finalDamage *= MetaProgression.GetArtifactMultiplier(StatType.AttackDamage);
+
+                return finalDamage;
+            }
+        }
+
+        public float MoveSpeed
+        {
+            get
+            {
+                float finalSpeed = Helpers.PlayerStats.BaseSpeed;
+
+                if (_debuffs != null && _debuffs.IsDebuffed(DebuffType.Speed))
+                {
+                    finalSpeed *= Mathf.Max(0f, 1f - _debuffs.GetDebuffStrength(DebuffType.Speed));
+                }
+
+                return finalSpeed;
+            }
+        }
+
+        public Vector3 LogicalVelocity =>
+            new Vector3(_input.x, 0f, _input.y).normalized * MoveSpeed;
+        
         //True when a HoldSpellInstance with an active ShieldState is the last-pressed hold.
         public bool IsShielding
         {
@@ -50,6 +87,7 @@ namespace Core
         public Rigidbody Rb => _rb;
         private PlayerHealth _health;
         private PlayerStats _playerStats;
+        private IDebuffReadable _debuffs;
 
         private Vector2 _input;
         private Vector3 _velocity;
@@ -65,6 +103,8 @@ namespace Core
 
         private void Awake()
         {
+            _debuffs = GetComponent<IDebuffReadable>();
+            
             _rb = GetComponent<Rigidbody>();
             _rb.useGravity = false;
             _rb.constraints = RigidbodyConstraints.FreezePositionY
@@ -79,11 +119,13 @@ namespace Core
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
             EventBus.Subscribe((PlayerDiedEvent _) => _isAlive = false);
+            EventBus.Subscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
         private void OnDestroy()
         {
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
+            EventBus.Unsubscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
         private void OnEnable()
@@ -100,6 +142,8 @@ namespace Core
             Helpers.Input.OnSlot0Canceled += HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
+
+            OcclusionRegistry.Register(this);
             
             _heldAutoSlots.Clear();
             _heldHoldSlots.Clear();
@@ -129,6 +173,8 @@ namespace Core
             Helpers.Input.OnSlot0Canceled -= HandleSlot0Release;
             Helpers.Input.OnSlot1Canceled -= HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled -= HandleSlot2Release;
+            
+            OcclusionRegistry.Unregister(this);
 
             if (_runAudioHandle != null && _runAudioHandle.IsValid)
             {
@@ -140,6 +186,11 @@ namespace Core
                 
                 _runAudioHandle = null;
             }
+        }
+
+        private void Start()
+        {
+            Helpers.Input.EnablePlayerInput();
         }
 
         #endregion
@@ -253,13 +304,27 @@ namespace Core
         }
         
         #endregion
+        
+        #region IDebuffReceiver Implementation
+
+        public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
+
+        public void UnregisterDebuff() => _debuffs = null;
+
+        #endregion
 
         #region Handle Movement & Physics
 
         private void HandleMovement()
         {
+            float currentSpeed = MoveSpeed;
+    
             // Input XY maps to world XZ — Y axis is reserved for gravity/height
-            Vector3 targetVelocity = new Vector3(_input.x * _playerStats.BaseSpeed, 0f, _input.y * (_playerStats.BaseSpeed * _playerStats.VerticalSpeedMultiplier));
+            Vector3 targetVelocity = new Vector3(
+                _input.x * currentSpeed, 
+                0f, 
+                _input.y * (currentSpeed * _playerStats.VerticalSpeedMultiplier)
+            );
 
             bool isMoving = _input.sqrMagnitude > 0.01f;
             
@@ -318,7 +383,7 @@ namespace Core
             _rb.velocity = velocity;
         }
 
-        public void TeleportTo(Vector3 pos)
+        public void TeleportTo(PlayerTeleportRequestEvent evt)
         {
             _velocity = Vector3.zero;
             _rb.velocity = Vector3.zero;
@@ -326,7 +391,7 @@ namespace Core
             var previousInterpolation = _rb.interpolation;
             _rb.interpolation = RigidbodyInterpolation.None;
             
-            _rb.position = pos;
+            _rb.position = evt.Position;
             
             _rb.interpolation = previousInterpolation;
         }

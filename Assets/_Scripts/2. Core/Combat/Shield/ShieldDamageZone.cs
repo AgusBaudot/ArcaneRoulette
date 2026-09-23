@@ -1,121 +1,87 @@
-using System;
 using System.Collections.Generic;
-using Foundation;
 using UnityEngine;
+using Foundation;
 
 namespace Core
 {
-    /// <summary>
-    /// Second collider on shield prefab - larger trigger that damages enemies inside.
-    /// Only activate when PiercingCastRune sets AllowEnemyThrough = true.
-    /// </summary>
-    [RequireComponent(typeof(Collider))]
-    public class ShieldDamageZone : MonoBehaviour, IUpdatable
+    public sealed class ShieldDamageZone : MonoBehaviour, IUpdatable
     {
-        [SerializeField] private LayerMask _enemyMask;
-        [SerializeField] private float _damagePerSecond = 5f;
-        [SerializeField] private float _tickInterval = 0.3f;
-
-        //IUpdatable
         public int UpdatePriority => Foundation.UpdatePriority.Player;
-
-        private SphereCollider _col;
-        private float _tickTimer;
-        private bool _armed;
-
-        //Enemies currently inside the zone
-        private readonly HashSet<IDamageable> _inside = new();
-
+        
+        [SerializeField] private float _tickInterval = 0.3f;
+        [SerializeField] private int _damagePerTick = 2;
+        
+        private readonly HashSet<IDamageable> _targetsInZone = new();
+        private float _timeSinceLastTick;
+        private ElementType _currentElement = ElementType.Neutral;
+        
         public bool Active { get; set; }
 
-        private void Awake()
+        public void Bind(ElementType element)
         {
-            _col = GetComponent<SphereCollider>();
+            _currentElement = element;
         }
 
         private void OnEnable()
         {
-            UpdateManager.Instance.Register(this);
-            _armed = false;
-            StartCoroutine(ArmNextPhysicsTick());
-        }
-
-        private System.Collections.IEnumerator ArmNextPhysicsTick()
-        {
-            yield return new WaitForFixedUpdate();
-            _armed = true;
-            SeedExistingOverlaps();
-        }
-
-        private void SeedExistingOverlaps()
-        {
-            //Use the actual collider bounds to match what Physics sees.
-            var hits = Physics.OverlapSphere(transform.TransformPoint(_col.center),
-                _col.radius * transform.lossyScale.x, _enemyMask,
-                QueryTriggerInteraction.Ignore);
-
-            foreach (var hit in hits)
-            {
-                if (hit.TryGetComponent<PlayerHurtBox>(out _))
-                    continue;
-
-                if (hit.TryGetComponent<IDamageable>(out var dmg))
-                    _inside.Add(dmg);
-            }
-        }
-
-        private void OnTriggerEnter(Collider other)
-        {
-            if (!Active || !_armed)
-                return;
-            // Shield zone must not damage the player owner.
-            if (other.TryGetComponent<PlayerHurtBox>(out _))
-                return;
-            
-            if (other.TryGetComponent<IDamageable>(out var dmg))
-                _inside.Add(dmg);
-        }
-
-        private void OnTriggerExit(Collider other)
-        {
-            if (!_armed)
-                return;
-            if (other.TryGetComponent<PlayerHurtBox>(out _))
-                return;
-            if (other.TryGetComponent<IDamageable>(out var dmg))
-                _inside.Remove(dmg);
-        }
-
-        public void Tick(float dt)
-        {
-            if (!Active || _inside.Count == 0)
-                return;
-            
-            _tickTimer -= Time.deltaTime;
-            if (_tickTimer > 0f)
-                return;
-
-            _tickTimer = _tickInterval;
-
-            foreach (var dmg in _inside)
-            {
-                if (dmg == null)
-                    continue;
-
-                var batch = new DamageBatch();
-                batch.Deal(dmg, Mathf.RoundToInt(_damagePerSecond * _tickInterval), ElementType.Neutral);
-                batch.Commit(Helpers.Combat.SmallDMG);
-#if UNITY_EDITOR
-                Debug.LogError($"{nameof(ShieldDamageZone)} doesn't change elements. Always neutral, wire propperly.");
-#endif
-            }
+            UpdateManager.Instance?.Register(this);
+            _targetsInZone.Clear();
+            _timeSinceLastTick = 0f;
         }
 
         private void OnDisable()
         {
-            UpdateManager.Instance.Unregister(this);
-            _inside.Clear();
-            _tickTimer = 0f;
+            UpdateManager.Instance?.Unregister(this);
+            _targetsInZone.Clear();
+            Active = false;
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!Active) return;
+            
+            if (other.GetComponentInParent<PlayerController>() != null) return;
+
+            var damageable = other.GetComponentInParent<IDamageable>();
+            if (damageable != null)
+            {
+                _targetsInZone.Add(damageable);
+            }
+        }
+
+        private void OnTriggerExit(Collider other)
+        {
+            var damageable = other.GetComponentInParent<IDamageable>();
+            if (damageable != null)
+            {
+                _targetsInZone.Remove(damageable);
+            }
+        }
+
+        public void Tick(float dt)
+        {
+            if (!Active || _targetsInZone.Count == 0) return;
+
+            _timeSinceLastTick += dt;
+            if (_timeSinceLastTick >= _tickInterval)
+            {
+                _timeSinceLastTick -= _tickInterval;
+                ApplyDamage();
+            }
+        }
+
+        private void ApplyDamage()
+        {
+            var batch = new DamageBatch();
+
+            foreach (var target in _targetsInZone)
+            {
+                if (target == null) continue;
+                
+                batch.Deal(target, ((Component)target).gameObject, _damagePerTick, _currentElement);
+            }
+
+            batch.Commit(Helpers.Combat.SmallDMG);
         }
     }
 }

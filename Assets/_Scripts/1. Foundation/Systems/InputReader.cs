@@ -25,12 +25,13 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     public event Action OnCraftingMenuPressed;
     public event Action OnPausePressed;
     public event Action OnInteractPressed;
+    public event Action OnConsolePressed;
 
     #endregion
     
     #region UI Events
 
-    public event Action OnCloseCrafting;
+    public event Action OnCloseMenu;
     public event Action OnCarouselLeft;
     public event Action OnCarouselRight;
     public event Action OnToggleTooltip;
@@ -75,7 +76,7 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     #endregion
 
     #region Player Map Implementation
-    //Player Map Implementation---------------------------
+    
     public void OnMovement(InputAction.CallbackContext context)
     {
         MoveDirection = context.ReadValue<Vector2>();
@@ -130,41 +131,38 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
         if (context.phase == InputActionPhase.Performed)
             OnInteractPressed?.Invoke();
     }
+
+    public void OnConsole(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+            OnConsolePressed?.Invoke();
+    }
     #endregion
     
     #region UI Map Implementations
 
-    void PlayerInputActions.IUIActions.OnToggleCrafting(InputAction.CallbackContext context)
+    void PlayerInputActions.IUIActions.OnCloseMenu(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
-            OnCloseCrafting?.Invoke();
+            OnCloseMenu?.Invoke();
     }
 
     void PlayerInputActions.IUIActions.OnCarouselLeft(InputAction.CallbackContext context)
     {
-        
         if (context.phase == InputActionPhase.Performed)
             OnCarouselLeft?.Invoke();
     }
 
     void PlayerInputActions.IUIActions.OnCarouselRight(InputAction.CallbackContext context)
     {
-        
         if (context.phase == InputActionPhase.Performed)
             OnCarouselRight?.Invoke();
     }
 
     void PlayerInputActions.IUIActions.OnToggleTooltip(InputAction.CallbackContext context)
     {
-        
         if (context.phase == InputActionPhase.Performed)
             OnToggleTooltip?.Invoke();
-    }
-
-    void PlayerInputActions.IUIActions.OnPauseGame(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
-            OnPausePressed?.Invoke();
     }
 
     #endregion

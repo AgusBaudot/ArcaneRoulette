@@ -45,6 +45,9 @@ namespace Core
         [Tooltip("The amount of time  it takes the player to cast this attack.")]
         public float Windup = 0.5f;
 
+        [Tooltip("The layer that the projectile ability will detect")]
+        public LayerMask ProjectileFloorMask;
+
         [Header("Defense")] 
         [Tooltip("Max amount of energy the shield has.")]
         public float MaxEnergy = 100f;

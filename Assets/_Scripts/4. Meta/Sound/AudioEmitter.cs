@@ -14,7 +14,7 @@ namespace Meta
     /// the natural end path (_naturalEndRoutine), which calls back to the manager.
     /// </summary>
     [RequireComponent(typeof(AudioSource))]
-    internal sealed class AudioEmitter : MonoBehaviour
+    internal sealed class AudioEmitter : MonoBehaviour, IAudioEmitter
     {
         // ── Components ───────────────────────────────────────────────────
         private AudioSource _source;
@@ -41,6 +41,7 @@ namespace Meta
         /// </summary>
         internal void Init(
             AudioEventSO audioEvent,
+            AudioClip clipToPlay,
             AudioMixerGroup mixerGroup,
             Vector3 worldPosition,
             AudioHandle handle,
@@ -53,7 +54,7 @@ namespace Meta
             transform.position = audioEvent.Is3D ? worldPosition : Vector3.zero;
             
             // ── AudioSource configuration ────────────────────────────────────
-            _source.clip = audioEvent.PickClip();
+            _source.clip = clipToPlay;
             _source.outputAudioMixerGroup = mixerGroup;
             _source.loop = audioEvent.Loop;
             _source.ignoreListenerPause = (audioEvent.Bus == MixerBus.UI || audioEvent.Bus == MixerBus.Music); 
@@ -102,7 +103,7 @@ namespace Meta
         /// <summary>
         /// Stop immediately and signal natural-end so the manager can return to pool.
         /// </summary>
-        internal void StopImmediate()
+        public void StopImmediate()
         {
             StopAllCoroutines();
             _source.Stop();
@@ -114,7 +115,7 @@ namespace Meta
         /// Fade out over duration, then signal end.
         /// </summary>
         /// <param name="duration"></param>
-        internal void StopWithFade(float duration)
+        public void StopWithFade(float duration)
         {
             StopAllCoroutines();
             if (duration <= 0f)
@@ -129,12 +130,12 @@ namespace Meta
         /// <summary>
         /// Directly set pitch. For real-time modulation (engine hum, etc.)
         /// </summary>
-        internal void SetPitch(float pitch) => _source.pitch = pitch;
+        public void SetPitch(float pitch) => _source.pitch = pitch;
         
         /// <summary>
         /// Directly set volume. For real-time modulation.
         /// </summary>
-        internal void SetVolume(float volume) => _source.volume = volume;
+        public void SetVolume(float volume) => _source.volume = volume;
         
         internal bool IsPlaying => _source.isPlaying;
         

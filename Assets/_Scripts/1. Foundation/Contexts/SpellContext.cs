@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Foundation
@@ -12,6 +11,7 @@ namespace Foundation
     {
         public readonly AbilityType AbilityType;
         public readonly MonoBehaviour Runner; //coroutine host, always PlayerController.
+        public readonly IStatResolver Stats;
 
         // Parallel to SpellInstance's deduplicated cast/onhit rune lists (same order).
         // Lets any rune inspect the full modifier composition of the spell —
@@ -20,19 +20,14 @@ namespace Foundation
         public readonly int[] OnHitStackCounts;
 
         // Populated only during TriggerOnHit; zero/null during cast-phase Apply calls.
-        public readonly Vector3    HitPosition;
+        public readonly Vector3 HitPosition;
         public readonly GameObject HitTarget;
         public readonly ElementType AttackerElement;
         public readonly Vector3 AttackerDirection; //zero = repel from HitPosition.
+        public readonly bool IsSecondaryHit;
         
         public readonly AbilityRuneSO Ability; //cast runes write config via interface
         public readonly ISpellSource Source; //replaces ActivateWithInstance pattern
-        
-        //Optional callback - populated by SpellInstance.TriggerOnHit.
-        //OnHit runes invoke this to propagate the full OnHit chain to secondary targets.
-        //AoEOnHitRune uses this to trigger Knockback, DoT, etx. on area-hit enemies.
-        //Null during cast-phase Apply calls.
-        public readonly Action<Vector3, GameObject, Vector3> TriggerSecondaryHit;
         
         private SpellContext(
             AbilityType abilityType,
@@ -41,11 +36,12 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType attackerElement,
-            Action<Vector3, GameObject, Vector3> triggerSecondaryHit,
             AbilityRuneSO ability,
             ISpellSource source,
-            Vector3 attackerDirection)
+            Vector3 attackerDirection, 
+            bool isSecondaryHit)
         {
             AbilityType = abilityType;
             CastStackCounts = castStackCounts;
@@ -53,11 +49,17 @@ namespace Foundation
             HitPosition = hitPosition;
             HitTarget = hitTarget;
             Runner = runner;
+            Stats = stats;
             AttackerElement = attackerElement;
-            TriggerSecondaryHit = triggerSecondaryHit;
             Ability = ability;
             Source = source;
             AttackerDirection = attackerDirection;
+            IsSecondaryHit = isSecondaryHit;
+        }
+
+        public void TriggerSecondaryHit(Vector3 hitPos, GameObject target, Vector3 repelDir)
+        {
+            Source?.TriggerOnHit(hitPos, target, Runner, AbilityType, false, repelDir, true);
         }
 
         // Use these factories — never construct directly.
@@ -69,12 +71,14 @@ namespace Foundation
             int[]       castStackCounts,
             int[]       onHitStackCounts,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType attackerElement,
             AbilityRuneSO ability,
-            ISpellSource source)
+            ISpellSource source,
+            bool isSecondaryHit)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                Vector3.zero, null, runner, attackerElement, null,
-                ability, source, Vector3.zero);
+                Vector3.zero, null, runner, stats, attackerElement, 
+                ability, source, Vector3.zero, isSecondaryHit);
 
         public static SpellContext ForHit(
             AbilityType abilityType,
@@ -83,13 +87,15 @@ namespace Foundation
             Vector3     hitPosition,
             GameObject  hitTarget,
             MonoBehaviour runner,
+            IStatResolver stats,
             ElementType  attackerElement = ElementType.Neutral,
-            Action<Vector3, GameObject, Vector3> triggerSecondaryHit = null,
             AbilityRuneSO ability = null,
             ISpellSource source = null,
-            Vector3 attackerDirection = default)
+            Vector3 attackerDirection = default,
+            bool isSecondaryHit = false)
             => new SpellContext(abilityType, castStackCounts, onHitStackCounts,
-                                hitPosition, hitTarget, runner, attackerElement, 
-                                triggerSecondaryHit, ability, source, attackerDirection);
+                                hitPosition, hitTarget, runner, stats, attackerElement, 
+                                ability, source, attackerDirection, 
+                                isSecondaryHit);
     }
 }

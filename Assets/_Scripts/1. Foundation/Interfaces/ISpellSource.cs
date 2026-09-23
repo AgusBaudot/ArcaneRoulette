@@ -9,6 +9,6 @@ namespace Foundation
         
         void TriggerOnHit(Vector3 position, GameObject target, MonoBehaviour runner);
         void TriggerOnHit(Vector3 position, GameObject target, MonoBehaviour runner, 
-            AbilityType abilityTypeForContext, bool excludeBounceCastRune, Vector3 attackerDirection = default);
+            AbilityType abilityTypeForContext, bool excludeBounceCastRune, Vector3 attackerDirection = default, bool isSecondaryHit = false);
     }
 }

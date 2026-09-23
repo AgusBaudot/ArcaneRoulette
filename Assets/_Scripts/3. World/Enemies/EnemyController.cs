@@ -3,15 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using Foundation;
-using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
+using Foundation;
+using Core;
 
 namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly, IOcclusionTarget
     {
         #region Parameters
         public float interval { get; set; }
@@ -21,6 +21,7 @@ namespace World
         public bool IsBeingHealed { get; set; }
         public Transform Transform => transform;
         public Blackboard Blackboard => _blackboard;
+        public Vector3 OcclusionPosition => transform.position;
         #endregion
 
         #region Components
@@ -57,6 +58,17 @@ namespace World
             _components.Add(_aiBrain);
             _components.Add(_enemyHealth);
             _components.Add(_bcontroller);
+            
+            if (TryGetComponent<EnemyVFXController>(out var deathVfx))
+            {
+                _components.Add(deathVfx);
+            }
+            
+            _aiBrain = GetComponent<AIBrain>();
+            if (_aiBrain == null)
+            {
+                Debug.LogError($"{gameObject.name}: EnemyController requires a concrete AIBrain (e.g., MeleeAIBrain, HealerAIBrain) to be attached to this GameObject. Please add one!");
+            }
         }
         
         private void InitSystems()
@@ -77,6 +89,8 @@ namespace World
         {
             _enemyHealth.OnDeath -= DeathEvent;
             OnDeathEvent = null; 
+            
+            OcclusionRegistry.Unregister(this);
     
             if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
             {
@@ -89,6 +103,8 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+            
+            OcclusionRegistry.Register(this);
     
             if (!_isInitialized)
             {
@@ -142,14 +158,20 @@ namespace World
             {
                 yield return null;
             }
-            Debug.Log($"<color=green>SUCCESS:</color> {gameObject.name} Succesfuly register to CustomUpdateEnemyManager.");
+            
             CustomUpdateEnemyManager.Instance.Register(this);
         }
         
         public void DeathEvent()
         {
             OnDeathEvent?.Invoke(this);
+
+            if (TryGetComponent<DoTComponent>(out var dot))
+            {
+                dot.ClearAll();
+            }
         }
+        
         public void Tick()
         {
             _aiBrain.Tick();

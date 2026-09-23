@@ -70,7 +70,7 @@ namespace World
                     prefab = data.ShopRoomPrefab;
                     break;
 
-                case RoomType.Lobby:
+                case RoomType.Start:
                     prefab = data.LobbyRoomPrefab;
                     break;
 
@@ -137,7 +137,7 @@ namespace World
             else
             {
                 info.UnlockOnClear = false;
-                info.Material = _doorLookup[RoomType.None];
+                // info.Material = _doorLookup[RoomType.None];
             }
 
             return info;

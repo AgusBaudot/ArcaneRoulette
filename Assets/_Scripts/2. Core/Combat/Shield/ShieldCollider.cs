@@ -13,9 +13,6 @@ namespace Core
         public int ReflectCount { get; set; } //set by BounceCastRune stack count
         public float ReflectSpread { get; set; } = 0f; //0 = single direction
         
-        //Situation 1: projectile absorbed (no bounce) - fire OnHit on projectile owner
-        //Situation 3: enemy body contact - fire OnHit on enemy
-        //Situation 2 has no event - reflected projectile fires OnHit when it hits enemy
         public event Action<Vector3, GameObject> OnProjectileAbsorbed;
         public event Action<Vector3, GameObject> OnEnemyBodyContact;
         public event Action OnShieldDamaged;
@@ -23,30 +20,52 @@ namespace Core
         private SpellInstance  _boundInstance;
         private MonoBehaviour  _runner;
 
-        // Called once by StartHoldWithInstance after instantiation
         public void Bind(SpellInstance source, MonoBehaviour runner)
         {
             _boundInstance = source;
-            _runner        = runner;
+            _runner = runner;
         }
 
-        //Solid collider - enemy projectiles and bodies hit this
         private void OnCollisionEnter(Collision other)
             =>  HandleContact(other.collider, other.contacts[0].point);
 
-        //Trigger mode - active when AllowEnemyThrough (Piercing + Shield)
         private void OnTriggerEnter(Collider other)
             => HandleContact(other, (transform.position + other.transform.position) * 0.5f);
 
         private void HandleContact(Collider other, Vector3 contactPoint)
         {
+            Debug.Log($"Trigger by {other.gameObject.name}");
+            
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
-                //Situation 3 - enemy body contact
-                //Bounce has no meaning here per designer spec - fire all OnHit runes
+                // 1. Hazard / Detonatable Body
+                if (other.GetComponentInParent<IElementalDetonatable>() is { } detonatable)
+                {
+                    var element = _boundInstance?.SpellElement ?? ElementType.Neutral;
+                    if (detonatable.TryDetonate(element))
+                    {
+                        OnShieldDamaged?.Invoke();
+                    }
+                    return;
+                }
+
+                // 2. Enemy Body
                 if (other.TryGetComponent<IDamageable>(out _))
                 {
                     OnEnemyBodyContact?.Invoke(contactPoint, other.gameObject);
+                    OnShieldDamaged?.Invoke();
+                }
+                // 3. Destructible Body
+                else
+                {
+                    var destructible = other.GetComponentInParent<IDestructible>();
+                    
+                    if (destructible != null && destructible.IsDestroyed)
+                    {
+                        return;
+                    }
+
+                    destructible?.OnDeath(contactPoint);
                     OnShieldDamaged?.Invoke();
                 }
                 return;
@@ -65,11 +84,18 @@ namespace Core
                 && enemy != null)
             {
                 Debug.Log("Reflecting");
-                //Situation 2 - reflect
-                //Do not fire OnProjectileAbsorbed here.
-                //OnHit fires when the reflected projectile hits an enemy (excludeBounceCastRune = true)
                 Vector3 reflectBase = -projectile.Rb.velocity.normalized;
                 reflectBase.y = 0;
+                reflectBase.Normalize();
+
+                if (other.TryGetComponent<ICustomReflectable>(out var customReflectable))
+                {
+                    var playerStats = _runner.GetComponent<IStatResolver>();
+                    if (customReflectable.TryCustomReflect(reflectBase, ReflectCount, playerStats))
+                    {
+                        return; 
+                    }
+                }
                 
                 float speed = projectile.Rb.velocity.magnitude;
                 var dirs = ReflectionUtils.GetSpreadDirections(
@@ -83,22 +109,18 @@ namespace Core
                     go.SetBounceCount(0);
                 }
                 
-                Destroy(other.gameObject);
-                //No event - situation 2 OnHit resolves on reflected projectile impact
+                Helpers.ProjFactory.Despawn(other.gameObject);
             }
             else
             {
                 Debug.Log("Absorbing");
-                //Situation 1 - absorb
-                //Fore OnHit on the enemy that fired the projectile (Owner).
-                //Falls back to projectile position/GO if Owner is null (EnemyAI not yet wired).
                 GameObject onHitTarget = enemy?.Owner != null
                     ? enemy.Owner
                     : (enemy as Component)?.gameObject ?? other.gameObject;
 
                 OnProjectileAbsorbed?.Invoke(contactPoint, onHitTarget);
             
-                Destroy(other.gameObject);
+                Helpers.ProjFactory.Despawn(other.gameObject);
             }
         }
 

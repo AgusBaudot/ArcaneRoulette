@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Foundation;
 using UnityEngine;
 
@@ -9,8 +10,8 @@ namespace Core
         public Rigidbody Rb { get; private set; }
         public abstract bool IsEnemy { get; }
         public abstract ElementType SpellElement { get; }
-        
-        protected float Speed { get; private set; }
+
+        protected float Speed;
         protected int BounceCount;
 
         private static int _shieldLayer = -1;
@@ -87,14 +88,16 @@ namespace Core
             if (other.gameObject.layer == _shieldLayer)
                 return;
 
+            Vector3 impactPoint = other.ClosestPoint(transform.position);
+            SpawnImpactVFX();
+            PlayImpactSound(impactPoint);
+            
             if (other.TryGetComponent<IDamageable>(out _))
             {
-                SpawnImpactVFX();
                 OnHitDamageable(other);
             }
             else
             {
-                SpawnImpactVFX();
                 OnHitWall(other);
             }
         }
@@ -126,6 +129,15 @@ namespace Core
             if (impactPrefab != null)
             {
                 Helpers.ProjFactory.Spawn<PooledVFX>(impactPrefab, transform.position, transform.rotation);
+            }
+        }
+
+        protected void PlayImpactSound(Vector3 impactPosition)
+        {
+            var sound = Helpers.Combat.GetProjectileImpactSound(IsEnemy, SpellElement);
+            if (sound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest{Event = sound, WorldPosition = impactPosition});
             }
         }
     }

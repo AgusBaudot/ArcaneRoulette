@@ -71,6 +71,26 @@ namespace Core
             _isDraining = true;
             return true;
         }
+        
+        /// <summary>
+        /// Used when swapping runes to inherit the previous slot's charge percentage.
+        /// </summary>
+        public void InheritProgress(float progressPercentage)
+        {
+            Current = Mathf.Clamp01(progressPercentage) * Max;
+            
+            if (Current <= 0f)
+            {
+                // If they dismantled a fully depleted shield, the new one starts broken
+                IsBroken = true;
+                _isDraining = false;
+            }
+            else
+            {
+                // Ensure a partially/fully charged shield clears the broken state
+                IsBroken = false; 
+            }
+        }
 
         public void StopDrain() => _isDraining = false;
 

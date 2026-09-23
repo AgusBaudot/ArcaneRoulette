@@ -14558,8 +14558,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _reflectedProjectilePrefab: {fileID: 2321494586330979713, guid: aa20f08dba10ebb4aae6ae925e0bbc36,
     type: 3}
-  _reflectHitStop: 0.05
-  _reflectTrauma: 0.1
 --- !u!114 &6499048185072878606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14572,8 +14570,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8079e6d22b794828a74f10b64562809c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enemyMask:
-    serializedVersion: 2
-    m_Bits: 128
-  _damagePerSecond: 5
   _tickInterval: 0.3
+  _damagePerTick: 2

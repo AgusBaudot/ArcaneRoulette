@@ -22,7 +22,7 @@ public class Bootstrapper : MonoBehaviour
 
     private void InitializeGameManager()
     {
-        if (GameStateManager.RunState != null)
+        if (FindObjectOfType<GameStateManager>() != null)
             return;
 
         gameObject.AddComponent<GameStateManager>();

@@ -98,6 +98,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Console"",
+                    ""type"": ""Button"",
+                    ""id"": ""d335b16c-54d8-4bf2-952a-8c0eab90a81e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -287,6 +296,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d2fc952d-b96d-4aa4-8a35-9ab766158d16"",
+                    ""path"": ""<Keyboard>/#(`)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""819e20a2-67e0-49ea-a094-71897c954251"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -295,7 +326,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             ""id"": ""8d909b14-8eb6-4b6f-a4c2-9f5eb87c7cba"",
             ""actions"": [
                 {
-                    ""name"": ""ToggleCrafting"",
+                    ""name"": ""CloseMenu"",
                     ""type"": ""Button"",
                     ""id"": ""aefa3560-a5c3-4389-8e68-f065d1a806ca"",
                     ""expectedControlType"": ""Button"",
@@ -331,9 +362,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""PauseGame"",
+                    ""name"": ""Console"",
                     ""type"": ""Button"",
-                    ""id"": ""043902b0-c24a-4320-bd84-df499211f30a"",
+                    ""id"": ""b42f2095-93c6-447d-a833-5c95c645b16a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -348,7 +379,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ToggleCrafting"",
+                    ""action"": ""CloseMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -359,7 +390,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""ToggleCrafting"",
+                    ""action"": ""CloseMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -420,12 +451,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""4dbd4cbf-4e47-4ff8-ad8d-788428968e3c"",
-                    ""path"": ""<Keyboard>/escape"",
+                    ""id"": ""bceadeef-a7c9-4017-b799-7068a34de9f1"",
+                    ""path"": ""<Keyboard>/#(`)"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""PauseGame"",
+                    ""action"": ""Console"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -444,13 +475,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_ToggleCrafting = m_Player.FindAction("ToggleCrafting", throwIfNotFound: true);
         m_Player_PauseGame = m_Player.FindAction("Pause Game", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
+        m_Player_Console = m_Player.FindAction("Console", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
-        m_UI_ToggleCrafting = m_UI.FindAction("ToggleCrafting", throwIfNotFound: true);
+        m_UI_CloseMenu = m_UI.FindAction("CloseMenu", throwIfNotFound: true);
         m_UI_CarouselLeft = m_UI.FindAction("CarouselLeft", throwIfNotFound: true);
         m_UI_CarouselRight = m_UI.FindAction("CarouselRight", throwIfNotFound: true);
         m_UI_ToggleTooltip = m_UI.FindAction("ToggleTooltip", throwIfNotFound: true);
-        m_UI_PauseGame = m_UI.FindAction("PauseGame", throwIfNotFound: true);
+        m_UI_Console = m_UI.FindAction("Console", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -520,6 +552,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ToggleCrafting;
     private readonly InputAction m_Player_PauseGame;
     private readonly InputAction m_Player_Interact;
+    private readonly InputAction m_Player_Console;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -532,6 +565,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @ToggleCrafting => m_Wrapper.m_Player_ToggleCrafting;
         public InputAction @PauseGame => m_Wrapper.m_Player_PauseGame;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
+        public InputAction @Console => m_Wrapper.m_Player_Console;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -565,6 +599,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
+            @Console.started += instance.OnConsole;
+            @Console.performed += instance.OnConsole;
+            @Console.canceled += instance.OnConsole;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -593,6 +630,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
+            @Console.started -= instance.OnConsole;
+            @Console.performed -= instance.OnConsole;
+            @Console.canceled -= instance.OnConsole;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -614,20 +654,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     // UI
     private readonly InputActionMap m_UI;
     private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
-    private readonly InputAction m_UI_ToggleCrafting;
+    private readonly InputAction m_UI_CloseMenu;
     private readonly InputAction m_UI_CarouselLeft;
     private readonly InputAction m_UI_CarouselRight;
     private readonly InputAction m_UI_ToggleTooltip;
-    private readonly InputAction m_UI_PauseGame;
+    private readonly InputAction m_UI_Console;
     public struct UIActions
     {
         private @PlayerInputActions m_Wrapper;
         public UIActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
-        public InputAction @ToggleCrafting => m_Wrapper.m_UI_ToggleCrafting;
+        public InputAction @CloseMenu => m_Wrapper.m_UI_CloseMenu;
         public InputAction @CarouselLeft => m_Wrapper.m_UI_CarouselLeft;
         public InputAction @CarouselRight => m_Wrapper.m_UI_CarouselRight;
         public InputAction @ToggleTooltip => m_Wrapper.m_UI_ToggleTooltip;
-        public InputAction @PauseGame => m_Wrapper.m_UI_PauseGame;
+        public InputAction @Console => m_Wrapper.m_UI_Console;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -637,9 +677,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
-            @ToggleCrafting.started += instance.OnToggleCrafting;
-            @ToggleCrafting.performed += instance.OnToggleCrafting;
-            @ToggleCrafting.canceled += instance.OnToggleCrafting;
+            @CloseMenu.started += instance.OnCloseMenu;
+            @CloseMenu.performed += instance.OnCloseMenu;
+            @CloseMenu.canceled += instance.OnCloseMenu;
             @CarouselLeft.started += instance.OnCarouselLeft;
             @CarouselLeft.performed += instance.OnCarouselLeft;
             @CarouselLeft.canceled += instance.OnCarouselLeft;
@@ -649,16 +689,16 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started += instance.OnToggleTooltip;
             @ToggleTooltip.performed += instance.OnToggleTooltip;
             @ToggleTooltip.canceled += instance.OnToggleTooltip;
-            @PauseGame.started += instance.OnPauseGame;
-            @PauseGame.performed += instance.OnPauseGame;
-            @PauseGame.canceled += instance.OnPauseGame;
+            @Console.started += instance.OnConsole;
+            @Console.performed += instance.OnConsole;
+            @Console.canceled += instance.OnConsole;
         }
 
         private void UnregisterCallbacks(IUIActions instance)
         {
-            @ToggleCrafting.started -= instance.OnToggleCrafting;
-            @ToggleCrafting.performed -= instance.OnToggleCrafting;
-            @ToggleCrafting.canceled -= instance.OnToggleCrafting;
+            @CloseMenu.started -= instance.OnCloseMenu;
+            @CloseMenu.performed -= instance.OnCloseMenu;
+            @CloseMenu.canceled -= instance.OnCloseMenu;
             @CarouselLeft.started -= instance.OnCarouselLeft;
             @CarouselLeft.performed -= instance.OnCarouselLeft;
             @CarouselLeft.canceled -= instance.OnCarouselLeft;
@@ -668,9 +708,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @ToggleTooltip.started -= instance.OnToggleTooltip;
             @ToggleTooltip.performed -= instance.OnToggleTooltip;
             @ToggleTooltip.canceled -= instance.OnToggleTooltip;
-            @PauseGame.started -= instance.OnPauseGame;
-            @PauseGame.performed -= instance.OnPauseGame;
-            @PauseGame.canceled -= instance.OnPauseGame;
+            @Console.started -= instance.OnConsole;
+            @Console.performed -= instance.OnConsole;
+            @Console.canceled -= instance.OnConsole;
         }
 
         public void RemoveCallbacks(IUIActions instance)
@@ -698,13 +738,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnToggleCrafting(InputAction.CallbackContext context);
         void OnPauseGame(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+        void OnConsole(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
-        void OnToggleCrafting(InputAction.CallbackContext context);
+        void OnCloseMenu(InputAction.CallbackContext context);
         void OnCarouselLeft(InputAction.CallbackContext context);
         void OnCarouselRight(InputAction.CallbackContext context);
         void OnToggleTooltip(InputAction.CallbackContext context);
-        void OnPauseGame(InputAction.CallbackContext context);
+        void OnConsole(InputAction.CallbackContext context);
     }
 }
