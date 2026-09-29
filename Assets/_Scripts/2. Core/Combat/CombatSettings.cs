@@ -9,6 +9,7 @@ namespace Core
     {
         [Header("Global Enemy Settings")]
         public int BaseContactDamage = 2;
+        public float ContactDamageInterval = 1f;
         
         [Header("Projectile Impacts")]
         [SerializeField] private PooledVFX _enemyProjectileImpact;

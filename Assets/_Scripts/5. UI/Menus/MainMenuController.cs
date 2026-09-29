@@ -41,7 +41,7 @@ namespace UI
             //TODO(save system): once run persistence exists, check for a saved
             //in-progress run here and resume it instead of always starting fresh.
             
-            EventBus.Publish(new StartRunRequestEvent(SceneNames.Lobby));
+            EventBus.Publish(new StartRunRequestEvent(SceneNames.GameLevel));
         }
 
         private void OnSettings(OnSettingsClickedEvent _)
