@@ -19,6 +19,10 @@ namespace Core
         [SerializeField] private AudioEventSO _defaultEnemyImpactSound;
         [SerializeField] private ElementalImpactAudio[] _playerElementalImpactSounds;
 
+        [Header("Projectile Hit Feedback")]
+        public float BlinkTime = 0.07f;
+        public float EnemyKnockback = 12f;
+
         public PooledVFX GetImpactVFX(bool isEnemy, ElementType element)
         {
             if (isEnemy && _enemyProjectileImpact != null)
@@ -48,7 +52,7 @@ namespace Core
         
         [Header("Damage Juice Presets")]
         public DamageJuice PlayerDamage;
-        public DamageJuice BigDMG; //Had 0.15f
+        public DamageJuice BigDMG;
         public DamageJuice NormalDMG;
         public DamageJuice SmallDMG;
         public DamageJuice NoFeedback;

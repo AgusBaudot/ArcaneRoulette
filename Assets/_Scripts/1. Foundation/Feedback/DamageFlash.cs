@@ -6,21 +6,12 @@ namespace Foundation
     public class DamageFlash : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer[] _renderers;
-        [SerializeField] private Color _flashColor = Color.white;
         [SerializeField] private float _duration = 0.07f;
-
-        private Color[] _originalColors;
-
-        private void Awake()
-        {
-            _originalColors = new Color[_renderers.Length];
-            for (int i = 0; i < _renderers.Length; i++)
-                _originalColors[i] = _renderers[i].color;
-        }
         
-        /// <summary>
-        /// Flash using the component's serialized duration.
-        /// </summary>
+        [Header("Shader Integration")]
+        [Tooltip("The reference name of the float property in your Shader Graph")]
+        [SerializeField] private string _flashProperty = "_FlashAmount";
+
         public void Flash() => Flash(_duration);
 
         /// <summary>
@@ -38,29 +29,27 @@ namespace Foundation
 
         private IEnumerator DoFlash(float duration)
         {
-            foreach (var r in _renderers)
-                r.color = _flashColor;
+            SetFlashAmount(1f);
+
+            yield return new WaitForSecondsRealtime(duration);
             
-            yield return new WaitForSecondsRealtime(duration); // real time - survives hitstop
-            
-            for (int i = 0; i < _renderers.Length; i++)
-                _renderers[i].color = _originalColors[i];
+            SetFlashAmount(0f);
         }
 
         public void OnDisable()
         {
             StopAllCoroutines();
-            ResetColors();
+            SetFlashAmount(0f);
         }
-        private void ResetColors()
+
+        private void SetFlashAmount(float amount)
         {
-            if (_originalColors == null)
-                return;
-            
-            for (int i = 0; i < _renderers.Length; i++)
+            foreach (var r in _renderers)
             {
-                if (_renderers[i] != null)
-                    _renderers[i].color = _originalColors[i];
+                if (r != null && r.material != null)
+                {
+                    r.material.SetFloat(_flashProperty, amount);
+                }
             }
         }
     }
