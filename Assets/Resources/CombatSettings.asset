@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CombatSettings
   m_EditorClassIdentifier: 
   BaseContactDamage: 2
+  ContactDamageInterval: 1
   _enemyProjectileImpact: {fileID: 4573713469644316486, guid: 8e3ab949958b1f64ea20e27f38ce6ad3,
     type: 3}
   _playerProjectileImpacts:
@@ -43,6 +44,8 @@ MonoBehaviour:
     ImpactSound: {fileID: 11400000, guid: 5e8dc33eafe31334b89fc23408a45b3c, type: 2}
   - Element: 4
     ImpactSound: {fileID: 11400000, guid: f3751d8b07437b84faf1442ab5a92620, type: 2}
+  BlinkTime: 0.07
+  EnemyKnockback: 4
   PlayerDamage:
     HitStopFrames: 12
     CameraShake: 0.8
