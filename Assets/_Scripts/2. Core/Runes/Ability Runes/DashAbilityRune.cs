@@ -8,23 +8,29 @@ namespace Core
     [CreateAssetMenu(menuName = "ScriptableObjects/Runes/Ability/Dash")]
     public sealed class DashAbilityRune : AbilityRuneSO
     {
-        [Header("Stats")] [SerializeField] private float _dashSpeed = 20f;
-        [SerializeField] private float _baseDashDuration = 0.2f;
+        [Header("Dash Physics")] 
+        [SerializeField] private float _initialDashSpeed = 30f;
+        [Tooltip("The speed the player will have at the very end of the dash.")]
+        [SerializeField] private float _endDashSpeed = 2f;
+        [Tooltip("Evaluates from 0 to 1 over the dash duration. 0 = Initial Speed, 1 = End Speed. Use an ease-out curve for realistic friction.")]
+        [SerializeField] private AnimationCurve _decelerationCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+        [SerializeField] private float _baseDashDuration = 0.25f;
+        
+        [Header("Combat")]
         [SerializeField] private float _cooldownDuration = 0.8f;
         [SerializeField] private int _baseDamage = 8;
         [SerializeField] private float _dashHitRadius = 0.8f;
 
-        [Tooltip("Layer(s) your destructible/wall geometry sits on. Separate from " +
-                 "EnemyLayerMask since destructibles aren't enemies.")]
-        [SerializeField]
-        private LayerMask _destructibleLayerMask;
-
+        [Tooltip("Layer(s) your destructible/wall geometry sits on. Separate from EnemyLayerMask since destructibles aren't enemies.")]
+        [SerializeField] private LayerMask _destructibleLayerMask;
         [SerializeField] private Projectile _reflectedProjectilePrefab;
 
-        [Header("VFX")] [SerializeField] private PooledVFX _defaultDashVfx;
+        [Header("VFX")] 
+        [SerializeField] private PooledVFX _defaultDashVfx;
         [SerializeField] private ElementalPooledVFX[] _elementalDashVfx;
 
-        [Header("Audio")] [SerializeField] private AudioEventSO _defaultCastSound;
+        [Header("Audio")] 
+        [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
 
         public override AbilityType Type => AbilityType.Dash;
@@ -87,31 +93,36 @@ namespace Core
         private IEnumerator DashRoutine(SpellContext ctx, PlayerController player, float duration,
             DashActivationArgs args, PooledVFX vfx)
         {
-            // Determine direction — last input direction, fallback to facing
             Vector2 raw = player.LastInputDirection;
             Vector3 dir = new Vector3(raw.x, 0f, raw.y).normalized;
 
             if (dir == Vector3.zero)
                 dir = player.transform.forward;
 
-            Vector3 dashVelocity = new Vector3(dir.x * _dashSpeed, 0f,
-                dir.z * _dashSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier);
-
-            // Invincibility — distinct from IFrames per locked decisions
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
 
             var hitEnemies = new HashSet<GameObject>();
 
-            //Spawn homing projectiles before dash begins
+            // Spawn homing projectiles before dash begins
             if (args.HomingCount > 0)
                 SpawnHomingFromDash(ctx, dir, args.HomingCount);
 
+            float actualDuration = Mathf.Max(0.01f, duration);
             float elapsed = 0f;
 
-            while (elapsed < duration)
+            while (elapsed < actualDuration)
             {
-                //Enemy collision - OnHit per enemy touched
+                float t = elapsed / actualDuration;
+                float currentSpeed = Mathf.Lerp(_initialDashSpeed, _endDashSpeed, _decelerationCurve.Evaluate(t));
+
+                Vector3 currentVelocity = new Vector3(
+                    dir.x * currentSpeed, 
+                    0f,
+                    dir.z * currentSpeed * Helpers.PlayerStats.VerticalSpeedMultiplier
+                );
+
+                // Enemy collision - OnHit per enemy touched
                 var enemies = Physics.OverlapSphere(
                     player.transform.position, _dashHitRadius, Helpers.PlayerStats.EnemyLayerMask);
 
@@ -138,7 +149,7 @@ namespace Core
 
                 batch.Commit(Helpers.Combat.NormalDMG);
 
-                // ── Destructible & Hazard collision ────────────────────
+                // Destructible & Hazard collision
                 var obstacles = Physics.OverlapSphere(
                     player.transform.position, _dashHitRadius, _destructibleLayerMask);
 
@@ -161,13 +172,13 @@ namespace Core
                     }
                 }
 
-                // ── Enemy projectile reflection (Bounce rune) ────────────────────
+                // Enemy projectile reflection (Bounce rune)
                 if (args.ReflectCount > 0 && _reflectedProjectilePrefab != null)
                 {
                     ReflectNearbyProjectiles(player, dir, ctx, ctx.Source as SpellInstance, args);
                 }
 
-                player.Rigidbody.velocity = dashVelocity;
+                player.Rigidbody.velocity = currentVelocity;
                 elapsed += Time.fixedDeltaTime;
                 yield return new WaitForFixedUpdate();
             }
@@ -248,23 +259,14 @@ namespace Core
                 var go = Helpers.ProjFactory.Spawn(
                     _reflectedProjectilePrefab, origin, Quaternion.LookRotation(d));
 
-                //Reflected projectiles inherit all OnHit runes, no BounceCastRune context
                 go.Init(source, d, speed, _baseDamage, ctx.Runner, AbilityType.Projectile, true);
                 go.SetPierceCount(0);
                 go.SetBounceCount(0);
             }
         }
 
-        public override void StartHold(SpellContext ctx)
-        {
-        }
-
-        public override void StopHold(SpellContext ctx)
-        {
-        }
-
-        public override void HoldTick(SpellContext ctx, float delta)
-        {
-        }
+        public override void StartHold(SpellContext ctx) { }
+        public override void StopHold(SpellContext ctx) { }
+        public override void HoldTick(SpellContext ctx, float delta) { }
     }
 }
