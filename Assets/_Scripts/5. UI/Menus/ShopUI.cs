@@ -11,6 +11,7 @@ namespace UI
 
         [Header("Audio")]
         [SerializeField] private AudioEventSO _rerollSound;
+        [SerializeField] private AudioEventSO _buySound;
 
         private IShop _currentShop;
 
@@ -67,6 +68,11 @@ namespace UI
         {
             if (GameStateManager.RunState.TrySpend(cost))
             {
+                if (_buySound != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest { Event = _buySound });
+                }
+                
                 if (isRune)
                 {
                     GameStateManager.RunState.AddRune(_currentShop.StockRunes[index]);

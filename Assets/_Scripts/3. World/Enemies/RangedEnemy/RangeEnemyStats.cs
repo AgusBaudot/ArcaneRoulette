@@ -26,11 +26,9 @@ namespace World
         [Header("Projectiles")]
         [Tooltip("Prefab for the Normal Projectile")]
         public EnemyProjectile NormalProjectilePrefab;
-        public AudioEventSO NormalProjectileSound;
         
         [Tooltip("Prefab for the Big Projectile")]
         public DetonatingEnemyProjectile BigProjectilePrefab;
-        public AudioEventSO BigProjectileSound;
         
         public float NormalProjectileSpeed = 12f;
         public float BigProjectileInitialSpeed = 8f;
@@ -41,5 +39,12 @@ namespace World
         public float BlockUncoverDuration = 1f;
         public float BlockTimeout = 3f;
         public float TeleportAnimDuration = 4f;
+        
+        [Header("Audio")]
+        public AudioEventSO BigProjectileSound;
+        public AudioEventSO NormalProjectileSound;
+        public AudioEventSO TeleportSound;
+        public AudioEventSO BlockStartSound;
+        public AudioEventSO BlockEndSound;
     }
 }

@@ -115,6 +115,11 @@ namespace World
             SetState(AIState.Blocking);
             _agent.isStopped = true;
             _animator.SetTrigger("Cover");
+
+            if (RangeStats.BlockStartSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockStartSound, WorldPosition = transform.position});
+            }
         }
 
         public void SetDamageMitigation(float multiplier)
@@ -127,6 +132,11 @@ namespace World
             _isUncovering = true;
             SetDamageMitigation(1.0f); 
             _animator.SetTrigger("Uncover");
+
+            if (RangeStats.BlockEndSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockEndSound, WorldPosition = transform.position});
+            }
         }
 
         private void EndUncover()
@@ -141,6 +151,11 @@ namespace World
             SetState(AIState.Teleporting);
             _agent.isStopped = true;
             _animator.SetTrigger("TeleportStart");
+
+            if (RangeStats.TeleportSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.TeleportSound, WorldPosition = transform.position});
+            }
         }
 
         private void ExecuteTeleport()

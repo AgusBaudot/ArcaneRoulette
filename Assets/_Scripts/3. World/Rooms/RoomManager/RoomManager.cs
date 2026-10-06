@@ -18,6 +18,10 @@ namespace World
         [SerializeField] private GameObject _portalPrefab;
         [Tooltip("Where to spawn the portal. If null, uses the room's transform.position.")]
         [SerializeField] private Transform _portalSpawnPoint;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _doorCloseSound;
+        [SerializeField] private AudioEventSO _doorOpenSound;
 
         public int Index => _index;
         public RoomType Type => _roomType;
@@ -65,6 +69,10 @@ namespace World
                 {
                     case RoomType.Combat:
                         _roomConnections.LockDoors();
+                        if (_doorCloseSound != null)
+                        {
+                            EventBus.Publish(new AudioPlayRequest {Event =  _doorCloseSound, WorldPosition = transform.position});
+                        }
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
@@ -72,6 +80,10 @@ namespace World
                     
                     case RoomType.Boss:
                         _roomConnections.LockDoors();
+                        if (_doorCloseSound != null)
+                        {
+                            EventBus.Publish(new AudioPlayRequest {Event =  _doorCloseSound, WorldPosition = transform.position});
+                        }
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
@@ -128,6 +140,11 @@ namespace World
             {
                 _entityController.DisableAllHazards();
                 _roomConnections.RoomCleared();
+
+                if (_doorOpenSound != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest{ Event = _doorOpenSound, WorldPosition = transform.position});
+                }
             }
 
             switch (_roomType)

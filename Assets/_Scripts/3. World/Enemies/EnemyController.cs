@@ -35,12 +35,16 @@ namespace World
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
+        
         [Header("References")]
         [SerializeField] private SpriteRenderer _elementalFeedback;
         [SerializeField] private Sprite _fireElement;
         [SerializeField] private Sprite _earthElement;
         [SerializeField] private Sprite _waterElement;
         [SerializeField] private Sprite _thunderElement;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _spawnSound;
         
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
@@ -103,6 +107,11 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
+
+            if (_spawnSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = _spawnSound, WorldPosition = transform.position});
+            }
             
             OcclusionRegistry.Register(this);
     
