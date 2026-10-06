@@ -1267,6 +1267,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _explorationMusic: {fileID: 11400000, guid: fdffb724e2701464c929ce8742551097, type: 2}
   _combatMusic: {fileID: 11400000, guid: 3a2b43424e82c2f46a2c977191b0bfd6, type: 2}
+  _winMusic: {fileID: 0}
+  _loseMusic: {fileID: 0}
   _crossfadeDuration: 1.5
 --- !u!1 &1386389308
 GameObject:
@@ -1639,11 +1641,23 @@ PrefabInstance:
       propertyPath: _attachToCharacter
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5335623547639404761, guid: 3b472df9f4f3afc41929620ac5cb305a,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     - target: {fileID: 5638421453993428254, guid: 3b472df9f4f3afc41929620ac5cb305a,
         type: 3}
       propertyPath: m_Name
       value: PlayerRoot
       objectReference: {fileID: 0}
+    - target: {fileID: 6223840105506321389, guid: 3b472df9f4f3afc41929620ac5cb305a,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     - target: {fileID: 6385582804444609266, guid: 3b472df9f4f3afc41929620ac5cb305a,
         type: 3}
       propertyPath: m_LocalPosition.x
