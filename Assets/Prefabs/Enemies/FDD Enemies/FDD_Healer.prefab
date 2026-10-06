@@ -174,7 +174,6 @@ GameObject:
   - component: {fileID: 1354876219366200651}
   - component: {fileID: 2494622429942246647}
   - component: {fileID: 3785297136978254722}
-  - component: {fileID: 5857784219357410502}
   - component: {fileID: 9202326644840425587}
   - component: {fileID: 3762916170227879536}
   - component: {fileID: 752664922137135041}
@@ -183,6 +182,7 @@ GameObject:
   - component: {fileID: 9192350436109904488}
   - component: {fileID: 2453594869979610277}
   - component: {fileID: 5943877361105701489}
+  - component: {fileID: 428775860871822177}
   m_Layer: 7
   m_Name: FDD_Healer
   m_TagString: Untagged
@@ -247,8 +247,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderers:
   - {fileID: 632965395475527778}
-  _flashColor: {r: 1, g: 0, b: 0, a: 1}
   _duration: 0.07
+  _flashProperty: _FlashAmount
 --- !u!114 &6609402721532654236
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,29 +318,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!136 &5857784219357410502
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326220217148487278}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 2
-  m_Height: 5
-  m_Direction: 1
-  m_Center: {x: 0.4, y: 0, z: 1}
 --- !u!114 &9202326644840425587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -472,8 +449,32 @@ MonoBehaviour:
   _spawnMaterial: {fileID: 2100000, guid: 4b128df79c12c9b40ac5ca86536b210f, type: 2}
   _baseGameplayMaterial: {fileID: 2100000, guid: 09c53bf96a156d84fa7a43fada39ae01,
     type: 2}
-  _spawnDuration: 3
+  _baseSpawnDuration: 3
   _deathDuration: 1
+  _scaleDurationToMaintainSpeed: 1
+  _minSpawnProgress: 0
+  _maxSpawnProgress: 1.5
+--- !u!65 &428775860871822177
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2, y: 2, z: 3}
+  m_Center: {x: 0.4, y: 1, z: 1}
 --- !u!1 &1729946225048453499
 GameObject:
   m_ObjectHideFlags: 0
