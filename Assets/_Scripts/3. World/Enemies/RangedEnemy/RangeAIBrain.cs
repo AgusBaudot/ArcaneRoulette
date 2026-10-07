@@ -68,7 +68,7 @@ namespace World
             var blockSeq = new SequenceNode("Block", priority: 20);
             blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
-            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout)));
+            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout, RangeStats.BlockPercentage)));
             blockSeq.AddChild(new LeafNode("Uncover", new TimedActionStrategy(BeginUncover, () => RangeStats.BlockUncoverDuration)));
             blockSeq.AddChild(new LeafNode("EndUncover", new ActionNode(EndUncover)));
             root.AddChild(blockSeq);
@@ -297,11 +297,13 @@ namespace World
         private readonly Func<float> _getTimeout;
         private float _lastProjectileTime;
         private bool _started;
+        private float _blockPercentage;
 
-        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout)
+        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout, float blockPercentage)
         {
             _brain = brain;
             _getTimeout = getTimeout;
+            _blockPercentage = blockPercentage;
         }
 
         public Node.NodeState Process()
@@ -310,7 +312,7 @@ namespace World
             {
                 _started = true;
                 _lastProjectileTime = Time.time;
-                _brain.SetDamageMitigation(0.5f); 
+                _brain.SetDamageMitigation(_blockPercentage);
             }
 
             if (_brain.AreProjectilesInSafeRange())
