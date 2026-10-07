@@ -10,7 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5788196526170704839}
   - component: {fileID: 3186221115967851253}
-  m_Layer: 0
+  - component: {fileID: 3496497130735531632}
+  - component: {fileID: 1609962064964718593}
+  m_Layer: 15
   m_Name: SM_PRP_MagicalCauldron
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -57,6 +59,46 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!65 &3496497130735531632
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9218078215404046554}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.556642, y: 4.528516, z: 3.5579836}
+  m_Center: {x: 0.010250092, y: 1.7642574, z: 0.27165854}
+--- !u!114 &1609962064964718593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9218078215404046554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &3397019308684223612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -179,6 +221,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: vfx_Flames_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 8793510976239746625, guid: 8fa5143051527e949b0ae174c8430414,
+        type: 3}
+      propertyPath: m_Layer
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9064956068904258685, guid: 8fa5143051527e949b0ae174c8430414,
+        type: 3}
+      propertyPath: m_Layer
+      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -470,6 +522,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: vfx_Smoke_01 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 2787556212050310887, guid: 57970c6bb711ec24b8d98424b1806f3b,
+        type: 3}
+      propertyPath: m_Layer
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 5299146926960630741, guid: 57970c6bb711ec24b8d98424b1806f3b,
         type: 3}

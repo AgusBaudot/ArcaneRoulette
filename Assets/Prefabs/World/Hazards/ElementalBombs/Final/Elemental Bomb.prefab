@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4869331553436091770}
   - component: {fileID: 8920630856486853581}
   - component: {fileID: 631504446641172031}
+  - component: {fileID: 5900233363641279753}
   m_Layer: 15
   m_Name: Elemental Bomb
   m_TagString: Untagged
@@ -60,7 +61,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7716078722839918753}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -74,6 +75,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.4707649, y: 3.2173648, z: 2.147355}
   m_Center: {x: -0.000000008943777, y: 1.60844, z: 0.033583004}
+--- !u!114 &5900233363641279753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7716078722839918753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &7118986094211304071
 PrefabInstance:
   m_ObjectHideFlags: 0

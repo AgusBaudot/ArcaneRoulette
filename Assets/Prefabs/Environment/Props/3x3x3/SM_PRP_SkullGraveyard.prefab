@@ -78,6 +78,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: vfx_Smoke_01
       objectReference: {fileID: 0}
+    - target: {fileID: 2787556212050310887, guid: 57970c6bb711ec24b8d98424b1806f3b,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 5299146926960630741, guid: 57970c6bb711ec24b8d98424b1806f3b,
         type: 3}
       propertyPath: prewarm
@@ -245,32 +250,32 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 15.1
+      value: -17.25235
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.49999952
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 19.84
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
-        type: 3}
-      propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
-      propertyPath: m_LocalRotation.y
+      propertyPath: m_LocalPosition.z
+      value: 13.228867
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.99144495
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      propertyPath: m_LocalRotation.x
       value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.13052596
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
@@ -285,7 +290,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
@@ -296,11 +301,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 136f6547d9de5914c8d29eba3254a28e, type: 2}
+      objectReference: {fileID: 2100000, guid: 66095b23ba5895247a5808d2b8d63c10, type: 2}
     - target: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
       propertyPath: m_Name
       value: SM_PRP_SkullGraveyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      propertyPath: m_Layer
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -313,7 +328,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6009667275914465783}
+      addedObject: {fileID: 784776604261349688}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8393602271372077886}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6c4e33cb4002545468ada80946b7e6b0,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 463292641601270036}
   m_SourcePrefab: {fileID: 100100000, guid: 6c4e33cb4002545468ada80946b7e6b0, type: 3}
 --- !u!4 &8389298483763090889 stripped
 Transform:
@@ -327,7 +350,26 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 8351503265251291682}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &6009667275914465783
+--- !u!114 &784776604261349688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9162316333832753011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
+--- !u!65 &8393602271372077886
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -346,5 +388,24 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.2027738, y: 1.8833119, z: 2.225369}
-  m_Center: {x: -0.0069009066, y: 0.92312616, z: 0.045565188}
+  m_Size: {x: 3.3395495, y: 2.9200897, z: 3.3054044}
+  m_Center: {x: 0.01552248, y: 1.4409151, z: 0.06316018}
+--- !u!114 &463292641601270036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9162316333832753011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
