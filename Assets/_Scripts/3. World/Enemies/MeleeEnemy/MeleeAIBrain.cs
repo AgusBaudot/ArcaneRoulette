@@ -2,6 +2,7 @@ using System;
 using Core;
 using Foundation;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace World
 {
@@ -20,6 +21,11 @@ namespace World
         private float _dashDistanceMoved;
         private bool _isStepping;
         private bool _isDashing;
+        
+        private NavMeshPath _chasePath;
+
+        private Vector3 _lastDestinationRequest;
+        private float _lastPathRequestTime;
         
         public event Action<float> OnSpawnStarted;
         public event Action<float> OnWindupStarted;
@@ -50,6 +56,9 @@ namespace World
             base.ResetComponent();
             _isStepping = false;
             _isDashing = false;
+            _lastPathRequestTime = 0f;
+            _lastDestinationRequest = Vector3.zero;
+            
             SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
             if (_hitbox != null)
             {
@@ -61,7 +70,6 @@ namespace World
         {
             if (_agent == null || !IsState(AIState.Attack)) return;
             
-            base.Tick();
 
             if (_isStepping)
             {
@@ -85,7 +93,7 @@ namespace World
             {
                 Debug.LogError($"{name}: EnemyController's stats asset isn't a MeleeEnemyStats " +
                                $"(got '{(_enemyStats == null ? "null" : _enemyStats.GetType().Name)}'). " +
-                               "Assign a Melee Stats asset instead — every duration in this tree reads through it.");
+                               "Assign a Melee Stats asset instead.");
                 return tree;
             }
 
@@ -119,30 +127,53 @@ namespace World
             _agent.isStopped = false;
             _agent.speed = EffectiveChaseSpeed;
 
-            if (!IsInLos())
+            Vector3 targetPos = player.position;
+
+            if (IsInLos())
             {
-                _agent.SetDestination(player.position);
+                float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+                float predictionTime = Mathf.Clamp(distanceToPlayer / EffectiveChaseSpeed, 0f, MeleeStats.MaxPredictionTime);
+
+                Vector3 futurePos = player.position + (_playerController.LogicalVelocity * predictionTime);
+                Vector3 basePoint = Vector3.Lerp(player.position, futurePos, MeleeStats.TargetPredictionWeight);
+
+                Vector3 rawSlotOffset = SwarmManager.GetOrClaimSlot(gameObject.GetInstanceID()) * MeleeStats.FormationRadius;
+                rawSlotOffset.z *= Helpers.PlayerStats.VerticalSpeedMultiplier; 
+
+                targetPos = basePoint + rawSlotOffset;
+            }
+
+            if (_agent.pathPending) return;
+
+            if (Time.time - _lastPathRequestTime < 0.5f && Vector3.SqrMagnitude(_lastDestinationRequest - targetPos) < 1.0f)
+            {
                 return;
             }
 
-            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-            float predictionTime = Mathf.Clamp(distanceToPlayer / EffectiveChaseSpeed, 0f, MeleeStats.MaxPredictionTime);
+            _lastPathRequestTime = Time.time;
+            _lastDestinationRequest = targetPos;
 
-            Vector3 futurePos = player.position + (_playerController.LogicalVelocity * predictionTime);
-            Vector3 basePoint = Vector3.Lerp(player.position, futurePos, MeleeStats.TargetPredictionWeight);
+            if (IsInLos())
+            {
+                _chasePath ??= new NavMeshPath();
+                if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
+                {
+                    _agent.CalculatePath(hit.position, _chasePath);
+                    if (_chasePath.status == NavMeshPathStatus.PathComplete)
+                    {
+                        _agent.SetPath(_chasePath);
+                        return;
+                    }
+                }
+            }
 
-            Vector3 rawSlotOffset = SwarmManager.GetOrClaimSlot(gameObject.GetInstanceID()) * MeleeStats.FormationRadius;
-            
-            rawSlotOffset.z *= Helpers.PlayerStats.VerticalSpeedMultiplier; 
-
-            _agent.SetDestination(basePoint + rawSlotOffset);
+            _agent.SetDestination(player.position);
         }
 
         private Node BuildAttackSequence()
         {
             var sequence = new SequenceNode("Attack", priority: 10);
 
-            // Updated condition to respect reaching the swarm destination
             sequence.AddChild(new LeafNode("CanAttack",
                 new ConditionNode(CanInitiateAttack)));
 
@@ -179,9 +210,17 @@ namespace World
 
             if (IsState(AIState.Chase) && _agent != null)
             {
-                if (!_agent.pathPending && _agent.remainingDistance <= Mathf.Max(_agent.stoppingDistance, 0.5f))
+                if (!_agent.pathPending)
                 {
-                    return true;
+                    if (_agent.remainingDistance <= Mathf.Max(_agent.stoppingDistance, 0.5f))
+                    {
+                        return true;
+                    }
+                    
+                    if (_agent.pathStatus == NavMeshPathStatus.PathPartial && _agent.remainingDistance <= 1.0f)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -231,7 +270,6 @@ namespace World
             float duration = attackIndex == 0 ? GetAttack1Duration() : GetAttack2Duration();
             float sweepAngle = attackIndex == 0 ? 140f : -100f; 
             
-            // Audio Injection
             AudioEventSO swingSound = attackIndex == 0 ? MeleeStats.Attack1Sound : MeleeStats.Attack2Sound;
             if (swingSound != null)
             {
@@ -296,42 +334,10 @@ namespace World
 
         private void ActivateHitbox(int damage, Vector3 size, float sweepAngle, float duration)
         {
-            if (_hitbox == null)
-            {
-                Debug.LogWarning($"{name}: no MeleeWeaponHitbox assigned — this swing deals no damage.");
-                return;
-            }
+            if (_hitbox == null) return;
             
             _hitbox.Configure(damage, MeleeStats.ElementType, size, _lastAttackDirection, sweepAngle);
             _hitbox.Activate(duration);
         }
-        
-#if UNITY_EDITOR
-        private void OnDrawGizmosSelected()
-        {
-            if (_enemyStats == null) return;
-
-            Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position, _enemyStats.AttackRange);
-
-            Gizmos.color = new Color(0f, 0f, 1f, 0.5f);
-            Gizmos.DrawWireSphere(transform.position, _enemyStats.ViewDistance);
-
-            if (_enemyStats is MeleeEnemyStats stats)
-            {
-                Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
-                
-                Matrix4x4 oldMatrix = Gizmos.matrix;
-                Gizmos.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
-                
-                Vector3 previewSize = stats.Attack1HitboxSize;
-                Vector3 previewCenter = new Vector3(0, 0, previewSize.z / 2f);
-                
-                Gizmos.DrawWireCube(previewCenter, previewSize);
-                
-                Gizmos.matrix = oldMatrix;
-            }
-        }
-#endif
     }
 }
