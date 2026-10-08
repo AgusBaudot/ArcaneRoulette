@@ -61,7 +61,6 @@ public class Bootstrapper : MonoBehaviour
 
         gameObject.AddComponent<AttunementSystem>();
         gameObject.AddComponent<SpellCrafter>();
-        Debug.LogError($"{nameof(gameObject)}: Spell crafter not found! Rune seeder is probably also missing.");
     }
 
     private void InitializeAudioManager()
