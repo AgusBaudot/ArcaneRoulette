@@ -26,6 +26,8 @@ namespace World
 
         private Vector3 _lastDestinationRequest;
         private float _lastPathRequestTime;
+
+        private float _attackBTTickTimer;
         
         public event Action<float> OnSpawnStarted;
         public event Action<float> OnWindupStarted;
@@ -58,6 +60,7 @@ namespace World
             _isDashing = false;
             _lastPathRequestTime = 0f;
             _lastDestinationRequest = Vector3.zero;
+            _attackBTTickTimer = 0f;
             
             SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
             if (_hitbox != null)
@@ -70,6 +73,12 @@ namespace World
         {
             if (_agent == null || !IsState(AIState.Attack)) return;
             
+            _attackBTTickTimer -= dt;
+            if (_attackBTTickTimer <= 0f)
+            {
+                base.Tick();
+                _attackBTTickTimer = 0.033f;
+            }
 
             if (_isStepping)
             {
@@ -230,7 +239,8 @@ namespace World
         private void BeginWindup()
         {
             SetState(AIState.Attack);
-            
+
+            _attackBTTickTimer = 0f;
             _agent.isStopped = true;
             if (_agent.hasPath)
             {
