@@ -25,7 +25,8 @@ public class Bootstrapper : MonoBehaviour
         if (FindObjectOfType<GameStateManager>() != null)
             return;
 
-        gameObject.AddComponent<GameStateManager>();
+        var gameState = gameObject.AddComponent<GameStateManager>();
+        gameState.ResolveStartingHp = () => Helpers.PlayerStats.BaseHp;
     }
 
     private void InitializeUpdateManager()
