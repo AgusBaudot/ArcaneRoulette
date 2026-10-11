@@ -13,7 +13,7 @@ namespace Foundation
 
         public static VolatileRunState RunState { get; private set; }
         public static event Action<VolatileRunState> OnRunStateInitialized;
-        public Func<float> ResolveStartingHp;
+        public static Func<float> ResolveStartingHp;
 
         private static GameStateManager _instance;
 
