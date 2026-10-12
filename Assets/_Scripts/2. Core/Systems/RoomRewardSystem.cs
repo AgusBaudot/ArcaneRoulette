@@ -31,7 +31,7 @@ namespace Core
 
         private void HandleRoomClear(RoomClearEvent evt)
         {
-            _chest = Instantiate(_chestPrefab, evt.Position + Vector3.up * 0.5f, Quaternion.identity);
+            _chest = Instantiate(_chestPrefab, evt.Position + Vector3.up * 0.5f, _chestPrefab.transform.rotation);
         }
 
         private void HandleChestOpen(LootChestOpenedEvent evt)
