@@ -29,6 +29,8 @@ namespace World
 
         private RoomConnections _roomConnections;
         private EntityController _entityController;
+        private bool _waitingForChest;
+        
         public RoomConnections GetRoomConnections => _roomConnections;
 
         public void Awake()
@@ -60,6 +62,8 @@ namespace World
         {
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _roomConnections.OnDoorActivated += HandleDoorTransition;
+            
+            EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpened);
 
             EventBus.Publish(new PlayerEnteredRoomEvent(_index));
 
@@ -68,16 +72,6 @@ namespace World
                 switch (_roomType)
                 {
                     case RoomType.Combat:
-                        _roomConnections.LockDoors();
-                        if (_doorCloseSound != null)
-                        {
-                            EventBus.Publish(new AudioPlayRequest {Event =  _doorCloseSound, WorldPosition = transform.position});
-                        }
-                        _entityController.RoomIsClear -= RoomClearedEvent;
-                        _entityController.RoomIsClear += RoomClearedEvent;
-                        _entityController.PlayEntityController();
-                        break;
-                    
                     case RoomType.Boss:
                         _roomConnections.LockDoors();
                         if (_doorCloseSound != null)
@@ -87,7 +81,6 @@ namespace World
                         _entityController.RoomIsClear -= RoomClearedEvent;
                         _entityController.RoomIsClear += RoomClearedEvent;
                         _entityController.PlayEntityController();
-                        //EventBus.Publish(new EndFloorClearEvent(_index));
                         break;
 
                     case RoomType.Start:
@@ -104,8 +97,6 @@ namespace World
             }
             else 
             {
-                // If the player backtracks into an already cleared room, 
-                // ensure the doors animate open/stay open.
                 _roomConnections.RoomCleared();
             }
 
@@ -113,10 +104,6 @@ namespace World
 
             if (_state == RoomState.Idle)
                 _state = RoomState.Active;
-
-            //THIS SOMEHOW SPAWNS A PORTAL IN THE INITIAL ROOM WHEN PORTAL ROOM IS CLEARED
-            //if (_roomType == RoomType.Portal)
-            //    SpawnPortal();
         }
 
         public void DisableRoom()
@@ -124,44 +111,57 @@ namespace World
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _entityController.RoomIsClear -= RoomClearedEvent;
             _roomConnections.DisableConnections();
+            
+            EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpened);
         }
 
         private void RoomClearedEvent()
         {
             _entityController.RoomIsClear -= RoomClearedEvent;
-            _cleared = true;
-            _state = RoomState.Cleared;
 
-            // Combat/Boss doors were actually locked at entry — this is the real unlock.
-            // Everything else that can reach this method (Resting/Artifact, via
-            // MarkAsCleared) already had its doors opened back in EnableRoom(), so
-            // re-calling RoomCleared() here would just be a redundant no-op lift.
             if (_roomType == RoomType.Combat || _roomType == RoomType.Boss)
             {
                 _entityController.DisableAllHazards();
-                _roomConnections.RoomCleared();
-
-                if (_doorOpenSound != null)
-                {
-                    EventBus.Publish(new AudioPlayRequest{ Event = _doorOpenSound, WorldPosition = transform.position});
-                }
             }
 
             switch (_roomType)
             {
                 case RoomType.Boss:
-                    EventBus.Publish(new RoomClearEvent(_index));
-                    SpawnPortal();
+                case RoomType.Combat:
+                    _waitingForChest = true;
+                    EventBus.Publish(new RoomClearEvent(_index, transform.position));
                     break;
 
                 case RoomType.Resting:
                 case RoomType.Artifact:
+                    // Non-combat rooms clear instantly
+                    _cleared = true;
+                    _state = RoomState.Cleared;
                     EventBus.Publish(new PassiveRoomClearEvent(_index));
                     break;
+            }
+        }
 
-                default: // Combat
-                    EventBus.Publish(new RoomClearEvent(_index));
-                    break;
+        private void HandleChestOpened(LootChestOpenedEvent evt)
+        {
+            if (!_waitingForChest) 
+                return;
+            
+            _waitingForChest = false;
+            
+            _cleared = true;
+            _state = RoomState.Cleared;
+
+            _roomConnections.RoomCleared();
+
+            if (_doorOpenSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _doorOpenSound, WorldPosition = transform.position });
+            }
+
+            if (_roomType == RoomType.Boss)
+            {
+                SpawnPortal();
             }
         }
 

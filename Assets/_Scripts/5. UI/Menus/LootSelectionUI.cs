@@ -90,48 +90,6 @@ namespace UI
             
             _selectionOrder.Clear();
         }
-        
-        // private void Show()
-        // {
-        //     if (_dropPool == null)
-        //     {
-        //         Debug.LogWarning("[LootSelectionUI] No PickupDropPool assigned.");
-        //         return;
-        //     }
-        //
-        //     _isShowing = true;
-        //     _selectionOrder.Clear();
-        //
-        //     RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
-        //     _effectiveMax = Mathf.Min(_runesToSelect, runes.Length);
-        //
-        //     // Clear any previously spawned option tiles.
-        //     foreach (Transform child in _runeContainer)
-        //         Destroy(child.gameObject);
-        //
-        //     _options = new LootOptionUI[runes.Length];
-        //
-        //     for (int i = 0; i < runes.Length; i++)
-        //     {
-        //         int captured = i;
-        //         LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
-        //         option.Init(runes[i], () => OnOptionClicked(captured));
-        //         _options[i] = option;
-        //     }
-        //
-        //     _panel.SetActive(true);
-        //     Time.timeScale = 0f;
-        //     Helpers.Input.EnableUIInput();
-        // }
-        //
-        // private void Hide()
-        // {
-        //     _panel.SetActive(false);
-        //     _selectionOrder.Clear();
-        //     _isShowing = false;
-        //     Time.timeScale = 1f;
-        //     Helpers.Input.EnablePlayerInput();
-        // }
 
         // ── Selection logic ───────────────────────────────────────────────────
 
