@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93a806335f054ab69e5e9f8f31d476b7, type: 3}
   m_Name: FDDBruteStats
   m_EditorClassIdentifier: 
-  MaxHp: 30
+  MaxHp: 280
   ElementType: 2
   ViewDistance: 15
   ObsMask:
@@ -20,7 +20,7 @@ MonoBehaviour:
     m_Bits: 32768
   ChaseSpeed: 4
   PatrolSpeed: 2
-  AttackDamage: 4
+  AttackDamage: 40
   AttackRange: 4
   ExitAttackRange: 5
   AttackRadius: 4
@@ -35,10 +35,12 @@ MonoBehaviour:
   ThrustHitboxMaxDistance: 5
   ThrustWindupDuration: 2
   ThrustRecomposeDuration: 1
+  ThrustSound: {fileID: 0}
   ChargeWindupDuration: 2
-  ChargeCooldown: 20
-  ChargeSpeedMultiplier: 2
+  ChargeCooldown: 16
+  ChargeSpeedMultiplier: 2.5
   ChargeDamagePercentage: 1
+  ChargeSound: {fileID: 0}
   StunDurationBase: 2
   StunDurationImpact: 4
   StunDurationShield: 6
