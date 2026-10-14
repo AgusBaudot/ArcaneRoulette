@@ -33,6 +33,7 @@ namespace Core
 
         private AudioEventSO[] _pierceSounds;
         private int[] _pierceHitStops;
+        private PooledVFX _pierceVFX;
         private int _piercesDone;
 
         protected override void Awake()
@@ -169,10 +170,11 @@ namespace Core
             }
         }
 
-        public void SetPierceFeedback(AudioEventSO[] sounds, int[] hitStops)
+        public void SetPierceFeedback(AudioEventSO[] sounds, int[] hitStops, PooledVFX pierceVFX)
         {
             _pierceSounds = sounds;
             _pierceHitStops = hitStops;
+            _pierceVFX = pierceVFX;
         }
 
         public void SetPierceCount(int count) => _pierceCount = count;
@@ -211,11 +213,6 @@ namespace Core
 
             batch.Commit(juice);
 
-            if (damageableGo.TryGetComponent<DamageFlash>(out var flash))
-            {
-                flash.Flash(Helpers.Combat.BlinkTime);
-            }
-
             if (damageableGo.TryGetComponent<IKnockbackable>(out var knockbackable))
             {
                 knockbackable.ApplyKnockback(Rb.velocity.normalized, Helpers.Combat.EnemyKnockback);
@@ -233,6 +230,11 @@ namespace Core
             {
                 Helpers.ProjFactory.Despawn(gameObject);
                 return;
+            }
+
+            if (_pierceVFX != null)
+            {
+                Helpers.ProjFactory.Spawn(_pierceVFX, transform.position, Quaternion.identity);
             }
 
             _pierceCount--;
@@ -266,12 +268,15 @@ namespace Core
 
         public override void OnDespawn()
         {
-            base.OnDespawn(); //Halts physics.
+            base.OnDespawn(); // Halts physics.
 
             ApplyVisualScale(1f);
 
             _source = null;
             _runner = null;
+            _pierceSounds = null;
+            _pierceHitStops = null;
+            _pierceVFX = null;
             _hitTargets.Clear();
         }
     }

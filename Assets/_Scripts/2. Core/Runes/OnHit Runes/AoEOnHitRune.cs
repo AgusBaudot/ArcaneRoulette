@@ -14,7 +14,7 @@ namespace Core
         [SerializeField] private LayerMask _destructibleMask;
         
         [Header("Visuals")]
-        [SerializeField] private GameObject _aoeFX;
+        [SerializeField] private PooledVFX _aoeFX;
 
         public override void Apply(SpellContext ctx, int stackCount)
         {
@@ -23,7 +23,10 @@ namespace Core
 
             float radius = _baseRadius * stackCount;
             
-            Instantiate(_aoeFX, ctx.HitPosition, Quaternion.identity);
+            if (_aoeFX != null)
+            {
+                Helpers.ProjFactory.Spawn(_aoeFX, ctx.HitPosition, Quaternion.identity);
+            }
             
             var enemyHits = Physics.OverlapSphere(ctx.HitPosition, radius, _enemyMask);
             var batch = new DamageBatch();

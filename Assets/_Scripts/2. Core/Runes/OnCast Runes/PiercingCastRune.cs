@@ -15,6 +15,9 @@ namespace Core
         [Tooltip("Hit stop durations for successive pierces. Clamps to the last element.")]
         [SerializeField] private int[] _pierceHitStops;
 
+        [Header("Visuals")]
+        [SerializeField] private PooledVFX _pierceVFX;
+
         public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount, List<Action> cleanup)
         {
             switch (ability)
@@ -26,6 +29,7 @@ namespace Core
                         args.PierceCount = 3 * stackCount;
                         args.PierceSounds = _pierceSounds;
                         args.PierceHitStops = _pierceHitStops;
+                        args.PierceVFX = _pierceVFX;
                     };
                     source.OnBeforeFire += h;
                     cleanup.Add(() => source.OnBeforeFire -= h);

@@ -37,10 +37,10 @@ namespace Core
             transform.SetParent(null);
         }
 
-        public void AttachTo(Transform target)
+        public void AttachTo(Transform target, Vector3 localOffset = default)
         {
             transform.SetParent(target);
-            transform.localPosition = Vector3.zero;
+            transform.localPosition = localOffset;
             transform.localRotation = Quaternion.identity;
         }
 

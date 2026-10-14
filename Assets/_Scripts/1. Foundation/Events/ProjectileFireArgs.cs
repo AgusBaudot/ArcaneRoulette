@@ -14,5 +14,6 @@ namespace Foundation
 
         public AudioEventSO[] PierceSounds;
         public int[] PierceHitStops;
+        public IPoolable PierceVFX;
     }
 }

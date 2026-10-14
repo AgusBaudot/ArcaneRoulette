@@ -1,6 +1,6 @@
 using System;
-using Foundation;
 using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 
 namespace Core
@@ -19,14 +19,22 @@ namespace Core
         private readonly List<DoTInstance> _activeDoTs = new List<DoTInstance>();
 
         private IDamageable _damageable;
-        
-        private float _blinkTimer = 1f;
-        private float _blinkDurationTimer = 0f;
-        private const float BLINK_INTERVAL = 1f;
+        private PooledVFX _vfxPrefab;
+        private PooledVFX _activeVFX;
+        private float _vfxHeightOffset = 1f;
 
         private void Awake()
         {
             _damageable = GetComponent<IDamageable>();
+        }
+
+        public void SetVFXPrefab(PooledVFX vfxPrefab, float heightOffset)
+        {
+            if (vfxPrefab != null)
+            {
+                _vfxPrefab = vfxPrefab;
+                _vfxHeightOffset = heightOffset;
+            }
         }
 
         private void OnEnable()
@@ -64,6 +72,7 @@ namespace Core
             }
             
             _activeDoTs.Clear();
+            StopAndDetachVFX();
 
             if (hadActiveDoTs)
             {
@@ -78,13 +87,13 @@ namespace Core
 
             if (wasEmpty)
             {
+                SpawnAndAttachVFX();
                 OnDoTApplied?.Invoke();
             }
             
             if (wasEmpty && enabled && UpdateManager.Instance != null)
             {
                 UpdateManager.Instance.Register(this);
-                _blinkTimer = BLINK_INTERVAL; 
             }
         }
 
@@ -92,7 +101,6 @@ namespace Core
         {
             if (_activeDoTs.Remove(instance) && _activeDoTs.Count == 0)
             {
-                OnDoTRemoved?.Invoke();
                 ClearAll();
             }
         }
@@ -142,9 +150,28 @@ namespace Core
 
             if (hasRemoved && _activeDoTs.Count == 0)
             {
-                OnDoTRemoved?.Invoke();
                 ClearAll();
             }
+        }
+
+        private void SpawnAndAttachVFX()
+        {
+            if (_activeVFX != null || _vfxPrefab == null)
+                return;
+
+            Vector3 offset = Vector3.up * _vfxHeightOffset;
+            _activeVFX = Helpers.ProjFactory.Spawn(_vfxPrefab, transform.position + offset, Quaternion.identity);
+            _activeVFX.AttachTo(transform, offset);
+        }
+
+        private void StopAndDetachVFX()
+        {
+            if (_activeVFX == null)
+                return;
+
+            _activeVFX.transform.SetParent(null);
+            _activeVFX.StopEmitting();
+            _activeVFX = null;
         }
     }
 }

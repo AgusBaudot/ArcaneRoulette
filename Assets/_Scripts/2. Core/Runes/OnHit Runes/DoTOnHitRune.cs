@@ -18,13 +18,19 @@ namespace Core
         [SerializeField, Tooltip("How often the DoT ticks in seconds (Default: 1s)")] 
         private float _tickInterval = 1f;
 
+        [Header("Visuals")]
+        [SerializeField] private PooledVFX _dotVFX;
+        [SerializeField] private float _vfxHeightOffset = 1f;
+
         public override void Apply(SpellContext ctx, int stackCount)
         {
-            if (ctx.HitTarget == null || !ctx.HitTarget.TryGetComponent<IDamageable>(out var dmg))
+            if (ctx.HitTarget == null || !ctx.HitTarget.TryGetComponent<IDamageable>(out _))
                 return;
 
             var dotComponent = ctx.HitTarget.GetComponent<DoTComponent>()
                                ?? ctx.HitTarget.AddComponent<DoTComponent>();
+
+            dotComponent.SetVFXPrefab(_dotVFX, _vfxHeightOffset);
 
             float duration = _baseDuration + (_additionalDurationPerStack * (stackCount - 1));
 

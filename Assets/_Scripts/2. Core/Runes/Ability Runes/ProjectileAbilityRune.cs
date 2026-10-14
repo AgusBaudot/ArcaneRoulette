@@ -89,7 +89,7 @@ namespace Core
             go.SetPierceCount(args.PierceCount);
             go.SetBounceCount(args.BounceCount);
             
-            go.SetPierceFeedback(args.PierceSounds, args.PierceHitStops);
+            go.SetPierceFeedback(args.PierceSounds, args.PierceHitStops, args.PierceVFX as PooledVFX);
             
             go.ApplyVisualScale(args.SizeMultiplier);
 
