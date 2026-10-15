@@ -22,7 +22,7 @@ namespace World
         private bool _isDetonating;
         private bool _isEnemy = true;
 
-        public void InitBig(Vector3 dir, float speed, int damage, ElementType element, GameObject owner, float drainRate)
+        public void InitBig(Vector3 dir, float speed, int damage, ElementType element, GameObject owner, float drainRate, float timer)
         {
             _isEnemy = true;
             gameObject.layer = LayerMask.NameToLayer("EnemyProjectile");
@@ -32,7 +32,7 @@ namespace World
             _element = element;
             Owner = owner;
             _drainRate = drainRate;
-            _timer = 6f; 
+            _timer = timer; 
             _isDetonating = false;
             BounceCount = 0;
 

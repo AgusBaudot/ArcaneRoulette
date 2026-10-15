@@ -33,6 +33,7 @@ namespace World
         public float NormalProjectileSpeed = 12f;
         public float BigProjectileInitialSpeed = 8f;
         public float BigProjectileDrainRate = 1.5f;
+        public float BigProjectileLifespan = 6f;
 
         [Header("Defense & Teleport")]
         public float BlockCoverDuration = 1f;
