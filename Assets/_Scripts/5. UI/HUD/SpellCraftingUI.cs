@@ -99,6 +99,9 @@ namespace UI
             
             Helpers.Input.OnCarouselLeft += OnLeftArrow;
             Helpers.Input.OnCarouselRight += OnRightArrow;
+            Helpers.Input.OnFilterPrevious += OnFilterPrevious;
+            Helpers.Input.OnFilterNext += OnFilterNext;
+            
             if (_tooltip != null)
             {
                 Helpers.Input.OnToggleTooltip += _tooltip.ToggleEnabled;
@@ -135,6 +138,9 @@ namespace UI
             
             Helpers.Input.OnCarouselLeft -= OnLeftArrow;
             Helpers.Input.OnCarouselRight -= OnRightArrow;
+            Helpers.Input.OnFilterPrevious -= OnFilterPrevious;
+            Helpers.Input.OnFilterNext -= OnFilterNext;
+            
             if (_tooltip != null)
             {
                 Helpers.Input.OnToggleTooltip -= _tooltip.ToggleEnabled;
@@ -358,6 +364,28 @@ namespace UI
             EventSystem.current.SetSelectedGameObject(null);
         }
 
+        private void OnFilterPrevious() => ShiftFilter(-1);
+        private void OnFilterNext() => ShiftFilter(1);
+
+        private void ShiftFilter(int direction)
+        {
+            if (_filterTabs == null || _filterTabs.Length == 0)
+                return;
+
+            int currentIndex = 0;
+            for (int i = 0; i < _filterTabs.Length; i++)
+            {
+                if (_filterTabs[i].FilterType == _currentFilter)
+                {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            
+            int newIndex = (currentIndex + direction + _filterTabs.Length) % _filterTabs.Length;
+            OnFilterTabClicked(_filterTabs[newIndex]);
+        }
+        
         private void OnFilterTabClicked(RuneFilterTab clickedTab)
         {
             if (_currentFilter == clickedTab.FilterType)

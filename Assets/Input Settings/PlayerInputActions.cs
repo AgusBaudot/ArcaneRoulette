@@ -353,6 +353,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""FilterPrevious"",
+                    ""type"": ""Button"",
+                    ""id"": ""7b505a6a-0780-42f3-850c-3890ef6ca229"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""FilterNext"",
+                    ""type"": ""Button"",
+                    ""id"": ""af7908d2-505b-4896-aa0d-c7409a797ae4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""ToggleTooltip"",
                     ""type"": ""Button"",
                     ""id"": ""7145c520-e382-4697-934c-2ef5edf099f8"",
@@ -459,6 +477,50 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Console"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a9a09576-8591-4ea1-8a6b-7db7a4c1f3ad"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FilterPrevious"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""75abb7af-b520-43bd-b2dc-28246b1823cd"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FilterPrevious"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9715ab04-da2f-4a11-863a-321dd342b8c3"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FilterNext"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""01e275fa-f1b6-4c66-8bc8-468d57c00a97"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FilterNext"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -481,6 +543,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_UI_CloseMenu = m_UI.FindAction("CloseMenu", throwIfNotFound: true);
         m_UI_CarouselLeft = m_UI.FindAction("CarouselLeft", throwIfNotFound: true);
         m_UI_CarouselRight = m_UI.FindAction("CarouselRight", throwIfNotFound: true);
+        m_UI_FilterPrevious = m_UI.FindAction("FilterPrevious", throwIfNotFound: true);
+        m_UI_FilterNext = m_UI.FindAction("FilterNext", throwIfNotFound: true);
         m_UI_ToggleTooltip = m_UI.FindAction("ToggleTooltip", throwIfNotFound: true);
         m_UI_Console = m_UI.FindAction("Console", throwIfNotFound: true);
     }
@@ -657,6 +721,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_CloseMenu;
     private readonly InputAction m_UI_CarouselLeft;
     private readonly InputAction m_UI_CarouselRight;
+    private readonly InputAction m_UI_FilterPrevious;
+    private readonly InputAction m_UI_FilterNext;
     private readonly InputAction m_UI_ToggleTooltip;
     private readonly InputAction m_UI_Console;
     public struct UIActions
@@ -666,6 +732,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @CloseMenu => m_Wrapper.m_UI_CloseMenu;
         public InputAction @CarouselLeft => m_Wrapper.m_UI_CarouselLeft;
         public InputAction @CarouselRight => m_Wrapper.m_UI_CarouselRight;
+        public InputAction @FilterPrevious => m_Wrapper.m_UI_FilterPrevious;
+        public InputAction @FilterNext => m_Wrapper.m_UI_FilterNext;
         public InputAction @ToggleTooltip => m_Wrapper.m_UI_ToggleTooltip;
         public InputAction @Console => m_Wrapper.m_UI_Console;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
@@ -686,6 +754,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @CarouselRight.started += instance.OnCarouselRight;
             @CarouselRight.performed += instance.OnCarouselRight;
             @CarouselRight.canceled += instance.OnCarouselRight;
+            @FilterPrevious.started += instance.OnFilterPrevious;
+            @FilterPrevious.performed += instance.OnFilterPrevious;
+            @FilterPrevious.canceled += instance.OnFilterPrevious;
+            @FilterNext.started += instance.OnFilterNext;
+            @FilterNext.performed += instance.OnFilterNext;
+            @FilterNext.canceled += instance.OnFilterNext;
             @ToggleTooltip.started += instance.OnToggleTooltip;
             @ToggleTooltip.performed += instance.OnToggleTooltip;
             @ToggleTooltip.canceled += instance.OnToggleTooltip;
@@ -705,6 +779,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @CarouselRight.started -= instance.OnCarouselRight;
             @CarouselRight.performed -= instance.OnCarouselRight;
             @CarouselRight.canceled -= instance.OnCarouselRight;
+            @FilterPrevious.started -= instance.OnFilterPrevious;
+            @FilterPrevious.performed -= instance.OnFilterPrevious;
+            @FilterPrevious.canceled -= instance.OnFilterPrevious;
+            @FilterNext.started -= instance.OnFilterNext;
+            @FilterNext.performed -= instance.OnFilterNext;
+            @FilterNext.canceled -= instance.OnFilterNext;
             @ToggleTooltip.started -= instance.OnToggleTooltip;
             @ToggleTooltip.performed -= instance.OnToggleTooltip;
             @ToggleTooltip.canceled -= instance.OnToggleTooltip;
@@ -745,6 +825,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnCloseMenu(InputAction.CallbackContext context);
         void OnCarouselLeft(InputAction.CallbackContext context);
         void OnCarouselRight(InputAction.CallbackContext context);
+        void OnFilterPrevious(InputAction.CallbackContext context);
+        void OnFilterNext(InputAction.CallbackContext context);
         void OnToggleTooltip(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
     }
