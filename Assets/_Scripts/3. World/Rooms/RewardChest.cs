@@ -2,17 +2,16 @@ using Core;
 using DG.Tweening;
 using Foundation;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace World
 {
     [RequireComponent(typeof(Collider))]
     public sealed class RewardChest : MonoBehaviour
     {
-        //Add E sprite from statues
-        //Make chest the actual FBX
-        
         [Header("General Settings")]
         [SerializeField] private float _fallDuration = 0.4f;
+        [SerializeField] private float _promptFadeDuration = 0.2f;
         [SerializeField] private Animator _animator;
         [SerializeField] private GameObject _interactionPrompt;
         
@@ -24,6 +23,9 @@ namespace World
         private bool _isOpen;
         private bool _playerInRange;
         
+        private Image _promptSprite;
+        private Tween _promptTween;
+        
         private static readonly int _openHash = Animator.StringToHash("t_Open");
 
         private void Awake()
@@ -32,7 +34,17 @@ namespace World
             col.isTrigger = true;
             
             if (_interactionPrompt != null)
+            {
+                _promptSprite = _interactionPrompt.GetComponentInChildren<Image>();
                 _interactionPrompt.SetActive(false);
+                
+                if (_promptSprite != null)
+                {
+                    var color = _promptSprite.color;
+                    color.a = 0f;
+                    _promptSprite.color = color;
+                }
+            }
         }
 
         private void OnEnable()
@@ -46,6 +58,7 @@ namespace World
         private void OnDisable()
         {
             Helpers.Input.OnInteractPressed -= HandleInteract;
+            _promptTween?.Kill();
         }
 
         private void OnTriggerEnter(Collider other)
@@ -57,13 +70,9 @@ namespace World
             if (playerController != null)
             {
                 _playerInRange = true;
-
-                if (_interactionPrompt != null)
-                {
-                    _interactionPrompt.SetActive(true);
-                }
-                
                 Helpers.Input.OnInteractPressed += HandleInteract;
+
+                ShowPrompt();
             }
         }
 
@@ -76,13 +85,9 @@ namespace World
             if (playerController != null)
             {
                 _playerInRange = false;
-
-                if (_interactionPrompt != null)
-                {
-                    _interactionPrompt.SetActive(false);
-                }
-
                 Helpers.Input.OnInteractPressed -= HandleInteract;
+
+                HidePrompt();
             }
         }
 
@@ -92,6 +97,9 @@ namespace World
                 return;
 
             _isOpen = true;
+            Helpers.Input.OnInteractPressed -= HandleInteract;
+            
+            HidePrompt();
 
             if (_animator != null)
             {
@@ -112,6 +120,24 @@ namespace World
             }
             
             EventBus.Publish(new LootChestOpenedEvent(transform.position));
+        }
+
+        private void ShowPrompt()
+        {
+            if (_interactionPrompt == null || _promptSprite == null) return;
+            
+            _interactionPrompt.SetActive(true);
+            _promptTween?.Kill();
+            _promptTween = _promptSprite.DOFade(1f, _promptFadeDuration);
+        }
+
+        private void HidePrompt()
+        {
+            if (_interactionPrompt == null || _promptSprite == null) return;
+
+            _promptTween?.Kill();
+            _promptTween = _promptSprite.DOFade(0f, _promptFadeDuration)
+                .OnComplete(() => _interactionPrompt.SetActive(false));
         }
     }
 }
