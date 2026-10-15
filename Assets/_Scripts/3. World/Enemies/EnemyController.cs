@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 using Foundation;
@@ -37,7 +38,7 @@ namespace World
         [SerializeField] private EnemyStats _enemyStats;
         
         [Header("References")]
-        [SerializeField] private SpriteRenderer _elementalFeedback;
+        [SerializeField] private Image _elementalFeedback;
         [SerializeField] private Sprite _fireElement;
         [SerializeField] private Sprite _earthElement;
         [SerializeField] private Sprite _waterElement;
