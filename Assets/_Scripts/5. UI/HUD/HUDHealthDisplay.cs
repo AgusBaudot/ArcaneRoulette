@@ -29,15 +29,12 @@ namespace UI
         private float _targetFillAmount;
 
         private float _lastKnownHp = -1f;
-        private Vector3 _originalHeartScale;
+        private Vector3 _originalScale;
         private Tween _pulseTween;
 
         private void Awake()
         {
-            if (_heartsIcon != null)
-            {
-                _originalHeartScale = _heartsIcon.transform.localScale;
-            }
+            _originalScale = transform.localScale;
         }
 
         private void OnEnable()
@@ -75,16 +72,16 @@ namespace UI
                 }
             }
 
-            // if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
-            // {
-            //     _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
-            //         Time.deltaTime * _trailLerpSpeed);
-            //
-            //     if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
-            //     {
-            //         _healthTrailImage.fillAmount = _targetFillAmount;
-            //     }
-            // }
+            if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
+            {
+                _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
+                    Time.deltaTime * _trailLerpSpeed);
+            
+                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
+                {
+                    _healthTrailImage.fillAmount = _targetFillAmount;
+                }
+            }
         }
 
         private void HandleRunStateInitialized(VolatileRunState newState)
@@ -133,7 +130,7 @@ namespace UI
 
             if (_lastKnownHp > 0f && currentHp < _lastKnownHp)
             {
-                PulseHeart();
+                PulseUI();
             }
 
             _lastKnownHp = currentHp;
@@ -148,16 +145,14 @@ namespace UI
             UpdateHeartSprite(normalizedHealth);
         }
 
-        private void PulseHeart()
+        private void PulseUI()
         {
-            if (_heartsIcon == null) return;
-
             _pulseTween?.Kill(true);
 
-            _heartsIcon.transform.localScale = _originalHeartScale;
+            transform.localScale = _originalScale;
 
-            _pulseTween = _heartsIcon.transform
-                .DOScale(_originalHeartScale * _pulseScaleMultiplier, _pulseDuration * 0.5f)
+            _pulseTween = transform
+                .DOScale(_originalScale * _pulseScaleMultiplier, _pulseDuration * 0.5f)
                 .SetEase(Ease.OutQuad)
                 .SetLoops(2, LoopType.Yoyo)
                 .SetUpdate(true);
