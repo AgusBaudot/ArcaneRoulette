@@ -30,7 +30,6 @@ namespace World
 
         [SerializeField] private BruteThrustHitbox _thrustHitbox;
         [SerializeField] private BruteChargeHitbox _chargeHitbox;
-        [SerializeField] private ElementType _bruteElement;
         
         private EnemyController _defenseTarget;
 
@@ -235,7 +234,8 @@ namespace World
     
             if (_chargeHitbox != null)
             {
-                _chargeHitbox.Activate(BruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
+                var element = GetComponent<IElemental>().Element;
+                _chargeHitbox.Activate(BruteStats, element, _lastAttackDirection, OnChargeInterrupted);
             }
             
             OnChargeStarted.Invoke();

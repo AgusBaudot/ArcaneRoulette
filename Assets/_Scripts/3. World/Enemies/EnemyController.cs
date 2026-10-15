@@ -115,21 +115,25 @@ namespace World
             
             OcclusionRegistry.Register(this);
     
+            ElementType rolledElement = (ElementType)Random.Range(0, 4);
+
+            switch (rolledElement)
+            {
+                case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
+                case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
+                case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
+                case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+            }
+
             if (!_isInitialized)
             {
-                switch (_enemyStats.ElementType)
-                {
-                    case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
-                    case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
-                    case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
-                    case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
-                }
-        
                 InitSystems();
                 _isInitialized = true;
             }
 
             RestartSystems();
+            
+            _enemyHealth.SetRuntimeElement(rolledElement);
     
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;

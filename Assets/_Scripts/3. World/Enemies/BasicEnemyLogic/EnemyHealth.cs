@@ -88,8 +88,12 @@ namespace World
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
-            _element = stats.ElementType;
             ResetComponent();
+        }
+
+        public void SetRuntimeElement(ElementType newElement)
+        {
+            _element = newElement;
         }
 
         public void ResetComponent()
