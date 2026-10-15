@@ -72,16 +72,16 @@ namespace UI
                 }
             }
 
-            // if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
-            // {
-            //     _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
-            //         Time.deltaTime * _trailLerpSpeed);
-            //
-            //     if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
-            //     {
-            //         _healthTrailImage.fillAmount = _targetFillAmount;
-            //     }
-            // }
+            if (_healthTrailImage != null && !Mathf.Approximately(_healthTrailImage.fillAmount, _targetFillAmount))
+            {
+                _healthTrailImage.fillAmount = Mathf.Lerp(_healthTrailImage.fillAmount, _targetFillAmount,
+                    Time.deltaTime * _trailLerpSpeed);
+            
+                if (Mathf.Abs(_healthTrailImage.fillAmount - _targetFillAmount) < 0.01f)
+                {
+                    _healthTrailImage.fillAmount = _targetFillAmount;
+                }
+            }
         }
 
         private void HandleRunStateInitialized(VolatileRunState newState)
