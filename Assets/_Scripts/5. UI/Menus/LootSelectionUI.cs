@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using Foundation;
 using World;
 using UnityEngine;
@@ -8,22 +9,36 @@ namespace UI
 {
     public sealed class LootSelectionUI : BaseUIPanel
     {
-        [Header("Rune Display")]
-        [SerializeField] private Transform _runeContainer;
-        [SerializeField] private LootOptionUI _lootOptionPrefab;
+        [Header("UI Animation References")] [SerializeField]
+        private RectTransform _runeContainer;
 
-        [Header("Confirm")]
-        [SerializeField] private Button _confirmButton;
+        [SerializeField] private RectTransform _tooltip;
+        [SerializeField] private RectTransform _confirm;
 
-        [Header("Settings — designer-tunable")]
-        [Tooltip("How many runes to show (n).")]
-        [SerializeField] private int _runesToShow = 3;
+        [Header("Animation Settings")] [Tooltip("How high up (in Canvas units) the elements start.")] [SerializeField]
+        private float _dropOffsetY = 1000f;
 
-        [Tooltip("How many the player may keep (m). Clamped to n at runtime.")]
-        [SerializeField] private int _runesToSelect = 1;
+        [Tooltip("How long it takes for a single element to fall.")] [SerializeField]
+        private float _dropDuration = 0.25f;
 
-        [Header("Drop Pool")]
-        [SerializeField] private PickupDropPool _dropPool;
+        [Tooltip("The strength of the Z-axis rotation stumble (degrees).")] [SerializeField]
+        private float _shakeStrength = 5f;
+
+        [Tooltip("How long the stumble wobbles.")] [SerializeField]
+        private float _shakeDuration = 0.2f;
+
+        [Header("Rune Display")] [SerializeField]
+        private LootOptionUI _lootOptionPrefab;
+
+        [Header("Confirm")] [SerializeField] private Button _confirmButton;
+
+        [Header("Settings")] [Tooltip("How many runes to show (n).")] [SerializeField]
+        private int _runesToShow = 3;
+
+        [Tooltip("How many the player may keep (m). Clamped to n at runtime.")] [SerializeField]
+        private int _runesToSelect = 1;
+
+        [Header("Drop Pool")] [SerializeField] private PickupDropPool _dropPool;
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
@@ -31,23 +46,35 @@ namespace UI
         private readonly List<int> _selectionOrder = new();
         private int _effectiveMax;
 
+        private Vector2 _runeOriginalPos;
+        private Vector2 _tooltipOriginalPos;
+        private Vector2 _confirmOriginalPos;
+        private Sequence _showSequence;
+
         // ── Unity ────────────────────────────────────────────────────────────
 
-        private void Awake()
+        protected override void Awake()
         {
             base.Awake();
-            
+
             _confirmButton.onClick.AddListener(OnConfirm);
+
+            // Cache original positions for animations
+            if (_runeContainer != null) _runeOriginalPos = _runeContainer.anchoredPosition;
+            if (_tooltip != null) _tooltipOriginalPos = _tooltip.anchoredPosition;
+            if (_confirm != null) _confirmOriginalPos = _confirm.anchoredPosition;
+
+            SnapToHiddenPosition();
 
             for (int i = 0; i < _runesToShow; i++)
             {
                 int capturedIndex = i;
-                
+
                 LootOptionUI option = Instantiate(_lootOptionPrefab, _runeContainer);
-                
+
                 option.Init(null, () => OnOptionClicked(capturedIndex));
                 option.gameObject.SetActive(false);
-                
+
                 _optionPool.Add(option);
             }
         }
@@ -61,7 +88,7 @@ namespace UI
                 Debug.LogWarning("[LootSelectionUI] No PickupDropPool assigned.");
                 return;
             }
-            
+
             _selectionOrder.Clear();
 
             RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
@@ -80,15 +107,76 @@ namespace UI
                     _optionPool[i].SetSelected(false);
                 }
             }
-            
+
             base.Show();
+
+            _showSequence?.Kill();
+
+            SnapToHiddenPosition();
+            ResetRotations();
+
+            _showSequence = DOTween.Sequence().SetUpdate(true);
+
+            // 1. ALL elements fall together from the sky to the Rune Container's position
+            if (_runeContainer != null)
+                _showSequence.Append(_runeContainer.DOAnchorPos(_runeOriginalPos, _dropDuration).SetEase(Ease.InQuad));
+            if (_tooltip != null)
+                _showSequence.Join(_tooltip
+                    .DOAnchorPos(new Vector2(_tooltipOriginalPos.x, _runeOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.InQuad));
+            if (_confirm != null)
+                _showSequence.Join(_confirm
+                    .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _runeOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.InQuad));
+
+            // 2. Rune container hits & shakes. Tooltip & Confirm continue falling out of it to the Tooltip's position.
+            if (_runeContainer != null)
+                _showSequence.Append(_runeContainer.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration,
+                    10, 0.5f));
+            if (_tooltip != null)
+                _showSequence.Join(_tooltip.DOAnchorPos(_tooltipOriginalPos, _dropDuration).SetEase(Ease.OutQuad));
+            if (_confirm != null)
+                _showSequence.Join(_confirm
+                    .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _tooltipOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.OutQuad));
+
+            // 3. Tooltip hits & shakes. Confirm continues falling out of it to its final position.
+            if (_tooltip != null)
+                _showSequence.Append(_tooltip.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10,
+                    0.5f));
+            if (_confirm != null)
+                _showSequence.Join(_confirm.DOAnchorPos(_confirmOriginalPos, _dropDuration).SetEase(Ease.OutQuad));
+
+            // 4. Confirm hits & shakes.
+            if (_confirm != null)
+                _showSequence.Append(_confirm.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10,
+                    0.5f));
+        }
+
+        private void SnapToHiddenPosition()
+        {
+            // Start everyone at the exact same high Y coordinate so they overlap and fall as one unit
+            float startingY = _runeOriginalPos.y + _dropOffsetY;
+
+            if (_runeContainer != null) _runeContainer.anchoredPosition = new Vector2(_runeOriginalPos.x, startingY);
+            if (_tooltip != null) _tooltip.anchoredPosition = new Vector2(_tooltipOriginalPos.x, startingY);
+            if (_confirm != null) _confirm.anchoredPosition = new Vector2(_confirmOriginalPos.x, startingY);
         }
 
         public override void Hide()
         {
+            // Instantly disables raycasts and fades the whole CanvasGroup out
             base.Hide();
-            
+
+            _showSequence?.Kill();
             _selectionOrder.Clear();
+        }
+
+        private void ResetRotations()
+        {
+            if (_runeContainer != null) _runeContainer.localRotation = Quaternion.identity;
+            if (_tooltip != null) _tooltip.localRotation = Quaternion.identity;
+            if (_confirm != null) _confirm.localRotation = Quaternion.identity;
         }
 
         // ── Selection logic ───────────────────────────────────────────────────
@@ -118,7 +206,6 @@ namespace UI
 
         private void OnConfirm()
         {
-            // 0 selected is a valid no-op — loop simply doesn't execute.
             foreach (int index in _selectionOrder)
                 GameStateManager.RunState.AddRune(_optionPool[index].Rune);
 

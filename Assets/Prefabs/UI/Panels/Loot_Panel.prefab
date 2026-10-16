@@ -137,7 +137,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bb8b8df8e9bc9141a36c895e079f376, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fadeDuration: 0.2
+  _backgroundFadeGroup: {fileID: 0}
   _runeContainer: {fileID: 3376540204691386852}
+  _tooltip: {fileID: 2786642876342210178}
+  _confirm: {fileID: 3883437894589626277}
+  _dropOffsetY: 1000
+  _dropDuration: 0.25
+  _shakeStrength: 5
+  _shakeDuration: 0.2
   _lootOptionPrefab: {fileID: 3313342467715351347, guid: 4afb2280b2d4821468a5c20a3a9b8541,
     type: 3}
   _confirmButton: {fileID: 897443978469665160}
@@ -429,9 +437,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3376540204691386852}
-  - {fileID: 2786642876342210178}
   - {fileID: 3883437894589626277}
+  - {fileID: 2786642876342210178}
+  - {fileID: 3376540204691386852}
   m_Father: {fileID: 3846974307253689949}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
