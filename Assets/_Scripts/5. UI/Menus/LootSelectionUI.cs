@@ -9,36 +9,35 @@ namespace UI
 {
     public sealed class LootSelectionUI : BaseUIPanel
     {
-        [Header("UI Animation References")] [SerializeField]
-        private RectTransform _runeContainer;
-
+        [Header("UI Animation References")] 
+        [SerializeField] private RectTransform _runeContainer;
         [SerializeField] private RectTransform _tooltip;
         [SerializeField] private RectTransform _confirm;
 
-        [Header("Animation Settings")] [Tooltip("How high up (in Canvas units) the elements start.")] [SerializeField]
-        private float _dropOffsetY = 1000f;
+        [Header("Animation Settings")] 
+        [Tooltip("How high up (in Canvas units) the elements start.")] 
+        [SerializeField] private float _dropOffsetY = 1000f;
+        [Tooltip("How long it takes for a single element to fall.")]
+        [SerializeField] private float _dropDuration = 0.25f;
+        [Tooltip("The strength of the Z-axis rotation stumble (degrees).")] 
+        [SerializeField] private float _shakeStrength = 5f;
+        [Tooltip("How long the stumble wobbles.")] 
+        [SerializeField] private float _shakeDuration = 0.2f;
 
-        [Tooltip("How long it takes for a single element to fall.")] [SerializeField]
-        private float _dropDuration = 0.25f;
+        [Header("Rune Display")] 
+        [SerializeField] private LootOptionUI _lootOptionPrefab;
 
-        [Tooltip("The strength of the Z-axis rotation stumble (degrees).")] [SerializeField]
-        private float _shakeStrength = 5f;
+        [Header("Confirm")] 
+        [SerializeField] private Button _confirmButton;
 
-        [Tooltip("How long the stumble wobbles.")] [SerializeField]
-        private float _shakeDuration = 0.2f;
+        [Header("Settings")]
+        [Tooltip("How many runes to show (n).")] 
+        [SerializeField] private int _runesToShow = 3;
+        [Tooltip("How many the player may keep (m). Clamped to n at runtime.")]
+        [SerializeField] private int _runesToSelect = 1;
 
-        [Header("Rune Display")] [SerializeField]
-        private LootOptionUI _lootOptionPrefab;
-
-        [Header("Confirm")] [SerializeField] private Button _confirmButton;
-
-        [Header("Settings")] [Tooltip("How many runes to show (n).")] [SerializeField]
-        private int _runesToShow = 3;
-
-        [Tooltip("How many the player may keep (m). Clamped to n at runtime.")] [SerializeField]
-        private int _runesToSelect = 1;
-
-        [Header("Drop Pool")] [SerializeField] private PickupDropPool _dropPool;
+        [Header("Drop Pool")]
+        [SerializeField] private PickupDropPool _dropPool;
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
@@ -56,15 +55,11 @@ namespace UI
         protected override void Awake()
         {
             base.Awake();
-
             _confirmButton.onClick.AddListener(OnConfirm);
 
-            // Cache original positions for animations
             if (_runeContainer != null) _runeOriginalPos = _runeContainer.anchoredPosition;
             if (_tooltip != null) _tooltipOriginalPos = _tooltip.anchoredPosition;
             if (_confirm != null) _confirmOriginalPos = _confirm.anchoredPosition;
-
-            SnapToHiddenPosition();
 
             for (int i = 0; i < _runesToShow; i++)
             {
@@ -110,14 +105,15 @@ namespace UI
 
             base.Show();
 
-            _showSequence?.Kill();
+            _canvasGroup.interactable = false;
+            _confirmButton.GetComponent<Image>().raycastTarget = false;
 
+            _showSequence?.Kill();
             SnapToHiddenPosition();
             ResetRotations();
 
             _showSequence = DOTween.Sequence().SetUpdate(true);
 
-            // 1. ALL elements fall together from the sky to the Rune Container's position
             if (_runeContainer != null)
                 _showSequence.Append(_runeContainer.DOAnchorPos(_runeOriginalPos, _dropDuration).SetEase(Ease.InQuad));
             if (_tooltip != null)
@@ -129,7 +125,6 @@ namespace UI
                     .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _runeOriginalPos.y), _dropDuration)
                     .SetEase(Ease.InQuad));
 
-            // 2. Rune container hits & shakes. Tooltip & Confirm continue falling out of it to the Tooltip's position.
             if (_runeContainer != null)
                 _showSequence.Append(_runeContainer.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration,
                     10, 0.5f));
@@ -140,22 +135,25 @@ namespace UI
                     .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _tooltipOriginalPos.y), _dropDuration)
                     .SetEase(Ease.OutQuad));
 
-            // 3. Tooltip hits & shakes. Confirm continues falling out of it to its final position.
             if (_tooltip != null)
                 _showSequence.Append(_tooltip.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10,
                     0.5f));
             if (_confirm != null)
                 _showSequence.Join(_confirm.DOAnchorPos(_confirmOriginalPos, _dropDuration).SetEase(Ease.OutQuad));
 
-            // 4. Confirm hits & shakes.
             if (_confirm != null)
                 _showSequence.Append(_confirm.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10,
                     0.5f));
+            
+            _showSequence.OnComplete(() => 
+            {
+                _canvasGroup.interactable = true;
+                _confirmButton.GetComponent<Image>().raycastTarget = true;
+            });
         }
 
         private void SnapToHiddenPosition()
         {
-            // Start everyone at the exact same high Y coordinate so they overlap and fall as one unit
             float startingY = _runeOriginalPos.y + _dropOffsetY;
 
             if (_runeContainer != null) _runeContainer.anchoredPosition = new Vector2(_runeOriginalPos.x, startingY);
@@ -165,7 +163,6 @@ namespace UI
 
         public override void Hide()
         {
-            // Instantly disables raycasts and fades the whole CanvasGroup out
             base.Hide();
 
             _showSequence?.Kill();
