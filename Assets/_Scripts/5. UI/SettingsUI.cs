@@ -14,11 +14,13 @@ namespace UI
         [SerializeField] private Slider _masterSlider;
         [SerializeField] private Slider _musicSlider;
         [SerializeField] private Slider _sfxSlider;
+        [SerializeField] private Slider _uiSlider;
         
         [Header("Audio Labels")]
         [SerializeField] private TMP_Text _masterValueText;
         [SerializeField] private TMP_Text _musicValueText;
         [SerializeField] private TMP_Text _sfxValueText;
+        [SerializeField] private TMP_Text _uiValueText;
         
         [Header("Display Controls")]
         [SerializeField] private TMP_Dropdown _windowModeDropdown;
@@ -50,6 +52,7 @@ namespace UI
             _masterSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.Master, val, _masterValueText));
             _musicSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.Music, val, _musicValueText));
             _sfxSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.SFX, val, _sfxValueText));
+            _uiSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.SFX, val, _uiValueText));
             
             _applyButton.onClick.AddListener(ApplySettings);
             _resetButton.onClick.AddListener(ResetToDefaults);
@@ -132,10 +135,12 @@ namespace UI
             _masterSlider.SetValueWithoutNotify(masterDisplay);
             _musicSlider.SetValueWithoutNotify(musicDisplay);
             _sfxSlider.SetValueWithoutNotify(sfxDisplay);
+            _uiSlider.SetValueWithoutNotify(sfxDisplay);
             
             _masterValueText.text = masterDisplay.ToString("0");
             _musicValueText.text = musicDisplay.ToString("0");
             _sfxValueText.text = sfxDisplay.ToString("0");
+            _uiValueText.text = sfxDisplay.ToString("0");
 
             _windowModeDropdown.SetValueWithoutNotify((int)_workingCache.WindowMode);
 
