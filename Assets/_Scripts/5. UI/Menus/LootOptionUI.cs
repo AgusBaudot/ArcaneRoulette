@@ -21,7 +21,11 @@ namespace UI
         public RuneDefinitionSO Rune { get; private set; }
 
         private Button _button;
+        
+        // ── Callbacks ────────────────────────────────────────────────────────
         private Action _onClicked;
+        private Action _onHovered;
+        private Action _onUnhovered;
 
         private void Awake()
         {
@@ -30,11 +34,13 @@ namespace UI
                 _selectedHighlight.SetActive(false);
         }
 
-        public void Init(RuneDefinitionSO rune, Action onClicked)
+        public void Init(RuneDefinitionSO rune, Action onClicked, Action onHovered = null, Action onUnhovered = null)
         {
             Rune = rune;
-            if (onClicked != null)
-                _onClicked = onClicked;
+            
+            _onClicked = onClicked;
+            _onHovered = onHovered;
+            _onUnhovered = onUnhovered;
 
             if (rune == null)
                 return;
@@ -59,6 +65,8 @@ namespace UI
                 _selectedHighlight.SetActive(selected);
         }
 
+        // ── Input Routing ────────────────────────────────────────────────────
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (_button != null && !_button.interactable)
@@ -70,12 +78,12 @@ namespace UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            TooltipSystem.Instance?.Show(Rune, GetComponent<RectTransform>());
+            _onHovered?.Invoke();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            TooltipSystem.Instance?.Hide();
+            _onUnhovered?.Invoke();
         }
     }
 }
