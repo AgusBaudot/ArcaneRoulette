@@ -62,7 +62,7 @@ namespace UI
             _masterSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.Master, val, _masterValueText));
             _musicSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.Music, val, _musicValueText));
             _sfxSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.SFX, val, _sfxValueText));
-            _uiSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.SFX, val, _uiValueText));
+            _uiSlider.onValueChanged.AddListener(val => OnVolumeChanged(MixerBus.UI, val, _uiValueText));
             
             _applyButton.onClick.AddListener(ApplySettings);
             _resetButton.onClick.AddListener(ResetToDefaults);
@@ -124,12 +124,6 @@ namespace UI
             RefreshUIFromCache();
         }
 
-        public override void Hide()
-        {
-            base.Hide();
-            _saveLoadSystem.SaveSettings(_workingCache);
-        }
-
         private void OnVolumeChanged(MixerBus bus, float rawValue, TMP_Text label)
         {
             if (_workingCache == null)
@@ -144,6 +138,7 @@ namespace UI
                 case MixerBus.Master: _workingCache.MasterVolume = normalizedValue; break;
                 case MixerBus.Music: _workingCache.MusicVolume = normalizedValue; break;
                 case MixerBus.SFX: _workingCache.SFXVolume = normalizedValue; break;
+                case MixerBus.UI: _workingCache.UIVolume = normalizedValue; break;
             }
             
             EventBus.Publish(new AudioVolumeChangedEvent(bus, normalizedValue));
@@ -165,6 +160,7 @@ namespace UI
                 new RefreshRate {numerator = (uint)_workingCache.RefreshRate, denominator = 1}
                 );
 
+            _saveLoadSystem.SaveSettings(_workingCache);
             RequestClose();
         }
 
@@ -176,8 +172,7 @@ namespace UI
             EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.Master, _workingCache.MasterVolume));
             EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.Music, _workingCache.MusicVolume));
             EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.SFX, _workingCache.SFXVolume));
-            
-            ApplySettings();
+            EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.UI, _workingCache.UIVolume));
         }
 
         private void RefreshUIFromCache()
@@ -185,16 +180,17 @@ namespace UI
             float masterDisplay = _workingCache.MasterVolume * 10f;
             float musicDisplay = _workingCache.MusicVolume * 10f;
             float sfxDisplay = _workingCache.SFXVolume * 10f;
+            float uiDisplay = _workingCache.UIVolume * 10f;
 
             _masterSlider.SetValueWithoutNotify(masterDisplay);
             _musicSlider.SetValueWithoutNotify(musicDisplay);
             _sfxSlider.SetValueWithoutNotify(sfxDisplay);
-            _uiSlider.SetValueWithoutNotify(sfxDisplay);
+            _uiSlider.SetValueWithoutNotify(uiDisplay);
             
             _masterValueText.text = masterDisplay.ToString("0");
             _musicValueText.text = musicDisplay.ToString("0");
             _sfxValueText.text = sfxDisplay.ToString("0");
-            _uiValueText.text = sfxDisplay.ToString("0");
+            _uiValueText.text = uiDisplay.ToString("0");
 
             _windowModeDropdown.SetValueWithoutNotify((int)_workingCache.WindowMode);
 
