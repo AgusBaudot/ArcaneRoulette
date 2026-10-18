@@ -66,6 +66,8 @@ namespace UI
         {
             base.Show();
             
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_windowModeDropdown.gameObject.transform.GetChild(0) as RectTransform);
+            
             _workingCache = _saveLoadSystem.LoadSettings();
             RefreshUIFromCache();
         }
