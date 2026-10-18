@@ -10,7 +10,6 @@ namespace UI
     public sealed class ShopItemSlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         [SerializeField] private Image _icon;
-        [SerializeField] private GameObject _glowBacking;
         [SerializeField] private TextMeshProUGUI _priceText;
         [SerializeField] private GameObject _soldOutOverlay;
 
@@ -57,7 +56,6 @@ namespace UI
             _index = index;
             _parent = parent;
 
-            _glowBacking.SetActive(false);
             _priceText.text = cost.ToString();
 
             if (isSold) MarkSold();
@@ -69,8 +67,8 @@ namespace UI
             _isSold = true;
             _soldOutOverlay.SetActive(true);
             _priceText.rectTransform.parent.gameObject.SetActive(false);
-            _glowBacking.SetActive(false);
 
+            transform.DOKill();
             transform.DOScale(1f, 0.1f).SetUpdate(true);
 
             EventBus.Publish(new AudioPlayRequest { Event = _successSound });
@@ -78,7 +76,6 @@ namespace UI
 
         public void RejectPurchase()
         {
-            // FDD: Shake and play negative sound
             transform.DOShakePosition(0.3f, 10f, 20, 90f, false, true).SetUpdate(true);
             EventBus.Publish(new AudioPlayRequest { Event = _failSound });
         }
@@ -87,26 +84,34 @@ namespace UI
         {
             if (_isSold) return;
 
-            // FDD Hover visual feedback (1.25x scale)
-            transform.DOScale(1.25f, 0.2f).SetUpdate(true);
-            _glowBacking.SetActive(true);
+            if (_isRune && _cachedRune != null && _icon != null) 
+            {
+                _icon.sprite = _cachedRune.Highlighted;
+            }
 
-            // FDD Affordability check for red text
+            transform.DOKill();
+            transform.DOScale(1.25f, 0.2f).SetUpdate(true);
+
             if (GameStateManager.RunState.Currency < _cost)
             {
                 _priceText.color = Color.red;
             }
 
             if (_isRune) TooltipSystem.Instance?.Show(_cachedRune, GetComponent<RectTransform>());
-            // else TooltipSystem.Instance?.Show(_cachedArtifact...); // Uncomment once artifacts are implemented
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             if (_isSold) return;
 
+            if (_isRune && _cachedRune != null && _icon != null) 
+            {
+                _icon.sprite = _cachedRune.Icon;
+            }
+
+            transform.DOKill();
             transform.DOScale(1f, 0.2f).SetUpdate(true);
-            _glowBacking.SetActive(false);
+            
             _priceText.color = Color.white;
 
             TooltipSystem.Instance?.Hide();

@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -78,11 +79,25 @@ namespace UI
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            if (_button != null && !_button.interactable) return;
+            
+            if (Rune != null && _runeIcon != null) _runeIcon.sprite = Rune.Highlighted;
+
+            transform.DOKill();
+            transform.DOScale(1.65f, 0.2f).SetUpdate(true);
+
             _onHovered?.Invoke();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (_button != null && !_button.interactable) return;
+            
+            if (Rune != null && _runeIcon != null) _runeIcon.sprite = Rune.Icon;
+
+            transform.DOKill();
+            transform.DOScale(1.5f, 0.2f).SetUpdate(true);
+
             _onUnhovered?.Invoke();
         }
     }

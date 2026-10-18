@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -40,7 +41,6 @@ namespace UI
             
             _onClick?.Invoke(eventData.button);
             
-            // Hide tooltip immediately on click
             TooltipSystem.Instance?.Hide();
         }
 
@@ -48,12 +48,28 @@ namespace UI
         {
             if (_currentRune == null)
                 return;
+
+            if (_icon != null)
+            {
+                _icon.sprite = _currentRune.Highlighted;
+            }
+            
+            transform.DOKill();
+            transform.DOScale(1.65f, 0.2f).SetUpdate(true);
             
             TooltipSystem.Instance?.Show(_currentRune, GetComponent<RectTransform>());
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (_currentRune != null && _icon != null)
+            {
+                _icon.sprite = _currentRune.Icon;
+            }
+            
+            transform.DOKill();
+            transform.DOScale(1.5f, 0.2f).SetUpdate(true);
+            
             TooltipSystem.Instance?.Hide();
         }
 
