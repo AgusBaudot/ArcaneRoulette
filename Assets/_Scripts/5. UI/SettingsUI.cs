@@ -25,6 +25,12 @@ namespace UI
         [Header("Display Controls")]
         [SerializeField] private TMP_Dropdown _windowModeDropdown;
         [SerializeField] private TMP_Dropdown _resolutionDropdown;
+
+        [Header("Dropdown Headers (Sorting Fix)")]
+        [SerializeField] private Button _windowModeHeaderButton;
+        [SerializeField] private Canvas _windowModeHeaderCanvas;
+        [SerializeField] private Button _resolutionHeaderButton;
+        [SerializeField] private Canvas _resolutionHeaderCanvas;
         
         [Header("Actions")]
         [SerializeField] private Button _applyButton;
@@ -34,6 +40,10 @@ namespace UI
         private SettingsSaveData _workingCache;
         private ISettingsSave _saveLoadSystem;
         private Resolution[] _availableResolutions;
+
+        // Variables to memorize the shadow sorting order you set in the Inspector
+        private int _windowModeBaseSortOrder;
+        private int _resolutionBaseSortOrder;
 
         private readonly string[] _windowModeNames =
         {
@@ -58,8 +68,50 @@ namespace UI
             _resetButton.onClick.AddListener(ResetToDefaults);
             _backButton.onClick.AddListener(RequestClose);
 
+            // Memorize the Canvas sorting orders you set in the Inspector (e.g., 20 and 19)
+            if (_windowModeHeaderCanvas != null) _windowModeBaseSortOrder = _windowModeHeaderCanvas.sortingOrder;
+            if (_resolutionHeaderCanvas != null) _resolutionBaseSortOrder = _resolutionHeaderCanvas.sortingOrder;
+
+            // Setup Dropdown Toggle Listeners
+            if (_windowModeHeaderButton != null)
+                _windowModeHeaderButton.onClick.AddListener(() => OnDropdownHeaderClicked(_windowModeDropdown, _windowModeHeaderCanvas, _windowModeBaseSortOrder));
+            
+            if (_resolutionHeaderButton != null)
+                _resolutionHeaderButton.onClick.AddListener(() => OnDropdownHeaderClicked(_resolutionDropdown, _resolutionHeaderCanvas, _resolutionBaseSortOrder));
+
             PopulateWindowModes();
             PopulateResolutions();
+        }
+
+        private void OnDropdownHeaderClicked(TMP_Dropdown dropdown, Canvas headerCanvas, int baseSortOrder)
+        {
+            if (dropdown == null || headerCanvas == null) return;
+
+            Transform dropdownList = dropdown.transform.Find("Dropdown List");
+
+            if (dropdownList != null)
+            {
+                // The list is already open. Native Hide() will destroy the list, 
+                // which automatically triggers our listener to restore the sort order.
+                dropdown.Hide();
+            }
+            else
+            {
+                // Open it and pop the header to the front
+                dropdown.Show();
+                headerCanvas.sortingOrder = 30001;
+
+                // Grab the newly spawned list and inject our custom event listener
+                Transform newList = dropdown.transform.Find("Dropdown List");
+                if (newList != null)
+                {
+                    var listener = newList.gameObject.AddComponent<DropdownCloseListener>();
+                    listener.OnClosed = () =>
+                    {
+                        if (headerCanvas != null) headerCanvas.sortingOrder = baseSortOrder;
+                    };
+                }
+            }
         }
 
         public override void Show()
@@ -182,6 +234,17 @@ namespace UI
             }
             
             _resolutionDropdown.AddOptions(options);
+        }
+
+        // --- Tiny internal component to eliminate Update() polling ---
+        private class DropdownCloseListener : MonoBehaviour
+        {
+            public System.Action OnClosed;
+
+            private void OnDestroy()
+            {
+                OnClosed?.Invoke();
+            }
         }
     }
 }
