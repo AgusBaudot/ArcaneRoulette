@@ -24,12 +24,17 @@ namespace UI
         [Header("Selection Feedback")]
         [SerializeField] private GameObject _selectedHighlight;
 
-        [Header("Hover Animation")]
+        [Header("Hover & Select Animation")]
         [SerializeField] private float _hoverDuration = 0.2f;
         [SerializeField] private float _scaleMultiplier = 1.1f;
         [SerializeField] private float _hoverOffsetY = 10f;
+        [Tooltip("How far the rune floats up and down while selected.")]
+        [SerializeField] private float _floatDistance = 5f;
+        [Tooltip("How long one half of the breathing animation takes.")]
+        [SerializeField] private float _floatDuration = 1f;
 
         public RuneDefinitionSO Rune { get; private set; }
+        
         private Button _button;
         private Vector2 _originalPosition;
         private Vector3 _originalScale;
@@ -37,6 +42,9 @@ namespace UI
         private Action _onClicked;
         private Action _onHovered;
         private Action _onUnhovered;
+        
+        private bool _isHovered;
+        private bool _isSelected;
 
         private void Awake()
         {
@@ -55,9 +63,12 @@ namespace UI
         public void Init(RuneDefinitionSO rune, Action onClicked, Action onHovered = null, Action onUnhovered = null)
         {
             Rune = rune;
-            _onClicked = onClicked;
+            if (onClicked != null) _onClicked = onClicked;
             _onHovered = onHovered;
             _onUnhovered = onUnhovered;
+
+            _isHovered = false;
+            _isSelected = false;
 
             if (rune == null) return;
 
@@ -76,11 +87,18 @@ namespace UI
 
             if (_runeNameText != null) _runeNameText.text = rune.Name;
             if (_runeDescriptionText != null) _runeDescriptionText.text = rune.Description;
+            
+            UpdateVisualState();
         }
 
         public void SetSelected(bool selected)
         {
-            if (_selectedHighlight != null) _selectedHighlight.SetActive(selected);
+            _isSelected = selected;
+            
+            if (_selectedHighlight != null) 
+                _selectedHighlight.SetActive(selected);
+                
+            UpdateVisualState();
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -93,40 +111,59 @@ namespace UI
         {
             if (_button != null && !_button.interactable) return;
             
-            if (Rune != null && _runeIcon != null)
-            {
-                _runeIcon.sprite = Rune.Highlighted;
-                if (_glowImage != null) _glowImage.enabled = true;
-            }
-
-            if (_visualRoot != null)
-            {
-                _visualRoot.DOKill();
-                _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
-                _visualRoot.DOAnchorPos(_originalPosition + new Vector2(0f, _hoverOffsetY), _hoverDuration).SetUpdate(true);
-            }
-
+            _isHovered = true;
             _onHovered?.Invoke();
+            
+            UpdateVisualState();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             if (_button != null && !_button.interactable) return;
             
-            if (Rune != null && _runeIcon != null)
-            {
-                _runeIcon.sprite = Rune.Icon;
-                if (_glowImage != null) _glowImage.enabled = false;
-            }
+            _isHovered = false;
+            _onUnhovered?.Invoke();
+            
+            UpdateVisualState();
+        }
 
-            if (_visualRoot != null)
+        private void UpdateVisualState()
+        {
+            if (Rune == null || _visualRoot == null) return;
+
+            _visualRoot.DOKill();
+
+            if (_isSelected)
             {
-                _visualRoot.DOKill();
+                if (_runeIcon != null) _runeIcon.sprite = Rune.Highlighted;
+                if (_glowImage != null) _glowImage.enabled = true;
+
+                _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
+                
+                // SetLoops with Yoyo automatically ping-pongs between the current state 
+                // (which is already offset upwards from hovering) and the new peakY.
+                float peakY = _originalPosition.y + _hoverOffsetY + _floatDistance;
+                _visualRoot.DOAnchorPosY(peakY, _floatDuration)
+                    .SetEase(Ease.InOutSine)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetUpdate(true);
+            }
+            else if (_isHovered)
+            {
+                if (_runeIcon != null) _runeIcon.sprite = Rune.Highlighted;
+                if (_glowImage != null) _glowImage.enabled = true;
+
+                _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
+                _visualRoot.DOAnchorPos(_originalPosition + new Vector2(0f, _hoverOffsetY), _hoverDuration).SetUpdate(true);
+            }
+            else
+            {
+                if (_runeIcon != null) _runeIcon.sprite = Rune.Icon;
+                if (_glowImage != null) _glowImage.enabled = false;
+
                 _visualRoot.DOScale(_originalScale, _hoverDuration).SetUpdate(true);
                 _visualRoot.DOAnchorPos(_originalPosition, _hoverDuration).SetUpdate(true);
             }
-
-            _onUnhovered?.Invoke();
         }
     }
 }
