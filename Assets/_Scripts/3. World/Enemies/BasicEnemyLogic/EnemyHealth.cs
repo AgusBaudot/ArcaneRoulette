@@ -18,6 +18,9 @@ namespace World
         [SerializeField] private Image _hpFill;
         [SerializeField] private Image _ghostFill;
         [SerializeField] private float _ghostSpeed = 2.5f;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _deathSound;
 
         public event Action OnDeath;
         public float CurrentHp => _currentHp;
@@ -71,16 +74,26 @@ namespace World
         {
             if (_isDead)
                 return;
-
+            
             _isDead = true;
+
+            if (_deathSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = _deathSound, WorldPosition = transform.position});
+            }
+
             OnDeath?.Invoke();
         }
 
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
-            _element = stats.ElementType;
             ResetComponent();
+        }
+
+        public void SetRuntimeElement(ElementType newElement)
+        {
+            _element = newElement;
         }
 
         public void ResetComponent()

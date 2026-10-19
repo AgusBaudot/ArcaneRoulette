@@ -9,6 +9,8 @@ namespace World
         [Header("Music Tracks")]
         [SerializeField] private AudioEventSO _explorationMusic;
         [SerializeField] private AudioEventSO _combatMusic;
+        [SerializeField] private AudioEventSO _winMusic;
+        [SerializeField] private AudioEventSO _loseMusic;
         
         [Header("Settings")]
         [SerializeField] private float _crossfadeDuration = 1.5f;
@@ -17,12 +19,16 @@ namespace World
         {
             EventBus.Subscribe<PlayerEnteredRoomEvent>(HandleRoomEntered);
             EventBus.Subscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
+            EventBus.Subscribe<FloorClearedEvent>(HandleFloorCleared);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<PlayerEnteredRoomEvent>(HandleRoomEntered);
             EventBus.Unsubscribe<RoomClearEvent>(HandleRoomCleared);
+            EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
+            EventBus.Unsubscribe<FloorClearedEvent>(HandleFloorCleared);
         }
 
         private void HandleRoomEntered(PlayerEnteredRoomEvent evt)
@@ -55,6 +61,24 @@ namespace World
             EventBus.Publish(new AudioCrossfadeRequest
             {
                 NewTrack = _explorationMusic,
+                Duration = _crossfadeDuration
+            });
+        }
+
+        private void HandlePlayerDeath(PlayerDiedEvent evt)
+        {
+            EventBus.Publish(new AudioCrossfadeRequest
+            {
+                NewTrack = _loseMusic,
+                Duration = 0.5f
+            });
+        }
+
+        private void HandleFloorCleared(FloorClearedEvent evt)
+        {
+            EventBus.Publish(new AudioCrossfadeRequest
+            {
+                NewTrack = _winMusic,
                 Duration = _crossfadeDuration
             });
         }

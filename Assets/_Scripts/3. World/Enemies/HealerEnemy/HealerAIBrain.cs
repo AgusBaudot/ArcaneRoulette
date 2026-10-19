@@ -263,7 +263,6 @@ namespace World
                     dir, 
                     HealerStats.BottleThrowSpeed, 
                     Mathf.RoundToInt(EffectiveAttackDamage * 0.5f), 
-                    HealerStats.ElementType, 
                     gameObject, 
                     player.position
                 );

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8af37eb16c9f4944acbc49b79829b490, type: 3}
   m_Name: FDDMeleeStats
   m_EditorClassIdentifier: 
-  MaxHp: 20
+  MaxHp: 200
   ElementType: 0
   ViewDistance: 10
   ObsMask:
@@ -20,7 +20,7 @@ MonoBehaviour:
     m_Bits: 32768
   ChaseSpeed: 8
   PatrolSpeed: 4
-  AttackDamage: 2
+  AttackDamage: 20
   AttackRange: 6
   ExitAttackRange: 3
   AttackRadius: 1.5
@@ -30,7 +30,7 @@ MonoBehaviour:
     m_Bits: 256
   SpawnDuration: 3
   TargetPredictionWeight: 0.5
-  FormationRadius: 6
+  FormationRadius: 3
   MaxPredictionTime: 1.5
   MaxRedirectAngle: 45
   WindupDuration: 0.5
@@ -38,7 +38,7 @@ MonoBehaviour:
   Attack1MovementSpeedMultiplier: 0.2
   Attack1SwingSpeedMultiplier: 3
   Attack1HitboxSize: {x: 2, y: 1, z: 2}
-  Attack1DamageMultiplier: 0.5
+  Attack1DamageMultiplier: 1
   Attack1EndDelay: 0.2
   Attack1Sound: {fileID: 11400000, guid: 783866eb56613e34ab3f1138b891d925, type: 2}
   Attack2SwingSpeedMultiplier: 2.5

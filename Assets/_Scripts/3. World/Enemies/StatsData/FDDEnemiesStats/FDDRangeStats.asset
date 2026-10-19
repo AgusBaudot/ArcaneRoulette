@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87c9b4507593484d8c6910e004cd05a7, type: 3}
   m_Name: FDDRangeStats
   m_EditorClassIdentifier: 
-  MaxHp: 18
+  MaxHp: 180
   ElementType: 1
   ViewDistance: 16
   ObsMask:
@@ -20,11 +20,11 @@ MonoBehaviour:
     m_Bits: 32768
   ChaseSpeed: 6
   PatrolSpeed: 4
-  AttackDamage: 2
+  AttackDamage: 20
   AttackRange: 12
   ExitAttackRange: 13
   AttackRadius: 0
-  AttackSpeed: 4
+  AttackSpeed: 8
   HitLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -39,15 +39,20 @@ MonoBehaviour:
   PredictionTime3: 1.5
   NormalProjectilePrefab: {fileID: -584952015612557093, guid: fb6ee8a7e0b8b164c9a1444f5a2467d1,
     type: 3}
-  NormalProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2,
-    type: 2}
   BigProjectilePrefab: {fileID: 8560652046546805055, guid: 9d9c47ab0b35ca540ac3f9216f6b621b,
     type: 3}
-  BigProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2, type: 2}
   NormalProjectileSpeed: 12
   BigProjectileInitialSpeed: 12
-  BigProjectileDrainRate: 2
+  BigProjectileDrainRate: 4
+  BigProjectileLifespan: 3
   BlockCoverDuration: 1
   BlockUncoverDuration: 1
   BlockTimeout: 3
   TeleportAnimDuration: 4
+  BlockPercentage: 2.5
+  BigProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2, type: 2}
+  NormalProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2,
+    type: 2}
+  TeleportSound: {fileID: 0}
+  BlockStartSound: {fileID: 0}
+  BlockEndSound: {fileID: 0}

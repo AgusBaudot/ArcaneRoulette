@@ -14,7 +14,6 @@ namespace World
         private readonly HashSet<IDamageable> _hitThisSwing = new HashSet<IDamageable>();
 
         private int _damage;
-        private ElementType _element;
 
         private Quaternion _startRotation;
         private Quaternion _endRotation;
@@ -39,10 +38,9 @@ namespace World
             UpdateManager.Instance?.Unregister(this);
         }
 
-        public void Configure(int damage, ElementType element, Vector3 size, Vector3 attackDirection, float sweepAngle)
+        public void Configure(int damage, Vector3 size, Vector3 attackDirection, float sweepAngle)
         {
             _damage = damage;
-            _element = element;
             _collider.size = size;
 
             attackDirection.y = 0f;
@@ -97,7 +95,7 @@ namespace World
             _hitThisSwing.Add(target);
 
             var batch = new DamageBatch();
-            batch.Deal(target, _damage, _element);
+            batch.Deal(target, _damage, ElementType.Neutral);
             batch.Commit(Helpers.Combat.PlayerDamage);
         }
 

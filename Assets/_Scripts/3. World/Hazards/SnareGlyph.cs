@@ -8,6 +8,8 @@ namespace World
     public sealed class SnareGlyph : MonoBehaviour , IHazard
     {
         [SerializeField] private float _snareDuration = 3f;
+        [SerializeField] private float _pullDelay = 0.5f;
+        [SerializeField] private float _pullSpeed = 4f;
         [SerializeField] private GameObject _activateObject;
 
         private readonly int _disappearHash = Animator.StringToHash("t_Disappear");
@@ -54,20 +56,54 @@ namespace World
         {
             _activateObject.SetActive(true);
             
-            // Player cannot move but can still cast — SetCanMove only blocks HandleMovement.
             player.SetCanMove(false);
             player.SetVelocity(Vector3.zero);
-            player.TeleportTo(new PlayerTeleportRequestEvent(transform.position - Vector3.forward * 0.5f));
 
-            yield return CoroutineUtils.GetWait(_snareDuration);
+            if (_pullDelay > 0f)
+            {
+                yield return CoroutineUtils.GetWait(_pullDelay);
+            }
+            
+            Vector3 targetPos = transform.position - (Vector3.forward * 0.5f);
+            float elapsed = 0f;
+            
+            float pullDuration = Mathf.Max(0f, _snareDuration - _pullDelay);
+            WaitForFixedUpdate wait = new WaitForFixedUpdate();
+
+            while (elapsed < pullDuration)
+            {
+                if (player == null || !player.gameObject.activeInHierarchy) 
+                    break;
+
+                Vector3 currentPos = player.transform.position;
+                Vector3 diff = targetPos - currentPos;
+                diff.y = 0f;
+
+                float distance = diff.magnitude;
+
+                if (distance > 0.01f)
+                {
+                    float currentSpeed = Mathf.Min(_pullSpeed, distance / Time.fixedDeltaTime);
+                    player.SetVelocity(diff.normalized * currentSpeed);
+                }
+                else
+                {
+                    player.SetVelocity(Vector3.zero);
+                }
+
+                yield return wait;
+                elapsed += Time.fixedDeltaTime;
+            }
             
             _anim.SetTrigger(_disappearHash);
 
-            // Null check — player could have died during the snare duration.
             if (player != null)
+            {
+                player.SetVelocity(Vector3.zero);
                 player.SetCanMove(true);
+            }
 
-            //Animation disappearing duration.
+            // Animation disappearing duration.
             Destroy(gameObject, 0.7f);
         }
         

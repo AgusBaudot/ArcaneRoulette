@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b5a1e9992e64c4b950ea279368508f3, type: 3}
   m_Name: FDDHealerStats
   m_EditorClassIdentifier: 
-  MaxHp: 16
+  MaxHp: 200
   ElementType: 3
   ViewDistance: 35
   ObsMask:
     serializedVersion: 2
     m_Bits: 32768
-  ChaseSpeed: 6
+  ChaseSpeed: 8
   PatrolSpeed: 1
-  AttackDamage: 3
+  AttackDamage: 30
   AttackRange: 7
   ExitAttackRange: 9
   AttackRadius: 10
@@ -39,3 +39,5 @@ MonoBehaviour:
   BottlePrefab: {fileID: 3441578478036581919, guid: 8dfa4016a723c984395a943713918b72,
     type: 3}
   BottleThrowSpeed: 6
+  HealBeamLoopSound: {fileID: 0}
+  BottleThrowSound: {fileID: 0}

@@ -10,29 +10,27 @@ namespace World
         [SerializeField] private EnemyProjectile _normalProjectilePrefab; 
         
         public override bool IsEnemy => _isEnemy;
-        public override ElementType SpellElement => _element;
-        public ElementType Element => _element;
+        public override ElementType SpellElement => Element;
+        public ElementType Element => ElementType.Neutral;
         public int Damage { get; private set; }
         public GameObject Owner { get; private set; }
         
-        private ElementType _element;
         private float _drainRate;
         private float _timer;
         private Vector3 _fireDirection;
         private bool _isDetonating;
         private bool _isEnemy = true;
 
-        public void InitBig(Vector3 dir, float speed, int damage, ElementType element, GameObject owner, float drainRate)
+        public void InitBig(Vector3 dir, float speed, int damage, GameObject owner, float drainRate, float timer)
         {
             _isEnemy = true;
             gameObject.layer = LayerMask.NameToLayer("EnemyProjectile");
             
             _fireDirection = dir;
             Damage = damage;
-            _element = element;
             Owner = owner;
             _drainRate = drainRate;
-            _timer = 6f; 
+            _timer = timer; 
             _isDetonating = false;
             BounceCount = 0;
 
@@ -74,7 +72,7 @@ namespace World
             else if (!_isEnemy && !isPlayer)
             {
                 var batch = new DamageBatch();
-                batch.Deal(damageable, gameObject, Damage, _element);
+                batch.Deal(damageable, gameObject, Damage, Element);
                 batch.Commit(Helpers.Combat.NormalDMG);
                 
                 Detonate();
@@ -101,7 +99,7 @@ namespace World
                     
                     var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(_normalProjectilePrefab, transform.position, Quaternion.LookRotation(dir));
                     
-                    proj.Init(dir, 12f, Damage, Element, Owner); 
+                    proj.Init(dir, 12f, Damage, Owner); 
                 }
             }
 

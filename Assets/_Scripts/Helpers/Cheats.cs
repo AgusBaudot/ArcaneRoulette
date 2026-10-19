@@ -10,6 +10,8 @@ public class Cheats : MonoBehaviour
 {
     public static Cheats Instance { get; private set; }
     public static bool GodMode { get; private set; }
+    
+    public string LastCommand { get; private set; } = "";
 
     private Dictionary<string, Func<string[], string>> _commands = new();
     private Dictionary<string, RuneDefinitionSO> _runeDatabase;
@@ -20,12 +22,10 @@ public class Cheats : MonoBehaviour
         if (Instance != null) { Destroy(this); return; }
         Instance = this;
 
-        // Bypass Unity's abstract resource load bug
         _runeDatabase = Resources.LoadAll<ScriptableObject>("Runes")
             .OfType<RuneDefinitionSO>()
             .ToDictionary(r => r.name.ToLower().Replace(" ", ""), r => r);
 
-        // Cache all enemy prefabs located in a Resources/Enemies folder
         _enemyDatabase = Resources.LoadAll<GameObject>("Enemies")
             .ToDictionary(e => e.name.ToLower().Replace(" ", ""), e => e);
 
@@ -39,6 +39,7 @@ public class Cheats : MonoBehaviour
             return "<color=#3C3C3C>Available commands:\n" +
                    "  god - Toggles invincibility\n" +
                    "  heal [amount] - Heals player\n" +
+                   "  damage [amount] - Deals damage to player\n" +
                    "  clear - Forces room clear event\n" +
                    "  nextfloor - Advances 1 floor\n" +
                    "  floor [number] - Advances to specific floor\n" +
@@ -64,6 +65,25 @@ public class Cheats : MonoBehaviour
                 return $"Healed player for {amount} HP.";
             }
             return "<color=#FF0000>Player or IHealable not found.</color>";
+        });
+
+        _commands.Add("damage", args =>
+        {
+            if (args.Length < 2 || !int.TryParse(args[1], out int amount)) return "<color=#FF0000>Usage: damage [amount]</color>";
+            
+            var player = FindObjectOfType<PlayerController>();
+            if (player != null)
+            {
+                var damageable = player.GetComponentInChildren<IDamageable>();
+                if (damageable != null)
+                {
+                    var batch = new DamageBatch();
+                    batch.Deal(damageable, amount, ElementType.Neutral);
+                    batch.Commit(Helpers.Combat.PlayerDamage);
+                    return $"Dealt {amount} damage to player.";
+                }
+            }
+            return "<color=#FF0000>Player or IDamageable not found.</color>";
         });
 
         _commands.Add("clear", args =>
@@ -115,7 +135,6 @@ public class Cheats : MonoBehaviour
 
                 for (int i = 0; i < count; i++)
                 {
-                    // Spawn slightly offset from player in a circle
                     Vector3 offset = UnityEngine.Random.insideUnitSphere * 3f;
                     offset.y = 0f;
                     Instantiate(prefab, player.transform.position + offset, Quaternion.identity);
@@ -130,8 +149,9 @@ public class Cheats : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(input)) return "";
         
-        // Strip TMPro invisible character and trim whitespace
         input = input.Replace("\u200B", "").Trim();
+        
+        LastCommand = input;
         
         string[] split = input.ToLower().Split(' ');
         string command = split[0];

@@ -26,20 +26,28 @@ namespace World
         [Header("Projectiles")]
         [Tooltip("Prefab for the Normal Projectile")]
         public EnemyProjectile NormalProjectilePrefab;
-        public AudioEventSO NormalProjectileSound;
         
         [Tooltip("Prefab for the Big Projectile")]
         public DetonatingEnemyProjectile BigProjectilePrefab;
-        public AudioEventSO BigProjectileSound;
         
         public float NormalProjectileSpeed = 12f;
         public float BigProjectileInitialSpeed = 8f;
         public float BigProjectileDrainRate = 1.5f;
+        public float BigProjectileLifespan = 6f;
 
         [Header("Defense & Teleport")]
         public float BlockCoverDuration = 1f;
         public float BlockUncoverDuration = 1f;
         public float BlockTimeout = 3f;
         public float TeleportAnimDuration = 4f;
+        [Tooltip("1.0 = no blockage at all, 0.0 = 100% blockage (no damage received)"), Range(0, 10)]
+        public float BlockPercentage = 0.0f;
+        
+        [Header("Audio")]
+        public AudioEventSO BigProjectileSound;
+        public AudioEventSO NormalProjectileSound;
+        public AudioEventSO TeleportSound;
+        public AudioEventSO BlockStartSound;
+        public AudioEventSO BlockEndSound;
     }
 }

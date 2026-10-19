@@ -122,7 +122,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 624044621230013747}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -356,7 +356,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2312386792518016876}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -514,7 +514,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3182845529608829865}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -723,7 +723,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3980948102694135652}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -776,7 +776,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4110721401448408256}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -829,7 +829,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4552388628826531773}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1006,7 +1006,6 @@ MonoBehaviour:
   _leftDoor: {fileID: 2474983603016759125}
   _rightDoor: {fileID: 1276315832055131916}
   _offsetSpawn: 1
-  _liftDoors: 5
 --- !u!114 &4547819419002973237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1022,6 +1021,7 @@ MonoBehaviour:
   _enemySpawns: []
   _spawnAtSameTime: 0
   _spawnDelay: 0
+  _interWaveDelay: 1
   _dangerImage: {fileID: 0}
   _effect: {fileID: 0}
   _warningDuration: 0
@@ -1044,6 +1044,10 @@ MonoBehaviour:
   _roomType: 5
   _state: 0
   _cleared: 0
+  _portalPrefab: {fileID: 0}
+  _portalSpawnPoint: {fileID: 0}
+  _doorCloseSound: {fileID: 0}
+  _doorOpenSound: {fileID: 0}
 --- !u!1 &5492861516478900255
 GameObject:
   m_ObjectHideFlags: 0
@@ -1083,7 +1087,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5492861516478900255}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1270,7 +1274,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6125694638556915984}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1390,7 +1394,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7301827642856617568}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2273,6 +2277,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_PRP_GargoyleStand_LeftArm (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 9204967482120590816, guid: 6124e47a65a5385479bf09d9c56f128e,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2717,6 +2727,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_PRP_GargoyleStand_LeftArm (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 9204967482120590816, guid: 6124e47a65a5385479bf09d9c56f128e,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3087,6 +3103,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_PRP_GargoyleStand_LeftArm
       objectReference: {fileID: 0}
+    - target: {fileID: 9204967482120590816, guid: 6124e47a65a5385479bf09d9c56f128e,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3235,6 +3257,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_PRP_GargoyleStand_LeftArm (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 9204967482120590816, guid: 6124e47a65a5385479bf09d9c56f128e,
+        type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 13400000, guid: 48ac7a9018ccc5a488f98a88c17dc186,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

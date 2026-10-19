@@ -51,7 +51,7 @@ namespace UI
         private void OnEnable()
         {
             EventBus.Subscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
-            EventBus.Subscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Subscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
@@ -63,7 +63,7 @@ namespace UI
         private void OnDisable()
         {
             EventBus.Unsubscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Unsubscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
@@ -82,7 +82,7 @@ namespace UI
             OpenPanel(_shopInstance);
         }
 
-        private void HandleRoomClear(RoomClearEvent evt)
+        private void HandleChestOpenRequest(LootChestOpenedEvent evt)
         {
             if (_currentActivePanel != null)
             {
