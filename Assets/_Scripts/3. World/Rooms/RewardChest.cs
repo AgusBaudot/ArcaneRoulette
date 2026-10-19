@@ -1,3 +1,4 @@
+using System.Collections;
 using Core;
 using DG.Tweening;
 using Foundation;
@@ -14,6 +15,10 @@ namespace World
         [SerializeField] private float _promptFadeDuration = 0.2f;
         [SerializeField] private Animator _animator;
         [SerializeField] private GameObject _interactionPrompt;
+        
+        [Header("Rewards")]
+        [SerializeField] private int _currencyAmount = 5;
+        [SerializeField] private float _currencySpawnDelay = 0.15f;
         
         [Header("Audio")]
         [SerializeField] private AudioEventSO _fallSound;
@@ -107,7 +112,7 @@ namespace World
             }
             else
             {
-                Debug.LogWarning("Chest open animation missing.");
+                Debug.LogWarning("[RewardChest] Chest open animation missing.");
             }
 
             if (_openSound != null)
@@ -119,7 +124,21 @@ namespace World
                 });
             }
             
+            StartCoroutine(SpawnCurrencyRoutine());
+            
             EventBus.Publish(new LootChestOpenedEvent(transform.position));
+        }
+
+        private IEnumerator SpawnCurrencyRoutine()
+        {
+            WaitForSeconds wait = CoroutineUtils.GetWait(_currencySpawnDelay);
+            
+            for (int i = 0; i < _currencyAmount; i++)
+            {
+                EventBus.Publish(new CurrencyDropEvent(transform.position));
+                
+                yield return wait;
+            }
         }
 
         private void ShowPrompt()
