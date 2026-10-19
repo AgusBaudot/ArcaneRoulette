@@ -8,6 +8,8 @@ namespace Foundation
         public string Name;
         public string Type;
         public Sprite Icon;
+        public Sprite Highlighted;
+        public Sprite BackgroundGlow;
         public virtual float UIIconScale => 1.0f;
         public Sprite StoneLessIcon;
         [TextArea]

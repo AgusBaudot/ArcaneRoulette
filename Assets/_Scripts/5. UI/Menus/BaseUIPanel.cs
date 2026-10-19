@@ -7,16 +7,28 @@ public abstract class BaseUIPanel : MonoBehaviour
 {
     public event Action OnCloseRequested;
     
-    private CanvasGroup _canvasGroup;
+    [Header("Base Panel Settings")]
+    [Tooltip("How long the background takes to fade in/out.")]
+    [SerializeField] protected float _fadeDuration = 0.2f;
+
+    [Tooltip("Optional: If assigned, ONLY this group fades. The root stays fully opaque so sliding windows don't turn transparent.")]
+    [SerializeField] protected CanvasGroup _backgroundFadeGroup;
+
+    protected CanvasGroup _canvasGroup;
     private Tween _fadeTween;
 
     protected virtual void Awake()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
         
-        _canvasGroup.alpha = 0f;
+        _canvasGroup.alpha = _backgroundFadeGroup != null ? 1f : 0f;
         _canvasGroup.interactable = false;
         _canvasGroup.blocksRaycasts = false;
+
+        if (_backgroundFadeGroup != null)
+        {
+            _backgroundFadeGroup.alpha = 0f;
+        }
     }
 
     public virtual void Show()
@@ -24,7 +36,11 @@ public abstract class BaseUIPanel : MonoBehaviour
         _fadeTween?.Kill();
         _canvasGroup.blocksRaycasts = true;
         _canvasGroup.interactable = true;
-        _fadeTween = _canvasGroup.DOFade(1f, 0.2f).SetUpdate(true);
+
+        if (_backgroundFadeGroup != null)
+            _fadeTween = _backgroundFadeGroup.DOFade(1f, _fadeDuration).SetUpdate(true);
+        else
+            _fadeTween = _canvasGroup.DOFade(1f, _fadeDuration).SetUpdate(true);
     }
 
     public virtual void Hide()
@@ -32,12 +48,16 @@ public abstract class BaseUIPanel : MonoBehaviour
         _fadeTween?.Kill();
         _canvasGroup.interactable = false;
         _canvasGroup.blocksRaycasts = false;
-        _fadeTween = _canvasGroup.DOFade(0f, 0.2f).SetUpdate(true);
+        
+        if (_backgroundFadeGroup != null)
+            _fadeTween = _backgroundFadeGroup.DOFade(0f, _fadeDuration).SetUpdate(true);
+        else
+            _fadeTween = _canvasGroup.DOFade(0f, _fadeDuration).SetUpdate(true);
     }
 
     protected void RequestClose()
     {
-        EventBus.Publish(new OnSettingsUIClosedEvent());
+        // EventBus.Publish(new OnSettingsUIClosedEvent());
         OnCloseRequested?.Invoke();
     }
 }

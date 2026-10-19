@@ -360,7 +360,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3153171353657048723
 RectTransform:
   m_ObjectHideFlags: 0
@@ -378,7 +378,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2305453924838557330
 CanvasRenderer:
@@ -401,7 +401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -473,11 +473,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _icon: {fileID: 7639332559069637538}
-  _glowBacking: {fileID: 4828354700604804818}
+  _glowImage: {fileID: 393588846726084131}
   _priceText: {fileID: 169249890474268964}
   _soldOutOverlay: {fileID: 6578519517341242307}
   _failSound: {fileID: 0}
   _successSound: {fileID: 0}
+  _hoverDuration: 0.2
+  _scaleMultiplier: 1.1
+  _hoverOffsetY: 10
 --- !u!114 &9067650142612327835
 MonoBehaviour:
   m_ObjectHideFlags: 0
