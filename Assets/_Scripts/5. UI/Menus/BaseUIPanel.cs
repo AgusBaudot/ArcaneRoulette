@@ -57,7 +57,7 @@ public abstract class BaseUIPanel : MonoBehaviour
 
     protected void RequestClose()
     {
-        EventBus.Publish(new OnSettingsUIClosedEvent());
+        // EventBus.Publish(new OnSettingsUIClosedEvent());
         OnCloseRequested?.Invoke();
     }
 }

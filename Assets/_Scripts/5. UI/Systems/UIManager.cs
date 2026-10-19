@@ -18,6 +18,7 @@ namespace UI
         [SerializeField] private LootSelectionUI _lootSelectionPrefab;
         [SerializeField] private ConsoleUI _consolePrefab;
         [SerializeField] private SettingsUI _settingsPrefab;
+        [SerializeField] private ControlsUI _controlsPrefab;
         
         [Header("Universal Audio")]
         [SerializeField] private AudioEventSO _menuOpenSound;
@@ -31,6 +32,7 @@ namespace UI
         private LootSelectionUI _lootSelectionInstance;
         private ConsoleUI _consoleInstance;
         private SettingsUI _settingsInstance;
+        private ControlsUI _controlsInstance;
 
         private BaseUIPanel _currentActivePanel;
 
@@ -46,6 +48,7 @@ namespace UI
             _lootSelectionInstance = Instantiate(_lootSelectionPrefab, _staticCanvasRoot);
             _consoleInstance = Instantiate(_consolePrefab, _staticCanvasRoot);
             _settingsInstance = Instantiate(_settingsPrefab, _staticCanvasRoot);
+            _controlsInstance = Instantiate(_controlsPrefab, _staticCanvasRoot);
         }   
 
         private void OnEnable()
@@ -53,6 +56,7 @@ namespace UI
             EventBus.Subscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
             EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Subscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
+            EventBus.Subscribe<OnControlsClickedEvent>(HandleControlsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
             Helpers.Input.OnPausePressed += HandlePauseToggle;
@@ -65,6 +69,7 @@ namespace UI
             EventBus.Unsubscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
             EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Unsubscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
+            EventBus.Unsubscribe<OnControlsClickedEvent>(HandleControlsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
             Helpers.Input.OnPausePressed -= HandlePauseToggle;
@@ -134,6 +139,11 @@ namespace UI
         private void HandleSettingsOpenRequest(SettingsOpenRequestEvent evt)
         {
             OpenPanel(_settingsInstance, true);
+        }
+
+        private void HandleControlsOpenRequest(OnControlsClickedEvent evt)
+        {
+            OpenPanel(_controlsInstance, true);
         }
 
         // ── Core Orchestration ───────────────────────────────────────────────

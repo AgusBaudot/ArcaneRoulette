@@ -4,9 +4,9 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    public class CloseSettingsUIButton : MonoBehaviour
+    public class OptionsButton : MonoBehaviour
     {
         private void Start() => GetComponent<Button>().onClick.AddListener(
-            () => EventBus.Publish(new OnSettingsUIClosedEvent()));
+            () => EventBus.Publish(new OnOptionsClickedEvent()));
     }
 }
