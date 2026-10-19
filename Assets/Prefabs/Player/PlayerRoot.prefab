@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1451450868690686497
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1016640366193218724}
+  m_Layer: 6
+  m_Name: TextVFX_Spawnpoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1016640366193218724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451450868690686497}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2.5, z: 2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6385582804444609266}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2474188801753396436
 GameObject:
   m_ObjectHideFlags: 0
@@ -5250,6 +5281,7 @@ GameObject:
   - component: {fileID: 9063243269655161372}
   - component: {fileID: 3608313254499826404}
   - component: {fileID: 3200413832988641058}
+  - component: {fileID: 761621548284219997}
   m_Layer: 6
   m_Name: PlayerRoot
   m_TagString: Player
@@ -5276,6 +5308,7 @@ Transform:
   - {fileID: 8681134882528939266}
   - {fileID: 280565572877095699}
   - {fileID: 6690634340399260524}
+  - {fileID: 1016640366193218724}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &4998127422443177832
@@ -5344,6 +5377,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe68355c97154c8e91285661e37a3160, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &761621548284219997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5638421453993428254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c015f51a4b8c434c85177a0cd8aaa3c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _floatingTextPrefab: {fileID: 6936537243122458652, guid: 5419e564935c6094883f41826e2a928f,
+    type: 3}
+  _headSpawnPoint: {fileID: 1016640366193218724}
 --- !u!1 &5817993870271604305
 GameObject:
   m_ObjectHideFlags: 0

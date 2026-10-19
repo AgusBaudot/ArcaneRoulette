@@ -121,7 +121,6 @@ namespace UI
     
             base.Show();
 
-            // --- RESTORED ANIMATION LOGIC ---
             _canvasGroup.interactable = false;
             _confirmButton.GetComponent<Image>().raycastTarget = false;
 
@@ -239,7 +238,10 @@ namespace UI
         private void OnConfirm()
         {
             foreach (int index in _selectionOrder)
+            {
                 GameStateManager.RunState.AddRune(_optionPool[index].Rune);
+                EventBus.Publish<RuneClaimedEvent>(new (_optionPool[index].Rune.Name));
+            }
 
             RequestClose();
         }
