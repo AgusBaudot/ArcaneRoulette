@@ -9,7 +9,7 @@ using Foundation;
 namespace UI
 {
     [RequireComponent(typeof(Button))]
-    public sealed class RuneTileUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public sealed class RuneTileUI : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Hierarchy")]
         [Tooltip("The child RectTransform that holds the visuals. Do NOT assign the root GameObject.")]
@@ -48,7 +48,7 @@ namespace UI
             _onClick = onClick;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerDown(PointerEventData eventData)
         {
             if (_button != null && !_button.interactable) return;
             

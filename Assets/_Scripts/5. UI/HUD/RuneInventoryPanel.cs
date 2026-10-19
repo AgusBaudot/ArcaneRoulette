@@ -17,8 +17,6 @@ namespace UI
         [SerializeField] private Transform _gridParent;
         [SerializeField] private GameObject _runeTilePrefab;
 
-        // One entry per owned rune instance - same rune type appears N times
-        // if the player owns N copies.
         private readonly List<(RuneDefinitionSO rune, RuneTileUI tile)> _tiles = new();
         private SpellCraftingUI _owner;
         private RuneFilter _currentFilter;
@@ -34,7 +32,6 @@ namespace UI
         public void Rebuild(RuneFilter currentFilter, Func<RuneDefinitionSO, int> availableCountProvider = null)
         {
             _currentFilter = currentFilter;
-            //Destroy all existing tiles.
             foreach (var entry in _tiles)
             {
                 if (entry.tile != null)
@@ -42,10 +39,8 @@ namespace UI
             }
             _tiles.Clear();
             
-            //Loop through the inventory definitions.
             foreach (var entry in GameStateManager.RunState.RuneInventory)
             {
-                //Apply the filter
                 if (currentFilter == RuneFilter.Ability && !(entry.Key is AbilityRuneSO))
                     continue;
 
@@ -111,7 +106,6 @@ namespace UI
         /// <param name="rune"></param>
         public void AddOneTile(RuneDefinitionSO rune)
         {
-            // Only add the tile if it matches the current filter
             if (MatchesCurrentFilter(rune))
                 _tiles.Add((rune, BuildTile(rune)));
         }
@@ -145,11 +139,12 @@ namespace UI
         {
             var go = Instantiate(_runeTilePrefab, _gridParent);
             var tile = go.GetComponent<RuneTileUI>();
+            var rectTransform = go.GetComponent<RectTransform>();
 
             tile.Init((buttonType) =>
             {
                 int currentIndex = _tiles.FindIndex(t => t.tile == tile);
-                _owner.OnInventoryTileClicked(rune, currentIndex, buttonType);
+                _owner.OnInventoryTileClicked(rune, currentIndex, buttonType, rectTransform);
             });
             
             tile.Refresh(rune, false);

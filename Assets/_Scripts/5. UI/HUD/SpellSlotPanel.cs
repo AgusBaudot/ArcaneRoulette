@@ -61,10 +61,9 @@ namespace UI
 
         private void GroupVisuals()
         {
-            // 1. Create a wrapper that completely fills the panel root
             GameObject container = new GameObject("RuntimeVisualRoot");
             RectTransform containerRect = container.AddComponent<RectTransform>();
-            containerRect.SetParent(this.transform, false);
+            containerRect.SetParent(transform, false);
             
             containerRect.anchorMin = Vector2.zero;
             containerRect.anchorMax = Vector2.one;
@@ -72,8 +71,6 @@ namespace UI
             containerRect.offsetMax = Vector2.zero;
             containerRect.localScale = Vector3.one;
 
-            // 2. Parent the background and all anchor empties to this wrapper
-            // (Using worldPositionStays: true keeps their exact visual spacing)
             _visualRoot.SetParent(containerRect, true);
             
             if (_abilityAnchor != null) _abilityAnchor.SetParent(containerRect, true);
@@ -86,13 +83,10 @@ namespace UI
                 }
             }
 
-            // 3. Wipe out the manual Editor offsets used to mock up the Left/Right carousel look.
-            // This ensures the background perfectly aligns with the centered empties.
             _visualRoot.offsetMin = Vector2.zero;
             _visualRoot.offsetMax = Vector2.zero;
             _visualRoot.localScale = Vector3.one;
 
-            // 4. Swap the reference so DOTween targets this entire package
             _visualRoot = containerRect;
         }
 
@@ -117,8 +111,6 @@ namespace UI
         {
             var go = Instantiate(_runeTilePrefab, anchor);
 
-            // Stretch tile to fill anchor completely.
-            // Anchor sizing in the scene controls the visual size per rune type.
             var rect = go.GetComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
@@ -127,7 +119,6 @@ namespace UI
 
             var tile = go.GetComponent<RuneTileUI>();
             
-            //Only trigger the slot logic if it was a Left Click
             tile.Init((buttonType) =>
             {
                 if (buttonType == PointerEventData.InputButton.Left)
@@ -327,13 +318,17 @@ namespace UI
         /// </summary>
         /// <param name="rune"></param>
         /// <returns></returns>
-        public bool TryAutoAssignEmptySlot(RuneDefinitionSO rune)
+        public bool TryAutoAssignEmptySlot(RuneDefinitionSO rune, out SlotType assignedSlot, out int assignedModIndex)
         {
+            assignedSlot = SlotType.Ability; // default fallbacks
+            assignedModIndex = -1;
+
             if (rune is AbilityRuneSO ability)
             {
                 if (_selectedAbility == null)
                 {
                     _selectedAbility = ability;
+                    assignedSlot = SlotType.Ability;
                     return true;
                 }
             }
@@ -342,24 +337,41 @@ namespace UI
                 if (_selectedElement == null)
                 {
                     _selectedElement = element;
+                    assignedSlot = SlotType.Element;
                     return true;
                 }
             }
             else if (rune is ModifierRuneSO modifier)
             {
-                //Find the first empty modifier slot
                 for (int i = 0; i < SpellRecipe.MODIFIER_SLOTS; i++)
                 {
                     if (_selectedModifiers[i] == null)
                     {
                         _selectedModifiers[i] = modifier;
+                        assignedSlot = SlotType.Modifier;
+                        assignedModIndex = i;
                         return true;
                     }
                 }
             }
 
-            //No empty slot available for this rune type
             return false; 
+        }
+        
+        public RectTransform GetTileRect(SlotType slotType, int modIndex)
+        {
+            switch (slotType)
+            {
+                case SlotType.Ability:
+                    return _abilityTile != null ? _abilityTile.GetComponent<RectTransform>() : null;
+                case SlotType.Element:
+                    return _elementTile != null ? _elementTile.GetComponent<RectTransform>() : null;
+                case SlotType.Modifier:
+                    if (modIndex >= 0 && modIndex < SpellRecipe.MODIFIER_SLOTS && _modifierTiles[modIndex] != null)
+                        return _modifierTiles[modIndex].GetComponent<RectTransform>();
+                    break;
+            }
+            return null;
         }
     }
 }

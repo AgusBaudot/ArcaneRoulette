@@ -60,6 +60,9 @@ namespace UI
         private int _pendingRuneIndex = -1;
         private int _centerIndex; // which _slotPanels[] index is currently centered
         private RuneFilter _currentFilter = RuneFilter.All;
+        private RectTransform _pendingRuneRect;
+        private float _comboShakeIntensity = 0f;
+        private float _lastHitTime = 0f;
         
         // ── Unity ────────────────────────────────────────────────────────────
 
@@ -191,7 +194,7 @@ namespace UI
         /// </summary>
         private void ApplyCarouselLayout()
         {
-            int count = _slotPanels.Length; // 3
+            int count = _slotPanels.Length;
 
             for (int i = 0; i < count; i++)
             {
@@ -199,7 +202,6 @@ namespace UI
                 var panel = _slotPanels[i];
                 var rect = _slotPanels[i].VisualRoot;
 
-                // 1. Kill any running tweens on this specific RectTransform
                 rect.DOKill();
 
                 bool isCenter = offset == 0;
@@ -231,8 +233,6 @@ namespace UI
                     panel.SetInteractable(false);
                 }
 
-                // 2. Animate using DOTween. 
-                // SetTarget ensures DOKill works later. SetUpdate(true) ensures it runs when timeScale == 0.
                 DOTween.To(() => rect.offsetMin, x => rect.offsetMin = x, targetMin, _animDuration)
                     .SetEase(_animEase)
                     .SetTarget(rect)
@@ -248,10 +248,8 @@ namespace UI
                     .SetUpdate(true);
             }
 
-            // 3. EXACTLY preserve sibling order logic on the PANEL roots, not the VisualRoots.
             if (_dimOverlay != null)
             {
-                // Back panels first (arbitrary order), then overlay, then center on top.
                 for (int i = 0; i < count; i++)
                 {
                     int offset = (i - _centerIndex + count) % count;
@@ -266,21 +264,19 @@ namespace UI
 
         // ── Click callbacks ───────────────────────────────────────────────────
 
-        public void OnInventoryTileClicked(RuneDefinitionSO rune, int index, PointerEventData.InputButton buttonType)
+        public void OnInventoryTileClicked(RuneDefinitionSO rune, int index, PointerEventData.InputButton buttonType, RectTransform clickedRect)
         {
             if (buttonType == PointerEventData.InputButton.Left)
             {
-                //Left click: Auto-assign
-                bool autoAssigned = _slotPanels[_centerIndex].TryAutoAssignEmptySlot(rune);
+                bool autoAssigned = _slotPanels[_centerIndex].TryAutoAssignEmptySlot(rune, out var slotType, out var modIndex);
 
                 if (autoAssigned)
                 {
                     _slotPanels[_centerIndex].TryApply(_spellCrafter);
                     
-                    EventBus.Publish(new AudioPlayRequest
-                    {
-                        Event = Helpers.UIAudio.RuneEquip
-                    });
+                    RectTransform targetRect = _slotPanels[_centerIndex].GetTileRect(slotType, modIndex);
+                    
+                    AnimateRuneFlight(rune, clickedRect, targetRect);
                     
                     _inventoryPanel.RemoveOneTile(rune);
 
@@ -288,14 +284,12 @@ namespace UI
                     {
                         _pendingRune = null;
                         _pendingRuneIndex = -1;
+                        _pendingRuneRect = null;
                     }
                 }
                 else
                 {
-                    EventBus.Publish(new AudioPlayRequest
-                    {
-                        Event =  Helpers.UIAudio.RuneFail
-                    });
+                    EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneFail });
                 }
             }
             
@@ -315,10 +309,8 @@ namespace UI
                 {
                     panel.TryApply(_spellCrafter);
                     
-                    EventBus.Publish(new AudioPlayRequest
-                    {
-                        Event = Helpers.UIAudio.RuneEquip
-                    });
+                    RectTransform targetRect = panel.GetTileRect(slotType, modIndex);
+                    AnimateRuneFlight(_pendingRune, _pendingRuneRect, targetRect);
                     
                     _inventoryPanel.RemoveOneTile(_pendingRune);
                     
@@ -327,10 +319,7 @@ namespace UI
                 }
                 else
                 {
-                    EventBus.Publish(new AudioPlayRequest
-                    {
-                        Event =  Helpers.UIAudio.RuneFail
-                    });
+                    EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneFail });
                 }
             }
             else
@@ -478,6 +467,81 @@ namespace UI
         {
             if (_currentFilter == RuneFilter.All) return true;
             return GetFilterForRune(rune) == _currentFilter;
+        }
+
+        private void AnimateRuneFlight(RuneDefinitionSO rune, RectTransform startRect, RectTransform targetRect)
+        {
+            if (startRect == null || targetRect == null) 
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneEquip });
+                return;
+            }
+
+            CanvasGroup targetCanvasGroup = targetRect.GetComponent<CanvasGroup>();
+            if (targetCanvasGroup == null)
+                targetCanvasGroup = targetRect.gameObject.AddComponent<CanvasGroup>();
+            
+            targetCanvasGroup.alpha = 0f;
+
+            GameObject dummy = new GameObject("FlyingRuneDummy");
+            RectTransform dummyRect = dummy.AddComponent<RectTransform>();
+            dummyRect.SetParent(this.transform, true); 
+            dummyRect.SetAsLastSibling();
+
+            Image img = dummy.AddComponent<Image>();
+            img.sprite = rune.Icon;
+            img.preserveAspect = true;
+
+            dummyRect.position = startRect.position;
+            dummyRect.sizeDelta = startRect.rect.size * rune.UIIconScale;
+            dummyRect.localScale = startRect.lossyScale;
+
+            Sequence seq = DOTween.Sequence();
+            seq.SetUpdate(true);
+
+            seq.Append(dummyRect.DOMove(targetRect.position, 0.25f).SetEase(Ease.InBack));
+            seq.Join(dummyRect.DOScale(dummyRect.localScale * 1.3f, 0.12f).SetLoops(2, LoopType.Yoyo));
+            
+            seq.OnComplete(() =>
+            {
+                Destroy(dummy);
+                targetCanvasGroup.alpha = 1f;
+
+                // 1. Time-based Combo System (0.5 second window)
+                if (Time.unscaledTime - _lastHitTime > 0.5f)
+                {
+                    _comboShakeIntensity = 0f; // Window expired, reset combo
+                }
+                
+                _lastHitTime = Time.unscaledTime;
+                
+                // Escalate the UI shake force (Add 15 force per hit, max out at 60)
+                _comboShakeIntensity = Mathf.Min(_comboShakeIntensity + 15f, 60f);
+
+                // --- NEW: Calculate diagonal thrust ---
+                Vector2 uiPunchForce = new Vector2(0f, -_comboShakeIntensity);
+                
+                if (_comboShakeIntensity > 15f)
+                {
+                    // Randomly snap left or right at 75% of the downward force
+                    float xDirection = UnityEngine.Random.value > 0.5f ? 1f : -1f;
+                    uiPunchForce.x = _comboShakeIntensity * 0.75f * xDirection;
+                }
+
+                RectTransform centerPanelRect = _slotPanels[_centerIndex].VisualRoot;
+                
+                centerPanelRect.DOKill(true);
+                centerPanelRect.DOPunchAnchorPos(uiPunchForce, 0.35f, 25, 1f).SetUpdate(true);
+
+                // 3. Escalate the 3D camera shake (scales from 0.21f to 0.40f)
+                float cameraTrauma = 0.15f + (_comboShakeIntensity / 60f) * 0.25f;
+                GameFeelSystem.ApplyCameraShake(cameraTrauma); 
+                
+                EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneEquip });
+
+                targetRect.DOKill(true); 
+                targetRect.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 1f).SetUpdate(true);
+            });
         }
     }
 }
