@@ -117,5 +117,12 @@ namespace UI
             _enabled = !_enabled;
             Hide();
         }
+
+        public void SetEnabled(bool enabled)
+        {
+            _enabled = enabled;
+            if (!_enabled)
+                Hide();
+        }
     }
 }

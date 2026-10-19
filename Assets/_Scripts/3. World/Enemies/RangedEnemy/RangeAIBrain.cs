@@ -242,7 +242,7 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var projObj = Helpers.ProjFactory.Spawn<DetonatingEnemyProjectile>(RangeStats.BigProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, RangeStats.ElementType, gameObject, RangeStats.BigProjectileDrainRate, RangeStats.BigProjectileLifespan);
+            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, gameObject, RangeStats.BigProjectileDrainRate, RangeStats.BigProjectileLifespan);
             
             if (RangeStats.BigProjectileSound != null)
             {
@@ -259,7 +259,7 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(RangeStats.NormalProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, RangeStats.ElementType, gameObject);
+            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, gameObject);
             
             if (RangeStats.NormalProjectileSound != null)
             {

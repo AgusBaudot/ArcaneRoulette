@@ -346,7 +346,7 @@ namespace World
         {
             if (_hitbox == null) return;
             
-            _hitbox.Configure(damage, MeleeStats.ElementType, size, _lastAttackDirection, sweepAngle);
+            _hitbox.Configure(damage, size, _lastAttackDirection, sweepAngle);
             _hitbox.Activate(duration);
         }
     }

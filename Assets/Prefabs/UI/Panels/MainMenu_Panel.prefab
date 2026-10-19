@@ -1174,10 +1174,10 @@ GameObject:
   - component: {fileID: 2850909772817525437}
   - component: {fileID: 1862915558523925728}
   - component: {fileID: 3806407419543206084}
-  - component: {fileID: 5397154992092322966}
   - component: {fileID: 1839677845409680428}
   - component: {fileID: 3351835588015746314}
   - component: {fileID: 5947159523224702635}
+  - component: {fileID: 5722624076821093663}
   m_Layer: 5
   m_Name: Options
   m_TagString: Untagged
@@ -1287,18 +1287,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5397154992092322966
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7297932554462034857}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 80164bacc88c47f4a0d9f10b850735b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1839677845409680428
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1351,6 +1339,18 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &5722624076821093663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7297932554462034857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad87593c57844ea0bed952ac9ee0bf89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7509126052358964116
 GameObject:
   m_ObjectHideFlags: 0
@@ -1377,8 +1377,8 @@ RectTransform:
   m_GameObject: {fileID: 7509126052358964116}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.85, y: 0.85, z: 0.85}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8854681443443528249}
   - {fileID: 8854243829864072705}
@@ -1387,7 +1387,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: -650, y: 100}
+  m_AnchoredPosition: {x: -684, y: 70}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &4352138360902378172
@@ -1408,7 +1408,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 15
+  m_Spacing: 25
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
