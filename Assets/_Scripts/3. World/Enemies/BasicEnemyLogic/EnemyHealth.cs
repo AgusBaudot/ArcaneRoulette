@@ -88,7 +88,6 @@ namespace World
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
-            _element = stats.ElementType;
             ResetComponent();
         }
 
@@ -99,7 +98,6 @@ namespace World
             DamageMitigationMultiplier = 1.0f;
             UpdateUI();
             
-            // Snap the ghost bar full on spawn so it doesn't animate from 0
             if (_ghostFill != null) 
             {
                 _ghostFill.fillAmount = 1f;
@@ -115,6 +113,11 @@ namespace World
         public void UnregisterDebuff()
         {
             _debuffs = null;
+        }
+        
+        public void SetRuntimeElement(ElementType newElement)
+        {
+            _element = newElement;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 using Foundation;
@@ -37,7 +38,7 @@ namespace World
         [SerializeField] private EnemyStats _enemyStats;
         
         [Header("References")]
-        [SerializeField] private SpriteRenderer _elementalFeedback;
+        [SerializeField] private Image _elementalFeedback;
         [SerializeField] private Sprite _fireElement;
         [SerializeField] private Sprite _earthElement;
         [SerializeField] private Sprite _waterElement;
@@ -114,22 +115,26 @@ namespace World
             }
             
             OcclusionRegistry.Register(this);
+            
+            ElementType rolledElement = (ElementType)Random.Range(0, 4);
     
+            switch (rolledElement)
+            {
+                case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
+                case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
+                case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
+                case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+            }
+
             if (!_isInitialized)
             {
-                switch (_enemyStats.ElementType)
-                {
-                    case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
-                    case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
-                    case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
-                    case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
-                }
-        
                 InitSystems();
                 _isInitialized = true;
             }
 
             RestartSystems();
+    
+            _enemyHealth.SetRuntimeElement(rolledElement);
     
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;

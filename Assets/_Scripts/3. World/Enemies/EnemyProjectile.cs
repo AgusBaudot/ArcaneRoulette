@@ -7,21 +7,19 @@ namespace World
     public sealed class EnemyProjectile : BaseProjectile, IEnemyProjectile
     {
         public override bool IsEnemy => true;
-        public override ElementType SpellElement => _element;
+        public override ElementType SpellElement => Element;
         public int Damage => _damage;
-        public ElementType Element => _element;
+        public ElementType Element => ElementType.Neutral;
         public GameObject Owner => _owner;
         
-        [SerializeField] private int         _damage  = 5;
-        [SerializeField] private ElementType _element = ElementType.Neutral;
+        [SerializeField] private int _damage  = 5;
 
         private GameObject _owner; //Set by EnemyAI at spawn, null for now
         
         // Called by whatever spawns this — EnemyAI, a turret, a boss pattern
-        public void Init(Vector3 direction, float speed, int damage, ElementType element, GameObject owner = null)
+        public void Init(Vector3 direction, float speed, int damage, GameObject owner = null)
         {
             _damage  = damage;
-            _element = element;
             BounceCount = 0;
             _owner = owner;
             SetVelocity(direction, speed);

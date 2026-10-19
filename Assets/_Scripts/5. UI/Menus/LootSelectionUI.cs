@@ -87,11 +87,9 @@ namespace UI
         {
             if (_dropPool == null) return;
     
-            // 1. Turn off the global hovering tooltip
             if (TooltipSystem.Instance != null)
                 TooltipSystem.Instance.SetEnabled(false);
 
-            // 2. Hide local tooltip by default
             ClearLocalTooltip();
     
             _selectionOrder.Clear();
@@ -105,7 +103,6 @@ namespace UI
                     int capturedIndex = i;
                     RuneDefinitionSO capturedRune = runes[i];
 
-                    // 3. Pass hover/unhover actions into the option's Init method
                     _optionPool[i].Init(
                         capturedRune, 
                         () => OnOptionClicked(capturedIndex),
@@ -123,15 +120,77 @@ namespace UI
             }
     
             base.Show();
+
+            // --- RESTORED ANIMATION LOGIC ---
+            _canvasGroup.interactable = false;
+            _confirmButton.GetComponent<Image>().raycastTarget = false;
+
+            _showSequence?.Kill();
+            SnapToHiddenPosition();
+            ResetRotations();
+
+            _showSequence = DOTween.Sequence().SetUpdate(true);
+
+            if (_runeContainer != null)
+                _showSequence.Append(_runeContainer.DOAnchorPos(_runeOriginalPos, _dropDuration).SetEase(Ease.InQuad));
+            if (_tooltip != null)
+                _showSequence.Join(_tooltip
+                    .DOAnchorPos(new Vector2(_tooltipOriginalPos.x, _runeOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.InQuad));
+            if (_confirm != null)
+                _showSequence.Join(_confirm
+                    .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _runeOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.InQuad));
+
+            if (_runeContainer != null)
+                _showSequence.Append(_runeContainer.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10, 0.5f));
+            if (_tooltip != null)
+                _showSequence.Join(_tooltip.DOAnchorPos(_tooltipOriginalPos, _dropDuration).SetEase(Ease.OutQuad));
+            if (_confirm != null)
+                _showSequence.Join(_confirm
+                    .DOAnchorPos(new Vector2(_confirmOriginalPos.x, _tooltipOriginalPos.y), _dropDuration)
+                    .SetEase(Ease.OutQuad));
+
+            if (_tooltip != null)
+                _showSequence.Append(_tooltip.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10, 0.5f));
+            if (_confirm != null)
+                _showSequence.Join(_confirm.DOAnchorPos(_confirmOriginalPos, _dropDuration).SetEase(Ease.OutQuad));
+
+            if (_confirm != null)
+                _showSequence.Append(_confirm.DOPunchRotation(new Vector3(0, 0, _shakeStrength), _shakeDuration, 10, 0.5f));
+            
+            _showSequence.OnComplete(() => 
+            {
+                _canvasGroup.interactable = true;
+                _confirmButton.GetComponent<Image>().raycastTarget = true;
+            });
         }
 
         public override void Hide()
         {
             base.Hide();
+            
+            _showSequence?.Kill();
             _selectionOrder.Clear();
     
             if (TooltipSystem.Instance != null)
                 TooltipSystem.Instance.SetEnabled(true);
+        }
+
+        private void SnapToHiddenPosition()
+        {
+            float startingY = _runeOriginalPos.y + _dropOffsetY;
+
+            if (_runeContainer != null) _runeContainer.anchoredPosition = new Vector2(_runeOriginalPos.x, startingY);
+            if (_tooltip != null) _tooltip.anchoredPosition = new Vector2(_tooltipOriginalPos.x, startingY);
+            if (_confirm != null) _confirm.anchoredPosition = new Vector2(_confirmOriginalPos.x, startingY);
+        }
+
+        private void ResetRotations()
+        {
+            if (_runeContainer != null) _runeContainer.localRotation = Quaternion.identity;
+            if (_tooltip != null) _tooltip.localRotation = Quaternion.identity;
+            if (_confirm != null) _confirm.localRotation = Quaternion.identity;
         }
 
         private void ShowLocalTooltip(RuneDefinitionSO rune)
