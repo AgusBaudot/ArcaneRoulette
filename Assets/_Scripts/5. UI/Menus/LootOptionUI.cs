@@ -9,7 +9,7 @@ using Foundation;
 namespace UI
 {
     [RequireComponent(typeof(Button))]
-    public sealed class LootOptionUI : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public sealed class LootOptionUI : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Hierarchy")]
         [Tooltip("The child RectTransform that holds the visuals. Do NOT assign the root GameObject.")]
@@ -101,7 +101,7 @@ namespace UI
             UpdateVisualState();
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerDown(PointerEventData eventData)
         {
             if (_button != null && !_button.interactable) return;
             if (eventData.button == PointerEventData.InputButton.Left) _onClicked?.Invoke();
@@ -114,7 +114,8 @@ namespace UI
             _isHovered = true;
             _onHovered?.Invoke();
             
-            UpdateVisualState();
+            // If already selected and floating, don't interrupt the animation.
+            if (!_isSelected) UpdateVisualState();
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -124,13 +125,15 @@ namespace UI
             _isHovered = false;
             _onUnhovered?.Invoke();
             
-            UpdateVisualState();
+            // Let the floaty loop continue seamlessly if we mouse-off a selected rune.
+            if (!_isSelected) UpdateVisualState();
         }
 
         private void UpdateVisualState()
         {
             if (Rune == null || _visualRoot == null) return;
 
+            // Instantly kill any active sequence or Yoyo loop before applying the new state.
             _visualRoot.DOKill();
 
             if (_isSelected)
@@ -140,13 +143,20 @@ namespace UI
 
                 _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
                 
-                // SetLoops with Yoyo automatically ping-pongs between the current state 
-                // (which is already offset upwards from hovering) and the new peakY.
-                float peakY = _originalPosition.y + _hoverOffsetY + _floatDistance;
-                _visualRoot.DOAnchorPosY(peakY, _floatDuration)
-                    .SetEase(Ease.InOutSine)
-                    .SetLoops(-1, LoopType.Yoyo)
-                    .SetUpdate(true);
+                // Tween to the stable hover position first, THEN start the Yoyo loop.
+                // This guarantees the bounce doesn't adopt a transient low Y position as its permanent baseline.
+                Vector2 hoverPos = _originalPosition + new Vector2(0f, _hoverOffsetY);
+                
+                _visualRoot.DOAnchorPos(hoverPos, _hoverDuration)
+                    .SetUpdate(true)
+                    .OnComplete(() =>
+                    {
+                        float peakY = hoverPos.y + _floatDistance;
+                        _visualRoot.DOAnchorPosY(peakY, _floatDuration)
+                            .SetEase(Ease.InOutSine)
+                            .SetLoops(-1, LoopType.Yoyo)
+                            .SetUpdate(true);
+                    });
             }
             else if (_isHovered)
             {
