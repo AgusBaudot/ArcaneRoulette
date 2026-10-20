@@ -39,24 +39,30 @@ namespace UI
             }
             _tiles.Clear();
             
+            var sortedRunes = new List<RuneDefinitionSO>();
             foreach (var entry in GameStateManager.RunState.RuneInventory)
             {
-                if (currentFilter == RuneFilter.Ability && !(entry.Key is AbilityRuneSO))
-                    continue;
+                if (MatchesCurrentFilter(entry.Key))
+                    sortedRunes.Add(entry.Key);
+            }
 
-                if (currentFilter == RuneFilter.Element && !(entry.Key is ElementRuneSO))
-                    continue;
-
-                if (currentFilter == RuneFilter.Cast && !(entry.Key is CastRuneSO))
-                    continue;
-
-                if (currentFilter == RuneFilter.OnHit && !(entry.Key is OnHitRuneSO))
-                    continue;
+            sortedRunes.Sort((a, b) => 
+            {
+                int orderA = GetSortOrder(a);
+                int orderB = GetSortOrder(b);
+                if (orderA != orderB) return orderA.CompareTo(orderB);
                 
-                int availableCount = availableCountProvider?.Invoke(entry.Key) ?? GameStateManager.RunState.AvailableCount(entry.Key);
+                int nameCompare = string.Compare(a.Name, b.Name, StringComparison.Ordinal);
+                return nameCompare != 0 ? nameCompare : a.GetInstanceID().CompareTo(b.GetInstanceID());
+            });
+
+            // 3. Build in precise order
+            foreach (var rune in sortedRunes)
+            {
+                int availableCount = availableCountProvider?.Invoke(rune) ?? GameStateManager.RunState.AvailableCount(rune);
                 for (int i = 0; i < availableCount; i++)
                 {
-                    _tiles.Add((entry.Key, BuildTile(entry.Key)));
+                    _tiles.Add((rune, BuildTile(rune)));
                 }
             }
 
@@ -106,8 +112,61 @@ namespace UI
         /// <param name="rune"></param>
         public void AddOneTile(RuneDefinitionSO rune)
         {
-            if (MatchesCurrentFilter(rune))
-                _tiles.Add((rune, BuildTile(rune)));
+            if (!MatchesCurrentFilter(rune))
+                return;
+
+            int insertIndex = 0;
+            int targetSortOrder = GetSortOrder(rune);
+
+            while (insertIndex < _tiles.Count)
+            {
+                var existingRune = _tiles[insertIndex].rune;
+                int existingSortOrder = GetSortOrder(existingRune);
+
+                if (existingSortOrder > targetSortOrder)
+                    break;
+                
+                if (existingSortOrder == targetSortOrder)
+                {
+                    int nameCompare = string.Compare(existingRune.Name, rune.Name, StringComparison.Ordinal);
+                    if (nameCompare > 0)
+                        break;
+                        
+                    if (existingRune == rune) 
+                    {
+                        while (insertIndex < _tiles.Count && _tiles[insertIndex].rune == rune)
+                            insertIndex++;
+                        break;
+                    }
+                }
+                insertIndex++;
+            }
+
+            var newTile = BuildTile(rune);
+            
+            newTile.transform.SetSiblingIndex(insertIndex);
+            
+            _tiles.Insert(insertIndex, (rune, newTile));
+        }
+
+        /// <summary>
+        /// Forces an immediate layout rebuild and returns the exact screen rect of the requested rune tile.
+        /// </summary>
+        /// <param name="rune"></param>
+        /// <returns></returns>
+        public RectTransform GetTileRect(RuneDefinitionSO rune)
+        {
+            if (_gridParent != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_gridParent.GetComponent<RectTransform>());
+            }
+
+            foreach (var entry in _tiles)
+            {
+                if (entry.rune == rune && entry.tile != null)
+                    return entry.tile.GetComponent<RectTransform>();
+            }
+            return null;
         }
 
         private bool MatchesCurrentFilter(RuneDefinitionSO rune)
@@ -149,6 +208,15 @@ namespace UI
             
             tile.Refresh(rune, false);
             return tile;
+        }
+        
+        private int GetSortOrder(RuneDefinitionSO rune)
+        {
+            if (rune is AbilityRuneSO) return 0;
+            if (rune is ElementRuneSO) return 1;
+            if (rune is CastRuneSO) return 2;
+            if (rune is OnHitRuneSO) return 3;
+            return 4;
         }
     }
 }

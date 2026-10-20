@@ -301,9 +301,7 @@ namespace UI
             EventSystem.current.SetSelectedGameObject(null);
         }
 
-        public void OnSlotTileClicked(SpellSlotPanel panel,
-            SpellSlotPanel.SlotType slotType,
-            int modIndex)
+        public void OnSlotTileClicked(SpellSlotPanel panel, SpellSlotPanel.SlotType slotType, int modIndex)
         {
             if (_pendingRune != null)
             {
@@ -319,7 +317,21 @@ namespace UI
                     _inventoryPanel.RemoveOneTile(_pendingRune);
 
                     if (replacedRune != null)
-                        _inventoryPanel.AddOneTile(replacedRune);
+                    {
+                        if (!RuneMatchesCurrentFilter(replacedRune))
+                        {
+                            _currentFilter = GetFilterForRune(replacedRune);
+                            _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
+                            RefreshTabVisuals();
+                        }
+                        else
+                        {
+                            _inventoryPanel.AddOneTile(replacedRune);
+                        }
+
+                        RectTransform returnTarget = _inventoryPanel.GetTileRect(replacedRune);
+                        AnimateRuneReturn(replacedRune, targetRect, returnTarget);
+                    }
                 }
                 else
                 {
@@ -328,26 +340,26 @@ namespace UI
             }
             else
             {
+                RectTransform startRect = panel.GetTileRect(slotType, modIndex);
                 RuneDefinitionSO clearedRune = panel.ClearSlot(slotType, modIndex);
 
                 if (clearedRune != null)
                 {
                     panel.TryApply(_spellCrafter);
 
-                    EventBus.Publish(new AudioPlayRequest
-                    {
-                        Event = Helpers.UIAudio.RuneUnequip
-                    });
-
-                    _inventoryPanel.AddOneTile(clearedRune);
-
-                    // If the cleared rune doesn't match the current filter, switch to its filter
                     if (!RuneMatchesCurrentFilter(clearedRune))
                     {
                         _currentFilter = GetFilterForRune(clearedRune);
                         _inventoryPanel.Rebuild(_currentFilter, GetEffectiveAvailableCount);
                         RefreshTabVisuals();
                     }
+                    else
+                    {
+                        _inventoryPanel.AddOneTile(clearedRune);
+                    }
+
+                    RectTransform targetRect = _inventoryPanel.GetTileRect(clearedRune);
+                    AnimateRuneReturn(clearedRune, startRect, targetRect);
                 }
             }
 
@@ -545,6 +557,53 @@ namespace UI
 
                 targetRect.DOKill(true);
                 targetRect.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 1f).SetUpdate(true);
+            });
+        }
+
+        private void AnimateRuneReturn(RuneDefinitionSO rune, RectTransform startRect, RectTransform targetRect)
+        {
+            if (startRect == null || targetRect == null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneUnequip });
+                return;
+            }
+
+            CanvasGroup targetCanvasGroup = targetRect.GetComponent<CanvasGroup>();
+            if (targetCanvasGroup == null)
+                targetCanvasGroup = targetRect.gameObject.AddComponent<CanvasGroup>();
+
+            targetCanvasGroup.alpha = 0f;
+            targetCanvasGroup.blocksRaycasts = false;
+
+            GameObject dummy = new GameObject("ReturningRuneDummy");
+            RectTransform dummyRect = dummy.AddComponent<RectTransform>();
+            dummyRect.SetParent(this.transform, true);
+            dummyRect.SetAsLastSibling();
+
+            Image img = dummy.AddComponent<Image>();
+            img.sprite = rune.Icon;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
+
+            dummyRect.position = startRect.position;
+            dummyRect.sizeDelta = startRect.rect.size * rune.UIIconScale;
+            dummyRect.localScale = startRect.lossyScale;
+
+            Sequence seq = DOTween.Sequence();
+            seq.SetUpdate(true);
+
+            seq.Append(dummyRect.DOMove(targetRect.position, 0.2f).SetEase(Ease.OutQuad));
+            seq.Join(dummyRect.DOScale(targetRect.lossyScale, 0.2f).SetEase(Ease.OutQuad));
+            seq.Join(dummyRect.DOSizeDelta(targetRect.rect.size * rune.UIIconScale, 0.2f).SetEase(Ease.OutQuad));
+
+            seq.OnComplete(() =>
+            {
+                Destroy(dummy);
+
+                targetCanvasGroup.alpha = 1f;
+                targetCanvasGroup.blocksRaycasts = true;
+
+                EventBus.Publish(new AudioPlayRequest { Event = Helpers.UIAudio.RuneUnequip });
             });
         }
     }
