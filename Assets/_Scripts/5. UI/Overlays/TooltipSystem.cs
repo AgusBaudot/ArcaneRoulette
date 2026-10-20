@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using Foundation;
 using UnityEngine.UI;
+using DG.Tweening;
 
 namespace UI
 {
@@ -24,9 +25,14 @@ namespace UI
         [Tooltip("Pixel offset from the tile's pivot in screen space.")]
         [SerializeField] private Vector2 _offset = new(10f, -10f);
 
+        [Header("Animation")]
+        [SerializeField] private float _fadeDuration = 0.15f;
+
         private CanvasGroup _canvasGroup;
         private Canvas _canvas;
         private bool _enabled = true;
+        
+        private Tween _fadeTween;
 
         private void Awake()
         {
@@ -41,16 +47,19 @@ namespace UI
             _canvasGroup = GetComponent<CanvasGroup>();
             _canvas = GetComponentInParent<Canvas>();
 
-            Hide();
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
         }
 
         private void OnDestroy()
         {
+            _fadeTween?.Kill();
+            
             if (Instance == this) 
                 Instance = null;
         }
 
-        // Called by RuneTileUI.OnPointerEnter
         public void Show(RuneDefinitionSO rune, RectTransform tileRect)
         {
             if (rune == null || !_enabled)
@@ -60,30 +69,25 @@ namespace UI
             _typeText.text = rune.Type;
             _descriptionText.text = rune.Description;
             
-            _canvasGroup.alpha = 1f;
-            _canvasGroup.interactable = false;
-            _canvasGroup.blocksRaycasts = false;
-            
             LayoutRebuilder.ForceRebuildLayoutImmediate(_panelRect);
             
             PositionTooltip(tileRect);
+
+            _fadeTween?.Kill();
+            _fadeTween = _canvasGroup.DOFade(1f, _fadeDuration).SetUpdate(true);
         }
 
-        // Called by RuneTileUI.OnPointerExit
         public void Hide()
         {
-            _canvasGroup.alpha = 0f;
-            _canvasGroup.interactable = false;
-            _canvasGroup.blocksRaycasts = false;
+            _fadeTween?.Kill();
+            _fadeTween = _canvasGroup.DOFade(0f, _fadeDuration).SetUpdate(true);
         }
 
         private void PositionTooltip(RectTransform tileRect)
         {
-            // Convert tile's world position to screen point (null camera = Screen Space Overlay)
             Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(null, tileRect.position);
             screenPoint += _offset;
 
-            // Convert screen point to local position inside the canvas
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _canvas.GetComponent<RectTransform>(),
                 screenPoint,
@@ -97,7 +101,6 @@ namespace UI
 
         private void ClampToScreen()
         {
-            // Ensure tooltip never escapes canvas bounds regardless of offset direction
             var canvasRect = _canvas.GetComponent<RectTransform>();
             Vector3 pos = _panelRect.localPosition;
 
@@ -115,7 +118,8 @@ namespace UI
         public void ToggleEnabled()
         {
             _enabled = !_enabled;
-            Hide();
+            if (!_enabled)
+                Hide();
         }
 
         public void SetEnabled(bool enabled)
