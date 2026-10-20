@@ -114,7 +114,6 @@ namespace UI
             _isHovered = true;
             _onHovered?.Invoke();
             
-            // If already selected and floating, don't interrupt the animation.
             if (!_isSelected) UpdateVisualState();
         }
 
@@ -125,7 +124,6 @@ namespace UI
             _isHovered = false;
             _onUnhovered?.Invoke();
             
-            // Let the floaty loop continue seamlessly if we mouse-off a selected rune.
             if (!_isSelected) UpdateVisualState();
         }
 
@@ -133,7 +131,6 @@ namespace UI
         {
             if (Rune == null || _visualRoot == null) return;
 
-            // Instantly kill any active sequence or Yoyo loop before applying the new state.
             _visualRoot.DOKill();
 
             if (_isSelected)
@@ -143,8 +140,6 @@ namespace UI
 
                 _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
                 
-                // Tween to the stable hover position first, THEN start the Yoyo loop.
-                // This guarantees the bounce doesn't adopt a transient low Y position as its permanent baseline.
                 Vector2 hoverPos = _originalPosition + new Vector2(0f, _hoverOffsetY);
                 
                 _visualRoot.DOAnchorPos(hoverPos, _hoverDuration)
