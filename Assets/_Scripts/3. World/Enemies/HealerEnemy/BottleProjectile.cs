@@ -21,7 +21,9 @@ namespace World
         [Header("Visuals")]
         [SerializeField] private Transform _visualTransform;
         [SerializeField] private float _spinSpeed = 1080f;
-        
+        [Header("Travel Settings")]
+        [Tooltip("Maximum time in seconds the bottle can spend in the air.")]
+        [SerializeField] private float _maxTravelDuration = 1f;
 
         private BottleProjectile _bottlePrefab;
         private bool _isEnemy = true;
@@ -50,7 +52,7 @@ namespace World
             _targetPos = targetPos;
             
             float distance = Vector3.Distance(_startPos, _targetPos);
-            _travelDuration = distance / speed;
+            _travelDuration = Mathf.Min(distance / speed, _maxTravelDuration);
             _progress = 0f;
 
             Speed = speed;
@@ -95,7 +97,7 @@ namespace World
         {
             if (_hazardPrefab != null)
             {
-                var hazard = Instantiate(_hazardPrefab, new Vector3(pos.x, 0f, pos.z), Quaternion.identity);
+                var hazard = Instantiate(_hazardPrefab, new Vector3(pos.x, 0f, pos.z), _hazardPrefab.transform.rotation);
                 hazard.InitHazard(!IsEnemy);
             }
             Helpers.ProjFactory.Despawn(gameObject);
@@ -143,7 +145,7 @@ namespace World
             _targetPos = targetPos;
             
             float distance = Vector3.Distance(_startPos, _targetPos);
-            _travelDuration = distance / Mathf.Max(0.1f, speed);
+            _travelDuration = Mathf.Min(distance / Mathf.Max(0.1f, speed), _maxTravelDuration);
             _progress = 0f;
 
             Speed = speed;

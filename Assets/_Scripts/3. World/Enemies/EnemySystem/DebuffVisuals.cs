@@ -107,7 +107,6 @@ namespace World
             {
                 _dotIcon.gameObject.SetActive(true);
                 _dotIcon.transform.SetAsLastSibling();
-                Debug.Log(_dotIcon.sprite.name);
             }
         }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core;
 using Foundation;
 using UnityEngine;
@@ -8,24 +9,34 @@ namespace World
     {
         [SerializeField] private float _duration = 10f;
         [SerializeField] private float _tickRate = 0.5f;
+        [SerializeField] private Renderer _vfxRenderer;
+        
+        private static readonly int StartTimeProp = Shader.PropertyToID("_StartTime");
         
         private bool _affectsEnemies;
         private float _timer;
         private string _sourceId;
+        private Dictionary<Collider, float> _cooldowns = new();
 
         public void InitHazard(bool affectsEnemies)
         {
             _affectsEnemies = affectsEnemies;
             _sourceId = "Environment/Bottle_" + GetInstanceID();
+
+            _vfxRenderer.material.SetFloat(StartTimeProp, Time.time);
+            
             Destroy(gameObject, _duration);
         }
 
         private void OnTriggerStay(Collider other)
         {
-            _timer -= Time.deltaTime;
-            if (_timer > 0f) return;
+            if (_cooldowns.TryGetValue(other, out float timeRemaining) && timeRemaining > 0f)
+            {
+                _cooldowns[other] = timeRemaining - Time.deltaTime;
+                return;
+            }
 
-            _timer = _tickRate;
+            _cooldowns[other] = _tickRate;
 
             if (_affectsEnemies && other.TryGetComponent<IDebuffReceiver>(out var enemyReceiver))
             {
