@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core;
 using Foundation;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ namespace World
         private float _throwCooldownEndTime;
         private float _healTimer;
         private List<EnemyHealth> _activeHealTargets = new();
+
+        private List<PooledLineVFX> _activeHealBeams = new();
         
         private AudioHandle _healAudioHandle;
 
@@ -32,6 +35,18 @@ namespace World
         public void Tick(float dt)
         {
             if (_agent == null || !IsState(AIState.Healing)) return;
+
+            for (int i = 0; i < _activeHealTargets.Count; i++)
+            {
+                if (_activeHealTargets[i] != null && i < _activeHealBeams.Count)
+                {
+                    if (_activeHealBeams[i].TryGetComponent<LineRenderer>(out var lr))
+                    {
+                        lr.SetPosition(0, transform.position + Vector3.up * 2f);
+                        lr.SetPosition(1, _activeHealTargets[i].transform.position + Vector3.up * 2f);
+                    }
+                }
+            }
 
             if (_activeHealTargets.Count > 0 && _activeHealTargets[0] != null)
             {
@@ -140,6 +155,18 @@ namespace World
             _healTimer = 0f;
             _activeHealTargets = GetValidHealTargets();
 
+            if (HealerStats.HealBeamPrefab != null)
+            {
+                foreach (var target in _activeHealTargets)
+                {
+                    var beam = Helpers.ProjFactory.Spawn(
+                        HealerStats.HealBeamPrefab, 
+                        transform.position, 
+                        Quaternion.identity);
+                    _activeHealBeams.Add(beam);
+                }
+            }
+
             if (HealerStats.HealBeamLoopSound != null)
             {
                 EventBus.Publish(new AudioPlayTrackedRequest
@@ -159,16 +186,36 @@ namespace World
                 _healTimer -= 2f;
                 float healAmount = EffectiveAttackDamage / 3f;
                 
-                _activeHealTargets.RemoveAll(t => t == null || t.CurrentHp <= 0);
+                for (int i = _activeHealTargets.Count - 1; i >= 0; i--)
+                {
+                    if (_activeHealTargets[i] == null || _activeHealTargets[i].CurrentHp <= 0)
+                    {
+                        _activeHealTargets.RemoveAt(i);
+                        if (i < _activeHealBeams.Count)
+                        {
+                            Helpers.ProjFactory.Despawn(_activeHealBeams[i].gameObject);
+                            _activeHealBeams.RemoveAt(i);
+                        }
+                    }
+                }
                 
                 if (_activeHealTargets.Count == 0)
                 {
                     _activeHealTargets = GetValidHealTargets();
                     if (_activeHealTargets.Count == 0)
                     {
+                        ClearHealBeams();
                         StopHealAudio();
                         _tree.Reset();
                         return;
+                    }
+                    else
+                    {
+                        foreach (var target in _activeHealTargets)
+                        {
+                            var beam = Helpers.ProjFactory.Spawn(HealerStats.HealBeamPrefab, transform.position, Quaternion.identity);
+                            _activeHealBeams.Add(beam);
+                        }
                     }
                 }
 
@@ -182,7 +229,17 @@ namespace World
         private void EndHealing()
         {
             _healCooldownEndTime = Time.time + HealerStats.HealingCooldown;
+            ClearHealBeams();
             StopHealAudio();
+        }
+
+        private void ClearHealBeams()
+        {
+            foreach (var beam in _activeHealBeams)
+            {
+                if (beam != null) Helpers.ProjFactory.Despawn(beam.gameObject);
+            }
+            _activeHealBeams.Clear();
         }
         
         private void StopHealAudio()

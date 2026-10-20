@@ -43,7 +43,6 @@ namespace UI
         private ISettingsSave _saveLoadSystem;
         private Resolution[] _availableResolutions;
 
-        // Variables to memorize the shadow sorting order you set in the Inspector
         private int _windowModeBaseSortOrder;
         private int _resolutionBaseSortOrder;
 
@@ -124,6 +123,17 @@ namespace UI
             
             _workingCache = _saveLoadSystem.LoadSettings();
             RefreshUIFromCache();
+        }
+
+        public override void Hide()
+        {
+            base.Hide();
+
+            SettingsSaveData diskData = _saveLoadSystem.LoadSettings();
+            EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.Master, diskData.MasterVolume));
+            EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.Music, diskData.MusicVolume));
+            EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.SFX, diskData.SFXVolume));
+            EventBus.Publish(new AudioVolumeChangedEvent(MixerBus.UI, diskData.UIVolume));
         }
 
         private void OnVolumeChanged(MixerBus bus, float rawValue, TMP_Text label)

@@ -1,3 +1,4 @@
+using Core;
 using UnityEngine;
 using Foundation;
 
@@ -21,6 +22,9 @@ namespace World
         [Header("Healer - Projectile")]
         public BottleProjectile BottlePrefab;
         public float BottleThrowSpeed = 6f;
+        
+        [Header("Healer - Healing")]
+        public PooledLineVFX HealBeamPrefab;
 
         [Header("Healer - Audio")]
         public AudioEventSO HealBeamLoopSound;
