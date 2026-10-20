@@ -3589,6 +3589,10 @@ MonoBehaviour:
   _roomType: 0
   _state: 0
   _cleared: 0
+  _portalPrefab: {fileID: 0}
+  _portalSpawnPoint: {fileID: 0}
+  _doorCloseSound: {fileID: 11400000, guid: 63350239c5f29444aa93c040bad0a453, type: 2}
+  _doorOpenSound: {fileID: 11400000, guid: aefd7b90aff9d5b409975fff0a28ed29, type: 2}
 --- !u!114 &1749809737169225243
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3610,7 +3614,6 @@ MonoBehaviour:
   _leftDoor: {fileID: 1668440348650474110}
   _rightDoor: {fileID: 7988044045658052895}
   _offsetSpawn: 1
-  _liftDoors: 5
 --- !u!114 &7239090229063409158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3626,11 +3629,17 @@ MonoBehaviour:
   _enemySpawns:
   - {fileID: 1396671561215717296}
   - {fileID: 6010615679745003631}
-  _enemiesAlive: 0
-  _currentWave: 0
+  _spawnAtSameTime: 0
+  _spawnDelay: 0
+  _interWaveDelay: 1
+  _dangerImage: {fileID: 0}
+  _effect: {fileID: 0}
+  _warningDuration: 0
   hazards:
   - {fileID: 495386497507348568}
   - {fileID: 3904546264112780187}
+  _enemiesAlive: 0
+  _currentWave: 0
 --- !u!1 &9001061037371237133
 GameObject:
   m_ObjectHideFlags: 0
