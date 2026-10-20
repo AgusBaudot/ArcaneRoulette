@@ -4,24 +4,16 @@ using UnityEngine;
 
 namespace Core
 {
-    public class CameraOcclusionHandler : MonoBehaviour, IUpdatable
+    public class ScreenThresholdOcclusion : MonoBehaviour, IUpdatable
     {
         [Header("Settings")] 
-        [Tooltip("Layer assigned to walls/objects that can hide entities.")] 
-        [SerializeField]
-        private LayerMask _occluderLayer;
+        [Tooltip("0.5 is half screen, 0.25 is bottom fourth.")]
+        [SerializeField, Range(0f, 1f)]
+        private float _viewportThreshold = 0.33f;
 
-        [Tooltip("Using a sphere cast prevents thin objects from flickering at the edges.")] 
-        [SerializeField]
-        private float _sphereCastRadius = 0.5f;
-
-        [Tooltip("Offset applied to every target's base position (e.g., to aim at the chest).")] 
-        [SerializeField]
-        private Vector3 _targetOffset = new(0f, 1f, 0f);
-
-        [Tooltip("The target alpha value when fully occluding a target.")] 
+        [Tooltip("The target alpha value when below the threshold.")] 
         [SerializeField, Range(0, 1)]
-        private float _targetAlpha = 0.5f;
+        private float _targetAlpha = 0.2f;
 
         [Tooltip("How fast the alpha transitions (units per second).")] 
         [SerializeField]
@@ -31,15 +23,19 @@ namespace Core
 
         private static readonly int OpacityPropertyId = Shader.PropertyToID("_Opacity");
 
-        private readonly Dictionary<Renderer, float> _trackedRenderers = new();
-        private readonly HashSet<Renderer> _renderersHitThisFrame = new();
-        private readonly List<Renderer> _keysSnapshot = new();
-
+        private Camera _mainCamera;
         private MaterialPropertyBlock _mpb;
+        
+        // Tracks current alpha of objects currently being faded
+        private readonly Dictionary<Renderer, float> _trackedRenderers = new();
+        private readonly List<Renderer> _keysSnapshot = new();
 
         private void Awake()
         {
             _mpb = new MaterialPropertyBlock();
+            // Cache camera using your project's custom utility if available, 
+            // or standard Camera.main for isolated testing.
+            _mainCamera = Camera.main; 
         }
 
         private void OnEnable()
@@ -55,32 +51,24 @@ namespace Core
 
         public void Tick(float deltaTime)
         {
-            _renderersHitThisFrame.Clear();
-            Vector3 cameraPos = transform.position;
+            if (_mainCamera == null) return;
 
-            foreach (IOcclusionTarget target in OcclusionRegistry.Targets)
+            foreach (IOccluder occluder in OcclusionRegistry.Occluders)
             {
-                Vector3 targetPos = target.OcclusionPosition + _targetOffset;
-                Vector3 direction = targetPos - cameraPos;
-                float distance = direction.magnitude;
+                Renderer r = occluder.Renderer;
+                if (r == null) continue;
 
-                RaycastHit[] hits = Physics.SphereCastAll(
-                    cameraPos, 
-                    _sphereCastRadius, 
-                    direction.normalized,
-                    distance, 
-                    _occluderLayer
-                );
+                Vector3 viewportPos = _mainCamera.WorldToViewportPoint(occluder.Position);
+                
+                bool isBelowThreshold = viewportPos.y < _viewportThreshold && viewportPos.z > 0f;
 
-                foreach (RaycastHit hit in hits)
+                if (isBelowThreshold)
                 {
-                    Renderer hitRenderer = hit.collider.GetComponent<Renderer>();
-                    
-                    if (hitRenderer == null) 
-                        continue;
-                    
-                    _renderersHitThisFrame.Add(hitRenderer);
-                    _trackedRenderers.TryAdd(hitRenderer, 1f);
+                    _trackedRenderers.TryAdd(r, 1f);
+                }
+                else if (!_trackedRenderers.ContainsKey(r))
+                {
+                    continue;
                 }
             }
             
@@ -95,12 +83,14 @@ namespace Core
                     continue;
                 }
 
-                bool isHit = _renderersHitThisFrame.Contains(r);
-                float targetAlpha = isHit ? _targetAlpha : 1f;
+                Vector3 viewPos = _mainCamera.WorldToViewportPoint(r.transform.position);
+                bool isBelow = viewPos.y < _viewportThreshold && viewPos.z > 0f;
 
-                float newAlpha = Mathf.MoveTowards(_trackedRenderers[r], targetAlpha, _fadeSpeed * deltaTime);
+                float targetAlpha = isBelow ? _targetAlpha : 1f;
+                float currentAlpha = _trackedRenderers[r];
+                float newAlpha = Mathf.MoveTowards(currentAlpha, targetAlpha, _fadeSpeed * deltaTime);
 
-                if (!isHit && newAlpha >= 1f)
+                if (!isBelow && newAlpha >= 1f)
                 {
                     r.SetPropertyBlock(null);
                     _trackedRenderers.Remove(r);
@@ -108,7 +98,6 @@ namespace Core
                 else
                 {
                     _trackedRenderers[r] = newAlpha;
-                    
                     r.GetPropertyBlock(_mpb);
                     _mpb.SetFloat(OpacityPropertyId, newAlpha);
                     r.SetPropertyBlock(_mpb);
@@ -120,12 +109,8 @@ namespace Core
         {
             foreach (Renderer r in _trackedRenderers.Keys)
             {
-                if (r != null)
-                {
-                    r.SetPropertyBlock(null);
-                }
+                if (r != null) r.SetPropertyBlock(null);
             }
-
             _trackedRenderers.Clear();
         }
     }

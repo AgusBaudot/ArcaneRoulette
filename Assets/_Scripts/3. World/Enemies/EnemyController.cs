@@ -12,7 +12,7 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly, IOcclusionTarget
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
         #region Parameters
         public float interval { get; set; }
@@ -95,8 +95,6 @@ namespace World
             _enemyHealth.OnDeath -= DeathEvent;
             OnDeathEvent = null; 
             
-            OcclusionRegistry.Unregister(this);
-    
             if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
             {
                 _aiBrain.Agent.enabled = false; 
@@ -113,8 +111,6 @@ namespace World
             {
                 EventBus.Publish(new AudioPlayRequest {Event = _spawnSound, WorldPosition = transform.position});
             }
-            
-            OcclusionRegistry.Register(this);
             
             ElementType rolledElement = (ElementType)Random.Range(0, 4);
     

@@ -6,7 +6,7 @@ namespace Core
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PlayerHealth))]
-    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable, IDebuffReceiver, IStatResolver, IOcclusionTarget
+    public class PlayerController : MonoBehaviour, IUpdatable, IFixedUpdatable, IDebuffReceiver, IStatResolver
     {
         #region Properties
 
@@ -143,8 +143,6 @@ namespace Core
             Helpers.Input.OnSlot1Canceled += HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled += HandleSlot2Release;
 
-            OcclusionRegistry.Register(this);
-            
             _heldAutoSlots.Clear();
             _heldHoldSlots.Clear();
             if (_runAudioHandle != null && _runAudioHandle.IsValid)
@@ -174,8 +172,6 @@ namespace Core
             Helpers.Input.OnSlot1Canceled -= HandleSlot1Release;
             Helpers.Input.OnSlot2Canceled -= HandleSlot2Release;
             
-            OcclusionRegistry.Unregister(this);
-
             if (_runAudioHandle != null && _runAudioHandle.IsValid)
             {
                 EventBus.Publish(new AudioStopRequest

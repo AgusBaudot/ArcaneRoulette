@@ -4,9 +4,9 @@ namespace Foundation
 {
     public static class OcclusionRegistry
     {
-        public static readonly HashSet<IOcclusionTarget> Targets = new();
+        public static readonly HashSet<IOccluder> Occluders = new();
         
-        public static void Register(IOcclusionTarget target) => Targets.Add(target);
-        public static void Unregister(IOcclusionTarget target) => Targets.Remove(target);
+        public static void Register(IOccluder occluder) => Occluders.Add(occluder);
+        public static void Unregister(IOccluder occluder) => Occluders.Remove(occluder);
     }
 }
