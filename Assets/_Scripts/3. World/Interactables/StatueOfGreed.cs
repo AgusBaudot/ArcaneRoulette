@@ -1,3 +1,4 @@
+using System.Collections;
 using Foundation;
 using UnityEngine;
 
@@ -8,12 +9,13 @@ namespace World
         [Header("Rewards")] 
         [SerializeField] private PickupDropPool _dropPool;
         [SerializeField] private AudioEventSO _manaCrystalSound;
-        [SerializeField] private int _manaCrystalAmount;
+        
+        [Header("Currency Settings")]
+        [SerializeField] private int _manaCrystalAmount = 5;
+        [SerializeField] private float _currencySpawnDelay = 0.15f;
         
         protected override void ApplyReward(GameObject player)
         {
-            GameStateManager.RunState.AddCurrency(_manaCrystalAmount);
-
             if (_manaCrystalSound != null)
             {
                 EventBus.Publish(new AudioPlayRequest
@@ -33,6 +35,20 @@ namespace World
             }
             
             //TODO: fire Animation for Rune acquired here.
+
+            StartCoroutine(SpawnCurrencyRoutine());
+        }
+
+        private IEnumerator SpawnCurrencyRoutine()
+        {
+            WaitForSeconds wait = CoroutineUtils.GetWait(_currencySpawnDelay);
+            
+            for (int i = 0; i < _manaCrystalAmount; i++)
+            {
+                EventBus.Publish(new CurrencyDropEvent(transform.position));
+                
+                yield return wait;
+            }
         }
     }
 }
