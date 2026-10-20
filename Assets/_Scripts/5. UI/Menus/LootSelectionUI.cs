@@ -107,7 +107,7 @@ namespace UI
                         capturedRune, 
                         () => OnOptionClicked(capturedIndex),
                         () => ShowLocalTooltip(capturedRune),
-                        () => ClearLocalTooltip()
+                        RestoreDefaultTooltip
                     );
             
                     _optionPool[i].SetSelected(false);
@@ -192,6 +192,8 @@ namespace UI
             if (_confirm != null) _confirm.localRotation = Quaternion.identity;
         }
 
+        // ── Local Tooltip Logic ───────────────────────────────────────────────
+
         private void ShowLocalTooltip(RuneDefinitionSO rune)
         {
             if (rune == null) return;
@@ -208,6 +210,19 @@ namespace UI
             _tooltipNameText.text = string.Empty;
             _tooltipTypeText.text = string.Empty;
             _tooltipDescriptionText.text = string.Empty;
+        }
+
+        private void RestoreDefaultTooltip()
+        {
+            if (_selectionOrder.Count > 0)
+            {
+                int lastSelectedIndex = _selectionOrder[^1];
+                ShowLocalTooltip(_optionPool[lastSelectedIndex].Rune);
+            }
+            else
+            {
+                ClearLocalTooltip();
+            }
         }
 
         // ── Selection logic ───────────────────────────────────────────────────
