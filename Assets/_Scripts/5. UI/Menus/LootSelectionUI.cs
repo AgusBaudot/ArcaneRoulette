@@ -41,10 +41,12 @@ namespace UI
         [SerializeField] private PickupDropPool _dropPool;
         
         [Header("Local Tooltip References")]
+        [SerializeField] private GameObject _tooltipContainer;
+        [SerializeField] private CanvasGroup _tooltipCanvasGroup;
+        [SerializeField] private float _tooltipFadeDuration = 0.2f;
         [SerializeField] private TextMeshProUGUI _tooltipNameText;
         [SerializeField] private TextMeshProUGUI _tooltipTypeText;
         [SerializeField] private TextMeshProUGUI _tooltipDescriptionText;
-        [SerializeField] private GameObject _tooltipContainer;
 
         // ── Runtime ──────────────────────────────────────────────────────────
 
@@ -79,6 +81,8 @@ namespace UI
 
                 _optionPool.Add(option);
             }
+            
+            if (_tooltipCanvasGroup != null) _tooltipCanvasGroup.alpha = 0f;
         }
 
         // ── Show / Hide ───────────────────────────────────────────────────────
@@ -90,7 +94,7 @@ namespace UI
             if (TooltipSystem.Instance != null)
                 TooltipSystem.Instance.SetEnabled(false);
 
-            ClearLocalTooltip();
+            ClearLocalTooltipInstantly();
     
             _selectionOrder.Clear();
             RuneDefinitionSO[] runes = _dropPool.GetRandomRunes(_runesToShow);
@@ -198,18 +202,47 @@ namespace UI
         {
             if (rune == null) return;
 
-            if (_tooltipContainer != null) _tooltipContainer.SetActive(true);
             _tooltipNameText.text = rune.Name;
             _tooltipTypeText.text = rune.Type;
             _tooltipDescriptionText.text = rune.Description;
+            
+            if (_tooltipContainer != null) _tooltipContainer.SetActive(true);
+            
+            if (_tooltipCanvasGroup != null)
+            {
+                _tooltipCanvasGroup.DOKill();
+                _tooltipCanvasGroup.DOFade(1f, _tooltipFadeDuration).SetUpdate(true);
+            }
         }
 
         private void ClearLocalTooltip()
+        {
+            if (_tooltipCanvasGroup != null)
+            {
+                _tooltipCanvasGroup.DOKill();
+                _tooltipCanvasGroup.DOFade(0f, _tooltipFadeDuration)
+                    .SetUpdate(true)
+                    .OnComplete(() => 
+                    {
+                        if (_tooltipContainer != null) _tooltipContainer.SetActive(false);
+                        _tooltipNameText.text = string.Empty;
+                        _tooltipTypeText.text = string.Empty;
+                        _tooltipDescriptionText.text = string.Empty;
+                    });
+            }
+            else
+            {
+                ClearLocalTooltipInstantly();
+            }
+        }
+        
+        private void ClearLocalTooltipInstantly()
         {
             if (_tooltipContainer != null) _tooltipContainer.SetActive(false);
             _tooltipNameText.text = string.Empty;
             _tooltipTypeText.text = string.Empty;
             _tooltipDescriptionText.text = string.Empty;
+            if (_tooltipCanvasGroup != null) _tooltipCanvasGroup.alpha = 0f;
         }
 
         private void RestoreDefaultTooltip()

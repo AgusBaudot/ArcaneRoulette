@@ -30,6 +30,8 @@ namespace UI
         [SerializeField] private float _hoverOffsetY = 10f;
         [Tooltip("How far the rune floats up and down while selected.")]
         [SerializeField] private float _floatDistance = 5f;
+        [Tooltip("Extra scale multiplier when floating to the peak.")]
+        [SerializeField] private float _floatScaleMultiplier = 1.05f;
         [Tooltip("How long one half of the breathing animation takes.")]
         [SerializeField] private float _floatDuration = 1f;
 
@@ -147,7 +149,14 @@ namespace UI
                     .OnComplete(() =>
                     {
                         float peakY = hoverPos.y + _floatDistance;
+                        Vector3 peakScale = _originalScale * (_scaleMultiplier * _floatScaleMultiplier);
+
                         _visualRoot.DOAnchorPosY(peakY, _floatDuration)
+                            .SetEase(Ease.InOutSine)
+                            .SetLoops(-1, LoopType.Yoyo)
+                            .SetUpdate(true);
+                            
+                        _visualRoot.DOScale(peakScale, _floatDuration)
                             .SetEase(Ease.InOutSine)
                             .SetLoops(-1, LoopType.Yoyo)
                             .SetUpdate(true);
