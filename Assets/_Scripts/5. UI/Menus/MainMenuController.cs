@@ -39,6 +39,8 @@ namespace UI
             EventBus.Subscribe<OnSettingsClickedEvent>(OnSettings);
             EventBus.Subscribe<OnControlsClickedEvent>(OnControls);
             EventBus.Subscribe<OnExitClickedEvent>(OnExit);
+            
+            Helpers.Input.OnPausePressed += CloseCurrentPanel;
         }
 
         private void OnDisable()
@@ -48,6 +50,8 @@ namespace UI
             EventBus.Unsubscribe<OnSettingsClickedEvent>(OnSettings);
             EventBus.Unsubscribe<OnControlsClickedEvent>(OnControls);
             EventBus.Unsubscribe<OnExitClickedEvent>(OnExit);
+            
+            Helpers.Input.OnPausePressed -= CloseCurrentPanel;
         }
 
         // ── Triggers ─────────────────────────────────────────────────────────
