@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: StatueAuraLife
-  m_Shader: {fileID: -6465566751694194690, guid: 61237ba1e767b2c4aa51e1d62c8a749b,
+  m_Name: Shader Graphs_StatueRings
+  m_Shader: {fileID: -6465566751694194690, guid: 22d8c3be88771704583e1d1adc59e1fb,
     type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -38,18 +38,21 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Aberration: 0.02
     - _Fade: 1
-    - _HaloHeight: 0.8
-    - _HaloWidth: 0.04
-    - _LineWidth: 0.15
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Speed: 0.4
-    - _Turns: 2
+    - _Ring1Height: 0.35
+    - _Ring2Height: -0.3
+    - _Speed: 0.3
+    - _Width: 0.015
+    - _Wobble: 0.08
     m_Colors:
-    - _Color: {r: 0.00298059, g: 1, b: 0, a: 0}
+    - _Color: {r: 0, g: 1, b: 0.02392054, a: 0}
+    - _FringeColorA: {r: 0, g: 2, b: 0.27959347, a: 0}
+    - _FringeColorB: {r: 0, g: 2, b: 0.25734568, a: 0}
   m_BuildTextureStacks: []
---- !u!114 &7861741944253992940
+--- !u!114 &8082915116214120866
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
