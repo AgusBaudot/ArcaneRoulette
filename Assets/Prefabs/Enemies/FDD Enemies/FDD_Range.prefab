@@ -107,6 +107,7 @@ GameObject:
   - component: {fileID: 7856161258128843216}
   - component: {fileID: 5866620665867264181}
   - component: {fileID: 3211029248206845498}
+  - component: {fileID: 9138859381872745581}
   m_Layer: 7
   m_Name: FDD_Range
   m_TagString: Untagged
@@ -233,7 +234,7 @@ Animator:
   m_GameObject: {fileID: 1326220217148487278}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e15bcc0405600d243925e3362d0b109d, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -387,6 +388,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 2, z: 4}
   m_Center: {x: 0.4, y: 1, z: 1}
+--- !u!114 &9138859381872745581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1326220217148487278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c142c96544204eaba6565a4a8a4c90c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _windupClipLength: 0.5
+  _coverClipLength: 0.3
+  _uncoverClipLength: 0.3
+  _teleportClipLength: 0.6
+  _renderer: {fileID: 632965395475527778}
 --- !u!1 &1475441748603410581
 GameObject:
   m_ObjectHideFlags: 0

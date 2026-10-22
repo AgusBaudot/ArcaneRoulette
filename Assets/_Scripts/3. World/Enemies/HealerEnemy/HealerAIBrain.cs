@@ -29,12 +29,21 @@ namespace World
             _healCooldownEndTime = 0f;
             _throwCooldownEndTime = 0f;
             _activeHealTargets.Clear();
+            ClearHealBeams();
             StopHealAudio();
         }
 
         public void Tick(float dt)
         {
-            if (_agent == null || !IsState(AIState.Healing)) return;
+            if (_agent == null || !IsState(AIState.Healing))
+            {
+                if (_activeHealBeams.Count > 0)
+                {
+                    ClearHealBeams();
+                    StopHealAudio();
+                }
+                return;
+            }
 
             for (int i = 0; i < _activeHealTargets.Count; i++)
             {
