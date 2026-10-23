@@ -284,7 +284,7 @@ Transform:
   m_Children:
   - {fileID: 7302382215782683547}
   - {fileID: 5708280075517524767}
-  - {fileID: 757329241526536087}
+  - {fileID: 4513504887372124378}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3764816799497502508
@@ -370,7 +370,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8399edcf6594ce493a3ac755b113f72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _activeVFX: {fileID: 5891356056652868765}
+  _activeVFX: {fileID: 0}
   _interactionPrompt: {fileID: 9171189884868993317}
   _interactionRadius: 1.5
   _promptFadeDuration: 0.2
@@ -378,6 +378,7 @@ MonoBehaviour:
   _dropPool: {fileID: 11400000, guid: 7f04c5bf6927877479a01c674828c44b, type: 2}
   _manaCrystalSound: {fileID: 0}
   _manaCrystalAmount: 15
+  _currencySpawnDelay: 0.15
 --- !u!1 &5898217514319998280
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,6 +624,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: StatueGreed
       objectReference: {fileID: 0}
+    - target: {fileID: 5048618722647067060, guid: 55c44069d68229549ad9dd6edb4d9b64,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5048618722647067060, guid: 55c44069d68229549ad9dd6edb4d9b64,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5048618722647067060, guid: 55c44069d68229549ad9dd6edb4d9b64,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 8228615125506547449, guid: 55c44069d68229549ad9dd6edb4d9b64,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -678,15 +694,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 55c44069d68229549ad9dd6edb4d9b64, type: 3}
---- !u!4 &757329241526536087 stripped
+--- !u!4 &4513504887372124378 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 8228615125506547449, guid: 55c44069d68229549ad9dd6edb4d9b64,
-    type: 3}
-  m_PrefabInstance: {fileID: 8697430763518155118}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &5891356056652868765 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2986227592210560499, guid: 55c44069d68229549ad9dd6edb4d9b64,
+  m_CorrespondingSourceObject: {fileID: 5048618722647067060, guid: 55c44069d68229549ad9dd6edb4d9b64,
     type: 3}
   m_PrefabInstance: {fileID: 8697430763518155118}
   m_PrefabAsset: {fileID: 0}
