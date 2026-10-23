@@ -63,7 +63,7 @@ namespace World
             _roomConnections.OnDoorActivated -= HandleDoorTransition;
             _roomConnections.OnDoorActivated += HandleDoorTransition;
             
-            EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpened);
+            EventBus.Subscribe<RoomRewardResolvedEvent>(HandleChestOpened);
 
             EventBus.Publish(new PlayerEnteredRoomEvent(_index));
 
@@ -112,7 +112,7 @@ namespace World
             _entityController.RoomIsClear -= RoomClearedEvent;
             _roomConnections.DisableConnections();
             
-            EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpened);
+            EventBus.Unsubscribe<RoomRewardResolvedEvent>(HandleChestOpened);
         }
 
         private void RoomClearedEvent()
@@ -142,7 +142,7 @@ namespace World
             }
         }
 
-        private void HandleChestOpened(LootChestOpenedEvent evt)
+        private void HandleChestOpened(RoomRewardResolvedEvent evt)
         {
             if (!_waitingForChest) 
                 return;

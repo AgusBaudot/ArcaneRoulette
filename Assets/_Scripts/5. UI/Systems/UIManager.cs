@@ -93,7 +93,8 @@ namespace UI
             {
                 if (_currentActivePanel == _consoleInstance)
                 {
-                    CloseCurrentPanel();
+                    OpenPanel(_lootSelectionInstance, false);
+                    return;
                 }
                 else
                 {
@@ -152,6 +153,8 @@ namespace UI
         {
             if (_currentActivePanel == targetPanel) return;
 
+            bool wasNull = _currentActivePanel == null;
+
             if (_currentActivePanel != null)
             {
                 _currentActivePanel.OnCloseRequested -= CloseCurrentPanel;
@@ -171,7 +174,7 @@ namespace UI
             _currentActivePanel.OnCloseRequested += CloseCurrentPanel;
             _currentActivePanel.Show();
 
-            if (_panelHistory.Count == 0)
+            if (wasNull)
             {
                 Time.timeScale = 0f;
                 AudioListener.pause = true;

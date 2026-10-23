@@ -23,10 +23,10 @@ namespace World
         [Header("Audio")]
         [SerializeField] private AudioEventSO _fallSound;
         [SerializeField] private AudioEventSO _openSound;
-        [SerializeField] private AudioEventSO _interactSound;
         
         private bool _isOpen;
         private bool _playerInRange;
+        private bool _isWaitingToAnimate;
         
         private Image _promptSprite;
         private Tween _promptTween;
@@ -55,6 +55,16 @@ namespace World
         private void OnEnable()
         {
             //TODO: make fall
+            EventBus.Subscribe<RoomRewardResolvedEvent>(HandleRewardResolved);
+
+            if (_fallSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = _fallSound,
+                    WorldPosition = transform.position
+                });
+            }
             
             transform.localScale = Vector3.zero;
             transform.DOScale(Vector3.one, _fallDuration).SetEase(Ease.OutBack);
@@ -102,9 +112,20 @@ namespace World
                 return;
 
             _isOpen = true;
-            Helpers.Input.OnInteractPressed -= HandleInteract;
+            _isWaitingToAnimate = true;
             
+            Helpers.Input.OnInteractPressed -= HandleInteract;
             HidePrompt();
+            
+            EventBus.Publish(new LootChestOpenedEvent(transform.position));
+        }
+
+        private void HandleRewardResolved(RoomRewardResolvedEvent evt)
+        {
+            if (!_isWaitingToAnimate)
+                return;
+
+            _isWaitingToAnimate = false;
 
             if (_animator != null)
             {
@@ -112,7 +133,7 @@ namespace World
             }
             else
             {
-                Debug.LogWarning("[RewardChest] Chest open animation missing.");
+                Debug.LogWarning("Reward chest animator not found");
             }
 
             if (_openSound != null)
@@ -123,10 +144,8 @@ namespace World
                     WorldPosition = transform.position
                 });
             }
-            
+
             StartCoroutine(SpawnCurrencyRoutine());
-            
-            EventBus.Publish(new LootChestOpenedEvent(transform.position));
         }
 
         private IEnumerator SpawnCurrencyRoutine()

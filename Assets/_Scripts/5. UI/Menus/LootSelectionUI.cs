@@ -290,6 +290,8 @@ namespace UI
                 GameStateManager.RunState.AddRune(_optionPool[index].Rune);
                 EventBus.Publish<RuneClaimedEvent>(new (_optionPool[index].Rune.Name));
             }
+            
+            EventBus.Publish(new RoomRewardResolvedEvent());
 
             RequestClose();
         }
