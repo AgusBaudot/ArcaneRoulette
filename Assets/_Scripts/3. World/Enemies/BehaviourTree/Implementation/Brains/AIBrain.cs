@@ -73,30 +73,31 @@ namespace World
             }
         }
 
-        // ---- Init Brain ----
         protected virtual void Awake()
         {
             _animator = GetComponentInChildren<Animator>();
             _agent = GetComponent<NavMeshAgent>();
             _los = new LineOfSight();
             _agent.updateRotation = false;
-            _agent.obstacleAvoidanceType = ObstacleAvoidanceType.LowQualityObstacleAvoidance;
             _agent.avoidancePriority = Random.Range(0, 100);
 
             _waypoints ??= new List<Transform>();
 
-            GetPlayer(); // best-effort now; every real call site retries via GetPlayer() too
+            GetPlayer();
             if (_player != null)
                 _waypoints.Add(_player);
 
-            // AIBrain and EnemyHealth are siblings, not related by inheritance —
-            // this listens to EnemyHealth's already-public OnDeath rather than
-            // EnemyHealth needing to reach a protected member on a different
-            // component. Awake() only ever runs once per pooled instance's
-            // lifetime, so a plain += here is safe without an unsub/resub dance.
             _enemyHealth = GetComponent<EnemyHealth>();
             if (_enemyHealth != null)
                 _enemyHealth.OnDeath += HandleDeath;
+        }
+
+        protected void SetCollidersEnabled(bool isEnabled)
+        {
+            foreach (var col in GetComponentsInChildren<Collider>())
+            {
+                col.enabled = isEnabled;
+            }
         }
 
         private void HandleDeath()
@@ -108,21 +109,9 @@ namespace World
                 _agent.isStopped = true;
             }
 
-            foreach (var col in GetComponentsInChildren<Collider>())
-            {
-                col.enabled = false;
-            }
+            SetCollidersEnabled(false);
         }
 
-        /// <summary>
-        /// Single source of truth for the player reference. Retries the tag
-        /// lookup every call until it succeeds once, then just returns the
-        /// cached Transform. Use this everywhere instead of reading _player
-        /// directly — a direct read never retries, and if it's called before
-        /// the real Player exists in the scene (pool pre-warming runs during
-        /// Awake now, which can beat the Player's own setup), _player stays
-        /// null forever with nothing to notice or recover.
-        /// </summary>
         protected Transform GetPlayer()
         {
             if (_player == null)
@@ -151,12 +140,10 @@ namespace World
             _debuffs = null;
             _tree?.Reset();
             _wasInRange = false;
-            _currentState = default;
+            
+            _currentState = (AIState)(-1); 
 
-            foreach (var col in GetComponentsInChildren<Collider>())
-            {
-                col.enabled = true;
-            }
+            SetCollidersEnabled(false);
 
             if (_animator != null)
             {
@@ -186,11 +173,21 @@ namespace World
             if (_currentState == newState)
                 return;
             
+            AIState previousState = _currentState;
             _currentState = newState;
+
+            if (newState == AIState.Spawning || newState == AIState.Death)
+            {
+                SetCollidersEnabled(false);
+            }
+            else if (previousState == AIState.Spawning || previousState == (AIState)(-1))
+            {
+                SetCollidersEnabled(true);
+            }
+
             OnStateChanged?.Invoke(_currentState);
         }
 
-        // ---- Internal Functions ---- 
         protected virtual bool IsInLos()
         {
             if (_blackboard.TryGetValue<bool>(hasSeenPlayerKey, out var seen) && seen)
@@ -218,9 +215,8 @@ namespace World
                 result = distance <= _enemyStats.AttackRange;
             _wasInRange = result;
             return result;
-        } // Change the method for GetIdealRange to make it more accurate and expose the result into the blackboard
+        }
 
-        ////------------ IDebuffReceiver Implementation ------------
         public void RegisterDebuff(IDebuffReadable debuff) => _debuffs = debuff;
         public void UnregisterDebuff() => _debuffs = null;
 
@@ -229,7 +225,6 @@ namespace World
         {
             if (_enemyStats == null) return;
 
-            //attack Range
             Color Color1 = Color.red;
             Color1.a = 0.5f;
             Gizmos.color = Color1;
