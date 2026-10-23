@@ -180,6 +180,15 @@ namespace UI
                 AudioListener.pause = true;
 
                 Helpers.Input.EnableUIInput();
+                
+                EventBus.Publish(new AudioFilterRequest
+                {
+                    TargetBus = MixerBus.Music,
+                    EnableFilter = true,
+                    TargetCutoffHz = 1200f,
+                    TargetVolume = 0.4f,
+                    TransitionSeconds = 0.25f
+                });
             }
 
             if (_menuOpenSound != null)
@@ -209,6 +218,13 @@ namespace UI
             AudioListener.pause = false;
             Time.timeScale = 1f;
             Helpers.Input.EnablePlayerInput();
+            
+            EventBus.Publish(new AudioFilterRequest
+            {
+                TargetBus = MixerBus.Music,
+                EnableFilter = false,
+                TransitionSeconds = 0.25f
+            });
 
             if (_menuCloseSound != null)
                 EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });

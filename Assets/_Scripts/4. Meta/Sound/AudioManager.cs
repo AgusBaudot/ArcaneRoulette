@@ -60,6 +60,10 @@ namespace Meta
         [Tooltip("Curve shape for the duck-release ramp back to full.")]
         [SerializeField] private AnimationCurve _duckReleaseCurve = AnimationCurve.EaseInOut(0,0,1,1);
         
+        // ── LowPass ────────────────────────────────────────────────────────────
+        [Header("Mixer Filter Parameters")]
+        [SerializeField] private string _musicLowPassParam = "MusicLowPass";
+        
         // ── Internal Pool State ────────────────────────────────────────────────
         private readonly Queue<AudioEmitter> _pool = new();
         private readonly List<AudioEmitter> _activeEmitters = new();
@@ -84,6 +88,9 @@ namespace Meta
         //Tracks the deepest active duck per bus so concurrent requests don't fight.
         private readonly Dictionary<MixerBus, float> _activeDuckDepths = new();
         private readonly Dictionary<MixerBus, Coroutine> _duckCoroutines = new();
+        
+        // ── Low Passing ────────────────────────────────────────────────────────
+        private readonly Dictionary<MixerBus, Coroutine> _filterCoroutines = new();
         
         // ── Save Load System ───────────────────────────────────────────────────
         private ISettingsSave _saveSystem;
@@ -125,6 +132,7 @@ namespace Meta
             EventBus.Subscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Subscribe<AudioModulateRequest>(OnModulateRequest);
             EventBus.Subscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
+            EventBus.Subscribe<AudioFilterRequest>(OnFilterRequest);
         }
 
         private void OnDisable()
@@ -136,6 +144,7 @@ namespace Meta
             EventBus.Unsubscribe<AudioDuckRequest>(OnDuckRequest);
             EventBus.Unsubscribe<AudioModulateRequest>(OnModulateRequest);
             EventBus.Unsubscribe<AudioVolumeChangedEvent>(OnVolumeChanged);
+            EventBus.Unsubscribe<AudioFilterRequest>(OnFilterRequest);
         }
 
         private void OnDestroy()
@@ -448,6 +457,64 @@ namespace Meta
 
         #endregion
 
+        #region Low Pass Filter
+
+        private void OnFilterRequest(AudioFilterRequest req)
+        {
+            if (req.TargetBus != MixerBus.Music)
+                return;
+
+            if (_filterCoroutines.TryGetValue(req.TargetBus, out var existing) && existing != null)
+            {
+                StopCoroutine(existing);
+            }
+
+            _filterCoroutines[req.TargetBus] = StartCoroutine(FilterRoutine(req));
+        }
+
+        private IEnumerator FilterRoutine(AudioFilterRequest req)
+        {
+            string filterParam = _musicLowPassParam;
+            string volParam = GetVolumeParam(req.TargetBus);
+            
+            if (!_masterMixer.GetFloat(filterParam, out float currentCutoff))
+                currentCutoff = 22000f;
+            float targetCutoff = req.EnableFilter ? req.TargetCutoffHz : 22000f;
+
+            float currentNormalizedVol = 1f;
+            if (_masterMixer.GetFloat(volParam, out float currentDb))
+            {
+                currentNormalizedVol = currentDb <= -80f ? 0f : Mathf.Pow(10f, currentDb / 20f);
+            }
+            
+            float targetNormalizedVol = req.EnableFilter 
+                ? req.TargetVolume 
+                : GetSavedVolumePreference(req.TargetBus);
+
+            float elapsed = 0f;
+
+            while (elapsed < req.TransitionSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / req.TransitionSeconds);
+                
+                float currentFreq = Mathf.Lerp(currentCutoff, targetCutoff, t);
+                _masterMixer.SetFloat(filterParam, currentFreq);
+                
+                float currentVol = Mathf.Lerp(currentNormalizedVol, targetNormalizedVol, t);
+                SetMixerVolume(volParam, currentVol);
+                
+                yield return null;
+            }
+
+            _masterMixer.SetFloat(filterParam, targetCutoff);
+            SetMixerVolume(volParam, targetNormalizedVol);
+            
+            _filterCoroutines.Remove(req.TargetBus);
+        }
+
+        #endregion
+
         #region Pool Management
 
         private void BuildPool()
@@ -539,6 +606,20 @@ namespace Meta
             
             float db = normalized > 0.0001f ? 20f * Mathf.Log10(normalized) : -80f;
             _masterMixer.SetFloat(paramName, db);
+        }
+        
+        private float GetSavedVolumePreference(MixerBus bus)
+        {
+            if (_currentSettings == null) return 1f;
+            return bus switch
+            {
+                MixerBus.Master => _currentSettings.MasterVolume,
+                MixerBus.Music => _currentSettings.MusicVolume,
+                MixerBus.SFX => _currentSettings.SFXVolume,
+                MixerBus.UI => _currentSettings.UIVolume,
+                MixerBus.Ambience => _currentSettings.AmbienceVolume,
+                _ => 1f
+            };
         }
 
         #endregion
