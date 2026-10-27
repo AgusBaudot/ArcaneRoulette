@@ -15,6 +15,11 @@ namespace World
         [SerializeField] private GameObject _explosionVFX;
         [SerializeField] private float _windupExplosion;
 
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _elementalMismatchSound;
+        [SerializeField] private AudioEventSO _windupSound;
+        [SerializeField] private AudioEventSO _explosionSound;
+
         private readonly int _explosionTriggerHash = Animator.StringToHash("t_Explosion");
         
         private bool _isActive = true;
@@ -26,7 +31,13 @@ namespace World
                 return false;
 
             if (incomingElement != _element) 
+            {
+                if (_elementalMismatchSound != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest { Event = _elementalMismatchSound, WorldPosition = transform.position });
+                }
                 return false;
+            }
 
             _triggered = true;
             StartCoroutine(Explode());
@@ -57,10 +68,20 @@ namespace World
             if (_windupVFX != null)
                 Instantiate(_windupVFX, transform.position, Quaternion.identity);
 
+            if (_windupSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _windupSound, WorldPosition = transform.position });
+            }
+
             yield return CoroutineUtils.GetWait(_windupExplosion);
             
             if (_explosionVFX != null)
                 Instantiate(_explosionVFX, transform.position, Quaternion.identity);
+
+            if (_explosionSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _explosionSound, WorldPosition = transform.position });
+            }
                 
             var hits = Physics.OverlapSphere(new Vector3(transform.position.x, 0, transform.position.z), _explosionRadius);
             var processed = new HashSet<IDamageable>();
