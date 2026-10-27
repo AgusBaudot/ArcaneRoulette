@@ -400,10 +400,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c142c96544204eaba6565a4a8a4c90c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _windupClipLength: 0.5
-  _coverClipLength: 0.3
-  _uncoverClipLength: 0.3
-  _teleportClipLength: 0.6
+  _windupClipLengths:
+  - 0.733
+  - 0.5
+  - 0.5
+  - 0.733
+  _fireClipLengths:
+  - 0.5
+  - 0.5
+  - 0.5
+  - 0.5
+  _coverClipLength: 0.583
+  _uncoverClipLength: 0.467
+  _tpInClipLength: 0.4
+  _tpOutClipLength: 0.55
+  _recoverClipLength: 0.4
   _renderer: {fileID: 632965395475527778}
 --- !u!1 &1475441748603410581
 GameObject:
