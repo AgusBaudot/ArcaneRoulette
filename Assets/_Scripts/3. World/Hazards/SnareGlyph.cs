@@ -1,16 +1,22 @@
 using System.Collections;
-using UnityEngine;
 using Core;
 using Foundation;
+using UnityEngine;
 
 namespace World
 {
     public sealed class SnareGlyph : MonoBehaviour , IHazard
     {
+        [Header("Stats")]
         [SerializeField] private float _snareDuration = 3f;
         [SerializeField] private float _pullDelay = 0.5f;
         [SerializeField] private float _pullSpeed = 4f;
         [SerializeField] private GameObject _activateObject;
+
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _activateSound;
+        [SerializeField] private AudioEventSO _deactivateSound;
+        [SerializeField] private AudioEventSO _shieldInterceptSound;
 
         private readonly int _disappearHash = Animator.StringToHash("t_Disappear");
         
@@ -44,6 +50,11 @@ namespace World
             // Shielding — glyph triggers, shield is destroyed, player is not snared.
             if (player.IsShielding)
             {
+                if (_shieldInterceptSound != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest { Event = _shieldInterceptSound, WorldPosition = transform.position });
+                }
+                
                 player.ForceDestroyActiveShield();
                 gameObject.SetActive(false);
                 return;
@@ -55,6 +66,10 @@ namespace World
         private IEnumerator SnareRoutine(PlayerController player)
         {
             _activateObject.SetActive(true);
+            if (_activateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _activateSound, WorldPosition = transform.position });
+            }
             
             player.SetCanMove(false);
             player.SetVelocity(Vector3.zero);
@@ -96,6 +111,10 @@ namespace World
             }
             
             _anim.SetTrigger(_disappearHash);
+            if (_deactivateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _deactivateSound, WorldPosition = transform.position });
+            }
 
             if (player != null)
             {
@@ -115,6 +134,12 @@ namespace World
             _isActive = false;
             _activateObject.SetActive(true);
             _anim.SetTrigger(_disappearHash);
+            
+            if (_deactivateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _deactivateSound, WorldPosition = transform.position });
+            }
+            
             Destroy(gameObject, 0.7f);
         }
     }
