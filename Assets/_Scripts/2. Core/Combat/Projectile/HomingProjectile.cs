@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Foundation;
 using UnityEngine;
 
@@ -14,23 +13,12 @@ namespace Core
         [SerializeField] private float _seekRadius = 20f;
         [SerializeField] private float _turnSpeed = 6f; //Degrees interpolation per second.
 
-        [Header("Visuals")]
-        [Tooltip("Map each element to its corresponding child GameObject inside the VisualPivot.")]
-        [SerializeField]
-        private ElementalGameObject[] _elementVisuals;
-
         private int _damage;
         private ElementType _element;
         private float _speed;
         private Transform _currentTarget;
-        
-        private SphereCollider _collider;
         private float _baseColliderRadius;
         
-        private readonly Dictionary<TrailRenderer, float> _baseTrailWidths = new();
-        private readonly Dictionary<GameObject, Vector3> _baseVisualScales = new();
-        private readonly Dictionary<ParticleSystem, Vector3> _baseParticleSizes = new();
-
         //Layer mask cached once - avoids string lookup every FixedUpdate
         private static int _enemyLayerMask = -1;
 
@@ -38,33 +26,7 @@ namespace Core
         {
             base.Awake();
             
-            _collider = GetComponent<SphereCollider>();
-            if (_collider != null)
-                _baseColliderRadius = _collider.radius;
-
-            if (_elementVisuals == null) return;
-
-            foreach (var ev in _elementVisuals)
-            {
-                if (ev.Reference == null) continue;
-
-                _baseVisualScales[ev.Reference] = ev.Reference.transform.localScale;
-
-                foreach (var ps in ev.Reference.GetComponentsInChildren<ParticleSystem>(true))
-                {
-                    var main = ps.main;
-                    _baseParticleSizes[ps] = new Vector3(
-                        main.startSizeXMultiplier,
-                        main.startSizeYMultiplier,
-                        main.startSizeZMultiplier
-                    );
-                }
-
-                foreach (var trail in ev.Reference.GetComponentsInChildren<TrailRenderer>(true))
-                {
-                    _baseTrailWidths[trail] = trail.widthMultiplier;
-                }
-            }
+            _baseColliderRadius = GetComponent<SphereCollider>().radius;
         }
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
@@ -76,92 +38,30 @@ namespace Core
             _element = element;
             _speed = speed;
             
+            //Only perform the string lookup once per game execution
             if (_enemyLayerMask == -1)
                 _enemyLayerMask = LayerMask.GetMask("Enemy");
 
-            UpdateActiveVisual(_element);
-
             SetVelocity(initialDirection, speed);
             PlayParticles();
-        }
-        
-        private void UpdateActiveVisual(ElementType currentElement)
-        {
-            if (_elementVisuals == null) return;
-
-            foreach (var ev in _elementVisuals)
-            {
-                if (ev.Reference != null)
-                {
-                    ev.Reference.SetActive(ev.Element == currentElement);
-                }
-            }
-        }
-
-        public void ApplyVisualScale(float sizeMultiplier)
-        {
-            if (_collider != null)
-            {
-                _collider.radius = _baseColliderRadius * sizeMultiplier;
-            }
-
-            if (_elementVisuals == null) return;
-
-            foreach (var ev in _elementVisuals)
-            {
-                if (ev.Reference == null) continue;
-
-                if (_baseVisualScales.TryGetValue(ev.Reference, out Vector3 baseScale))
-                {
-                    ev.Reference.transform.localScale = baseScale * sizeMultiplier;
-                }
-
-                foreach (var ps in ev.Reference.GetComponentsInChildren<ParticleSystem>(true))
-                {
-                    var main = ps.main;
-
-                    bool isAlreadyScaling = main.scalingMode == ParticleSystemScalingMode.Hierarchy ||
-                                            (main.scalingMode == ParticleSystemScalingMode.Local &&
-                                             ps.gameObject == ev.Reference);
-
-                    if (isAlreadyScaling) continue;
-
-                    if (_baseParticleSizes.TryGetValue(ps, out Vector3 baseSize3D))
-                    {
-                        if (main.startSize3D)
-                        {
-                            main.startSizeXMultiplier = baseSize3D.x * sizeMultiplier;
-                            main.startSizeYMultiplier = baseSize3D.y * sizeMultiplier;
-                            main.startSizeZMultiplier = baseSize3D.z * sizeMultiplier;
-                        }
-                        else
-                        {
-                            main.startSizeMultiplier = baseSize3D.x * sizeMultiplier;
-                        }
-                    }
-                }
-
-                foreach (var trail in ev.Reference.GetComponentsInChildren<TrailRenderer>(true))
-                {
-                    if (_baseTrailWidths.TryGetValue(trail, out float baseWidth))
-                    {
-                        trail.widthMultiplier = baseWidth * sizeMultiplier;
-                    }
-                }
-            }
         }
 
         public void FixedTick(float deltaTime)
         {
             AcquireOrRevalidateTarget();
 
-            if (_currentTarget == null) return;
+            if (_currentTarget == null)
+            {
+                //No enemies in range - fly straight.
+                return;
+            }
             
             SteerToward(_currentTarget.position);
         }
 
         private void AcquireOrRevalidateTarget()
         {
+            // If current target is still valid, keep it — no unnecessary OverlapSphere
             if (_currentTarget != null &&
                 _currentTarget.gameObject.activeInHierarchy &&
                 _currentTarget.GetComponent<IDamageable>() != null)
@@ -180,6 +80,7 @@ namespace Core
 
             foreach (var hit in hits)
             {
+                // Only target valid IDamageable GameObjects
                 if (hit.GetComponentInParent<IDamageable>() == null)
                     continue;
 
@@ -201,6 +102,7 @@ namespace Core
             if (desiredDir == Vector3.zero) return;
             desiredDir.Normalize();
 
+            // Gradual steering — slerp current velocity direction toward desired
             Vector3 steered = Vector3.Slerp(
                 Rb.velocity.normalized,
                 desiredDir,
@@ -219,6 +121,7 @@ namespace Core
                              ?? other.GetComponent<IDamageable>();
             if (damageable == null) return;
 
+            // No OnHit runes, no pierce, no bounce — just damage and destroy.
             var batch = new DamageBatch();
             batch.Deal(damageable, other.gameObject, _damage, _element);
             batch.Commit(Helpers.Combat.SmallDMG);
@@ -228,6 +131,7 @@ namespace Core
 
         protected override void OnHitWall(Collider other)
         {
+            // Homing projectiles don't bounce — destroy on wall contact.
             Helpers.ProjFactory.Despawn(gameObject);
         }
 
@@ -237,8 +141,12 @@ namespace Core
 
             _currentTarget = null;
             
-            // Clean pool reset — wipe any active scaling before reuse
-            ApplyVisualScale(1f);
+            if (transform.childCount > 0)
+                transform.GetChild(0).localScale = Vector3.one;
+
+            var col = GetComponent<SphereCollider>();
+            if (col != null)
+                col.radius = _baseColliderRadius;
         }
     }
 }

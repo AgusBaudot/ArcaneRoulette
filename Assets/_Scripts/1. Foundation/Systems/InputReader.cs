@@ -34,8 +34,6 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     public event Action OnCloseMenu;
     public event Action OnCarouselLeft;
     public event Action OnCarouselRight;
-    public event Action OnFilterPrevious;
-    public event Action OnFilterNext;
     public event Action OnToggleTooltip;
     
     #endregion
@@ -159,18 +157,6 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     {
         if (context.phase == InputActionPhase.Performed)
             OnCarouselRight?.Invoke();
-    }
-
-    void PlayerInputActions.IUIActions.OnFilterPrevious(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
-            OnFilterPrevious?.Invoke();
-    }
-
-    void PlayerInputActions.IUIActions.OnFilterNext(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
-            OnFilterNext?.Invoke();
     }
 
     void PlayerInputActions.IUIActions.OnToggleTooltip(InputAction.CallbackContext context)

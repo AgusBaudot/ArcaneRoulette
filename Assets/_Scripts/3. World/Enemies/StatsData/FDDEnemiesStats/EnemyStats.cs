@@ -9,6 +9,8 @@ namespace World
         [Header("Health")]
         [Tooltip("Max Health.")]
         public float MaxHp;
+        [Tooltip("Enemy Element Type.")]
+        public ElementType ElementType;
 
         [Header("Sense")]
         [Tooltip("How far can the enemy see.")]

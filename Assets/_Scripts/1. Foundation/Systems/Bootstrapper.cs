@@ -3,7 +3,7 @@ using Foundation;
 using Meta;
 using UnityEngine;
 
-[DefaultExecutionOrder(-1000)]
+[DefaultExecutionOrder(-100)]
 public class Bootstrapper : MonoBehaviour
 {
     private void Awake()
@@ -20,12 +20,12 @@ public class Bootstrapper : MonoBehaviour
         InitializeAudioManager();
     }
 
-    private static void InitializeGameManager()
+    private void InitializeGameManager()
     {
-        GameStateManager.ResolveStartingHp = () => Helpers.PlayerStats.BaseHp;
-        
-        var managerGo = new GameObject("GameStateManager");
-        managerGo.AddComponent<GameStateManager>();
+        if (FindObjectOfType<GameStateManager>() != null)
+            return;
+
+        gameObject.AddComponent<GameStateManager>();
     }
 
     private void InitializeUpdateManager()
@@ -61,6 +61,7 @@ public class Bootstrapper : MonoBehaviour
 
         gameObject.AddComponent<AttunementSystem>();
         gameObject.AddComponent<SpellCrafter>();
+        Debug.LogError($"{nameof(gameObject)}: Spell crafter not found! Rune seeder is probably also missing.");
     }
 
     private void InitializeAudioManager()
@@ -68,7 +69,7 @@ public class Bootstrapper : MonoBehaviour
         if (AudioManager.Instance != null)
             return;
 
-        var audioPrefab = Resources.Load<GameObject>(nameof(AudioManager));
+        var audioPrefab = Resources.Load<GameObject>("AudioManager");
         if (audioPrefab != null)
         {
             Instantiate(audioPrefab).name = "AudioManager";

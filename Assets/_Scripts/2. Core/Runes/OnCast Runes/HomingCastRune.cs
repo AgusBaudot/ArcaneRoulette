@@ -17,6 +17,10 @@ namespace Core
         private float _spawnOffset = 0.5f;
 
         // ── Subscribe ────────────────────────────────────────────────────────
+        // Only sets args.HomingCount. Ability runes read the count and call
+        // SpawnHomingProjectiles themselves — they need this SO instance for
+        // the prefab reference and designer fields, which they reach by
+        // iterating Recipe.CastRunes() and breaking on the first HomingCastRune.
         public override void Subscribe(AbilityRuneSO ability, ISpellEventSource source, int stackCount,
             List<Action> cleanup)
         {
@@ -47,6 +51,17 @@ namespace Core
         }
 
         // ── SpawnHomingProjectiles ───────────────────────────────────────────
+        /// <summary>
+        /// Called by all three ability runes after their activation.
+        /// Damage is 30% if base damage - consistent across abilities.
+        /// </summary>
+        /// <param name="count"></param>
+        /// <param name="spawnPosition"></param>
+        /// <param name="initialDirection"></param>
+        /// <param name="speed"></param>
+        /// <param name="baseDamage"></param>
+        /// <param name="element"></param>
+        /// <param name="runner"></param>
         public void SpawnHomingProjectiles(
             int count,
             Vector3 spawnPosition,
@@ -61,23 +76,31 @@ namespace Core
             }
 
             var stats = runner.GetComponent<IStatResolver>();
+
             int damage = Mathf.Max(1, Mathf.RoundToInt(stats.AttackDamage * _damageMultiplier));
 
             Vector3[] offsets = GetFormationOffsets(count, _spawnOffset);
+            
+            float baseRadius = 0.5f; 
+            if (_homingPrefab.TryGetComponent<SphereCollider>(out var prefabCol))
+                baseRadius = prefabCol.radius;
             
             for (int i = 0; i < count; i++)
             {
                 var go = Helpers.ProjFactory.Spawn(_homingPrefab, spawnPosition + offsets[i], Quaternion.LookRotation(initialDirection));
                 go.gameObject.layer = LayerMask.NameToLayer("PlayerProjectile");
 
-                // Init must run first to assign and activate the correct elemental visual
-                go.Init(initialDirection, _homingSpeed, damage, element);
-
-                // Safely apply scaling using the projectile's internal cached references
+                // Scale sprite child, not root — same pattern as ProjectileAbilityRune
                 if (_sizeMultiplier != 1f)
                 {
-                    go.ApplyVisualScale(_sizeMultiplier);
+                    go.transform.GetChild(0).localScale = Vector3.one * _sizeMultiplier;
+
+                    var col = go.GetComponent<SphereCollider>();
+                    if (col != null)
+                        col.radius = baseRadius * (_sizeMultiplier / 2f);
                 }
+
+                go.Init(initialDirection, _homingSpeed, damage, element);
             }
         }
 

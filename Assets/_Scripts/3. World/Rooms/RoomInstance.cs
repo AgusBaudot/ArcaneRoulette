@@ -70,7 +70,7 @@ namespace World
             {
                 case RoomType.Combat:
                     SetDoorsLocked(false);
-                    EventBus.Publish(new RoomClearEvent(Index, transform.position));
+                    EventBus.Publish(new RoomClearEvent(Index));
                     break;
                 case RoomType.Boss:
                     EventBus.Publish(new EndFloorClearEvent(Index));

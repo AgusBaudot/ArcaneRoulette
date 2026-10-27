@@ -1,16 +1,12 @@
-using UnityEngine;
-
-namespace Foundation 
+namespace World 
 {
     public struct RoomClearEvent
     {
         public int Index;
-        public Vector3 Position;
-        
-        public RoomClearEvent(int index, Vector3 position)
+        // public bool IsBossRoom;
+        public RoomClearEvent(int index)
         {
             Index = index;
-            Position = position;
         }
     }
 }

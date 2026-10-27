@@ -18,7 +18,7 @@ public static class Helpers
         {
             if (_combatSettings == null)
             {
-                _combatSettings = Resources.Load<CombatSettings>(nameof(CombatSettings));
+                _combatSettings = Resources.Load<CombatSettings>("CombatSettings");
                 
                 if (_combatSettings == null)
                     Debug.LogError("CRITICAL: Could not find CombatSettings in Resources folder!");
@@ -34,7 +34,7 @@ public static class Helpers
         {
             if (_input == null)
             {
-                _input = Resources.Load<InputReader>(nameof(InputReader));
+                _input = Resources.Load<InputReader>("InputReader");
                 
                 if (_input == null)
                     Debug.LogError("CRITICAL: Could not find InputReader in Resources folder!");
@@ -50,9 +50,9 @@ public static class Helpers
         {
             if (_playerStats == null)
             {
-                _playerStats = Resources.Load<PlayerStats>(nameof(PlayerStats));
+                _playerStats = Resources.Load<PlayerStats>("PlayerStats");
                 
-                if (_playerStats == null)
+                if (_input == null)
                     Debug.LogError("CRITICAL: Could not find PlayerStats in Resources folder!");
             }
             
@@ -82,7 +82,7 @@ public static class Helpers
         {
             if (_playerAudioProfile == null)
             {
-                _playerAudioProfile = Resources.Load<PlayerAudioProfileSO>(nameof(PlayerAudioProfileSO));
+                _playerAudioProfile = Resources.Load<PlayerAudioProfileSO>("PlayerProfile");
                 
                 if (_playerAudioProfile == null)
                     Debug.LogError($"CRITICAL: Could not find Player Audio Profile in Resources folder!");
@@ -98,7 +98,7 @@ public static class Helpers
         {
             if (_uiAudioProfile == null)
             {
-                _uiAudioProfile = Resources.Load<UIAudioProfileSO>(nameof(UIAudioProfileSO));
+                _uiAudioProfile = Resources.Load<UIAudioProfileSO>("UIProfile");
                 
                 if (_uiAudioProfile == null)
                     Debug.LogError("CRITICAL: Could not find UI Audio Profile in Resources folder!");

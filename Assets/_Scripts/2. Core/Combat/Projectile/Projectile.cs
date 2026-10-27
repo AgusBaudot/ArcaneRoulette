@@ -211,16 +211,6 @@ namespace Core
 
             batch.Commit(juice);
 
-            if (damageableGo.TryGetComponent<DamageFlash>(out var flash))
-            {
-                flash.Flash(Helpers.Combat.BlinkTime);
-            }
-
-            if (damageableGo.TryGetComponent<IKnockbackable>(out var knockbackable))
-            {
-                knockbackable.ApplyKnockback(Rb.velocity.normalized, Helpers.Combat.EnemyKnockback);
-            }
-
             _source?.TriggerOnHit(
                 transform.position,
                 damageableGo,
@@ -247,7 +237,7 @@ namespace Core
             {
                 return;
             }
-
+            
             _source?.TriggerOnHit(
                 transform.position,
                 other.gameObject,

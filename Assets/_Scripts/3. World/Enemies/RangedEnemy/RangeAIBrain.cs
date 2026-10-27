@@ -68,7 +68,7 @@ namespace World
             var blockSeq = new SequenceNode("Block", priority: 20);
             blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
-            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout, RangeStats.BlockPercentage)));
+            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout)));
             blockSeq.AddChild(new LeafNode("Uncover", new TimedActionStrategy(BeginUncover, () => RangeStats.BlockUncoverDuration)));
             blockSeq.AddChild(new LeafNode("EndUncover", new ActionNode(EndUncover)));
             root.AddChild(blockSeq);
@@ -115,11 +115,6 @@ namespace World
             SetState(AIState.Blocking);
             _agent.isStopped = true;
             _animator.SetTrigger("Cover");
-
-            if (RangeStats.BlockStartSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockStartSound, WorldPosition = transform.position});
-            }
         }
 
         public void SetDamageMitigation(float multiplier)
@@ -132,11 +127,6 @@ namespace World
             _isUncovering = true;
             SetDamageMitigation(1.0f); 
             _animator.SetTrigger("Uncover");
-
-            if (RangeStats.BlockEndSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockEndSound, WorldPosition = transform.position});
-            }
         }
 
         private void EndUncover()
@@ -151,11 +141,6 @@ namespace World
             SetState(AIState.Teleporting);
             _agent.isStopped = true;
             _animator.SetTrigger("TeleportStart");
-
-            if (RangeStats.TeleportSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.TeleportSound, WorldPosition = transform.position});
-            }
         }
 
         private void ExecuteTeleport()
@@ -242,7 +227,7 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var projObj = Helpers.ProjFactory.Spawn<DetonatingEnemyProjectile>(RangeStats.BigProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, gameObject, RangeStats.BigProjectileDrainRate, RangeStats.BigProjectileLifespan);
+            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, RangeStats.ElementType, gameObject, RangeStats.BigProjectileDrainRate);
             
             if (RangeStats.BigProjectileSound != null)
             {
@@ -259,7 +244,7 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(RangeStats.NormalProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, gameObject);
+            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, RangeStats.ElementType, gameObject);
             
             if (RangeStats.NormalProjectileSound != null)
             {
@@ -297,13 +282,11 @@ namespace World
         private readonly Func<float> _getTimeout;
         private float _lastProjectileTime;
         private bool _started;
-        private float _blockPercentage;
 
-        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout, float blockPercentage)
+        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout)
         {
             _brain = brain;
             _getTimeout = getTimeout;
-            _blockPercentage = blockPercentage;
         }
 
         public Node.NodeState Process()
@@ -312,7 +295,7 @@ namespace World
             {
                 _started = true;
                 _lastProjectileTime = Time.time;
-                _brain.SetDamageMitigation(_blockPercentage);
+                _brain.SetDamageMitigation(0.5f); 
             }
 
             if (_brain.AreProjectilesInSafeRange())
