@@ -186,7 +186,7 @@ namespace UI
                     TargetBus = MixerBus.Music,
                     EnableFilter = true,
                     TargetCutoffHz = 1200f,
-                    TargetVolume = 0.4f,
+                    VolumeMultiplier = 0.4f,
                     TransitionSeconds = 0.25f
                 });
             }
@@ -223,6 +223,7 @@ namespace UI
             {
                 TargetBus = MixerBus.Music,
                 EnableFilter = false,
+                VolumeMultiplier = 1f,
                 TransitionSeconds = 0.25f
             });
 

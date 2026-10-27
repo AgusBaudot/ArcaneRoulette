@@ -478,7 +478,10 @@ namespace Meta
             string volParam = GetVolumeParam(req.TargetBus);
             
             if (!_masterMixer.GetFloat(filterParam, out float currentCutoff))
+            {
                 currentCutoff = 22000f;
+            }
+            
             float targetCutoff = req.EnableFilter ? req.TargetCutoffHz : 22000f;
 
             float currentNormalizedVol = 1f;
@@ -487,9 +490,11 @@ namespace Meta
                 currentNormalizedVol = currentDb <= -80f ? 0f : Mathf.Pow(10f, currentDb / 20f);
             }
             
+            float basePreference = GetSavedVolumePreference(req.TargetBus);
+            
             float targetNormalizedVol = req.EnableFilter 
-                ? req.TargetVolume 
-                : GetSavedVolumePreference(req.TargetBus);
+                ? basePreference * req.VolumeMultiplier 
+                : basePreference;
 
             float elapsed = 0f;
 

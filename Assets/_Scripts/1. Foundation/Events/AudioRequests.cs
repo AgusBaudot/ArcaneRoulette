@@ -146,12 +146,12 @@ namespace Foundation
         /// 1500Hz is a good muffled baseline. 22000 Hz is fully open.
         /// </summary>
         public float TargetCutoffHz;
-
+        
         /// <summary>
-        /// Normalized volume to drop to when the filter is enabled.
-        /// When EnableFilter is false, it returns to the user's preference volume.
+        /// Multiplier applied to the user's saved volume preference when the filter is active.
+        /// e.g. 0.4f drops the bus to 40% of its normal volume.
         /// </summary>
-        public float TargetVolume;
+        public float VolumeMultiplier;
 
         /// <summary>
         /// Transition time in seconds (uses unscaled time).
