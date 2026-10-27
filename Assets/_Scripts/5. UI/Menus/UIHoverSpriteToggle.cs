@@ -11,8 +11,8 @@ namespace UI
         ISelectHandler, IDeselectHandler
     {
         [Header("Visuals")]
-        [Tooltip("The CanvasGroup on the sprite object to fade when hovered or selected.")]
-        [SerializeField] private CanvasGroup _selectedSpriteGroup;
+        [Tooltip("The sprite object to enable when hovered or selected.")]
+        [SerializeField] private GameObject _selectedSprite;
         
         [Tooltip("The child RectTransform containing the text and sprite to move horizontally.")]
         [SerializeField] private RectTransform _visualRoot;
@@ -30,17 +30,11 @@ namespace UI
         private Tween _sizeTween;
         private Tween _moveTween;
         private Tween _visualScaleTween;
-        private Tween _alphaTween;
 
         private void Awake()
         {
             _layoutElement = GetComponent<LayoutElement>();
-            
-            if (_selectedSpriteGroup != null)
-            {
-                _selectedSpriteGroup.alpha = 0f;
-                _selectedSpriteGroup.gameObject.SetActive(false);
-            }
+            SetSpriteActive(false);
 
             _baseSize = new Vector2(_layoutElement.preferredWidth, _layoutElement.preferredHeight);
             
@@ -56,7 +50,6 @@ namespace UI
             _sizeTween?.Kill();
             _moveTween?.Kill();
             _visualScaleTween?.Kill();
-            _alphaTween?.Kill();
             
             _layoutElement.preferredWidth = _baseSize.x;
             _layoutElement.preferredHeight = _baseSize.y;
@@ -67,11 +60,7 @@ namespace UI
                 _visualRoot.localScale = _baseVisualScale;
             }
             
-            if (_selectedSpriteGroup != null)
-            {
-                _selectedSpriteGroup.alpha = 0f;
-                _selectedSpriteGroup.gameObject.SetActive(false);
-            }
+            SetSpriteActive(false);
         }
 
         public void OnPointerEnter(PointerEventData eventData) => Focus();
@@ -81,36 +70,14 @@ namespace UI
 
         private void Focus()
         {
-            AnimateSpriteAlpha(1f);
+            SetSpriteActive(true);
             AnimateTo(_baseSize * _hoverSizeMultiplier, _baseVisualPos + new Vector2(_hoverMoveX, 0f), _baseVisualScale * _hoverSizeMultiplier);
         }
 
         private void Unfocus()
         {
-            AnimateSpriteAlpha(0f);
+            SetSpriteActive(false);
             AnimateTo(_baseSize, _baseVisualPos, _baseVisualScale);
-        }
-
-        private void AnimateSpriteAlpha(float targetAlpha)
-        {
-            if (_selectedSpriteGroup == null) return;
-
-            _alphaTween?.Kill();
-
-            if (targetAlpha > 0f && !_selectedSpriteGroup.gameObject.activeSelf)
-            {
-                _selectedSpriteGroup.gameObject.SetActive(true);
-            }
-
-            _alphaTween = _selectedSpriteGroup.DOFade(targetAlpha, _tweenDuration)
-                .SetEase(Ease.OutQuad)
-                .OnComplete(() => 
-                {
-                    if (targetAlpha == 0f)
-                    {
-                        _selectedSpriteGroup.gameObject.SetActive(false);
-                    }
-                });
         }
 
         private void AnimateTo(Vector2 targetSize, Vector2 targetVisualPos, Vector3 targetVisualScale)
@@ -134,6 +101,14 @@ namespace UI
             {
                 _moveTween = _visualRoot.DOAnchorPos(targetVisualPos, _tweenDuration).SetEase(Ease.OutQuad);
                 _visualScaleTween = _visualRoot.DOScale(targetVisualScale, _tweenDuration).SetEase(Ease.OutQuad);
+            }
+        }
+
+        private void SetSpriteActive(bool isActive)
+        {
+            if (_selectedSprite != null && _selectedSprite.activeSelf != isActive)
+            {
+                _selectedSprite.SetActive(isActive);
             }
         }
     }

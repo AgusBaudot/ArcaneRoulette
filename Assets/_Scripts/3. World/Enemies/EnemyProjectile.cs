@@ -13,13 +13,15 @@ namespace World
         public GameObject Owner => _owner;
         
         [SerializeField] private int         _damage  = 5;
+        [SerializeField] private ElementType _element = ElementType.Neutral;
 
-        private ElementType _element = ElementType.Neutral;
         private GameObject _owner; //Set by EnemyAI at spawn, null for now
         
-        public void Init(Vector3 direction, float speed, int damage, GameObject owner = null)
+        // Called by whatever spawns this — EnemyAI, a turret, a boss pattern
+        public void Init(Vector3 direction, float speed, int damage, ElementType element, GameObject owner = null)
         {
             _damage  = damage;
+            _element = element;
             BounceCount = 0;
             _owner = owner;
             SetVelocity(direction, speed);

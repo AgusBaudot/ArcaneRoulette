@@ -25,6 +25,8 @@ namespace Core
         public void Initialize(PlayerStats stats)
         {
             _stats = stats;
+            GameStateManager.RunState.SetMaxHp(_stats.BaseHp);
+            GameStateManager.RunState.SetHp(_stats.BaseHp);
         }
 
         private void OnEnable()

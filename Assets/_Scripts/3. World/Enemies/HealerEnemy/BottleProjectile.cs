@@ -11,7 +11,7 @@ namespace World
         public override ElementType SpellElement => Element;
 
         public int Damage { get; private set; }
-        public ElementType Element => ElementType.Neutral;
+        public ElementType Element { get; private set; }
         public GameObject Owner { get; private set; }
 
         [SerializeField] private BottleHazardArea _hazardPrefab;
@@ -38,12 +38,13 @@ namespace World
             _initialRotation = _visualTransform.localRotation;
         }
 
-        public void InitEnemyBottle(BottleProjectile prefab, Vector3 dir, float speed, int damage, GameObject owner, Vector3 targetPos)
+        public void InitEnemyBottle(BottleProjectile prefab, Vector3 dir, float speed, int damage, ElementType element, GameObject owner, Vector3 targetPos)
         {
             _bottlePrefab = prefab;
             
             _isEnemy = true;
             Damage = damage;
+            Element = element;
             Owner = owner;
             
             _startPos = transform.position;

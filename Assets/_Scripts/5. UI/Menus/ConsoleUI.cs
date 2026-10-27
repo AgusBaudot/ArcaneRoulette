@@ -2,7 +2,6 @@ using System.Collections;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace UI
 {
@@ -18,7 +17,7 @@ namespace UI
         {
             base.Awake();
             _logHistory.AppendLine("<color=#00FFFF>=== Developer Console ===</color>");
-            _logHistory.AppendLine("<color=#3C3C3C>Type 'help' for a list of available commands.</color>");
+            _logHistory.AppendLine("<color=#3C3C3C>Type 'help' for alist of available commands.</color>");
 
             if (_logText != null)
             {
@@ -38,22 +37,6 @@ namespace UI
         {
             base.Hide();
             _inputField.onSubmit.RemoveListener(OnSubmitCommand);
-        }
-
-        private void Update()
-        {
-            if (_inputField != null && _inputField.isFocused)
-            {
-                if (Keyboard.current != null && Keyboard.current.upArrowKey.wasPressedThisFrame)
-                {
-                    if (Cheats.Instance != null && !string.IsNullOrEmpty(Cheats.Instance.LastCommand))
-                    {
-                        _inputField.text = Cheats.Instance.LastCommand;
-                        
-                        _inputField.caretPosition = _inputField.text.Length;
-                    }
-                }
-            }
         }
 
         private void OnSubmitCommand(string input)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using World;
 
 namespace Foundation
 {
@@ -13,7 +14,6 @@ namespace Foundation
 
         public static VolatileRunState RunState { get; private set; }
         public static event Action<VolatileRunState> OnRunStateInitialized;
-        public static Func<float> ResolveStartingHp;
 
         private static GameStateManager _instance;
 
@@ -70,9 +70,7 @@ namespace Foundation
         private void StartNewRun()
         {
             RunState?.Reset();
-
-            float startingHp = ResolveStartingHp();
-            RunState = new VolatileRunState(startingHp);
+            RunState = new VolatileRunState(100f);
 
             if (_startingRunes != null)
             {
