@@ -41,6 +41,11 @@ namespace World
 
         public bool TakeDamage(int amount, ElementType elementType)
         {
+            if (DamageMitigationMultiplier < 1.0f)
+            {
+                GetComponent<RangeAIBrain>()?.OnBlockHit();
+            }
+
             float finalDamage = amount * DamageMitigationMultiplier;
             _currentHp = Mathf.Max(0f, _currentHp - finalDamage);
             UpdateUI();

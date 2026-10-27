@@ -46,8 +46,10 @@ namespace World
         [Header("Audio")]
         public AudioEventSO BigProjectileSound;
         public AudioEventSO NormalProjectileSound;
-        public AudioEventSO TeleportSound;
+        public AudioEventSO TeleportDisappearSound;
+        public AudioEventSO TeleportAppearSound;
         public AudioEventSO BlockStartSound;
         public AudioEventSO BlockEndSound;
+        public AudioEventSO BlockHitSound;
     }
 }

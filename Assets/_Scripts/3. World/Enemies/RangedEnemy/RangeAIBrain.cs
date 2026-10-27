@@ -134,13 +134,25 @@ namespace World
 
             if (RangeStats.BlockStartSound != null)
             {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockStartSound, WorldPosition = transform.position});
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockStartSound, WorldPosition = transform.position });
             }
         }
 
         public void SetDamageMitigation(float multiplier)
         {
             if (_health != null) _health.DamageMitigationMultiplier = multiplier;
+        }
+
+        /// <summary>
+        /// Call this externally (EnemyHealth.TakeDamage) when a projectile 
+        /// physically strikes this enemy while the damage mitigation multiplier is active.
+        /// </summary>
+        public void OnBlockHit()
+        {
+            if (_isBlocking && RangeStats.BlockHitSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockHitSound, WorldPosition = transform.position });
+            }
         }
 
         private void BeginUncover()
@@ -152,7 +164,7 @@ namespace World
 
             if (RangeStats.BlockEndSound != null)
             {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.BlockEndSound, WorldPosition = transform.position});
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockEndSound, WorldPosition = transform.position });
             }
         }
 
@@ -169,11 +181,6 @@ namespace World
             _agent.isStopped = true;
 
             OnTeleportStarted?.Invoke(RangeStats.TeleportAnimDuration);
-
-            if (RangeStats.TeleportSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest {Event = RangeStats.TeleportSound, WorldPosition = transform.position});
-            }
         }
 
         private void ExecuteTeleport()
@@ -186,6 +193,7 @@ namespace World
 
             Transform player = GetPlayer();
             Vector3 playerPos = player != null ? player.position : transform.position;
+            Vector3 oldPos = transform.position;
 
             Array.Sort(zones, (a, b) => 
                 Vector3.Distance(b.transform.position, playerPos).CompareTo(Vector3.Distance(a.transform.position, playerPos)));
@@ -210,12 +218,23 @@ namespace World
 
                 if (!Physics.CheckBox(zone.transform.position, zone.Collider.size / 2f, zone.transform.rotation, LayerMask.GetMask("Enemy")))
                 {
-                    _agent.Warp(zone.transform.position);
+                    WarpAndPlaySounds(oldPos, zone.transform.position);
                     return;
                 }
             }
     
-            _agent.Warp(zones[0].transform.position);
+            WarpAndPlaySounds(oldPos, zones[0].transform.position);
+        }
+
+        private void WarpAndPlaySounds(Vector3 oldPos, Vector3 newPos)
+        {
+            if (RangeStats.TeleportDisappearSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportDisappearSound, WorldPosition = oldPos });
+                
+            _agent.Warp(newPos);
+            
+            if (RangeStats.TeleportAppearSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportAppearSound, WorldPosition = newPos });
         }
 
         private void BeginWindup1()
