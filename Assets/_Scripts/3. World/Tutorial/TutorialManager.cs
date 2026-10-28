@@ -256,23 +256,32 @@ namespace World
 
         private void OnCraftingOpened(SpellCraftingOpenedEvent _)
         {
-            if (_currentStep == 3) 
+            if (_currentStep == 3 || _currentStep == 4 || _currentStep == 5) 
             {
                 if (HasProjectileEquipped()) SetStep(5, "Close the Spell Crafting Interface to return to the game.");
                 else SetStep(4, "Click the Projectile Rune in your inventory to equip it.");
             }
-            else if (_currentStep == 13)
+            else if (_currentStep == 8 || _currentStep == 9)
             {
-                SetStep(14, "Equip a Dash or Shield Rune to one of your other spell slots.");
+                if (HasModifiersEquipped()) SetStep(9, "Close the Spell Crafting Interface to return to the game.");
+                else SetStep(9, "Equip the Piercing and DoT Runes alongside your Projectile Rune to modify your spell.");
+            }
+            else if (_currentStep == 13 || _currentStep == 14 || _currentStep == 15)
+            {
+                if (HasUtilityEquipped()) SetStep(15, "Watch out for the Thorn Traps! Use your abilities to get past them safely.");
+                else SetStep(14, "Equip a Dash or Shield Rune to one of your other spell slots.");
             }
         }
 
         private void OnSpellEquipped(SpellEquippedEvent evt)
         {
-            if (_currentStep == 4 && HasProjectileEquipped()) 
+            if ((_currentStep == 3 || _currentStep == 4) && HasProjectileEquipped()) 
                 SetStep(5, "Close the Spell Crafting Interface to return to the game.");
             
-            if (_currentStep == 14 && HasUtilityEquipped()) 
+            if ((_currentStep == 8 || _currentStep == 9) && HasModifiersEquipped())
+                SetStep(9, "Close the Spell Crafting Interface to return to the game.");
+            
+            if ((_currentStep == 13 || _currentStep == 14) && HasUtilityEquipped()) 
                 SetStep(15, "Watch out for the Thorn Traps! Use your abilities to get past them safely.");
         }
 
@@ -286,15 +295,16 @@ namespace World
                     else SetStep(6, "Use your spell to defeat the Enemy Dummy.");
                 }
             }
-            else if (_currentStep == 9)
+            else if (_currentStep == 8 || _currentStep == 9)
             {
                 if (HasModifiersEquipped())
                 {
                     if (_room3EnemiesDefeated >= 2) TriggerRoom3Chest();
-                    else SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
+                    else if (_currentRoom == 3) SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
+                    else SetStep(8, "Great! Head through the door to the next room."); 
                 }
             }
-            else if (_currentStep == 13 || _currentStep == 14)
+            else if (_currentStep == 13 || _currentStep == 14 || _currentStep == 15)
             {
                 if (HasUtilityEquipped())
                 {
@@ -308,7 +318,7 @@ namespace World
             if (_currentRoom == 2)
             {
                 _dummyDefeated = true;
-                if ((_currentStep == 6 || _currentStep == 3 || _currentStep == 4 || _currentStep == 5) && HasProjectileEquipped())
+                if (_currentStep >= 3 && _currentStep <= 6 && HasProjectileEquipped())
                 {
                     TriggerRoom2Chest();
                 }
@@ -316,7 +326,7 @@ namespace World
             else if (_currentRoom == 3)
             {
                 _room3EnemiesDefeated++;
-                if (_room3EnemiesDefeated >= 2 && (_currentStep == 10 || _currentStep == 9) && HasModifiersEquipped())
+                if (_room3EnemiesDefeated >= 2 && _currentStep >= 8 && _currentStep <= 10 && HasModifiersEquipped())
                 {
                     TriggerRoom3Chest();
                 }
@@ -435,7 +445,7 @@ namespace World
             }
             
             _player.GetComponent<PlayerHealth>().Initialize(Helpers.PlayerStats); 
-            _player.GetComponent<PlayerController>().Revive(); // Restore input processing
+            _player.GetComponent<PlayerController>().Revive();
             
             if (_faderGroup != null)
             {
