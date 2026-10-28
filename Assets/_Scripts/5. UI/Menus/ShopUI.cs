@@ -101,7 +101,7 @@ namespace UI
             if (rune == null) return;
 
             if (_tooltipNameText != null) _tooltipNameText.text = rune.Name;
-            // if (_tooltipTypeText != null) _tooltipTypeText.text = rune.Type; // Replace with appropriate rune type field if implemented
+            if (_tooltipTypeText != null) _tooltipTypeText.text = rune.Type;
             if (_tooltipDescriptionText != null) _tooltipDescriptionText.text = rune.Description;
             
             if (_tooltipContainer != null) _tooltipContainer.SetActive(true);
