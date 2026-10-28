@@ -1,3 +1,4 @@
+using System;
 using Foundation;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,11 +11,17 @@ namespace UI
     [RequireComponent(typeof(RectTransform))]
     public sealed class ShopItemSlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
+        [Header("Hierarchy")]
+        [Tooltip("The child RectTransform containing all visuals. Animating this prevents LayoutGroup fighting.")]
+        [SerializeField] private RectTransform _visualRoot;
+
+        [Header("UI Elements")]
         [SerializeField] private Image _icon;
         [SerializeField] private Image _glowImage;
         [SerializeField] private TextMeshProUGUI _priceText;
         [SerializeField] private GameObject _soldOutOverlay;
 
+        [Header("Audio")]
         [SerializeField] private AudioEventSO _failSound;
         [SerializeField] private AudioEventSO _successSound;
 
@@ -23,7 +30,6 @@ namespace UI
         [SerializeField] private float _scaleMultiplier = 1.1f;
         [SerializeField] private float _hoverOffsetY = 10f;
 
-        private RectTransform _rectTransform;
         private Vector2 _originalPosition;
         private Vector3 _originalScale;
 
@@ -39,9 +45,15 @@ namespace UI
 
         private void Awake()
         {
-            _rectTransform = GetComponent<RectTransform>();
-            _originalPosition = _rectTransform.anchoredPosition;
-            _originalScale = _rectTransform.localScale;
+            _originalPosition = _visualRoot.anchoredPosition;
+            _originalScale = _visualRoot.localScale;
+        }
+
+        private void OnDisable()
+        {
+            _visualRoot.DOKill();
+            _visualRoot.anchoredPosition = _originalPosition;
+            _visualRoot.localScale = _originalScale;
         }
 
         public void SetupRune(RuneDefinitionSO rune, bool isSold, int cost, int index, ShopUI parent)
@@ -94,15 +106,15 @@ namespace UI
             _priceText.rectTransform.parent.gameObject.SetActive(false);
             _glowImage.enabled = false;
 
-            _rectTransform.DOKill();
-            _rectTransform.DOScale(_originalScale, 0.1f).SetUpdate(true);
+            _visualRoot.DOKill();
+            _visualRoot.DOScale(_originalScale, 0.1f).SetUpdate(true);
 
             EventBus.Publish(new AudioPlayRequest { Event = _successSound });
         }
 
         public void RejectPurchase()
         {
-            _rectTransform.DOShakePosition(0.3f, 10f, 20, 90f, false, true).SetUpdate(true);
+            _visualRoot.DOShakePosition(0.3f, 10f, 20, 90f, false, true).SetUpdate(true);
             EventBus.Publish(new AudioPlayRequest { Event = _failSound });
         }
 
@@ -116,9 +128,9 @@ namespace UI
                 _glowImage.enabled = true;
             }
 
-            _rectTransform.DOKill();
-            _rectTransform.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
-            _rectTransform.DOAnchorPos(_originalPosition + new Vector2(0f, _hoverOffsetY), _hoverDuration).SetUpdate(true);
+            _visualRoot.DOKill();
+            _visualRoot.DOScale(_originalScale * _scaleMultiplier, _hoverDuration).SetUpdate(true);
+            _visualRoot.DOAnchorPos(_originalPosition + new Vector2(0f, _hoverOffsetY), _hoverDuration).SetUpdate(true);
 
             if (GameStateManager.RunState.Currency < _cost)
             {
@@ -138,9 +150,9 @@ namespace UI
                 _glowImage.enabled = false;
             }
 
-            _rectTransform.DOKill();
-            _rectTransform.DOScale(_originalScale, _hoverDuration).SetUpdate(true);
-            _rectTransform.DOAnchorPos(_originalPosition, _hoverDuration).SetUpdate(true);
+            _visualRoot.DOKill();
+            _visualRoot.DOScale(_originalScale, _hoverDuration).SetUpdate(true);
+            _visualRoot.DOAnchorPos(_originalPosition, _hoverDuration).SetUpdate(true);
             
             _priceText.color = Color.white;
 

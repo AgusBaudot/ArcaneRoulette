@@ -1,5 +1,6 @@
 using Foundation;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
@@ -8,6 +9,7 @@ namespace UI
         [Header("References")]
         [SerializeField] private ShopItemSlotUI[] _runeSlots;
         [SerializeField] private ShopItemSlotUI[] _artifactSlots;
+        [SerializeField] private Button _backButton;
 
         [Header("Audio")]
         [SerializeField] private AudioEventSO _rerollSound;
@@ -17,6 +19,13 @@ namespace UI
 
         // ── Initialization ────────────────────────────────────────────────────
 
+        protected override void Awake()
+        {
+            base.Awake();
+            
+            _backButton.onClick.AddListener(RequestClose);
+        }
+        
         /// <summary>
         /// Called by the UIManager to inject the specific shop's data 
         /// right before calling Show().
