@@ -69,7 +69,7 @@ namespace World
                 _stockRunes.Clear();
                 _runePurchasedState.Clear();
 
-                var newRunes = _runePool.GetRandomRunes(4);
+                var newRunes = _runePool.GetRandomRunes(5);
                 foreach (var rune in newRunes)
                 {
                     _stockRunes.Add(rune);

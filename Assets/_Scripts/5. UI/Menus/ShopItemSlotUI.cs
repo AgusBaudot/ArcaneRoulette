@@ -40,8 +40,10 @@ namespace UI
         private bool _isSold;
 
         private RuneDefinitionSO _cachedRune;
-        
         // private ArtifactDefinitionSO _cachedArtifact; // Uncomment once artifacts are implemented
+        
+        private Action<RuneDefinitionSO> _onHovered;
+        private Action _onUnhovered;
 
         private void Awake()
         {
@@ -56,10 +58,12 @@ namespace UI
             _visualRoot.localScale = _originalScale;
         }
 
-        public void SetupRune(RuneDefinitionSO rune, bool isSold, int cost, int index, ShopUI parent)
+        public void SetupRune(RuneDefinitionSO rune, bool isSold, int cost, int index, ShopUI parent, Action<RuneDefinitionSO> onHovered, Action onUnhovered)
         {
             _cachedRune = rune;
             _isRune = true;
+            _onHovered = onHovered;
+            _onUnhovered = onUnhovered;
 
             if (_icon != null && rune != null)
             {
@@ -109,6 +113,7 @@ namespace UI
             _visualRoot.DOKill();
             _visualRoot.DOScale(_originalScale, 0.1f).SetUpdate(true);
 
+            _onUnhovered?.Invoke();
             EventBus.Publish(new AudioPlayRequest { Event = _successSound });
         }
 
@@ -137,7 +142,7 @@ namespace UI
                 _priceText.color = Color.red;
             }
 
-            if (_isRune) TooltipSystem.Instance?.Show(_cachedRune, GetComponent<RectTransform>());
+            if (_isRune) _onHovered?.Invoke(_cachedRune);
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -156,7 +161,7 @@ namespace UI
             
             _priceText.color = Color.white;
 
-            TooltipSystem.Instance?.Hide();
+            _onUnhovered?.Invoke();
         }
 
         public void OnPointerClick(PointerEventData eventData)
