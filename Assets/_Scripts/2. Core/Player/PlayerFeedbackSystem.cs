@@ -43,7 +43,7 @@ namespace Core
                 Quaternion.identity
             );
 
-            vfx.Init($"Rune {evt.RuneName} acquired!", staggerDelay);
+            vfx.Init($"{evt.RuneName} rune </color> acquired!", staggerDelay);
         }
     }
 }
