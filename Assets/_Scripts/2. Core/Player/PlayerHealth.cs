@@ -45,7 +45,7 @@ namespace Core
 
         public bool TakeDamage(int amount, ElementType elementType)
         {
-            if (IsInvincible)
+            if (IsInvincible || CurrentHp <= 0)
                 return false;
             
             EventBus.Publish(new AudioPlayRequest

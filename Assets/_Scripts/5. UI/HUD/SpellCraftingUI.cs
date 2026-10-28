@@ -97,6 +97,7 @@ namespace UI
 
         public override void Show()
         {
+            EventBus.Publish(new SpellCraftingOpenedEvent());
             base.Show();
 
             _pendingRune = null;
@@ -135,6 +136,7 @@ namespace UI
 
         public override void Hide()
         {
+            EventBus.Publish(new SpellCraftingClosedEvent());
             base.Hide();
 
             _tooltip?.Hide();
