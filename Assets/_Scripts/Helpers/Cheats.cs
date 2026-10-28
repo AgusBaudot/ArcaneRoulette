@@ -147,6 +147,12 @@ public class Cheats : MonoBehaviour
         
         _commands.Add("skip", args =>
         {
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ExitTutorial();
+                return "<color=#00FF00>Tutorial skipped. Fading out and teleporting to Lobby...</color>";
+            }
+
             var saveSystem = new Meta.SaveLoadSystem();
             var settings = saveSystem.LoadSettings();
             
@@ -157,7 +163,6 @@ public class Cheats : MonoBehaviour
             }
 
             EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
-            
             return "<color=#00FF00>Tutorial skipped and marked as complete. Teleporting to Lobby...</color>";
         });
     }

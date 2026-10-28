@@ -20,14 +20,9 @@ public class TutorialTrigger : MonoBehaviour
         {
             _hasFired = true;
 
-            if (_teleportDestination != null)
+            if (_manager != null && _teleportDestination != null)
             {
-                EventBus.Publish(new PlayerTeleportRequestEvent(_teleportDestination.position));
-            }
-            
-            if (_manager != null)
-            {
-                _manager.OnRoomEntered(_roomNumberToReport);
+                _manager.TransitionToRoom(_roomNumberToReport, _teleportDestination.position);
             }
         }
     }

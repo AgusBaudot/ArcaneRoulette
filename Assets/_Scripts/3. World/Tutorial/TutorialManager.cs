@@ -9,6 +9,12 @@ namespace World
 {
     public class TutorialManager : MonoBehaviour
     {
+        public static TutorialManager Instance { get; private set; }
+
+        [Header("Screen Fader")]
+        [SerializeField] private CanvasGroup _faderGroup;
+        [SerializeField] private float _screenFadeDuration = 0.5f;
+
         [Header("UI Feedback Panel")]
         [SerializeField] private CanvasGroup _feedbackPanel;
         [SerializeField] private TextMeshProUGUI _feedbackText;
@@ -59,8 +65,16 @@ namespace World
 
         private void Awake()
         {
+            Instance = this;
+            
             _feedbackPanel.alpha = 0f;
             _feedbackPanel.blocksRaycasts = false;
+
+            if (_faderGroup != null)
+            {
+                _faderGroup.alpha = 1f;
+                _faderGroup.blocksRaycasts = true;
+            }
         }
 
         private void Start()
@@ -79,6 +93,12 @@ namespace World
 
             UpdateGuidanceText("Welcome to Arcane Roulette!");
             StartCoroutine(Step1Timer());
+
+            if (_faderGroup != null)
+            {
+                _faderGroup.DOFade(0f, _screenFadeDuration).SetUpdate(true)
+                    .OnComplete(() => _faderGroup.blocksRaycasts = false);
+            }
         }
 
         private void OnEnable()
@@ -101,6 +121,49 @@ namespace World
             if (GameStateManager.RunState != null)
             {
                 GameStateManager.RunState.OnKill -= OnEnemyKilled;
+            }
+        }
+        
+        public void ExitTutorial()
+        {
+            var saveSystem = new Meta.SaveLoadSystem();
+            var settings = saveSystem.LoadSettings();
+            if (!settings.HasCompletedTutorial)
+            {
+                settings.HasCompletedTutorial = true;
+                saveSystem.SaveSettings(settings);
+            }
+
+            if (_faderGroup != null)
+            {
+                _faderGroup.blocksRaycasts = true;
+                _faderGroup.DOFade(1f, _screenFadeDuration).SetUpdate(true).OnComplete(() => 
+                {
+                    EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+                });
+            }
+            else
+            {
+                EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            }
+        }
+
+        public void TransitionToRoom(int roomNumber, Vector3 teleportPos)
+        {
+            if (_faderGroup != null)
+            {
+                _faderGroup.blocksRaycasts = true;
+                _faderGroup.DOFade(1f, _screenFadeDuration).SetUpdate(true).OnComplete(() =>
+                {
+                    EventBus.Publish(new PlayerTeleportRequestEvent(teleportPos));
+                    OnRoomEntered(roomNumber);
+                    _faderGroup.DOFade(0f, _screenFadeDuration).SetUpdate(true).OnComplete(() => _faderGroup.blocksRaycasts = false);
+                });
+            }
+            else
+            {
+                EventBus.Publish(new PlayerTeleportRequestEvent(teleportPos));
+                OnRoomEntered(roomNumber);
             }
         }
 
@@ -153,7 +216,7 @@ namespace World
             _room1ExitTo2.Open();
         }
 
-        public void OnRoomEntered(int roomNumber)
+        private void OnRoomEntered(int roomNumber)
         {
             _currentRoom = roomNumber;
             
@@ -200,7 +263,7 @@ namespace World
             }
             else if (_currentStep == 13)
             {
-                SetStep(14, "Equip a Dash or Shield Rune to one of your spell slots.");
+                SetStep(14, "Equip a Dash or Shield Rune to one of your other spell slots.");
             }
         }
 
@@ -287,14 +350,13 @@ namespace World
                 
                 SetStep(8, "Great! Head through the door to the next room.");
                 _room2ExitTo3.Open();
-                
                 EventBus.Publish<RuneClaimedEvent>(new (piercing.Name));
                 EventBus.Publish<RuneClaimedEvent>(new (dot.Name));
             }
             else if (_currentStep == 11) 
             {
                 SetStep(12, "You're getting the hang of it! Head to the next room.");
-                
+                _room3ExitTo4.Open();
                 var dash = Resources.Load<AbilityRuneSO>("Runes/Normal Dash");
                 var shield = Resources.Load<AbilityRuneSO>("Runes/Normal Shield");
                 
@@ -303,8 +365,6 @@ namespace World
                 
                 EventBus.Publish<RuneClaimedEvent>(new (dash.Name));
                 EventBus.Publish<RuneClaimedEvent>(new (shield.Name));
-                
-                _room3ExitTo4.Open();
             }
         }
 
@@ -323,7 +383,7 @@ namespace World
             var settings = saveSystem.LoadSettings();
             settings.HasCompletedTutorial = true;
             saveSystem.SaveSettings(settings);
-            
+
             yield return new WaitForSeconds(_stepWaitTimer);
             SetStep(18, "Interact with the portal to enter the Lobby. Your adventure awaits!");
         }
@@ -353,6 +413,14 @@ namespace World
         {
             yield return new WaitForSecondsRealtime(2f);
 
+            bool fadeComplete = false;
+            if (_faderGroup != null)
+            {
+                _faderGroup.blocksRaycasts = true;
+                _faderGroup.DOFade(1f, _screenFadeDuration).SetUpdate(true).OnComplete(() => fadeComplete = true);
+                while (!fadeComplete) yield return null;
+            }
+
             GameStateManager.RunState.SetHp(GameStateManager.RunState.MaxHp); 
 
             if (_currentRoom == 3)
@@ -367,6 +435,11 @@ namespace World
             }
             
             _player.GetComponent<PlayerHealth>().Initialize(Helpers.PlayerStats); 
+            
+            if (_faderGroup != null)
+            {
+                _faderGroup.DOFade(0f, _screenFadeDuration).SetUpdate(true).OnComplete(() => _faderGroup.blocksRaycasts = false);
+            }
         }
     }
 }
