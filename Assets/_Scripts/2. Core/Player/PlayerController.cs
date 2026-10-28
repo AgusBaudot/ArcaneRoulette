@@ -118,13 +118,14 @@ namespace Core
             GetComponentInChildren<PlayerHurtBox>()?.Initialize(_health);
             
             EventBus.Subscribe<SpellEquippedEvent>(OnSpellEquipped);
-            EventBus.Subscribe((PlayerDiedEvent _) => _isAlive = false);
+            EventBus.Subscribe<PlayerDiedEvent>(HandlePlayerDeath);
             EventBus.Subscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
         private void OnDestroy()
         {
             EventBus.Unsubscribe<SpellEquippedEvent>(OnSpellEquipped);
+            EventBus.Unsubscribe<PlayerDiedEvent>(HandlePlayerDeath);
             EventBus.Unsubscribe<PlayerTeleportRequestEvent>(TeleportTo);
         }
 
@@ -456,6 +457,35 @@ namespace Core
         public void DamageShield()
         {
             (_spellSlots[_heldHoldSlots[^1]] as HoldSpellInstance)?.Energy.DrainOnHit();
+        }
+
+        private void HandlePlayerDeath(PlayerDiedEvent _)
+        {
+            _isAlive = false;
+
+            _input = Vector2.zero;
+            SetVelocity(Vector3.zero);
+            
+            ClearHeldInputs();
+
+            if (_runAudioHandle != null && _runAudioHandle.IsValid)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _runAudioHandle,
+                    FadeOut = true
+                });
+                _runAudioHandle = null;
+            }
+        }
+        
+        public void Revive()
+        {
+            _isAlive = true;
+            _canMove = true;
+            
+            ClearHeldInputs();
+            EventBus.Publish(new PlayerRevivedEvent());
         }
         
         #endregion

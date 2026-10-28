@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace World
 {
-    public enum PortalType { NextFloor, StartNewRun }
+    public enum PortalType { NextFloor, StartNewRun, ReturnToLobby, Tutorial }
 
     [RequireComponent(typeof(SphereCollider))]
     public class TransitionPortal : MonoBehaviour
@@ -94,6 +94,14 @@ namespace World
             {
                 EventBus.Publish(new StartRunRequestEvent(_targetSceneName));
             }
+            else if (_type == PortalType.ReturnToLobby)
+            {
+                EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            }
+            else if (_type == PortalType.Tutorial)
+            {
+                EventBus.Publish(new StartRunRequestEvent(SceneNames.Tutorial));
+            }
 
             Destroy(gameObject);
         }
@@ -118,7 +126,8 @@ namespace World
 
         private void OnDrawGizmos()
         {
-            Gizmos.color = _type == PortalType.NextFloor ? Color.cyan : Color.green;
+            Gizmos.color = _type == PortalType.NextFloor ? Color.cyan : 
+                           _type == PortalType.StartNewRun ? Color.green : Color.yellow;
             Gizmos.DrawWireSphere(transform.position, _radius);
         }
     }

@@ -1,5 +1,8 @@
+using DG.Tweening;
 using Foundation;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
@@ -8,15 +11,33 @@ namespace UI
         [Header("References")]
         [SerializeField] private ShopItemSlotUI[] _runeSlots;
         [SerializeField] private ShopItemSlotUI[] _artifactSlots;
+        [SerializeField] private Button _backButton;
 
         [Header("Audio")]
         [SerializeField] private AudioEventSO _rerollSound;
         [SerializeField] private AudioEventSO _buySound;
+        
+        [Header("Local Tooltip References")]
+        [SerializeField] private GameObject _tooltipContainer;
+        [SerializeField] private CanvasGroup _tooltipCanvasGroup;
+        [SerializeField] private float _tooltipFadeDuration;
+        [SerializeField] private TextMeshProUGUI _tooltipNameText;
+        [SerializeField] private TextMeshProUGUI _tooltipTypeText;
+        [SerializeField] private TextMeshProUGUI _tooltipDescriptionText;
 
         private IShop _currentShop;
 
         // ── Initialization ────────────────────────────────────────────────────
 
+        protected override void Awake()
+        {
+            base.Awake();
+            _backButton.onClick.AddListener(RequestClose);
+            
+            if (_tooltipCanvasGroup != null) _tooltipCanvasGroup.alpha = 0f;
+            if (_tooltipContainer != null) _tooltipContainer.SetActive(false);
+        }
+        
         /// <summary>
         /// Called by the UIManager to inject the specific shop's data 
         /// right before calling Show().
@@ -29,23 +50,36 @@ namespace UI
 
         // ── Show / Hide Overrides ─────────────────────────────────────────────
 
+        public override void Show()
+        {
+            if (TooltipSystem.Instance != null)
+                TooltipSystem.Instance.SetEnabled(false);
+
+            ClearLocalTooltipInstantly();
+            base.Show();
+        }
+
         public override void Hide()
         {
             base.Hide();
-            TooltipSystem.Instance?.Hide();
+            
+            if (TooltipSystem.Instance != null)
+                TooltipSystem.Instance.SetEnabled(true);
+                
+            ClearLocalTooltipInstantly();
         }
 
         // ── Display Logic ─────────────────────────────────────────────────────
 
         private void RefreshDisplay()
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _runeSlots.Length; i++)
             {
                 if (i < _currentShop.StockRunes.Count)
                 {
                     _runeSlots[i].gameObject.SetActive(true);
                     _runeSlots[i].SetupRune(_currentShop.StockRunes[i], _currentShop.RunePurchasedState[i], 40, i,
-                        this);
+                        this, ShowLocalTooltip, ClearLocalTooltip);
                 }
                 else
                 {
@@ -60,6 +94,51 @@ namespace UI
             //     _artifactSlots[i].SetupArtifact(_currentShop.StockArtifacts[i], _currentShop.ArtifactPurchasedState[i], price, i, this);
             // }
             // Finish uncomment once artifacts are implemented
+        }
+        
+        private void ShowLocalTooltip(RuneDefinitionSO rune)
+        {
+            if (rune == null) return;
+
+            if (_tooltipNameText != null) _tooltipNameText.text = rune.Name;
+            if (_tooltipTypeText != null) _tooltipTypeText.text = rune.Type;
+            if (_tooltipDescriptionText != null) _tooltipDescriptionText.text = rune.Description;
+            
+            if (_tooltipContainer != null) _tooltipContainer.SetActive(true);
+            
+            if (_tooltipCanvasGroup != null)
+            {
+                _tooltipCanvasGroup.DOKill();
+                _tooltipCanvasGroup.DOFade(1f, _tooltipFadeDuration).SetUpdate(true);
+            }
+        }
+
+        private void ClearLocalTooltip()
+        {
+            if (_tooltipCanvasGroup != null)
+            {
+                _tooltipCanvasGroup.DOKill();
+                _tooltipCanvasGroup.DOFade(0f, _tooltipFadeDuration)
+                    .SetUpdate(true)
+                    .OnComplete(() => 
+                    {
+                        if (_tooltipContainer != null) _tooltipContainer.SetActive(false);
+                    });
+            }
+            else
+            {
+                ClearLocalTooltipInstantly();
+            }
+        }
+        
+        private void ClearLocalTooltipInstantly()
+        {
+            if (_tooltipContainer != null) _tooltipContainer.SetActive(false);
+            if (_tooltipCanvasGroup != null)
+            {
+                _tooltipCanvasGroup.DOKill();
+                _tooltipCanvasGroup.alpha = 0f;
+            }
         }
         
         // ── Interaction ───────────────────────────────────────────────────────

@@ -34,8 +34,6 @@ namespace Core
 
         private void HandleContact(Collider other, Vector3 contactPoint)
         {
-            Debug.Log($"Trigger by {other.gameObject.name}");
-            
             if (!other.TryGetComponent<IProjectile>(out var projectile))
             {
                 // 1. Hazard / Detonatable Body

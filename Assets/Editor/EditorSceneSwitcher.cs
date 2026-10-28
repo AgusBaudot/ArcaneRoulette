@@ -15,6 +15,9 @@ public static class EditorSceneSwitcher
 
     [MenuItem("Tools/Scenes/Core Loop &3")]
     public static void OpenCoreLoop() => LoadBuildScene("Core loop");
+    
+    [MenuItem("Tools/Scenes/Tutorial &4")]
+    public static void OpenTutorial() => LoadBuildScene("Tutorial");
 
     private static void LoadBuildScene(string sceneName)
     {

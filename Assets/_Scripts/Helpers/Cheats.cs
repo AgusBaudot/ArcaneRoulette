@@ -43,9 +43,10 @@ public class Cheats : MonoBehaviour
                    "  clear - Forces room clear event\n" +
                    "  nextfloor - Advances 1 floor\n" +
                    "  floor [number] - Advances to specific floor\n" +
-                   "  tp portal - Teleports to portal room\n" +
+                   "  tp [portal|shop] - Teleports to specific room types\n" +
                    "  give [currency|rune] [id] [amount] - Gives items\n" +
                    "  spawn [enemy_name] [count] - Spawns enemies\n" +
+                   "  skip - Skips the tutorial and teleports to Lobby\n" +
                    "  help - Shows this list</color>";
         });
 
@@ -111,8 +112,13 @@ public class Cheats : MonoBehaviour
 
         _commands.Add("tp", args =>
         {
-            if (args.Length < 2 || args[1] != "portal") return "<color=#FF0000>Usage: tp portal</color>";
-            return TeleportToPortal();
+            if (args.Length < 2) return "<color=#FF0000>Usage: tp [portal|shop]</color>";
+            
+            string target = args[1].ToLower();
+            if (target == "portal") return TeleportToRoom(RoomType.Portal);
+            if (target == "shop") return TeleportToRoom(RoomType.Shop);
+            
+            return "<color=#FF0000>Unknown room target. Usage: tp [portal|shop]</color>";
         });
 
         _commands.Add("give", args =>
@@ -142,6 +148,27 @@ public class Cheats : MonoBehaviour
                 return $"Spawned {count}x {prefab.name}.";
             }
             return $"<color=#FF0000>Enemy '{enemyId}' not found in Resources/Enemies.</color>";
+        });
+        
+        _commands.Add("skip", args =>
+        {
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ExitTutorial();
+                return "<color=#00FF00>Tutorial skipped. Fading out and teleporting to Lobby...</color>";
+            }
+
+            var saveSystem = new Meta.SaveLoadSystem();
+            var settings = saveSystem.LoadSettings();
+            
+            if (!settings.HasCompletedTutorial)
+            {
+                settings.HasCompletedTutorial = true;
+                saveSystem.SaveSettings(settings);
+            }
+
+            EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            return "<color=#00FF00>Tutorial skipped and marked as complete. Teleporting to Lobby...</color>";
         });
     }
 
@@ -174,26 +201,27 @@ public class Cheats : MonoBehaviour
         return $"Advancing to floor {GameStateManager.RunState.CurrentFloor}...";
     }
 
-    private string TeleportToPortal()
+    private string TeleportToRoom(RoomType targetType)
     {
         var runState = GameStateManager.RunState;
         if (runState == null) return "<color=#FF0000>Not in an active run.</color>";
 
         foreach (var kvp in runState.FloorMap)
         {
-            if (kvp.Value.Type == RoomType.Portal)
+            if (kvp.Value.Type == targetType)
             {
                 var rooms = FindObjectsOfType<RoomManager>();
-                var portalRoom = rooms.FirstOrDefault(r => r.Index == kvp.Key);
-                if (portalRoom != null)
+                var targetRoom = rooms.FirstOrDefault(r => r.Index == kvp.Key);
+                
+                if (targetRoom != null)
                 {
-                    EventBus.Publish(new PlayerTeleportRequestEvent(portalRoom.transform.position));
+                    EventBus.Publish(new PlayerTeleportRequestEvent(targetRoom.transform.position));
                     runState.UpdatePlayerRoom(kvp.Key);
-                    return "Teleported to Portal Room.";
+                    return $"Teleported to {targetType} Room.";
                 }
             }
         }
-        return "<color=#FF0000>No portal room found on this floor (is it a boss floor?).</color>";
+        return $"<color=#FF0000>No {targetType} room found on this floor.</color>";
     }
 
     private string ProcessGiveCommand(string[] args)
