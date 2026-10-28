@@ -40,7 +40,6 @@ namespace UI
         private bool _isSold;
 
         private RuneDefinitionSO _cachedRune;
-        // private ArtifactDefinitionSO _cachedArtifact; // Uncomment once artifacts are implemented
         
         private Action<RuneDefinitionSO> _onHovered;
         private Action _onUnhovered;
@@ -81,15 +80,6 @@ namespace UI
             InternalSetup(isSold, cost, index, parent);
         }
 
-        // Uncomment once artifacts are implemented
-        // public void SetupArtifact(ArtifactDefinitionSO artifact, bool isSold, int cost, int index, ShopUI parent)
-        // {
-        //     _cachedArtifact = artifact;
-        //     _isRune = false;
-        //     InternalSetup(isSold, cost, index, parent);
-        // }
-        // Finish uncomment once artifacts are implemented
-
         private void InternalSetup(bool isSold, int cost, int index, ShopUI parent)
         {
             _isSold = isSold;
@@ -99,11 +89,11 @@ namespace UI
 
             _priceText.text = cost.ToString();
 
-            if (isSold) MarkSold();
+            if (isSold) MarkSold(false); 
             else _soldOutOverlay.SetActive(false);
         }
 
-        public void MarkSold()
+        public void MarkSold(bool animate = true)
         {
             _isSold = true;
             _soldOutOverlay.SetActive(true);
@@ -112,9 +102,32 @@ namespace UI
 
             _visualRoot.DOKill();
             _visualRoot.DOScale(_originalScale, 0.1f).SetUpdate(true);
-
             _onUnhovered?.Invoke();
-            EventBus.Publish(new AudioPlayRequest { Event = _successSound });
+
+            RectTransform stampRect = _soldOutOverlay.GetComponent<RectTransform>();
+            if (!_soldOutOverlay.TryGetComponent<CanvasGroup>(out var stampGroup))
+            {
+                stampGroup = _soldOutOverlay.AddComponent<CanvasGroup>();
+            }
+
+            stampRect.DOKill();
+            stampGroup.DOKill();
+
+            if (animate)
+            {
+                stampGroup.alpha = 0f;
+                stampRect.localScale = Vector3.one * 1.2f;
+
+                stampGroup.DOFade(1f, 0.15f).SetUpdate(true);
+                stampRect.DOScale(Vector3.one, 0.15f).SetEase(Ease.OutBack).SetUpdate(true);
+
+                EventBus.Publish(new AudioPlayRequest { Event = _successSound });
+            }
+            else
+            {
+                stampGroup.alpha = 1f;
+                stampRect.localScale = Vector3.one;
+            }
         }
 
         public void RejectPurchase()
