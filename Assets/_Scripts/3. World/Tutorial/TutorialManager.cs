@@ -435,6 +435,7 @@ namespace World
             }
             
             _player.GetComponent<PlayerHealth>().Initialize(Helpers.PlayerStats); 
+            _player.GetComponent<PlayerController>().Revive(); // Restore input processing
             
             if (_faderGroup != null)
             {
