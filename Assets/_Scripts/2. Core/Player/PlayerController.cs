@@ -485,6 +485,7 @@ namespace Core
             _canMove = true;
             
             ClearHeldInputs();
+            EventBus.Publish(new PlayerRevivedEvent());
         }
         
         #endregion
