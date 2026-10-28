@@ -12,6 +12,7 @@ namespace Core
         private static readonly int MoveXHash = Animator.StringToHash("MoveX");
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
         private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+        private static readonly int Death =  Animator.StringToHash("t_Death");
 
         private Vector2 _currentAnimDir = Vector2.down; 
         private Vector2 _lastRawInput = Vector2.zero;
@@ -19,11 +20,15 @@ namespace Core
         private void OnEnable()
         {
             UpdateManager.Instance.Register(this); 
+            EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDeath);
+            EventBus.Subscribe<PlayerRevivedEvent>(OnPlayerRevived);
         }
 
         private void OnDisable()
         {
             UpdateManager.Instance?.Unregister(this);
+            EventBus.Unsubscribe<PlayerDiedEvent>(OnPlayerDeath);
+            EventBus.Unsubscribe<PlayerRevivedEvent>(OnPlayerRevived);
         }
 
         public void Tick(float dt)
@@ -62,6 +67,17 @@ namespace Core
             _animator.SetFloat(MoveXHash, _currentAnimDir.x);
             _animator.SetFloat(MoveYHash, _currentAnimDir.y);
             _animator.SetBool(IsMovingHash, isMoving);
+        }
+
+        private void OnPlayerDeath(PlayerDiedEvent _)
+        {
+            _animator.SetTrigger(Death);
+        }
+
+        private void OnPlayerRevived(PlayerRevivedEvent _)
+        {
+            _animator.Rebind();
+            _animator.Update(0f);
         }
     }
 }
