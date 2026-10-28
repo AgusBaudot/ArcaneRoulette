@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace World
 {
-    public enum PortalType { NextFloor, StartNewRun, ReturnToLobby }
+    public enum PortalType { NextFloor, StartNewRun, ReturnToLobby, Tutorial }
 
     [RequireComponent(typeof(SphereCollider))]
     public class TransitionPortal : MonoBehaviour
@@ -97,6 +97,10 @@ namespace World
             else if (_type == PortalType.ReturnToLobby)
             {
                 EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            }
+            else if (_type == PortalType.Tutorial)
+            {
+                EventBus.Publish(new StartRunRequestEvent(SceneNames.Tutorial));
             }
 
             Destroy(gameObject);

@@ -67,7 +67,7 @@ namespace UI
             }
             else
             {
-                EventBus.Publish(new StartRunRequestEvent(SceneNames.GameLevel));
+                EventBus.Publish(new StartRunRequestEvent(SceneNames.Lobby));
             }
         }
 
