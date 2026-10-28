@@ -58,10 +58,17 @@ namespace UI
 
         private void OnPlay(OnPlayClickedEvent _)
         { 
-            //TODO(save system): once run persistence exists, check for a saved
-            //in-progress run here and resume it instead of always starting fresh.
-            
-            EventBus.Publish(new StartRunRequestEvent(SceneNames.GameLevel));
+            var saveSystem = new Meta.SaveLoadSystem();
+            var settings = saveSystem.LoadSettings();
+
+            if (!settings.HasCompletedTutorial)
+            {
+                EventBus.Publish(new StartRunRequestEvent(SceneNames.Tutorial));
+            }
+            else
+            {
+                EventBus.Publish(new StartRunRequestEvent(SceneNames.GameLevel));
+            }
         }
 
         private void OnOptions(OnOptionsClickedEvent _) => OpenPanel(_optionsPanel, keepHistory: false);

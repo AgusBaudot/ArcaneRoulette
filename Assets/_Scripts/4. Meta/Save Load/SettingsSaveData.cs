@@ -6,6 +6,8 @@ namespace Meta
     [Serializable]
     public class SettingsSaveData
     {
+        public bool HasCompletedTutorial;
+        
         public float MasterVolume = 1f;
         public float MusicVolume = 0.2f;
         public float SFXVolume = 1f;

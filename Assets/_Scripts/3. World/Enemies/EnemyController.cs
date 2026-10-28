@@ -113,13 +113,16 @@ namespace World
             }
             
             ElementType rolledElement = (ElementType)Random.Range(0, 4);
-    
-            switch (rolledElement)
+
+            if (_elementalFeedback != null)
             {
-                case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
-                case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
-                case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
-                case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+                switch (rolledElement)
+                {
+                    case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
+                    case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
+                    case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
+                    case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
+                }
             }
 
             if (!_isInitialized)

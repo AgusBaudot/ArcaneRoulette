@@ -88,6 +88,8 @@ namespace World
             }
 
             OnDeath?.Invoke();
+            
+            GameStateManager.RunState?.FireKill(default(KillContext));
         }
 
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
@@ -109,7 +111,6 @@ namespace World
             }
         }
 
-        //IDebuffReceiver Implementation------------------------
         public void RegisterDebuff(IDebuffReadable debuff)
         {
             _debuffs = debuff;
