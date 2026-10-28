@@ -319,13 +319,13 @@ namespace World
 
         private IEnumerator Step17Timer()
         {
-            yield return new WaitForSeconds(_stepWaitTimer);
-            SetStep(18, "Interact with the portal to enter the Lobby. Your adventure awaits!");
-            
             var saveSystem = new Meta.SaveLoadSystem();
             var settings = saveSystem.LoadSettings();
             settings.HasCompletedTutorial = true;
             saveSystem.SaveSettings(settings);
+            
+            yield return new WaitForSeconds(_stepWaitTimer);
+            SetStep(18, "Interact with the portal to enter the Lobby. Your adventure awaits!");
         }
 
         private void SetStep(int step, string text)

@@ -46,6 +46,7 @@ public class Cheats : MonoBehaviour
                    "  tp portal - Teleports to portal room\n" +
                    "  give [currency|rune] [id] [amount] - Gives items\n" +
                    "  spawn [enemy_name] [count] - Spawns enemies\n" +
+                   "  skip - Skips the tutorial and teleports to Lobby\n" +
                    "  help - Shows this list</color>";
         });
 
@@ -142,6 +143,22 @@ public class Cheats : MonoBehaviour
                 return $"Spawned {count}x {prefab.name}.";
             }
             return $"<color=#FF0000>Enemy '{enemyId}' not found in Resources/Enemies.</color>";
+        });
+        
+        _commands.Add("skip", args =>
+        {
+            var saveSystem = new Meta.SaveLoadSystem();
+            var settings = saveSystem.LoadSettings();
+            
+            if (!settings.HasCompletedTutorial)
+            {
+                settings.HasCompletedTutorial = true;
+                saveSystem.SaveSettings(settings);
+            }
+
+            EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            
+            return "<color=#00FF00>Tutorial skipped and marked as complete. Teleporting to Lobby...</color>";
         });
     }
 
