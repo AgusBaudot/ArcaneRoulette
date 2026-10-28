@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5268674421184629678}
   - component: {fileID: 45041592279176735}
   - component: {fileID: 5942352156077859030}
+  - component: {fileID: 418567712622213665}
   m_Layer: 0
   m_Name: SM_PRP_Shop
   m_TagString: Untagged
@@ -85,6 +86,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &418567712622213665
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560314432611537726}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2804233818904025155, guid: 8251ec153cb94d441a079f3c9e149e80, type: 3}
 --- !u!1 &2777496116668949570
 GameObject:
   m_ObjectHideFlags: 0
@@ -494,6 +517,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _runePool: {fileID: 11400000, guid: 7f04c5bf6927877479a01c674828c44b, type: 2}
   _interactPrompt: {fileID: 3126489854122973861}
+  _iconFadeDuration: 0.4
 --- !u!1 &5845439536900230955
 GameObject:
   m_ObjectHideFlags: 0
