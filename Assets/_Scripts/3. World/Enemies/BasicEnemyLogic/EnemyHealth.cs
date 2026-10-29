@@ -18,6 +18,9 @@ namespace World
         [SerializeField] private Image _hpFill;
         [SerializeField] private Image _ghostFill;
         [SerializeField] private float _ghostSpeed = 2.5f;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _deathSound;
 
         public event Action OnDeath;
         public float CurrentHp => _currentHp;
@@ -38,6 +41,11 @@ namespace World
 
         public bool TakeDamage(int amount, ElementType elementType)
         {
+            if (DamageMitigationMultiplier < 1.0f)
+            {
+                GetComponent<RangeAIBrain>()?.OnBlockHit();
+            }
+
             float finalDamage = amount * DamageMitigationMultiplier;
             _currentHp = Mathf.Max(0f, _currentHp - finalDamage);
             UpdateUI();
@@ -71,15 +79,22 @@ namespace World
         {
             if (_isDead)
                 return;
-
+            
             _isDead = true;
+
+            if (_deathSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest {Event = _deathSound, WorldPosition = transform.position});
+            }
+
             OnDeath?.Invoke();
+            
+            GameStateManager.RunState?.FireKill(default(KillContext));
         }
 
         public void InitComponent(EnemyStats stats, Blackboard blackboard)
         {
             _maxHp = stats.MaxHp;
-            _element = stats.ElementType;
             ResetComponent();
         }
 
@@ -90,14 +105,12 @@ namespace World
             DamageMitigationMultiplier = 1.0f;
             UpdateUI();
             
-            // Snap the ghost bar full on spawn so it doesn't animate from 0
             if (_ghostFill != null) 
             {
                 _ghostFill.fillAmount = 1f;
             }
         }
 
-        //IDebuffReceiver Implementation------------------------
         public void RegisterDebuff(IDebuffReadable debuff)
         {
             _debuffs = debuff;
@@ -106,6 +119,11 @@ namespace World
         public void UnregisterDebuff()
         {
             _debuffs = null;
+        }
+        
+        public void SetRuntimeElement(ElementType newElement)
+        {
+            _element = newElement;
         }
     }
 }

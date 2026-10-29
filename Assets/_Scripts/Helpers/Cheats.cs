@@ -10,6 +10,8 @@ public class Cheats : MonoBehaviour
 {
     public static Cheats Instance { get; private set; }
     public static bool GodMode { get; private set; }
+    
+    public string LastCommand { get; private set; } = "";
 
     private Dictionary<string, Func<string[], string>> _commands = new();
     private Dictionary<string, RuneDefinitionSO> _runeDatabase;
@@ -20,12 +22,10 @@ public class Cheats : MonoBehaviour
         if (Instance != null) { Destroy(this); return; }
         Instance = this;
 
-        // Bypass Unity's abstract resource load bug
         _runeDatabase = Resources.LoadAll<ScriptableObject>("Runes")
             .OfType<RuneDefinitionSO>()
             .ToDictionary(r => r.name.ToLower().Replace(" ", ""), r => r);
 
-        // Cache all enemy prefabs located in a Resources/Enemies folder
         _enemyDatabase = Resources.LoadAll<GameObject>("Enemies")
             .ToDictionary(e => e.name.ToLower().Replace(" ", ""), e => e);
 
@@ -39,12 +39,14 @@ public class Cheats : MonoBehaviour
             return "<color=#3C3C3C>Available commands:\n" +
                    "  god - Toggles invincibility\n" +
                    "  heal [amount] - Heals player\n" +
+                   "  damage [amount] - Deals damage to player\n" +
                    "  clear - Forces room clear event\n" +
                    "  nextfloor - Advances 1 floor\n" +
                    "  floor [number] - Advances to specific floor\n" +
-                   "  tp portal - Teleports to portal room\n" +
+                   "  tp [portal|shop] - Teleports to specific room types\n" +
                    "  give [currency|rune] [id] [amount] - Gives items\n" +
                    "  spawn [enemy_name] [count] - Spawns enemies\n" +
+                   "  skip - Skips the tutorial and teleports to Lobby\n" +
                    "  help - Shows this list</color>";
         });
 
@@ -64,6 +66,25 @@ public class Cheats : MonoBehaviour
                 return $"Healed player for {amount} HP.";
             }
             return "<color=#FF0000>Player or IHealable not found.</color>";
+        });
+
+        _commands.Add("damage", args =>
+        {
+            if (args.Length < 2 || !int.TryParse(args[1], out int amount)) return "<color=#FF0000>Usage: damage [amount]</color>";
+            
+            var player = FindObjectOfType<PlayerController>();
+            if (player != null)
+            {
+                var damageable = player.GetComponentInChildren<IDamageable>();
+                if (damageable != null)
+                {
+                    var batch = new DamageBatch();
+                    batch.Deal(damageable, amount, ElementType.Neutral);
+                    batch.Commit(Helpers.Combat.PlayerDamage);
+                    return $"Dealt {amount} damage to player.";
+                }
+            }
+            return "<color=#FF0000>Player or IDamageable not found.</color>";
         });
 
         _commands.Add("clear", args =>
@@ -91,8 +112,13 @@ public class Cheats : MonoBehaviour
 
         _commands.Add("tp", args =>
         {
-            if (args.Length < 2 || args[1] != "portal") return "<color=#FF0000>Usage: tp portal</color>";
-            return TeleportToPortal();
+            if (args.Length < 2) return "<color=#FF0000>Usage: tp [portal|shop]</color>";
+            
+            string target = args[1].ToLower();
+            if (target == "portal") return TeleportToRoom(RoomType.Portal);
+            if (target == "shop") return TeleportToRoom(RoomType.Shop);
+            
+            return "<color=#FF0000>Unknown room target. Usage: tp [portal|shop]</color>";
         });
 
         _commands.Add("give", args =>
@@ -115,7 +141,6 @@ public class Cheats : MonoBehaviour
 
                 for (int i = 0; i < count; i++)
                 {
-                    // Spawn slightly offset from player in a circle
                     Vector3 offset = UnityEngine.Random.insideUnitSphere * 3f;
                     offset.y = 0f;
                     Instantiate(prefab, player.transform.position + offset, Quaternion.identity);
@@ -124,14 +149,36 @@ public class Cheats : MonoBehaviour
             }
             return $"<color=#FF0000>Enemy '{enemyId}' not found in Resources/Enemies.</color>";
         });
+        
+        _commands.Add("skip", args =>
+        {
+            if (TutorialManager.Instance != null)
+            {
+                TutorialManager.Instance.ExitTutorial();
+                return "<color=#00FF00>Tutorial skipped. Fading out and teleporting to Lobby...</color>";
+            }
+
+            var saveSystem = new Meta.SaveLoadSystem();
+            var settings = saveSystem.LoadSettings();
+            
+            if (!settings.HasCompletedTutorial)
+            {
+                settings.HasCompletedTutorial = true;
+                saveSystem.SaveSettings(settings);
+            }
+
+            EventBus.Publish(new EndRunRequestEvent(SceneNames.Lobby));
+            return "<color=#00FF00>Tutorial skipped and marked as complete. Teleporting to Lobby...</color>";
+        });
     }
 
     public string ExecuteCommand(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return "";
         
-        // Strip TMPro invisible character and trim whitespace
         input = input.Replace("\u200B", "").Trim();
+        
+        LastCommand = input;
         
         string[] split = input.ToLower().Split(' ');
         string command = split[0];
@@ -154,26 +201,27 @@ public class Cheats : MonoBehaviour
         return $"Advancing to floor {GameStateManager.RunState.CurrentFloor}...";
     }
 
-    private string TeleportToPortal()
+    private string TeleportToRoom(RoomType targetType)
     {
         var runState = GameStateManager.RunState;
         if (runState == null) return "<color=#FF0000>Not in an active run.</color>";
 
         foreach (var kvp in runState.FloorMap)
         {
-            if (kvp.Value.Type == RoomType.Portal)
+            if (kvp.Value.Type == targetType)
             {
                 var rooms = FindObjectsOfType<RoomManager>();
-                var portalRoom = rooms.FirstOrDefault(r => r.Index == kvp.Key);
-                if (portalRoom != null)
+                var targetRoom = rooms.FirstOrDefault(r => r.Index == kvp.Key);
+                
+                if (targetRoom != null)
                 {
-                    EventBus.Publish(new PlayerTeleportRequestEvent(portalRoom.transform.position));
+                    EventBus.Publish(new PlayerTeleportRequestEvent(targetRoom.transform.position));
                     runState.UpdatePlayerRoom(kvp.Key);
-                    return "Teleported to Portal Room.";
+                    return $"Teleported to {targetType} Room.";
                 }
             }
         }
-        return "<color=#FF0000>No portal room found on this floor (is it a boss floor?).</color>";
+        return $"<color=#FF0000>No {targetType} room found on this floor.</color>";
     }
 
     private string ProcessGiveCommand(string[] args)

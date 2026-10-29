@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Core;
@@ -9,13 +8,19 @@ namespace World
 {
     public sealed class ThornTrap : MonoBehaviour, IHazard
     {
-        [Header("Stats")] [SerializeField] private int _damage = 15;
+        [Header("Stats")] 
+        [SerializeField] private int _damage = 15;
         [SerializeField] private float _windupDuration = 0.5f;
         [SerializeField] private float _spikeDisplayDuration = 0.3f;
         [SerializeField] private float _cooldownDuration = 2f;
         [SerializeField] private Vector3 _boxSize;
 
-        [Header("Animation")] [SerializeField] private Animator _anim;
+        [Header("Animation")] 
+        [SerializeField] private Animator _anim;
+
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _activateSound;
+        [SerializeField] private AudioEventSO _deactivateSound;
 
         private bool _isActive = true;
         private bool _isIdle = true;
@@ -46,11 +51,20 @@ namespace World
             yield return CoroutineUtils.GetWait(_windupDuration);
 
             _anim.SetTrigger(_activateHash);
+            if (_activateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _activateSound, WorldPosition = transform.position });
+            }
 
             ApplyDamage();
 
             yield return CoroutineUtils.GetWait(_spikeDisplayDuration);
+            
             _anim.SetTrigger(_cooldownHash);
+            if (_deactivateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _deactivateSound, WorldPosition = transform.position });
+            }
 
             yield return CoroutineUtils.GetWait(_cooldownDuration);
             _anim.SetTrigger(_idleHash);
@@ -110,6 +124,11 @@ namespace World
             }
 
             _anim.SetTrigger(_cooldownHash);
+            if (_isActive && _deactivateSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = _deactivateSound, WorldPosition = transform.position });
+            }
+            
             _isActive = false;
         }
 

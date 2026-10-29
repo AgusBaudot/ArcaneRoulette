@@ -131,4 +131,31 @@ namespace Foundation
         /// </summary>
         public float? Volume;
     }
+
+    /// <summary>
+    /// Toggles a low-pass filter on a specific bus.
+    /// Used for UI menus to push music into the background without killing it momentum.
+    /// </summary>
+    public struct AudioFilterRequest
+    {
+        public MixerBus TargetBus;
+        public bool EnableFilter;
+
+        /// <summary>
+        /// Target cutoff frequency in Hz.
+        /// 1500Hz is a good muffled baseline. 22000 Hz is fully open.
+        /// </summary>
+        public float TargetCutoffHz;
+        
+        /// <summary>
+        /// Multiplier applied to the user's saved volume preference when the filter is active.
+        /// e.g. 0.4f drops the bus to 40% of its normal volume.
+        /// </summary>
+        public float VolumeMultiplier;
+
+        /// <summary>
+        /// Transition time in seconds (uses unscaled time).
+        /// </summary>
+        public float TransitionSeconds;
+    }
 }

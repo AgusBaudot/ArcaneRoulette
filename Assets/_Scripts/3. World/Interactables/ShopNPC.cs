@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using Core;
+using DG.Tweening;
 using Foundation;
-using UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace World
 {
@@ -12,6 +13,7 @@ namespace World
 
         // [SerializeField] private ArtifactDropPool _artifactPool; // Uncomment once artifact pool is done.
         [SerializeField] private GameObject _interactPrompt;
+        [SerializeField] private float _iconFadeDuration;
 
         private bool _playerInside;
 
@@ -25,11 +27,27 @@ namespace World
         private List<RuneDefinitionSO> _stockRunes = new();
         private List<bool> _runePurchasedState = new();
 
+        private Image _iconSprite;
+        private Tween _iconTween;
+
         private void Awake()
         {
             GenerateStock();
             if (_interactPrompt)
                 _interactPrompt.SetActive(false);
+            
+            if (_interactPrompt != null)
+            {
+                _iconSprite = _interactPrompt.GetComponentInChildren<Image>();
+                _interactPrompt.SetActive(false);
+                
+                if (_iconSprite != null)
+                {
+                    var color = _iconSprite.color;
+                    color.a = 0f;
+                    _iconSprite.color = color;
+                }
+            }
         }
 
         private void OnEnable()
@@ -51,7 +69,7 @@ namespace World
                 _stockRunes.Clear();
                 _runePurchasedState.Clear();
 
-                var newRunes = _runePool.GetRandomRunes(4);
+                var newRunes = _runePool.GetRandomRunes(5);
                 foreach (var rune in newRunes)
                 {
                     _stockRunes.Add(rune);
@@ -109,10 +127,7 @@ namespace World
             if (other.GetComponentInParent<PlayerController>() != null)
             {
                 _playerInside = true;
-                if (!_interactPrompt)
-                    _interactPrompt = FindObjectOfType<ShopUI>().gameObject;
-                    
-                _interactPrompt.SetActive(true);
+                ShowIcon();
             }
         }
 
@@ -121,9 +136,28 @@ namespace World
             if (other.GetComponentInParent<PlayerController>() != null)
             {
                 _playerInside = false;
-                if (_interactPrompt)
-                    _interactPrompt.SetActive(false);
+                HideIcon();
             }
+        }
+        
+        private void ShowIcon()
+        {
+            if (_interactPrompt == null)
+                return;
+            
+            _interactPrompt.SetActive(true);
+            _iconTween?.Kill();
+            _iconTween = _iconSprite.DOFade(1f, _iconFadeDuration);
+        }
+
+        private void HideIcon()
+        {
+            if (_interactPrompt == null)
+                return;
+
+            _iconTween?.Kill();
+            _iconTween = _iconSprite.DOFade(0f, _iconFadeDuration)
+                .OnComplete(() => _interactPrompt.SetActive(false));
         }
     }
 }

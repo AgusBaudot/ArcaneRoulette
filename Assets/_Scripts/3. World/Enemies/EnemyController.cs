@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 using Foundation;
@@ -11,7 +12,7 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly, IOcclusionTarget
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
     {
         #region Parameters
         public float interval { get; set; }
@@ -35,12 +36,16 @@ namespace World
 
         [Header("Enemy Data")]
         [SerializeField] private EnemyStats _enemyStats;
+        
         [Header("References")]
-        [SerializeField] private SpriteRenderer _elementalFeedback;
+        [SerializeField] private Image _elementalFeedback;
         [SerializeField] private Sprite _fireElement;
         [SerializeField] private Sprite _earthElement;
         [SerializeField] private Sprite _waterElement;
         [SerializeField] private Sprite _thunderElement;
+        
+        [Header("Audio")]
+        [SerializeField] private AudioEventSO _spawnSound;
         
         public event Action<EnemyController> OnDeathEvent;
         private int _floorLayerMask;
@@ -90,8 +95,6 @@ namespace World
             _enemyHealth.OnDeath -= DeathEvent;
             OnDeathEvent = null; 
             
-            OcclusionRegistry.Unregister(this);
-    
             if (_aiBrain.Agent != null && _aiBrain.Agent.isActiveAndEnabled)
             {
                 _aiBrain.Agent.enabled = false; 
@@ -103,24 +106,34 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
-            
-            OcclusionRegistry.Register(this);
-    
-            if (!_isInitialized)
+
+            if (_spawnSound != null)
             {
-                switch (_enemyStats.ElementType)
+                EventBus.Publish(new AudioPlayRequest {Event = _spawnSound, WorldPosition = transform.position});
+            }
+            
+            ElementType rolledElement = (ElementType)Random.Range(0, 4);
+
+            if (_elementalFeedback != null)
+            {
+                switch (rolledElement)
                 {
                     case ElementType.Fire: _elementalFeedback.sprite = _fireElement; break;
                     case ElementType.Water: _elementalFeedback.sprite = _waterElement; break;
                     case ElementType.Earth: _elementalFeedback.sprite = _earthElement; break;
                     case ElementType.Electric: _elementalFeedback.sprite = _thunderElement; break;
                 }
-        
+            }
+
+            if (!_isInitialized)
+            {
                 InitSystems();
                 _isInitialized = true;
             }
 
             RestartSystems();
+    
+            _enemyHealth.SetRuntimeElement(rolledElement);
     
             _enemyHealth.OnDeath -= DeathEvent;
             _enemyHealth.OnDeath += DeathEvent;

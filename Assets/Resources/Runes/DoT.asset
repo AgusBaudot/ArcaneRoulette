@@ -13,13 +13,16 @@ MonoBehaviour:
   m_Name: DoT
   m_EditorClassIdentifier: 
   ID: 4
-  Name: DoT
-  Type: Impact
-  Icon: {fileID: 21300000, guid: c1e831e99d6035c4a991f1060f868fe4, type: 3}
+  Name: <color=#F67AFF>DoT
+  Type: <size=32><color=#FF8DFF>Impact Rune
+  Icon: {fileID: 21300000, guid: 7c47c6448e440b045a4a170627698444, type: 3}
+  Highlighted: {fileID: 21300000, guid: 2dea5561933f2bd47b00d0431932c0a3, type: 3}
+  BackgroundGlow: {fileID: 21300000, guid: d7212aadae897f748973c10ebe35096e, type: 3}
   StoneLessIcon: {fileID: 0}
-  Description: "Applies a Damage Over Time effect to enemies. The damage type and
-    behavior depend on the spell\u2019s elemental type. \r\n"
+  Description: "<size=28>Applies a <color=#B7C5FC><b>Damage Over Time</b></color>
+    effect to enemies for <color=#B7C5FC><b>2 seconds</b></color>.\n<size=26><i><color=#B8C7FE50>This
+    effect's duration increases when reapplied.\r"
   _baseDuration: 2
   _additionalDurationPerStack: 1
-  _damageMultiplier: 0.1
+  _damageMultiplier: 0.25
   _tickInterval: 1

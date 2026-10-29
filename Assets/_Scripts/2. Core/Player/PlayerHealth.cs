@@ -25,8 +25,6 @@ namespace Core
         public void Initialize(PlayerStats stats)
         {
             _stats = stats;
-            GameStateManager.RunState.SetMaxHp(_stats.BaseHp);
-            GameStateManager.RunState.SetHp(_stats.BaseHp);
         }
 
         private void OnEnable()
@@ -47,7 +45,7 @@ namespace Core
 
         public bool TakeDamage(int amount, ElementType elementType)
         {
-            if (IsInvincible)
+            if (IsInvincible || CurrentHp <= 0)
                 return false;
             
             EventBus.Publish(new AudioPlayRequest

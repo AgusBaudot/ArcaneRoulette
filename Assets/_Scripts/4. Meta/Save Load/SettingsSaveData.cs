@@ -6,6 +6,8 @@ namespace Meta
     [Serializable]
     public class SettingsSaveData
     {
+        public bool HasCompletedTutorial;
+        
         public float MasterVolume = 1f;
         public float MusicVolume = 0.2f;
         public float SFXVolume = 1f;
@@ -19,6 +21,14 @@ namespace Meta
 
         public SettingsSaveData()
         {
+#if UNITY_EDITOR
+            // Safe fallbacks to prevent log spam during editor playtesting
+            ResolutionWidth = 1920;
+            ResolutionHeight = 1080;
+            RefreshRate = 60;
+            WindowMode = FullScreenMode.Windowed;
+#else
+            // Real hardware query compiled exclusively into the build
             Resolution currentRes = Screen.currentResolution;
             
             ResolutionWidth = currentRes.width;
@@ -26,6 +36,7 @@ namespace Meta
             RefreshRate = Mathf.RoundToInt((float)currentRes.refreshRateRatio.value);
             
             WindowMode = FullScreenMode.FullScreenWindow;
+#endif
         }
 
         public static SettingsSaveData GetDefault() => new SettingsSaveData();

@@ -1,3 +1,4 @@
+using System;
 using Foundation;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,6 +11,13 @@ namespace World
         public int UpdatePriority => Foundation.UpdatePriority.AI;
         
         private BruteEnemyStats BruteStats => _enemyStats as BruteEnemyStats;
+        
+        public event Action OnThrustWindupStarted;
+        public event Action OnThrustStarted;
+        public event Action OnChargeWindupStarted;
+        public event Action OnChargeStarted;
+
+        public Vector3 CurrentAttackDirection => _lastAttackDirection;
         
         private bool _isCharging;
         private bool _isThrusting;
@@ -120,15 +128,23 @@ namespace World
         private void BeginThrustWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            if (_agent != null && _agent.isOnNavMesh)
+                _agent.isStopped = true;
+            
             RedirectTowardPlayer();
+            
+            OnThrustWindupStarted.Invoke();
         }
 
         private void BeginChargeWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            if (_agent != null && _agent.isOnNavMesh)
+                _agent.isStopped = true;
+            
             RedirectTowardPlayer();
+            
+            OnChargeWindupStarted.Invoke();
         }
 
         private void RedirectTowardPlayer()
@@ -221,6 +237,8 @@ namespace World
             {
                 _chargeHitbox.Activate(BruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
             }
+            
+            OnChargeStarted.Invoke();
         }
 
         private void StartThrust()
@@ -242,6 +260,8 @@ namespace World
                 
                 _thrustHitbox.Activate(BruteStats, damage, _lastAttackDirection);
             }
+            
+            OnThrustStarted.Invoke();
         }
 
         private void StopThrust()

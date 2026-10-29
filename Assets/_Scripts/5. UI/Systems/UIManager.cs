@@ -18,6 +18,7 @@ namespace UI
         [SerializeField] private LootSelectionUI _lootSelectionPrefab;
         [SerializeField] private ConsoleUI _consolePrefab;
         [SerializeField] private SettingsUI _settingsPrefab;
+        [SerializeField] private ControlsUI _controlsPrefab;
         
         [Header("Universal Audio")]
         [SerializeField] private AudioEventSO _menuOpenSound;
@@ -31,6 +32,7 @@ namespace UI
         private LootSelectionUI _lootSelectionInstance;
         private ConsoleUI _consoleInstance;
         private SettingsUI _settingsInstance;
+        private ControlsUI _controlsInstance;
 
         private BaseUIPanel _currentActivePanel;
 
@@ -46,13 +48,15 @@ namespace UI
             _lootSelectionInstance = Instantiate(_lootSelectionPrefab, _staticCanvasRoot);
             _consoleInstance = Instantiate(_consolePrefab, _staticCanvasRoot);
             _settingsInstance = Instantiate(_settingsPrefab, _staticCanvasRoot);
+            _controlsInstance = Instantiate(_controlsPrefab, _staticCanvasRoot);
         }   
 
         private void OnEnable()
         {
             EventBus.Subscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
-            EventBus.Subscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Subscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
+            EventBus.Subscribe<OnControlsClickedEvent>(HandleControlsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed += HandleCraftingToggle;
             Helpers.Input.OnPausePressed += HandlePauseToggle;
@@ -63,8 +67,9 @@ namespace UI
         private void OnDisable()
         {
             EventBus.Unsubscribe<ShopOpenRequestEvent>(HandleShopOpenRequest);
-            EventBus.Unsubscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpenRequest);
             EventBus.Unsubscribe<SettingsOpenRequestEvent>(HandleSettingsOpenRequest);
+            EventBus.Unsubscribe<OnControlsClickedEvent>(HandleControlsOpenRequest);
 
             Helpers.Input.OnCraftingMenuPressed -= HandleCraftingToggle;
             Helpers.Input.OnPausePressed -= HandlePauseToggle;
@@ -82,13 +87,14 @@ namespace UI
             OpenPanel(_shopInstance);
         }
 
-        private void HandleRoomClear(RoomClearEvent evt)
+        private void HandleChestOpenRequest(LootChestOpenedEvent evt)
         {
             if (_currentActivePanel != null)
             {
                 if (_currentActivePanel == _consoleInstance)
                 {
-                    CloseCurrentPanel();
+                    OpenPanel(_lootSelectionInstance, false);
+                    return;
                 }
                 else
                 {
@@ -136,11 +142,18 @@ namespace UI
             OpenPanel(_settingsInstance, true);
         }
 
+        private void HandleControlsOpenRequest(OnControlsClickedEvent evt)
+        {
+            OpenPanel(_controlsInstance, true);
+        }
+
         // ── Core Orchestration ───────────────────────────────────────────────
 
         private void OpenPanel(BaseUIPanel targetPanel, bool keepHistory = false)
         {
             if (_currentActivePanel == targetPanel) return;
+
+            bool wasNull = _currentActivePanel == null;
 
             if (_currentActivePanel != null)
             {
@@ -161,12 +174,21 @@ namespace UI
             _currentActivePanel.OnCloseRequested += CloseCurrentPanel;
             _currentActivePanel.Show();
 
-            if (_panelHistory.Count == 0)
+            if (wasNull)
             {
                 Time.timeScale = 0f;
                 AudioListener.pause = true;
 
                 Helpers.Input.EnableUIInput();
+                
+                EventBus.Publish(new AudioFilterRequest
+                {
+                    TargetBus = MixerBus.Music,
+                    EnableFilter = true,
+                    TargetCutoffHz = 1200f,
+                    VolumeMultiplier = 0.4f,
+                    TransitionSeconds = 0.25f
+                });
             }
 
             if (_menuOpenSound != null)
@@ -196,6 +218,14 @@ namespace UI
             AudioListener.pause = false;
             Time.timeScale = 1f;
             Helpers.Input.EnablePlayerInput();
+            
+            EventBus.Publish(new AudioFilterRequest
+            {
+                TargetBus = MixerBus.Music,
+                EnableFilter = false,
+                VolumeMultiplier = 1f,
+                TransitionSeconds = 0.25f
+            });
 
             if (_menuCloseSound != null)
                 EventBus.Publish(new AudioPlayRequest { Event = _menuCloseSound });

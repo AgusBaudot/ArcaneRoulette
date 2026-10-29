@@ -25,6 +25,21 @@ namespace World
 
         private bool IsCommitted => _isAttacking || _isBlocking || _isTeleporting;
 
+        public event Action<float> OnTeleportStarted;
+        public event Action<float> OnCoverStarted;
+        public event Action<float> OnUncoverStarted;
+        public event Action<int, float> OnWindupStarted;
+        public event Action<int> OnFire;
+
+        public Vector3 CurrentTargetDirection
+        {
+            get
+            {
+                Transform player = GetPlayer();
+                return player != null ? (player.position - transform.position).normalized : transform.forward;
+            }
+        }
+
         protected override void Awake()
         {
             base.Awake();
@@ -68,7 +83,7 @@ namespace World
             var blockSeq = new SequenceNode("Block", priority: 20);
             blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
-            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout)));
+            blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout, RangeStats.BlockPercentage)));
             blockSeq.AddChild(new LeafNode("Uncover", new TimedActionStrategy(BeginUncover, () => RangeStats.BlockUncoverDuration)));
             blockSeq.AddChild(new LeafNode("EndUncover", new ActionNode(EndUncover)));
             root.AddChild(blockSeq);
@@ -76,13 +91,13 @@ namespace World
             //Attack (Priority 10)
             var attackSeq = new SequenceNode("Attack", priority: 10);
             attackSeq.AddChild(new LeafNode("CanAttack", new ConditionNode(() => IsInStableDistance(GetPlayer()) && IsInLos() && !IsCommitted)));
-            attackSeq.AddChild(new LeafNode("Windup1", new TimedActionStrategy(BeginAttack, () => GetClampedWindup(RangeStats.Attack1Windup))));
+            attackSeq.AddChild(new LeafNode("Windup1", new TimedActionStrategy(BeginWindup1, () => GetClampedWindup(RangeStats.Attack1Windup))));
             attackSeq.AddChild(new LeafNode("Fire1", new ActionNode(FireProjectile1)));
-            attackSeq.AddChild(new LeafNode("Windup2", new TimedActionStrategy(null, () => GetClampedWindup(RangeStats.Attack2Windup))));
+            attackSeq.AddChild(new LeafNode("Windup2", new TimedActionStrategy(BeginWindup2, () => GetClampedWindup(RangeStats.Attack2Windup))));
             attackSeq.AddChild(new LeafNode("Fire2", new ActionNode(FireProjectile2)));
-            attackSeq.AddChild(new LeafNode("Windup3", new TimedActionStrategy(null, () => GetClampedWindup(RangeStats.Attack3Windup))));
+            attackSeq.AddChild(new LeafNode("Windup3", new TimedActionStrategy(BeginWindup3, () => GetClampedWindup(RangeStats.Attack3Windup))));
             attackSeq.AddChild(new LeafNode("Fire3", new ActionNode(FireProjectile3)));
-            attackSeq.AddChild(new LeafNode("Windup4", new TimedActionStrategy(null, () => GetClampedWindup(RangeStats.Attack4Windup))));
+            attackSeq.AddChild(new LeafNode("Windup4", new TimedActionStrategy(BeginWindup4, () => GetClampedWindup(RangeStats.Attack4Windup))));
             attackSeq.AddChild(new LeafNode("FireBig", new ActionNode(FireBigProjectile)));
             attackSeq.AddChild(new LeafNode("EndAttack", new ActionNode(EndAttack)));
             root.AddChild(attackSeq);
@@ -114,7 +129,13 @@ namespace World
             _isBlocking = true;
             SetState(AIState.Blocking);
             _agent.isStopped = true;
-            _animator.SetTrigger("Cover");
+
+            OnCoverStarted?.Invoke(RangeStats.BlockCoverDuration);
+
+            if (RangeStats.BlockStartSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockStartSound, WorldPosition = transform.position });
+            }
         }
 
         public void SetDamageMitigation(float multiplier)
@@ -122,11 +143,29 @@ namespace World
             if (_health != null) _health.DamageMitigationMultiplier = multiplier;
         }
 
+        /// <summary>
+        /// Call this externally (EnemyHealth.TakeDamage) when a projectile 
+        /// physically strikes this enemy while the damage mitigation multiplier is active.
+        /// </summary>
+        public void OnBlockHit()
+        {
+            if (_isBlocking && RangeStats.BlockHitSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockHitSound, WorldPosition = transform.position });
+            }
+        }
+
         private void BeginUncover()
         {
             _isUncovering = true;
             SetDamageMitigation(1.0f); 
-            _animator.SetTrigger("Uncover");
+
+            OnUncoverStarted?.Invoke(RangeStats.BlockUncoverDuration);
+
+            if (RangeStats.BlockEndSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BlockEndSound, WorldPosition = transform.position });
+            }
         }
 
         private void EndUncover()
@@ -140,7 +179,8 @@ namespace World
             _isTeleporting = true;
             SetState(AIState.Teleporting);
             _agent.isStopped = true;
-            _animator.SetTrigger("TeleportStart");
+
+            OnTeleportStarted?.Invoke(RangeStats.TeleportAnimDuration);
         }
 
         private void ExecuteTeleport()
@@ -153,6 +193,7 @@ namespace World
 
             Transform player = GetPlayer();
             Vector3 playerPos = player != null ? player.position : transform.position;
+            Vector3 oldPos = transform.position;
 
             Array.Sort(zones, (a, b) => 
                 Vector3.Distance(b.transform.position, playerPos).CompareTo(Vector3.Distance(a.transform.position, playerPos)));
@@ -177,21 +218,38 @@ namespace World
 
                 if (!Physics.CheckBox(zone.transform.position, zone.Collider.size / 2f, zone.transform.rotation, LayerMask.GetMask("Enemy")))
                 {
-                    _agent.Warp(zone.transform.position);
+                    WarpAndPlaySounds(oldPos, zone.transform.position);
                     return;
                 }
             }
     
-            _agent.Warp(zones[0].transform.position);
+            WarpAndPlaySounds(oldPos, zones[0].transform.position);
         }
 
-        private void BeginAttack()
+        private void WarpAndPlaySounds(Vector3 oldPos, Vector3 newPos)
+        {
+            if (RangeStats.TeleportDisappearSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportDisappearSound, WorldPosition = oldPos });
+                
+            _agent.Warp(newPos);
+            
+            if (RangeStats.TeleportAppearSound != null)
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportAppearSound, WorldPosition = newPos });
+        }
+
+        private void BeginWindup1()
         {
             _isAttacking = true;
             SetState(AIState.Attack);
             _agent.isStopped = true;
             if (_playerController == null) _playerController = GetPlayer()?.GetComponentInParent<PlayerController>();
+            
+            OnWindupStarted?.Invoke(0, GetClampedWindup(RangeStats.Attack1Windup));
         }
+
+        private void BeginWindup2() => OnWindupStarted?.Invoke(1, GetClampedWindup(RangeStats.Attack2Windup));
+        private void BeginWindup3() => OnWindupStarted?.Invoke(2, GetClampedWindup(RangeStats.Attack3Windup));
+        private void BeginWindup4() => OnWindupStarted?.Invoke(3, GetClampedWindup(RangeStats.Attack4Windup));
 
         private void FireProjectile1()
         {
@@ -199,6 +257,7 @@ namespace World
             if (player == null) return;
             Vector3 dir = (player.position - _firePoint.position).normalized;
             SpawnNormalProjectile(dir);
+            OnFire?.Invoke(0);
         }
 
         private void FireProjectile2()
@@ -208,6 +267,7 @@ namespace World
             _targetPos2 = player.position + (_playerController.LogicalVelocity * RangeStats.PredictionTime2);
             Vector3 dir = (_targetPos2 - _firePoint.position).normalized;
             SpawnNormalProjectile(dir);
+            OnFire?.Invoke(1);
         }
 
         private void FireProjectile3()
@@ -217,6 +277,7 @@ namespace World
             _targetPos3 = player.position + (_playerController.LogicalVelocity * RangeStats.PredictionTime3);
             Vector3 dir = (_targetPos3 - _firePoint.position).normalized;
             SpawnNormalProjectile(dir);
+            OnFire?.Invoke(2);
         }
 
         private void FireBigProjectile()
@@ -227,16 +288,14 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var projObj = Helpers.ProjFactory.Spawn<DetonatingEnemyProjectile>(RangeStats.BigProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, RangeStats.ElementType, gameObject, RangeStats.BigProjectileDrainRate);
+            projObj.InitBig(dir, RangeStats.BigProjectileInitialSpeed, damage, gameObject, RangeStats.BigProjectileDrainRate, RangeStats.BigProjectileLifespan);
             
             if (RangeStats.BigProjectileSound != null)
             {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = RangeStats.BigProjectileSound, 
-                    WorldPosition = _firePoint.position
-                });
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.BigProjectileSound, WorldPosition = _firePoint.position });
             }
+
+            OnFire?.Invoke(3);
         }
 
         private void SpawnNormalProjectile(Vector3 dir)
@@ -244,15 +303,11 @@ namespace World
             int damage = Mathf.RoundToInt(EffectiveAttackDamage); 
             
             var proj = Helpers.ProjFactory.Spawn<EnemyProjectile>(RangeStats.NormalProjectilePrefab, _firePoint.position, Quaternion.LookRotation(dir));
-            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, RangeStats.ElementType, gameObject);
+            proj.Init(dir, RangeStats.NormalProjectileSpeed, damage, gameObject);
             
             if (RangeStats.NormalProjectileSound != null)
             {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = RangeStats.NormalProjectileSound,
-                    WorldPosition = _firePoint.position
-                });
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.NormalProjectileSound, WorldPosition = _firePoint.position });
             }
         }
 
@@ -262,7 +317,6 @@ namespace World
             _isAttacking = false;
         }
 
-        // --- Chase ---
         private void DoChase()
         {
             SetState(AIState.Chase);
@@ -275,18 +329,19 @@ namespace World
         }
     }
 
-    // Custom Strategy for Holding the Block
     public class BlockHoldStrategy : IStrategy
     {
         private readonly RangeAIBrain _brain;
         private readonly Func<float> _getTimeout;
         private float _lastProjectileTime;
         private bool _started;
+        private float _blockPercentage;
 
-        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout)
+        public BlockHoldStrategy(RangeAIBrain brain, Func<float> getTimeout, float blockPercentage)
         {
             _brain = brain;
             _getTimeout = getTimeout;
+            _blockPercentage = blockPercentage;
         }
 
         public Node.NodeState Process()
@@ -295,7 +350,7 @@ namespace World
             {
                 _started = true;
                 _lastProjectileTime = Time.time;
-                _brain.SetDamageMitigation(0.5f); 
+                _brain.SetDamageMitigation(_blockPercentage);
             }
 
             if (_brain.AreProjectilesInSafeRange())
