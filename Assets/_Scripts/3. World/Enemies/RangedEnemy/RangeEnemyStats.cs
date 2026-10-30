@@ -43,6 +43,24 @@ namespace World
         [Tooltip("1.0 = no blockage at all, 0.0 = 100% blockage (no damage received)"), Range(0, 10)]
         public float BlockPercentage = 0.0f;
         
+        [Header("Animation Durations")]
+        public float Attack1Duration = 0.2f;
+        public float Attack2Duration = 0.2f;
+        public float Attack3Duration = 0.2f;
+        public float Attack4Duration = 0.3f;
+        public float RecoverDuration = 0.8f;
+        public float TeleportOutDuration = 0.4f;
+
+        [Header("Projectile Release Timings (0.0 to 1.0)")]
+        [Tooltip("Fraction of the Fire duration before the projectile physically spawns. 0.0 = instant, 0.5 = halfway, 1.0 = end.")]
+        [Range(0f, 1f)] public float Attack1ReleaseFraction = 0.2f;
+        [Tooltip("Fraction of the Fire duration before the projectile physically spawns. 0.0 = instant, 0.5 = halfway, 1.0 = end.")]
+        [Range(0f, 1f)] public float Attack2ReleaseFraction = 0.2f;
+        [Tooltip("Fraction of the Fire duration before the projectile physically spawns. 0.0 = instant, 0.5 = halfway, 1.0 = end.")]
+        [Range(0f, 1f)] public float Attack3ReleaseFraction = 0.2f;
+        [Tooltip("Fraction of the Fire duration before the projectile physically spawns. 0.0 = instant, 0.5 = halfway, 1.0 = end.")]
+        [Range(0f, 1f)] public float Attack4ReleaseFraction = 0.4f;
+        
         [Header("Audio")]
         public AudioEventSO BigProjectileSound;
         public AudioEventSO NormalProjectileSound;
