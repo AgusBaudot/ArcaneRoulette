@@ -1,8 +1,9 @@
 namespace World 
 {
-    public struct RoomEncounterData 
+    public struct RoomEncounterData
     {
         public EnemySpawnData[] Waves;
+        public bool IsDynamicRefill;
     }
 }
 

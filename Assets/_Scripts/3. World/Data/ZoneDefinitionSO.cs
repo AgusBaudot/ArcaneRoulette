@@ -3,13 +3,7 @@ using UnityEngine;
 
 namespace World
 {
-    public enum ZoneTag
-    {
-        First,
-        Second,
-        Third,
-        Fourth
-    }
+    public enum ZoneTag { First, Second, Third, Fourth }
 
     [Serializable]
     public struct RoomPrefabPool
@@ -30,27 +24,27 @@ namespace World
     {
         [Header("Identity")] [SerializeField] private ZoneTag _zoneTag;
 
-        [Header("Structure")] [SerializeField, Min(1)]
-        private int _floorAmount = 2;
+        [Header("Structure")] 
+        [SerializeField, Min(1)] private int _floorAmount = 2;
         [Tooltip("If true, the final floor of this zone generates a Boss room. If false, it generates a standard Portal/Exit room.")]
         [SerializeField] private bool _hasBossEncounter = false;
         [SerializeField, Min(4)] private int _totalRoomsPerFloor = 7;
         [SerializeField] private int _combatRoomMin = 3;
         [SerializeField] private int _combatRoomMax = 4;
 
-        [Header("Non-Combat Pool Weights (Shop / Resting / Artifact")]
-        [Tooltip("Weight every pool room type starts at.")]
+        [Header("Encounter Selection")]
+        [Tooltip("If true, encounters are selected by their list index sequentially per floor. If false, they are picked randomly.")]
+        [SerializeField] private bool _sequentialEncounters;
+
+        [Header("Non-Combat Pool Weights (Shop / Resting / Artifact)")]
         [SerializeField] private int _startingRoomWeight = 100;
-        [Tooltip("Weight a room type drops to right after it's picked.")]
         [SerializeField] private int _weightPenalty = 20;
-        [Tooltip("Weight every other room type gains when it's NOT picked.")]
         [SerializeField] private int _weightBonus = 40;
 
-        [Header("Room Prefab Pools")] [SerializeField]
-        private RoomPrefabPool[] _roomPrefabPools;
+        [Header("Room Prefab Pools")] 
+        [SerializeField] private RoomPrefabPool[] _roomPrefabPools;
 
         [Header("Room Encounter Pools")]
-        [Tooltip("Combat/Boss rooms pick a random RoomEncounterSO from here at floor-gen time. Other room types don't need an entry.")]
         [SerializeField] private RoomEncounterPool[] _roomEncounterPools;
         
         public ZoneTag ZoneTag => _zoneTag;
@@ -79,19 +73,19 @@ namespace World
             return null;
         }
 
-        public RoomEncounterSO GetRandomEncounter(RoomType type, System.Random rng)
+        public RoomEncounterSO GetEncounter(RoomType type, System.Random rng, int indexWithinType)
         {
             foreach (var pool in _roomEncounterPools)
             {
                 if (pool.Type != type || pool.Encounters == null || pool.Encounters.Length == 0)
                     continue;
 
-                return pool.Encounters[rng.Next(pool.Encounters.Length)];
+                if (_sequentialEncounters)
+                    return pool.Encounters[indexWithinType % pool.Encounters.Length];
+                else
+                    return pool.Encounters[rng.Next(pool.Encounters.Length)];
             }
 
-            // Unlike GetRandomPrefab, no error here — most RoomTypes legitimately
-            // have no encounter (Start/Resting/Artifact/Shop/Portal). The caller
-            // decides whether a miss for Combat/Boss specifically is worth a warning.
             return null;
         }
         

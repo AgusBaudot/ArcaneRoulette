@@ -1,18 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Foundation;
+using System.Linq;
 
 namespace World
 {
     public sealed class FloorSpawner : MonoBehaviour
     {
-        [Header("Zones — index 0 = First, 1 = Second, 2 = Third")] [SerializeField]
-        private ZoneDefinitionSO[] _zones;
+        [Header("Zones — index 0 = First, 1 = Second, 2 = Third")] 
+        [SerializeField] private ZoneDefinitionSO[] _zones;
 
-        [Header("Layout")] [SerializeField] private float _roomSpacing = 30f;
+        [Header("Layout")] 
+        [SerializeField] private float _roomSpacing = 30f;
 
         private readonly Dictionary<int, RoomManager> _roomsByIndex = new Dictionary<int, RoomManager>();
         private IReadOnlyList<RoomLayoutNode> _currentLayout;
+
+        // --- NEW: Track dynamic room visits across the floor ---
+        private ZoneDefinitionSO _currentZone;
+        private System.Random _rng;
+        private readonly Dictionary<RoomType, int> _encounterVisitCounts = new Dictionary<RoomType, int>();
+        private readonly HashSet<int> _initializedRooms = new HashSet<int>();
 
         private void OnEnable() => EventBus.Subscribe<RoomTransitionExecuteEvent>(HandleRoomTransitionExecute);
         private void OnDisable() => EventBus.Unsubscribe<RoomTransitionExecuteEvent>(HandleRoomTransitionExecute);
@@ -46,31 +54,35 @@ namespace World
 
             if (zoneIndex < 0 || zoneIndex >= _zones.Length || _zones[zoneIndex] == null)
             {
-                Debug.LogError(
-                    $"FloorSpawner: no ZoneDefinitionSO for zone index {zoneIndex} (CurrentFloor={currentFloor}).");
+                Debug.LogError($"FloorSpawner: no ZoneDefinitionSO for zone index {zoneIndex} (CurrentFloor={currentFloor}).");
                 return;
             }
 
-            ZoneDefinitionSO zone = _zones[zoneIndex];
+            _currentZone = _zones[zoneIndex];
             var expectedTag = (ZoneTag)zoneIndex;
-            if (zone.ZoneTag != expectedTag)
-                Debug.LogWarning(
-                    $"FloorSpawner: _zones[{zoneIndex}] is tagged {zone.ZoneTag}, expected {expectedTag}.");
+            if (_currentZone.ZoneTag != expectedTag)
+                Debug.LogWarning($"FloorSpawner: _zones[{zoneIndex}] is tagged {_currentZone.ZoneTag}, expected {expectedTag}.");
 
-            var rng = new System.Random();
-            IReadOnlyList<RoomLayoutNode> layout = FloorLayoutGenerator.Generate(zone, isBossFloor, rng);
+            _rng = new System.Random();
+            _encounterVisitCounts.Clear();
+            _initializedRooms.Clear();
+
+            IReadOnlyList<RoomLayoutNode> layout = FloorLayoutGenerator.Generate(_currentZone, isBossFloor, _rng);
             if (layout == null) 
                 return;
 
             _currentLayout = layout;
             GameStateManager.RunState.InitializeFloorMap(BuildRoomMapData(layout));
-            SpawnRooms(zone, layout, rng);
+            
+            SpawnRooms(_currentZone, layout, _rng);
 
             if (!_roomsByIndex.TryGetValue(0, out var startRoom))
                 return;
 
+            // Dynamically assign encounter right before enabling (safeguard for index 0)
+            TryInitializeEncounter(0);
+            
             startRoom.EnableRoom();
-
             EventBus.Publish(new PlayerTeleportRequestEvent(startRoom.gameObject.transform.position));
         }
 
@@ -83,8 +95,7 @@ namespace World
                 GameObject prefab = zone.GetRandomPrefab(node.Type, rng);
                 if (prefab == null) continue;
 
-                Vector3 worldPos = new Vector3(node.GridPosition.x * _roomSpacing, 0f,
-                    node.GridPosition.y * _roomSpacing);
+                Vector3 worldPos = new Vector3(node.GridPosition.x * _roomSpacing, 0f, node.GridPosition.y * _roomSpacing);
                 GameObject instance = Instantiate(prefab, worldPos, Quaternion.identity, transform);
 
                 var room = instance.GetComponent<RoomManager>();
@@ -96,18 +107,33 @@ namespace World
 
                 room.Init(new RoomInfo { index = node.Index, roomType = node.Type });
                 room.InitDoors(BuildDoorsInfo(zone, node, layout));
-
-                if (node.Type == RoomType.Combat || node.Type == RoomType.Boss)
-                {
-                    RoomEncounterSO encounter = zone.GetRandomEncounter(node.Type, rng);
-                    if (encounter != null)
-                        room.InitEntity(encounter.ToRoomEncounterData());
-                    else
-                        Debug.LogWarning(
-                            $"FloorSpawner: no RoomEncounterSO registered for {node.Type} at room {node.Index} — it will clear on entry with no enemies.");
-                }
-
+                
+                // DELETED: We no longer assign encounters here.
+                
                 _roomsByIndex[node.Index] = room;
+            }
+        }
+
+        private void TryInitializeEncounter(int roomIndex)
+        {
+            // Only assign an encounter the very first time a player enters this specific room index
+            if (_initializedRooms.Contains(roomIndex)) return;
+            _initializedRooms.Add(roomIndex);
+
+            RoomLayoutNode node = _currentLayout[roomIndex];
+            if (node.Type == RoomType.Combat || node.Type == RoomType.Boss)
+            {
+                _encounterVisitCounts.TryGetValue(node.Type, out int count);
+                
+                RoomEncounterSO encounter = _currentZone.GetEncounter(node.Type, _rng, count);
+                
+                // Increment so the next physically visited room of this type pulls the next encounter
+                _encounterVisitCounts[node.Type] = count + 1;
+
+                if (encounter != null)
+                    _roomsByIndex[roomIndex].InitEntity(encounter.ToRoomEncounterData());
+                else
+                    Debug.LogWarning($"FloorSpawner: no RoomEncounterSO registered for {node.Type} at room {node.Index} — it will clear on entry with no enemies.");
             }
         }
 
@@ -138,6 +164,10 @@ namespace World
             Vector3 spawnPos = targetRoom.GetRoomConnections.GetPlayerSpawn(evt.Direction);
 
             sourceRoom.DisableRoom();
+
+            // Intercept right before the room wakes up
+            TryInitializeEncounter(targetNode.Index);
+            
             targetRoom.EnableRoom();
             EventBus.Publish(new PlayerTeleportRequestEvent(spawnPos));
         }
@@ -154,8 +184,7 @@ namespace World
             }
         }
 
-        private static AllDoorsInfo BuildDoorsInfo(ZoneDefinitionSO zone, RoomLayoutNode node,
-            IReadOnlyList<RoomLayoutNode> allNodes)
+        private static AllDoorsInfo BuildDoorsInfo(ZoneDefinitionSO zone, RoomLayoutNode node, IReadOnlyList<RoomLayoutNode> allNodes)
         {
             var open = new Dictionary<Vector2Int, bool>
             {
@@ -183,8 +212,7 @@ namespace World
             UnlockOnClear = isOpen
         };
 
-        private static Dictionary<int, VolatileRunState.RoomMapData> BuildRoomMapData(
-            IReadOnlyList<RoomLayoutNode> layout)
+        private static Dictionary<int, VolatileRunState.RoomMapData> BuildRoomMapData(IReadOnlyList<RoomLayoutNode> layout)
         {
             var map = new Dictionary<int, VolatileRunState.RoomMapData>();
             foreach (var node in layout)
