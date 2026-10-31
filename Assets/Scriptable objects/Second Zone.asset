@@ -18,6 +18,7 @@ MonoBehaviour:
   _totalRoomsPerFloor: 8
   _combatRoomMin: 4
   _combatRoomMax: 5
+  _sequentialEncounters: 0
   _startingRoomWeight: 100
   _weightPenalty: 20
   _weightBonus: 40
@@ -47,7 +48,11 @@ MonoBehaviour:
   _roomEncounterPools:
   - Type: 1
     Encounters:
-    - {fileID: 11400000, guid: 7b637235fed4e9d44b9f21bf14efd8b5, type: 2}
+    - {fileID: 11400000, guid: 285793def7e45eb438447b89409ae0af, type: 2}
+    - {fileID: 11400000, guid: 9cc6912fa69cda740b2027a2f7c9db59, type: 2}
+    - {fileID: 11400000, guid: 0bd891d912b55824d8c0fc3cca3565ca, type: 2}
+    - {fileID: 11400000, guid: 1af8d4661a0fa57478202561e5736da5, type: 2}
+    - {fileID: 11400000, guid: 15e9df7b70f41b9429a9077bf94a4b04, type: 2}
   - Type: 5
     Encounters:
     - {fileID: 11400000, guid: 515a5b6a32714ce4abcf37289ee266ff, type: 2}
