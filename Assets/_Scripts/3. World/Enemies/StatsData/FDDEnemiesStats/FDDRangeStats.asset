@@ -23,7 +23,7 @@ MonoBehaviour:
   AttackRange: 12
   ExitAttackRange: 13
   AttackRadius: 0
-  AttackSpeed: 8
+  AttackSpeed: 0.5
   HitLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -49,6 +49,16 @@ MonoBehaviour:
   BlockTimeout: 3
   TeleportAnimDuration: 4
   BlockPercentage: 10
+  Attack1Duration: 0.2
+  Attack2Duration: 0.2
+  Attack3Duration: 0.2
+  Attack4Duration: 0.3
+  RecoverDuration: 0.8
+  TeleportOutDuration: 0.4
+  Attack1ReleaseFraction: 0.2
+  Attack2ReleaseFraction: 0.2
+  Attack3ReleaseFraction: 0.2
+  Attack4ReleaseFraction: 0.4
   BigProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2, type: 2}
   NormalProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2,
     type: 2}
