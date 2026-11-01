@@ -228,7 +228,7 @@ namespace World
                 else if (HasProjectileEquipped()) SetStep(6, "Use your spell to defeat the Enemy Dummy.");
                 else SetStep(3, "Press TAB to open the Spell Crafting Interface.");
             }
-            else if (roomNumber == 3 && (_currentStep == 8 || _currentStep == 7))
+            else if (roomNumber == 3 && _currentStep >= 7 && _currentStep <= 10)
             {
                 _room3EntranceFrom2.Close(); 
 
@@ -239,7 +239,7 @@ namespace World
                 else if (HasModifiersEquipped()) SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
                 else SetStep(9, "Equip the Piercing and DoT Runes alongside your Projectile Rune to modify your spell.");
             }
-            else if (roomNumber == 4 && (_currentStep == 12 || _currentStep == 11))
+            else if (roomNumber == 4 && _currentStep >= 11 && _currentStep <= 14)
             {
                 _room4EntranceFrom3.Close(); 
                 
