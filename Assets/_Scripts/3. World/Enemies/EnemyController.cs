@@ -106,11 +106,6 @@ namespace World
         public void OnSpawn()
         {
             gameObject.SetActive(true);
-
-            if (_spawnSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest {Event = _spawnSound, WorldPosition = transform.position});
-            }
             
             ElementType rolledElement = (ElementType)Random.Range(0, 4);
 
@@ -162,6 +157,11 @@ namespace World
                 transform.position = hit.position;
                 _aiBrain.Agent.enabled = true;
                 _aiBrain.Agent.Warp(hit.position);
+
+                if (_spawnSound != null)
+                {
+                    EventBus.Publish(new AudioPlayRequest {Event = _spawnSound, WorldPosition = transform.position});
+                }
             }
             else
             {
