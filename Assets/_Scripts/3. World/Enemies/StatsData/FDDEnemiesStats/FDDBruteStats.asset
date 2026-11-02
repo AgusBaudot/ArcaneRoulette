@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93a806335f054ab69e5e9f8f31d476b7, type: 3}
   m_Name: FDDBruteStats
   m_EditorClassIdentifier: 
-  MaxHp: 240
+  MaxHp: 400
   ViewDistance: 15
   ObsMask:
     serializedVersion: 2
     m_Bits: 32768
-  ChaseSpeed: 4
+  ChaseSpeed: 6
   PatrolSpeed: 2
   AttackDamage: 40
   AttackRange: 4
@@ -27,20 +27,24 @@ MonoBehaviour:
   HitLayer:
     serializedVersion: 2
     m_Bits: 256
-  SpawnDuration: 2
-  AoEAttackRange: 3
-  ChargeAttackRange: 8
+  SpawnDuration: 1.5
+  AoEAttackRange: 5
+  ChargeAttackRange: 16
   DefenseTargetLineRatio: 0.5
   ThrustHitboxMaxDistance: 5
   ThrustWindupDuration: 1
+  ThrustDuration: 0.5
   ThrustRecomposeDuration: 0.5
   ThrustSound: {fileID: 11400000, guid: d9256405df792904a8d2940d03e825ed, type: 2}
   ChargeWindupDuration: 1.5
-  ChargeCooldown: 14
-  ChargeSpeedMultiplier: 2.5
+  ChargeCooldown: 10
+  ChargeSpeedMultiplier: 5
   ChargeDamagePercentage: 1
+  ChargeMissRecoverDuration: 1
   ChargeSound: {fileID: 11400000, guid: 8752770780870a044b596c988ffe46d4, type: 2}
+  PostChargeDuration: 0.5
+  StunRecoverDuration: 1
   StunDurationBase: 2
-  StunDurationImpact: 4
-  StunDurationShield: 6
+  StunDurationImpact: 2
+  StunDurationShield: 4
   StunDurationBombBonus: 2
