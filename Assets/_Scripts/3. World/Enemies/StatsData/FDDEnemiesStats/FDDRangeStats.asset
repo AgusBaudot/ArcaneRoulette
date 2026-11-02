@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87c9b4507593484d8c6910e004cd05a7, type: 3}
   m_Name: FDDRangeStats
   m_EditorClassIdentifier: 
-  MaxHp: 120
+  MaxHp: 80
   ViewDistance: 16
   ObsMask:
     serializedVersion: 2
@@ -27,7 +27,7 @@ MonoBehaviour:
   HitLayer:
     serializedVersion: 2
     m_Bits: 256
-  SpawnDuration: 2
+  SpawnDuration: 1
   SafeRange: 6
   MaxWindupDuration: 2
   Attack1Windup: 1
@@ -62,8 +62,9 @@ MonoBehaviour:
   BigProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2, type: 2}
   NormalProjectileSound: {fileID: 11400000, guid: f01305fae6d79834f82d4bda1ef5a7b2,
     type: 2}
-  TeleportDisappearSound: {fileID: 0}
+  TeleportDisappearSound: {fileID: 11400000, guid: b2d7f460dbe0bca45816dde6b5f29929,
+    type: 2}
   TeleportAppearSound: {fileID: 0}
-  BlockStartSound: {fileID: 0}
-  BlockEndSound: {fileID: 0}
+  BlockStartSound: {fileID: 11400000, guid: 3d4995e004c89754ea80fa4073ca8116, type: 2}
+  BlockEndSound: {fileID: 11400000, guid: 3d4995e004c89754ea80fa4073ca8116, type: 2}
   BlockHitSound: {fileID: 0}
