@@ -34,6 +34,8 @@ namespace World
         private RoomEncounterData _encounterData;
         private List<EnemyType> _spawnList;
         private Queue<EnemyType> _dynamicSpawnQueue;
+        
+        private int _dynamicActiveCap;
 
         private void Awake()
         {
@@ -78,11 +80,20 @@ namespace World
             }
         }
 
-        // ---- Dynamic Refill System ----
         private void PrepareDynamicQueue()
         {
             _enemiesAlive = 0;
             _dynamicSpawnQueue.Clear();
+            _dynamicActiveCap = 0;
+
+            if (_encounterData.Waves.Length > 0)
+            {
+                var firstWave = _encounterData.Waves[0];
+                for (int i = 0; i < firstWave.Amounts.Length; i++)
+                {
+                    _dynamicActiveCap += firstWave.Amounts[i];
+                }
+            }
 
             foreach (var wave in _encounterData.Waves)
             {
@@ -113,12 +124,24 @@ namespace World
 
         private void SpawnDynamicInitialBatch()
         {
-            int initialAmount = Mathf.Min(_spawnAtSameTime, _dynamicSpawnQueue.Count);
-            for (int i = 0; i < initialAmount; i++)
+            List<EnemyType> initialEnemies = new List<EnemyType>();
+            
+            for (int i = 0; i < _dynamicActiveCap; i++)
             {
-                EnemyType type = _dynamicSpawnQueue.Dequeue();
-                _enemiesAlive++; // Immediately increment to reserve the active slot
-                StartCoroutine(SpawnSingleDynamicEnemy(type, i % _enemySpawns.Length, 0f));
+                if (_dynamicSpawnQueue.Count > 0)
+                {
+                    initialEnemies.Add(_dynamicSpawnQueue.Dequeue());
+                    _enemiesAlive++;
+                }
+            }
+
+            if (initialEnemies.Count > 0)
+            {
+                StartCoroutine(SpawnEnemies(initialEnemies));
+            }
+            else
+            {
+                CheckRoomClear();
             }
         }
 
