@@ -12,16 +12,20 @@ namespace World
         
         private BruteEnemyStats BruteStats => _enemyStats as BruteEnemyStats;
         
-        public event Action OnThrustWindupStarted;
-        public event Action OnThrustStarted;
-        public event Action OnChargeWindupStarted;
+        public event Action<float> OnThrustWindupStarted;
+        public event Action<float> OnThrustStarted;
+        public event Action<float> OnChargeWindupStarted;
         public event Action OnChargeStarted;
+        public event Action<float> OnChargeEndedNaturally;
+        public event Action OnStunLoopStarted;
+        public event Action<float> OnStunRecoverStarted;
 
         public Vector3 CurrentAttackDirection => _lastAttackDirection;
         
         private bool _isCharging;
         private bool _isThrusting;
         private bool _isStunned;
+        private bool _hasSpawned;
         
         private float _chargeCooldownTimer;
         private float _currentStunDuration;
@@ -35,31 +39,44 @@ namespace World
         private EnemyController _defenseTarget;
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
-        private void OnDisable()
-        {
-            UpdateManager.Instance?.Unregister(this);
-        }
+        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+
+        private float GetClampedDuration(float baseDuration) => Mathf.Max(0.01f, baseDuration * EffectiveAttackSpeed);
 
         protected override BehaviorTree BuildTree()
         {
             var tree = new BehaviorTree("Brute");
-
-            if (BruteStats == null)
-            {
-                Debug.LogError($"{name}: Missing or incorrect stats. Expected BruteEnemyStats.");
-                return tree;
-            }
+            if (BruteStats == null) return tree;
 
             var rootSelector = new PrioritySelectorNode("Brute Root");
 
             // Priority 50: Spawn Gate
-            rootSelector.AddChild(new LeafNode("Spawning", 
-                new OneShotGateStrategy(BeginSpawning, () => BruteStats.SpawnDuration), priority: 50));
+            var spawnSequence = new SequenceNode("Spawn Sequence", priority: 50);
+            spawnSequence.AddChild(new LeafNode("CheckSpawn", new ConditionNode(() => !_hasSpawned)));
+            // Changed from OneShotGateStrategy to TimedActionStrategy so it succeeds and allows the next node to run
+            spawnSequence.AddChild(new LeafNode("SpawningAnim", new TimedActionStrategy(BeginSpawning, () => BruteStats.SpawnDuration)));
+            spawnSequence.AddChild(new LeafNode("SetSpawned", new ActionNode(() => _hasSpawned = true)));
+            rootSelector.AddChild(spawnSequence);
 
             // Priority 40: Stunned Sequence
             var stunSequence = new SequenceNode("Stun Sequence", priority: 40);
             stunSequence.AddChild(new LeafNode("IsStunnedCondition", new ConditionNode(() => _isStunned)));
-            stunSequence.AddChild(new LeafNode("StunnedAction", new TimedActionStrategy(BeginStun, () => _currentStunDuration)));
+            stunSequence.AddChild(new LeafNode("StunLoop", new TimedActionStrategy(
+                onStart: () => 
+                {
+                    BeginStunLoop();
+                    OnStunLoopStarted?.Invoke();
+                }, 
+                getDuration: () => _currentStunDuration
+            )));
+            stunSequence.AddChild(new LeafNode("StunRecover", new TimedActionStrategy(
+                onStart: () => 
+                {
+                    BeginStunRecover();
+                    OnStunRecoverStarted?.Invoke(BruteStats.StunRecoverDuration);
+                }, 
+                getDuration: () => BruteStats.StunRecoverDuration
+            )));
             stunSequence.AddChild(new LeafNode("EndStunAction", new ActionNode(EndStun)));
             rootSelector.AddChild(stunSequence);
 
@@ -70,25 +87,38 @@ namespace World
                 onStart: () => 
                 {
                     BeginThrustWindup();
-            
-                    _lastAttackDirection = (GetPlayer().transform.position - transform.position).normalized;
-                    _lastAttackDirection.y = 0;
-            
-                    _thrustHitbox.ShowTelegraph(BruteStats, _lastAttackDirection);
+                    OnThrustWindupStarted?.Invoke(GetClampedDuration(BruteStats.ThrustWindupDuration));
                 }, 
-                getDuration: () => BruteStats.ThrustWindupDuration
+                getDuration: () => GetClampedDuration(BruteStats.ThrustWindupDuration)
             )));
-            thrustSequence.AddChild(new LeafNode("Thrusting", new TimedActionStrategy(StartThrust, () => EffectiveAttackSpeed)));
-            thrustSequence.AddChild(new LeafNode("ThrustRecompose", new TimedActionStrategy(StopThrust, () => BruteStats.ThrustRecomposeDuration)));
+            thrustSequence.AddChild(new LeafNode("Thrusting", new TimedActionStrategy(
+                onStart: () => StartThrust(GetClampedDuration(BruteStats.ThrustDuration)), 
+                getDuration: () => GetClampedDuration(BruteStats.ThrustDuration)
+            )));
+            thrustSequence.AddChild(new LeafNode("ThrustRecompose", new TimedActionStrategy(StopThrust, () => GetClampedDuration(BruteStats.ThrustRecomposeDuration))));
             rootSelector.AddChild(thrustSequence);
 
             // Priority 20: Charge Attack
             var chargeSequence = new SequenceNode("Charge Sequence", priority: 20);
             chargeSequence.AddChild(new LeafNode("CanChargeCondition", new ConditionNode(() => IsPlayerInDistance(BruteStats.ChargeAttackRange) && _chargeCooldownTimer <= 0f)));
-            chargeSequence.AddChild(new LeafNode("ChargeWindup", new TimedActionStrategy(BeginChargeWindup, () => BruteStats.ChargeWindupDuration)));
-            chargeSequence.AddChild(new LeafNode("Charging", new TimedActionStrategy(StartCharge, () => 5f))); // 5s timeout failsafe
+            chargeSequence.AddChild(new LeafNode("ChargeWindup", new TimedActionStrategy(
+                onStart: () => 
+                {
+                    BeginChargeWindup();
+                    OnChargeWindupStarted?.Invoke(GetClampedDuration(BruteStats.ChargeWindupDuration));
+                }, 
+                getDuration: () => GetClampedDuration(BruteStats.ChargeWindupDuration)
+            )));
+            chargeSequence.AddChild(new LeafNode("Charging", new TimedActionStrategy(StartCharge, () => 5f)));
             
-            chargeSequence.AddChild(new LeafNode("EndCharge", new ActionNode(EndCharge)));
+            chargeSequence.AddChild(new LeafNode("EndChargeAnim", new TimedActionStrategy(
+                onStart: () => 
+                {
+                    EndCharge();
+                    OnChargeEndedNaturally?.Invoke(GetClampedDuration(BruteStats.ChargeMissRecoverDuration));
+                },
+                getDuration: () => GetClampedDuration(BruteStats.ChargeMissRecoverDuration)
+            )));
             
             rootSelector.AddChild(chargeSequence);
 
@@ -102,13 +132,12 @@ namespace World
         private bool IsPlayerInDistance(float range)
         {
             Transform player = GetPlayer();
-            if (player == null) return false;
-            return Vector3.Distance(transform.position, player.position) <= range;
+            return player != null && Vector3.Distance(transform.position, player.position) <= range;
         }
 
         private void BeginSpawning() => SetState(AIState.Spawning);
 
-        private void BeginStun()
+        private void BeginStunLoop()
         {
             SetState(AIState.Stunned);
             if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
@@ -117,34 +146,27 @@ namespace World
             if (health != null) health.DamageMitigationMultiplier = 1.1f;
         }
 
-        private void EndStun()
+        private void BeginStunRecover()
         {
-            _isStunned = false;
-            
             var health = GetComponent<EnemyHealth>();
             if (health != null) health.DamageMitigationMultiplier = 1.0f;
         }
 
+        private void EndStun() => _isStunned = false;
+
         private void BeginThrustWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh)
-                _agent.isStopped = true;
-            
+            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
             RedirectTowardPlayer();
-            
-            OnThrustWindupStarted.Invoke();
+            _thrustHitbox.ShowTelegraph(BruteStats, _lastAttackDirection);
         }
 
         private void BeginChargeWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh)
-                _agent.isStopped = true;
-            
+            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
             RedirectTowardPlayer();
-            
-            OnChargeWindupStarted.Invoke();
         }
 
         private void RedirectTowardPlayer()
@@ -154,11 +176,7 @@ namespace World
             {
                 Vector3 toPlayer = (player.position - transform.position).normalized;
                 toPlayer.y = 0;
-                
-                if (toPlayer != Vector3.zero)
-                {
-                    _lastAttackDirection = toPlayer;
-                }
+                if (toPlayer != Vector3.zero) _lastAttackDirection = toPlayer;
             }
         }
 
@@ -172,7 +190,6 @@ namespace World
             _agent.speed = EffectiveChaseSpeed;
 
             Vector3 targetPos = player.position;
-
             if (_defenseTarget != null)
             {
                 var targetHealth = _defenseTarget.GetComponent<EnemyHealth>();
@@ -181,32 +198,24 @@ namespace World
                     targetPos = Vector3.Lerp(player.position, _defenseTarget.transform.position, BruteStats.DefenseTargetLineRatio);
                 }
             }
-
             _agent.SetDestination(targetPos);
         }
 
         public void Tick(float dt)
         {
-            if (_chargeCooldownTimer > 0)
-            {
-                _chargeCooldownTimer -= dt;
-            }
+            if (_chargeCooldownTimer > 0) _chargeCooldownTimer -= dt;
 
             if (_isCharging && _agent != null && _agent.isOnNavMesh)
             {
                 float frameSpeed = EffectiveChaseSpeed * BruteStats.ChargeSpeedMultiplier * dt;
                 Vector3 startPos = transform.position;
-        
                 _agent.Move(_lastAttackDirection * frameSpeed);
         
-                float actualDistance = Vector3.Distance(startPos, transform.position);
-                if (actualDistance < frameSpeed * 0.2f)
+                if (Vector3.Distance(startPos, transform.position) < frameSpeed * 0.1f)
                 {
                     _chargeStuckTimer += dt;
-                    if (_chargeStuckTimer > 0.1f)
-                    {
-                        OnChargeInterrupted(0.5f);
-                    }
+                    // Trigger fast stun immediately if NavMesh halts the charge
+                    if (_chargeStuckTimer > 0.05f) OnChargeInterrupted(BruteStats.StunDurationImpact);
                 }
                 else
                 {
@@ -225,76 +234,54 @@ namespace World
             _chargeStuckTimer = 0f;
             
             if (BruteStats.ChargeSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = BruteStats.ChargeSound,
-                    WorldPosition = transform.position,
-                });
-            }
+                EventBus.Publish(new AudioPlayRequest { Event = BruteStats.ChargeSound, WorldPosition = transform.position });
     
             if (_chargeHitbox != null)
-            {
                 _chargeHitbox.Activate(BruteStats, _bruteElement, _lastAttackDirection, OnChargeInterrupted);
-            }
             
-            OnChargeStarted.Invoke();
+            OnChargeStarted?.Invoke();
         }
 
-        private void StartThrust()
+        private void StartThrust(float duration)
         {
             _isThrusting = true;
             
             if (BruteStats.ThrustSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = BruteStats.ThrustSound,
-                    WorldPosition = transform.position
-                });
-            }
+                EventBus.Publish(new AudioPlayRequest { Event = BruteStats.ThrustSound, WorldPosition = transform.position });
             
             if (_thrustHitbox != null)
             {
                 int damage = Mathf.RoundToInt(EffectiveAttackDamage);
-                
                 _thrustHitbox.Activate(BruteStats, damage, _lastAttackDirection);
             }
             
-            OnThrustStarted.Invoke();
+            OnThrustStarted?.Invoke(duration);
         }
 
         private void StopThrust()
         {
             _isThrusting = false;
-            if (_thrustHitbox != null)
-            {
-                _thrustHitbox.Deactivate();
-            }
+            if (_thrustHitbox != null) _thrustHitbox.Deactivate();
         }
 
         private void OnChargeInterrupted(float stunDuration)
         {
             _isCharging = false;
-            if (_chargeHitbox != null)
-            {
-                _chargeHitbox.Deactivate();
-            }
+            if (_chargeHitbox != null) _chargeHitbox.Deactivate();
             
             _chargeCooldownTimer = BruteStats.ChargeCooldown;
             _currentStunDuration = stunDuration;
             _isStunned = true; 
             
-            _tree?.Reset();
+            _tree?.Reset(); 
         }
         
         private void EndCharge()
         {
             _isCharging = false;
-            if (_chargeHitbox != null)
-            {
-                _chargeHitbox.Deactivate();
-            }
+            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            if (_chargeHitbox != null) _chargeHitbox.Deactivate();
+            _chargeCooldownTimer = BruteStats.ChargeCooldown;
         }
         
         public override void ResetComponent()
@@ -303,6 +290,7 @@ namespace World
             _isCharging = false;
             _isThrusting = false;
             _isStunned = false;
+            _hasSpawned = false; 
             _chargeCooldownTimer = 0f;
             
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
