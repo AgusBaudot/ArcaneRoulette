@@ -4,10 +4,12 @@ using Foundation;
 
 namespace Core
 {
-    public sealed class Projectile : BaseProjectile
+    public sealed class Projectile : BaseProjectile, IUpdatable
     {
         public override bool IsEnemy => false;
         public override ElementType SpellElement => _cachedElement;
+        
+        public int UpdatePriority => Foundation.UpdatePriority.Projectile;
 
         [Header("Visuals")]
         [Tooltip("Map each element to its corresponding child GameObject inside the VisualPivot.")]
@@ -34,6 +36,9 @@ namespace Core
         private AudioEventSO[] _pierceSounds;
         private int[] _pierceHitStops;
         private int _piercesDone;
+
+        private float _lifetimeTimer;
+        private bool _isAlive;
 
         protected override void Awake()
         {
@@ -72,6 +77,13 @@ namespace Core
             }
         }
 
+        public override void OnSpawn()
+        {
+            base.OnSpawn();
+            if (UpdateManager.Instance != null)
+                UpdateManager.Instance.Register(this);
+        }
+
         public void Init(
             SpellInstance source,
             Vector3 direction,
@@ -93,10 +105,25 @@ namespace Core
             _hitTargets.Clear();
             _piercesDone = 0;
 
+            _lifetimeTimer = Helpers.PlayerStats.ProjectileLifetime;
+            _isAlive = true;
+
             UpdateActiveVisual(SpellElement);
 
             SetVelocity(direction, speed);
             PlayParticles();
+        }
+
+        public void Tick(float dt)
+        {
+            if (!_isAlive) return;
+
+            _lifetimeTimer -= dt;
+            if (_lifetimeTimer <= 0f)
+            {
+                _isAlive = false;
+                Helpers.ProjFactory.Despawn(gameObject);
+            }
         }
 
         private void UpdateActiveVisual(ElementType currentElement)
@@ -139,10 +166,7 @@ namespace Core
                                             (main.scalingMode == ParticleSystemScalingMode.Local &&
                                              ps.gameObject == ev.Reference);
 
-                    if (isAlreadyScaling)
-                    {
-                        continue;
-                    }
+                    if (isAlreadyScaling) continue;
 
                     if (_baseParticleSizes.TryGetValue(ps, out Vector3 baseSize3D))
                     {
@@ -231,6 +255,7 @@ namespace Core
 
             if (_pierceCount <= 0)
             {
+                _isAlive = false;
                 Helpers.ProjFactory.Despawn(gameObject);
                 return;
             }
@@ -260,16 +285,21 @@ namespace Core
 
             if (!TryBounce())
             {
+                _isAlive = false;
                 Helpers.ProjFactory.Despawn(gameObject);
             }
         }
 
         public override void OnDespawn()
         {
-            base.OnDespawn(); //Halts physics.
+            base.OnDespawn();
 
             ApplyVisualScale(1f);
-
+            
+            if (UpdateManager.Instance != null)
+                UpdateManager.Instance.Unregister(this);
+            
+            _isAlive = false;
             _source = null;
             _runner = null;
             _hitTargets.Clear();

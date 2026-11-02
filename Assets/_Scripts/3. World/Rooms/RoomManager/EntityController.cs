@@ -306,6 +306,8 @@ namespace World
                 ActiveController = null;
             }
             
+            HitStop.PlayRoomClearSlowMo();
+            
             RoomIsClear?.Invoke();
         }
         
