@@ -130,6 +130,8 @@ namespace World
             Vector3 spawnPos = GetRandomSpawnPosition(spawnIndex);
             GameObject indicator = Instantiate(_dangerImage, spawnPos, Quaternion.Euler(new Vector3(30, 0, 0)));
 
+            SetupIndicatorLifetime(indicator);
+            
             yield return CoroutineUtils.GetWait(_warningDuration);
 
             if (_effect != null)
@@ -201,7 +203,10 @@ namespace World
                     int spawnIndex = (spawnedSoFar + i) % _enemySpawns.Length;
                     Vector3 spawn = GetRandomSpawnPosition(spawnIndex);
                     batchPositions.Add(spawn);
+                    
                     GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0)));
+                    
+                    SetupIndicatorLifetime(indicator);
                     batchIndicators.Add(indicator);
                 }
                 
@@ -309,6 +314,16 @@ namespace World
             HitStop.PlayRoomClearSlowMo();
             
             RoomIsClear?.Invoke();
+        }
+
+        private void SetupIndicatorLifetime(GameObject indicator)
+        {
+            ParticleSystem[] ps = indicator.GetComponentsInChildren<ParticleSystem>();
+            foreach (ParticleSystem p in ps)
+            {
+                var main = p.main;
+                main.startLifetime = _warningDuration;
+            }
         }
         
         private void OnDisable()
