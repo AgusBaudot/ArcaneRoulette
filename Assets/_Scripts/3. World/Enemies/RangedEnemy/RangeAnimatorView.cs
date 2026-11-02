@@ -69,6 +69,9 @@ namespace World
         {
             UpdateManager.Instance.Register(this);
             
+            _animator.Rebind();
+            _animator.Update(0f);
+            
             _brain.OnStateChanged += HandleStateChanged;
             _brain.OnWindupStarted += HandleWindupStarted;
             _brain.OnFireStarted += HandleFireStarted;
