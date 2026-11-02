@@ -1,3 +1,4 @@
+using Core;
 using UnityEngine;
 using Foundation;
 
@@ -30,6 +31,7 @@ namespace World
         public AudioEventSO ChargeSound;
         
         [Header("Brute - Post Charge & Stun")]
+        public PooledVFX ChargeCrashVFX;
         public float PostChargeDuration = 0.5f; 
         public float StunRecoverDuration = 1.0f; 
         public float StunDurationBase = 2f; 

@@ -1,5 +1,6 @@
 using System;
 using Foundation;
+using Core;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -53,7 +54,6 @@ namespace World
             // Priority 50: Spawn Gate
             var spawnSequence = new SequenceNode("Spawn Sequence", priority: 50);
             spawnSequence.AddChild(new LeafNode("CheckSpawn", new ConditionNode(() => !_hasSpawned)));
-            // Changed from OneShotGateStrategy to TimedActionStrategy so it succeeds and allows the next node to run
             spawnSequence.AddChild(new LeafNode("SpawningAnim", new TimedActionStrategy(BeginSpawning, () => BruteStats.SpawnDuration)));
             spawnSequence.AddChild(new LeafNode("SetSpawned", new ActionNode(() => _hasSpawned = true)));
             rootSelector.AddChild(spawnSequence);
@@ -214,7 +214,6 @@ namespace World
                 if (Vector3.Distance(startPos, transform.position) < frameSpeed * 0.1f)
                 {
                     _chargeStuckTimer += dt;
-                    // Trigger fast stun immediately if NavMesh halts the charge
                     if (_chargeStuckTimer > 0.05f) OnChargeInterrupted(BruteStats.StunDurationImpact);
                 }
                 else
@@ -268,6 +267,13 @@ namespace World
         {
             _isCharging = false;
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
+
+            if (BruteStats.ChargeCrashVFX != null)
+            {
+                Vector3 spawnPos = transform.position + (_lastAttackDirection * 0.5f);
+                spawnPos.y = 2f;
+                Helpers.ProjFactory.Spawn<PooledVFX>(BruteStats.ChargeCrashVFX, spawnPos, Quaternion.LookRotation(-_lastAttackDirection));
+            }
             
             _chargeCooldownTimer = BruteStats.ChargeCooldown;
             _currentStunDuration = stunDuration;
