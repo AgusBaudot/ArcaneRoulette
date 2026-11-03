@@ -81,7 +81,7 @@ namespace World
 
             if (_type == PortalType.NextFloor)
             {
-                if (GameStateManager.RunState != null && GameStateManager.RunState.CurrentFloor >= 8)
+                if (GameStateManager.RunState != null && GameStateManager.RunState.CurrentFloor >= 3)
                 {
                     EventBus.Publish(new EndRunRequestEvent(SceneNames.MainMenu));
                 }
