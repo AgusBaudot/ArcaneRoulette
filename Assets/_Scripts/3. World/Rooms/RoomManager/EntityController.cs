@@ -151,7 +151,7 @@ namespace World
                 yield return CoroutineUtils.GetWait(delay);
 
             Vector3 spawnPos = GetRandomSpawnPosition(spawnIndex);
-            GameObject indicator = Instantiate(_dangerImage, spawnPos, Quaternion.Euler(new Vector3(30, 0, 0)));
+            GameObject indicator = Instantiate(_dangerImage, new Vector3(spawnPos.x, _dangerImage.transform.position.y, spawnPos.z), Quaternion.Euler(new Vector3(30, 0, 0)));
 
             SetupIndicatorLifetime(indicator);
             
@@ -163,7 +163,7 @@ namespace World
                 Destroy(effect, 3f);
             }
 
-            IPoolable enemy = PoolEnemy.Instance.Get(type, spawnPos);
+            IPoolable enemy = PoolEnemy.Instance.Get(type, new Vector3(spawnPos.x, 0f, spawnPos.z));
             if (enemy != null && enemy is EnemyController ec)
             {
                 ec.Type = type;
