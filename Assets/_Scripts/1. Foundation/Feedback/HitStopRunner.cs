@@ -10,6 +10,9 @@ namespace Foundation
         /// <summary>1 during the slow-mo hold, then eases 1 -> 0 over the ramp. 0 otherwise.</summary>
         public static float RoomClearIntensity { get; private set; }
 
+        /// <summary>While true, Apply and PlayRoomClearSlowMo are ignored (used by the death sequence).</summary>
+        public static bool IsLocked { get; private set; }
+
         /// <summary>Fired once at the moment the room-clear slow-mo begins.</summary>
         public static event System.Action RoomClearStarted;
 
@@ -23,13 +26,36 @@ namespace Foundation
             _runner = null;
             _current = null;
             _isRoomClearActive = false;
+            IsLocked = false;
             RoomClearIntensity = 0f;
             RoomClearStarted = null;
         }
 
+        /// <summary>
+        /// Stops any running hit-stop / room-clear slow-mo and blocks new ones until Unlock().
+        /// Does NOT touch Time.timeScale: the caller owns it from here.
+        /// </summary>
+        public static void CancelAndLock()
+        {
+            if (_current != null && _runner != null)
+            {
+                _runner.StopCoroutine(_current);
+            }
+
+            _current = null;
+            _isRoomClearActive = false;
+            RoomClearIntensity = 0f;
+            IsLocked = true;
+        }
+
+        public static void Unlock()
+        {
+            IsLocked = false;
+        }
+
         public static void Apply(int frames, float slowScale = 0f)
         {
-            if (frames <= 0 || _isRoomClearActive)
+            if (frames <= 0 || _isRoomClearActive || IsLocked)
                 return;
 
             EnsureRunner();
@@ -43,6 +69,9 @@ namespace Foundation
 
         public static void PlayRoomClearSlowMo(float targetScale = 0.1f, float holdDurationRealtime = 0.4f, float rampDurationRealtime = 0.6f)
         {
+            if (IsLocked)
+                return;
+
             EnsureRunner();
             if (_current != null)
             {

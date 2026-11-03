@@ -16,6 +16,12 @@ namespace Core
 
         private Vector2 _currentAnimDir = Vector2.down; 
         private Vector2 _lastRawInput = Vector2.zero;
+        private AnimatorUpdateMode _defaultUpdateMode;
+
+        private void Awake()
+        {
+            _defaultUpdateMode = _animator.updateMode;
+        }
 
         private void OnEnable()
         {
@@ -71,11 +77,13 @@ namespace Core
 
         private void OnPlayerDeath(PlayerDiedEvent _)
         {
+            _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
             _animator.SetTrigger(Death);
         }
 
         private void OnPlayerRevived(PlayerRevivedEvent _)
         {
+            _animator.updateMode = _defaultUpdateMode;
             _animator.Rebind();
             _animator.Update(0f);
         }
