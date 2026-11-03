@@ -7,9 +7,13 @@ namespace UI
 {
     public sealed class HUDCurrencyDisplay : MonoBehaviour
     {
+        [Header("References")]
         [SerializeField] private TextMeshProUGUI _currencyText;
         [SerializeField] private TextMeshProUGUI _deltaText; // The floating +/- text
         [SerializeField] private RectTransform _crystalIcon;
+        [Header("Visuals")]
+        [SerializeField] private Color _positiveColor;
+        [SerializeField] private Color _negativeColor;
 
         private int _currentDisplayedValue;
         private Tweener _counterTween;
@@ -54,7 +58,7 @@ namespace UI
 
             // Handle Delta Text (+10 or -40)
             _deltaText.text = delta > 0 ? $"+{delta}" : $"{delta}";
-            _deltaText.color = delta > 0 ? Color.green : Color.red;
+            _deltaText.color = delta > 0 ? _positiveColor : _negativeColor;
             _deltaText.gameObject.SetActive(true);
             _deltaText.rectTransform.anchoredPosition = Vector2.zero; // Reset pos
             
