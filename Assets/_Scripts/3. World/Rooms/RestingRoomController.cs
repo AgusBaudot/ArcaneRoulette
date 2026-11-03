@@ -28,10 +28,18 @@ namespace World
             _greedStatue.OnStatueInteracted -= HandleStatueInteracted;
         }
 
-        private void HandleStatueInteracted()
+        private void HandleStatueInteracted(RestingStatue interactedStatue)
         {
-            _lifeStatue.Deactivate();
-            _greedStatue.Deactivate();
+            if (interactedStatue == _lifeStatue)
+            {
+                _lifeStatue.Deactivate();
+                _greedStatue.Crumble();
+            }
+            else
+            {
+                _greedStatue.Deactivate();
+                _lifeStatue.Crumble();
+            }
             
             _roomManager.MarkAsCleared();
         }

@@ -9,13 +9,18 @@ namespace World
 {
     public abstract class RestingStatue : MonoBehaviour
     {
-        public event Action OnStatueInteracted;
+        public event Action<RestingStatue> OnStatueInteracted;
         
         [Header("Settings")]
         [SerializeField] private GameObject _activeVFX;
         [SerializeField] private GameObject _interactionPrompt;
         [SerializeField] private float _interactionRadius = 2.5f;
         [SerializeField] private float _promptFadeDuration = 0.2f;
+
+        [Header("Visuals & Destruction")]
+        [SerializeField] private GameObject _intactModel;
+        [SerializeField] private GameObject _fracturedModel;
+        [SerializeField] private ExplodingObject _explosionController;
         
         [Header("Audio")]
         [SerializeField] private AudioEventSO _interactSound;
@@ -45,6 +50,9 @@ namespace World
                     _promptSprite.color = color;
                 }
             }
+            
+            if (_intactModel != null) _intactModel.SetActive(true);
+            if (_fracturedModel != null) _fracturedModel.SetActive(false);
         }
 
         private void OnDisable()
@@ -106,7 +114,7 @@ namespace World
             }
 
             ApplyReward(_cachedPlayer);
-            OnStatueInteracted?.Invoke();
+            OnStatueInteracted?.Invoke(this);
         }
 
         public void Deactivate()
@@ -124,6 +132,18 @@ namespace World
             if (Helpers.Input != null)
             {
                 Helpers.Input.OnInteractPressed -= HandleInteractPressed;
+            }
+        }
+        
+        public void Crumble()
+        {
+            Deactivate();
+            
+            if (_intactModel != null) _intactModel.SetActive(false);
+            if (_fracturedModel != null && _explosionController != null)
+            {
+                _fracturedModel.SetActive(true);
+                _explosionController.TriggerCrumble();
             }
         }
 

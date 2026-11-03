@@ -1,5 +1,6 @@
 using UnityEngine;
-using System.Collections; // Required for IEnumerator
+using System.Collections;
+using Foundation;
 
 namespace World
 {
@@ -15,14 +16,18 @@ namespace World
         public float extraGravity = 25f;
 
         [Header("Disappearing Effects")]
+        [Tooltip("Controls how quickly the fragments scale down to 60% of their original size while they are actively flying through the air immediately after the break.")]
         public float airShrinkSpeed = 1.5f;
+        [Tooltip("Controls the rapid interpolation from the piece's current size down to exactly zero the moment it physically collider with the floor, right before the object is deleted.")]
         public float groundShrinkSpeed = 5f;
+        [Tooltip("Forces shards to shrink and delete after this many seconds, even if they never hit the ground.")]
+        public float failsafeDestroyTime = 3f;
 
         private Rigidbody[] fragments;
 
         void Awake()
         {
-            fragments = GetComponentsInChildren<Rigidbody>();
+            fragments = GetComponentsInChildren<Rigidbody>(true);
 
             foreach (Rigidbody rb in fragments)
             {
@@ -34,26 +39,46 @@ namespace World
         {
             StartCoroutine(ExplosionRoutine(hitPosition));
         }
+        
+        public void TriggerCrumble()
+        {
+            StartCoroutine(CrumbleRoutine());
+        }
 
         private IEnumerator ExplosionRoutine(Vector3 hitPosition)
         {
             if (countdownTimer > 0f)
             {
-                // We use our existing custom YieldInstruction cache if possible, 
-                // but standard WaitForSeconds is fine here for prototyping.
-                yield return new WaitForSeconds(countdownTimer);
+                yield return CoroutineUtils.GetWait(countdownTimer);
             }
 
             foreach (Rigidbody rb in fragments)
             {
                 rb.isKinematic = false;
                 
-                // Push fragments away from the actual hit position!
                 rb.AddExplosionForce(explosionForce, hitPosition, explosionRadius);
                 rb.AddTorque(Random.insideUnitSphere * 40f, ForceMode.Impulse);
 
                 FragmentBehavior piece = rb.gameObject.AddComponent<FragmentBehavior>();
-                piece.Setup(extraGravity, airShrinkSpeed, groundShrinkSpeed, minAirTime);
+                piece.Setup(extraGravity, airShrinkSpeed, groundShrinkSpeed, minAirTime, failsafeDestroyTime);
+            }
+        }
+
+        private IEnumerator CrumbleRoutine()
+        {
+            if (countdownTimer > 0f)
+            {
+                yield return CoroutineUtils.GetWait(countdownTimer);
+            }
+
+            foreach (Rigidbody rb in fragments)
+            {
+                rb.isKinematic = false;
+                
+                rb.AddTorque(Random.insideUnitSphere * 10f, ForceMode.Impulse);
+
+                FragmentBehavior piece = rb.gameObject.AddComponent<FragmentBehavior>();
+                piece.Setup(extraGravity, airShrinkSpeed, groundShrinkSpeed, minAirTime, failsafeDestroyTime);
             }
         }
     }
@@ -70,7 +95,7 @@ namespace World
         private bool hasLanded = false;
         private float spawnTime;
 
-        public void Setup(float gravity, float shrinkAir, float shrinkGround, float airTime)
+        public void Setup(float gravity, float shrinkAir, float shrinkGround, float airTime, float maxLife)
         {
             extraGravity = gravity;
             airShrinkSpeed = shrinkAir;
@@ -80,6 +105,8 @@ namespace World
 
             spawnTime = Time.time;
             targetAirScale = transform.localScale * 0.6f;
+            
+            StartCoroutine(FailsafeRoutine(maxLife));
         }
 
         void Update()
@@ -109,7 +136,18 @@ namespace World
             }
         }
 
-        IEnumerator FinishShrinkingAndDestroy()
+        private IEnumerator FailsafeRoutine(float maxLife)
+        {
+            yield return CoroutineUtils.GetWait(maxLife);
+            
+            if (!hasLanded)
+            {
+                hasLanded = true;
+                StartCoroutine(FinishShrinkingAndDestroy());
+            }
+        }
+
+        private IEnumerator FinishShrinkingAndDestroy()
         {
             Vector3 impactScale = transform.localScale;
             float t = 0;
