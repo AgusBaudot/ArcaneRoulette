@@ -1,6 +1,5 @@
-using Foundation;
-using UnityEngine;
 using DG.Tweening;
+using UnityEngine;
 
 namespace World
 {
@@ -79,6 +78,16 @@ namespace World
             for (int i = 0; i < _renderers.Length; i++)
             {
                 var r = _renderers[i];
+                
+                r.material.DOKill();
+                
+                r.material = _baseGameplayMaterial;
+                
+                if (r.material.HasProperty(DissolveAmountID))
+                {
+                    r.material.SetFloat(DissolveAmountID, 0f);
+                }
+                
                 var tween = r.material.DOFloat(1f, DissolveAmountID, _deathDuration).SetEase(Ease.InSine);
                 
                 if (i == 0) 
