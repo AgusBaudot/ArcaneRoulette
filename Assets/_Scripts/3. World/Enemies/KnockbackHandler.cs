@@ -7,8 +7,9 @@ namespace World
     [RequireComponent(typeof(Rigidbody))]
     public class KnockbackHandler : MonoBehaviour, IKnockbackable
     {
-        [SerializeField] private float _drag = 12f; //How fast it bleeds off
-        [SerializeField] private float _maxKnockbackDuration = 2f;
+        [SerializeField] private float _duration = 0.15f; 
+        
+        [SerializeField] private AnimationCurve _velocityCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
         
         public bool IsKnockedBack { get; private set; }
 
@@ -19,39 +20,36 @@ namespace World
 
         public void ApplyKnockback(Vector3 direction, float force)
         {
-            if (!isActiveAndEnabled)
-                return;
+            if (!isActiveAndEnabled) return;
             
-            if (_current != null) 
-                StopCoroutine(_current);
-            
+            if (_current != null) StopCoroutine(_current);
             _current = StartCoroutine(Run(direction, force));
         }
 
         private IEnumerator Run(Vector3 direction, float force)
         {
-            if (_rb.isKinematic)
-                yield break;
+            if (_rb.isKinematic) yield break;
             
             IsKnockedBack = true;
-            
-            //Ensure we aren't knocking them directly into the floor/sky
             direction.y = 0;
             
-            _rb.velocity = direction.normalized * force; //Set directly, don't add - cleaner reset
-
+            Vector3 initialVelocity = direction.normalized * force;
             float timeElapsed = 0f;
             
-            while (new Vector3(_rb.velocity.x, 0, _rb.velocity.z).sqrMagnitude > 0.05f && timeElapsed < _maxKnockbackDuration)
+            while (timeElapsed < _duration)
             {
-                timeElapsed += Time.deltaTime;
-                Vector3 horizontalVel = Vector3.MoveTowards(new Vector3(_rb.velocity.x, 0, _rb.velocity.z), Vector3.zero, _drag * Time.deltaTime);
+                float t = timeElapsed / _duration;
+                float multiplier = _velocityCurve.Evaluate(t);
                 
-                _rb.velocity = new Vector3(horizontalVel.x, _rb.velocity.y, horizontalVel.z);
-                yield return null;
+                Vector3 currentVel = initialVelocity * multiplier;
+                
+                _rb.velocity = new Vector3(currentVel.x, _rb.velocity.y, currentVel.z);
+                
+                yield return new WaitForFixedUpdate(); 
+                timeElapsed += Time.fixedDeltaTime;
             }
             
-            _rb.velocity = Vector3.zero;
+            _rb.velocity = new Vector3(0, _rb.velocity.y, 0);
             IsKnockedBack = false;
             _current = null;
         }
