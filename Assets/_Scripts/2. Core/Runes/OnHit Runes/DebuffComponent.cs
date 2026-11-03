@@ -37,6 +37,8 @@ namespace Core
                 StopCoroutine(_tickRoutine);
                 _tickRoutine = null;
             }
+            
+            _active.Clear();
         }
         
         // Backwards compatibility with the existing IDebuffable interface

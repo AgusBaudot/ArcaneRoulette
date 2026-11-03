@@ -1,3 +1,4 @@
+using System;
 using Foundation;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +18,11 @@ namespace World
         private IDoTReadable _dots;
 
         private void Awake()
+        {
+            HideAllIcons();
+        }
+
+        private void OnEnable()
         {
             HideAllIcons();
         }
