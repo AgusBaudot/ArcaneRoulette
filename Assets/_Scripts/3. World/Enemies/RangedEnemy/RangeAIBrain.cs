@@ -12,6 +12,7 @@ namespace World
 
         [Header("Range Specific")]
         [SerializeField] private Transform _firePoint;
+        [SerializeField] private Collider _hurtBox;
         
         private RangeEnemyStats RangeStats => _enemyStats as RangeEnemyStats;
         private PlayerController _playerController;
@@ -214,6 +215,7 @@ namespace World
             _isTeleporting = true;
             SetState(AIState.Teleporting);
             _agent.isStopped = true;
+            _hurtBox.enabled = false;
 
             OnTeleportInStarted?.Invoke(RangeStats.TeleportAnimDuration);
         }
@@ -272,6 +274,7 @@ namespace World
         {
             OnTeleportOutStarted?.Invoke(RangeStats.TeleportOutDuration);
             _isTeleporting = false;
+            _hurtBox.enabled = true;
         }
 
         // --- Attack Sequence (Modified for Deferred Spawning) ---
