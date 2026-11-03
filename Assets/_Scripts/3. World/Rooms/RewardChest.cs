@@ -12,6 +12,7 @@ namespace World
     {
         [Header("General Settings")]
         [SerializeField] private float _fallDuration = 0.4f;
+        [SerializeField] private float _dropHeight = 8f;
         [SerializeField] private float _promptFadeDuration = 0.2f;
         [SerializeField] private Animator _animator;
         [SerializeField] private GameObject _interactionPrompt;
@@ -30,6 +31,8 @@ namespace World
         
         private Image _promptSprite;
         private Tween _promptTween;
+        private Tween _fallTween;
+        private float _initialScale;
         
         private static readonly int _openHash = Animator.StringToHash("t_Open");
 
@@ -37,6 +40,8 @@ namespace World
         {
             var col = GetComponent<BoxCollider>();
             col.isTrigger = true;
+            
+            _initialScale = transform.localScale.x;
             
             if (_interactionPrompt != null)
             {
@@ -54,26 +59,37 @@ namespace World
 
         private void OnEnable()
         {
-            //TODO: make fall
             EventBus.Subscribe<RoomRewardResolvedEvent>(HandleRewardResolved);
 
-            if (_fallSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = _fallSound,
-                    WorldPosition = transform.position
-                });
-            }
-            
+            Vector3 groundPosition = transform.position;
+            transform.position = groundPosition + (Vector3.up * _dropHeight);
+
             transform.localScale = Vector3.zero;
-            transform.DOScale(Vector3.one, _fallDuration).SetEase(Ease.OutBack);
+            transform.DOScale(Vector3.one * _initialScale, _fallDuration).SetEase(Ease.OutBack);
+
+            _fallTween = transform.DOMoveY(groundPosition.y, _fallDuration)
+                .SetEase(Ease.InQuad)
+                .OnComplete(() =>
+                {
+                    if (_fallSound != null)
+                    {
+                        EventBus.Publish(new AudioPlayRequest
+                        {
+                            Event = _fallSound,
+                            WorldPosition = transform.position
+                        });
+                    }
+                });
         }
 
         private void OnDisable()
         {
+            EventBus.Unsubscribe<RoomRewardResolvedEvent>(HandleRewardResolved);
             Helpers.Input.OnInteractPressed -= HandleInteract;
+            
             _promptTween?.Kill();
+            _fallTween?.Kill();
+            transform.DOKill();
         }
 
         private void OnTriggerEnter(Collider other)
