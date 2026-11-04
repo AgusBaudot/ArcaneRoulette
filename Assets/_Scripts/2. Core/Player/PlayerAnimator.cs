@@ -12,6 +12,7 @@ namespace Core
         private static readonly int MoveXHash = Animator.StringToHash("MoveX");
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
         private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+        private static readonly int IsShieldingHash = Animator.StringToHash("IsShielding");
         private static readonly int Death = Animator.StringToHash("t_Death");
         private static readonly int DashLeftHash = Animator.StringToHash("t_DashLeft");
         private static readonly int DashRightHash = Animator.StringToHash("t_DashRight");
@@ -19,10 +20,13 @@ namespace Core
         private Vector2 _currentAnimDir = Vector2.down; 
         private Vector2 _lastRawInput = Vector2.zero;
         private AnimatorUpdateMode _defaultUpdateMode;
+        
+        private PlayerController _playerController;
 
         private void Awake()
         {
             _defaultUpdateMode = _animator.updateMode;
+            _playerController = GetComponentInParent<PlayerController>();
         }
 
         private void OnEnable()
@@ -30,7 +34,7 @@ namespace Core
             UpdateManager.Instance.Register(this); 
             EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDeath);
             EventBus.Subscribe<PlayerRevivedEvent>(OnPlayerRevived);
-            EventBus.Subscribe<PlayerDashedEvent>(OnPlayerDashed);
+            EventBus.Subscribe<PlayerDashedEvent>(OnPlayerDashed); 
         }
 
         private void OnDisable()
@@ -77,6 +81,8 @@ namespace Core
             _animator.SetFloat(MoveXHash, _currentAnimDir.x);
             _animator.SetFloat(MoveYHash, _currentAnimDir.y);
             _animator.SetBool(IsMovingHash, isMoving);
+            
+            _animator.SetBool(IsShieldingHash, _playerController.IsShielding);
         }
         
         private void OnPlayerDashed(PlayerDashedEvent evt)
