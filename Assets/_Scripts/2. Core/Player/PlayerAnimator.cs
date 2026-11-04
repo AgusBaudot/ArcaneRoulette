@@ -12,7 +12,9 @@ namespace Core
         private static readonly int MoveXHash = Animator.StringToHash("MoveX");
         private static readonly int MoveYHash = Animator.StringToHash("MoveY");
         private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
-        private static readonly int Death =  Animator.StringToHash("t_Death");
+        private static readonly int Death = Animator.StringToHash("t_Death");
+        private static readonly int DashLeftHash = Animator.StringToHash("t_DashLeft");
+        private static readonly int DashRightHash = Animator.StringToHash("t_DashRight");
 
         private Vector2 _currentAnimDir = Vector2.down; 
         private Vector2 _lastRawInput = Vector2.zero;
@@ -28,6 +30,7 @@ namespace Core
             UpdateManager.Instance.Register(this); 
             EventBus.Subscribe<PlayerDiedEvent>(OnPlayerDeath);
             EventBus.Subscribe<PlayerRevivedEvent>(OnPlayerRevived);
+            EventBus.Subscribe<PlayerDashedEvent>(OnPlayerDashed);
         }
 
         private void OnDisable()
@@ -35,6 +38,7 @@ namespace Core
             UpdateManager.Instance?.Unregister(this);
             EventBus.Unsubscribe<PlayerDiedEvent>(OnPlayerDeath);
             EventBus.Unsubscribe<PlayerRevivedEvent>(OnPlayerRevived);
+            EventBus.Unsubscribe<PlayerDashedEvent>(OnPlayerDashed);
         }
 
         public void Tick(float dt)
@@ -73,6 +77,16 @@ namespace Core
             _animator.SetFloat(MoveXHash, _currentAnimDir.x);
             _animator.SetFloat(MoveYHash, _currentAnimDir.y);
             _animator.SetBool(IsMovingHash, isMoving);
+        }
+        
+        private void OnPlayerDashed(PlayerDashedEvent evt)
+        {
+            float dirX = Mathf.Abs(evt.Direction.x) > 0.01f ? evt.Direction.x : _currentAnimDir.x;
+            
+            if (dirX < 0f)
+                _animator.SetTrigger(DashLeftHash);
+            else
+                _animator.SetTrigger(DashRightHash);
         }
 
         private void OnPlayerDeath(PlayerDiedEvent _)

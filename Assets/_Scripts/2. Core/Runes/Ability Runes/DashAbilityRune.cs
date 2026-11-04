@@ -98,6 +98,8 @@ namespace Core
 
             if (dir == Vector3.zero)
                 dir = player.transform.forward;
+            
+            EventBus.Publish(new PlayerDashedEvent(dir));
 
             player.SetCanMove(false);
             player.Hurtbox.SetActive(false);
