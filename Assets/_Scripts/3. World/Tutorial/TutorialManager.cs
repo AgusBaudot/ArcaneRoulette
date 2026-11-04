@@ -57,6 +57,7 @@ namespace World
         private int _currentRoom = 1;
         
         private bool _dummyDefeated = false;
+        private bool _room3EnemiesSpawned = false;
         private int _room3EnemiesDefeated = 0;
         private bool _room2ChestSpawned = false;
         private bool _room3ChestSpawned = false;
@@ -209,6 +210,15 @@ namespace World
             return false;
         }
 
+        private void TrySpawnRoom3Enemies()
+        {
+            if (_room3EnemiesSpawned) return;
+            _room3EnemiesSpawned = true;
+
+            PoolEnemy.Instance.Get(EnemyType.Melee, _room3Enemy1Spawn.position);
+            PoolEnemy.Instance.Get(EnemyType.Melee, _room3Enemy2Spawn.position);
+        }
+
         private IEnumerator Step1Timer()
         {
             yield return new WaitForSeconds(_stepWaitTimer);
@@ -231,13 +241,20 @@ namespace World
             else if (roomNumber == 3 && _currentStep >= 7 && _currentStep <= 10)
             {
                 _room3EntranceFrom2.Close(); 
-
-                PoolEnemy.Instance.Get(EnemyType.Melee, _room3Enemy1Spawn.position);
-                PoolEnemy.Instance.Get(EnemyType.Melee, _room3Enemy2Spawn.position);
                 
-                if (_room3EnemiesDefeated >= 2 && HasModifiersEquipped()) TriggerRoom3Chest();
-                else if (HasModifiersEquipped()) SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
-                else SetStep(9, "Equip the Piercing and DoT Runes alongside your Projectile Rune to modify your spell.");
+                if (_room3EnemiesDefeated >= 2 && HasModifiersEquipped()) 
+                {
+                    TriggerRoom3Chest();
+                }
+                else if (HasModifiersEquipped()) 
+                {
+                    TrySpawnRoom3Enemies();
+                    SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
+                }
+                else 
+                {
+                    SetStep(9, "Press TAB to open the Spell Crafting Interface and equip the Piercing and DoT Runes.");
+                }
             }
             else if (roomNumber == 4 && _currentStep >= 11 && _currentStep <= 14)
             {
@@ -299,9 +316,19 @@ namespace World
             {
                 if (HasModifiersEquipped())
                 {
-                    if (_room3EnemiesDefeated >= 2) TriggerRoom3Chest();
-                    else if (_currentRoom == 3) SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
-                    else SetStep(8, "Great! Head through the door to the next room."); 
+                    if (_room3EnemiesDefeated >= 2) 
+                    {
+                        TriggerRoom3Chest();
+                    }
+                    else if (_currentRoom == 3) 
+                    {
+                        TrySpawnRoom3Enemies();
+                        SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
+                    }
+                    else 
+                    {
+                        SetStep(8, "Great! Head through the door to the next room."); 
+                    }
                 }
             }
             else if (_currentStep == 13 || _currentStep == 14 || _currentStep == 15)
@@ -436,7 +463,14 @@ namespace World
             if (_currentRoom == 3)
             {
                 EventBus.Publish(new PlayerTeleportRequestEvent(_room3Spawn.position));
-                SetStep(9, "Equip the Piercing and DoT Runes alongside your Projectile Rune to modify your spell.");
+                if (HasModifiersEquipped())
+                {
+                    SetStep(10, "Now put your modified spell to the test. Defeat both enemies!");
+                }
+                else
+                {
+                    SetStep(9, "Press TAB to open the Spell Crafting Interface and equip the Piercing and DoT Runes.");
+                }
             }
             else if (_currentRoom == 4)
             {
