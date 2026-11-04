@@ -53,6 +53,7 @@ namespace UI
         private readonly List<LootOptionUI> _optionPool = new();
         private readonly List<int> _selectionOrder = new();
         private int _effectiveMax;
+        private bool _claimed;
 
         private Vector2 _runeOriginalPos;
         private Vector2 _tooltipOriginalPos;
@@ -90,6 +91,8 @@ namespace UI
         public override void Show()
         {
             if (_dropPool == null) return;
+
+            _claimed = false;
     
             if (TooltipSystem.Instance != null)
                 TooltipSystem.Instance.SetEnabled(false);
@@ -171,6 +174,8 @@ namespace UI
 
         public override void Hide()
         {
+            OnConfirm();
+            
             base.Hide();
             
             _showSequence?.Kill();
@@ -285,6 +290,11 @@ namespace UI
 
         private void OnConfirm()
         {
+            if (_claimed)
+                return;
+            
+            _claimed = true;
+            
             foreach (int index in _selectionOrder)
             {
                 GameStateManager.RunState.AddRune(_optionPool[index].Rune);
