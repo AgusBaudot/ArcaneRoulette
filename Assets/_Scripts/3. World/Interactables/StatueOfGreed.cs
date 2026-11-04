@@ -33,8 +33,6 @@ namespace World
                     GameStateManager.RunState.AddRune(runes[0]);
                 }
             }
-            
-            //TODO: fire Animation for Rune acquired here.
 
             StartCoroutine(SpawnCurrencyRoutine());
         }

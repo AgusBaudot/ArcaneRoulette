@@ -14,6 +14,7 @@ namespace World
         [Header("Settings")]
         [SerializeField] private GameObject _activeVFX;
         [SerializeField] private GameObject _interactionPrompt;
+        [SerializeField] private Collider _collider;
         [SerializeField] private float _interactionRadius = 2.5f;
         [SerializeField] private float _promptFadeDuration = 0.2f;
 
@@ -121,6 +122,7 @@ namespace World
         {
             _isActive = false;
             _playerInside = false;
+            _collider.enabled = false;
 
             if (_activeVFX != null)
             {
