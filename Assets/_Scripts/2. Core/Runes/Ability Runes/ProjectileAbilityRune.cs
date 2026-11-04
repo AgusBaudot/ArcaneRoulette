@@ -69,6 +69,8 @@ namespace Core
             dir.y = 0f;
             dir.Normalize();
             
+            EventBus.Publish(new PlayerFiredEvent(dir));
+            
             if (dir == Vector3.zero)
             {
                 Debug.LogError($"{nameof(ProjectileAbilityRune)}: Direction is zero");
