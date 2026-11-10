@@ -17,7 +17,7 @@ MonoBehaviour:
   ObsMask:
     serializedVersion: 2
     m_Bits: 32768
-  ChaseSpeed: 8
+  ChaseSpeed: 4
   PatrolSpeed: 1
   AttackDamage: 30
   AttackRange: 7
@@ -35,6 +35,11 @@ MonoBehaviour:
   HealingCooldown: 8
   ThrowingDuration: 1.5
   ThrowingCooldown: 15
+  HealWindupDuration: 0.2
+  HealRecoverDuration: 0.2
+  ThrowWindupDuration: 0.6
+  ThrowDuration: 0.4
+  BottleReleaseFraction: 0.6
   BottlePrefab: {fileID: 3441578478036581919, guid: 8dfa4016a723c984395a943713918b72,
     type: 3}
   BottleThrowSpeed: 6

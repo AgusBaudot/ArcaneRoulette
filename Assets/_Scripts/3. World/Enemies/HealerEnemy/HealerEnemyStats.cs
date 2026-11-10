@@ -18,6 +18,11 @@ namespace World
         public float HealingCooldown = 8f;
         public float ThrowingDuration = 2f;
         public float ThrowingCooldown = 15f;
+        public float HealWindupDuration;
+        public float HealRecoverDuration;
+        public float ThrowWindupDuration;
+        public float ThrowDuration;
+        public float BottleReleaseFraction;
 
         [Header("Healer - Projectile")]
         public BottleProjectile BottlePrefab;

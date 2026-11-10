@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core;
 using Foundation;
@@ -15,10 +16,31 @@ namespace World
         private float _throwCooldownEndTime;
         private float _healTimer;
         private List<EnemyHealth> _activeHealTargets = new();
-
         private List<PooledLineVFX> _activeHealBeams = new();
         
         private AudioHandle _healAudioHandle;
+
+        private bool _isPendingThrow = false;
+        private float _spawnDelayTimer = 0f;
+
+        public event Action<float> OnHealWindupStarted;
+        public event Action<float> OnHealingStarted;
+        public event Action<float> OnHealRecoverStarted;
+        public event Action<float> OnThrowWindupStarted;
+        public event Action<float> OnThrowStarted;
+
+        public Vector3 CurrentTargetDirection
+        {
+            get
+            {
+                if (IsState(AIState.Healing) && _activeHealTargets.Count > 0 && _activeHealTargets[0] != null)
+                {
+                    return (_activeHealTargets[0].transform.position - transform.position).normalized;
+                }
+                Transform player = GetPlayer();
+                return player != null ? (player.position - transform.position).normalized : transform.forward;
+            }
+        }
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
         private void OnDisable() => UpdateManager.Instance?.Unregister(this);
@@ -29,12 +51,23 @@ namespace World
             _healCooldownEndTime = 0f;
             _throwCooldownEndTime = 0f;
             _activeHealTargets.Clear();
+            _isPendingThrow = false;
             ClearHealBeams();
             StopHealAudio();
         }
 
         public void Tick(float dt)
         {
+            if (_isPendingThrow)
+            {
+                _spawnDelayTimer -= dt;
+                if (_spawnDelayTimer <= 0f)
+                {
+                    ExecuteThrow();
+                    _isPendingThrow = false;
+                }
+            }
+
             if (_agent == null || !IsState(AIState.Healing))
             {
                 if (_activeHealBeams.Count > 0)
@@ -96,7 +129,9 @@ namespace World
             seq.AddChild(new LeafNode("CanHeal", new ConditionNode(() => 
                 Time.time >= _healCooldownEndTime && GetValidHealTargets().Count > 0)));
             
-            seq.AddChild(new LeafNode("HealAction", new TimedActionStrategy(BeginHealing, () => HealerStats.HealingDuration, OnHealingTick)));
+            seq.AddChild(new LeafNode("HealWindup", new TimedActionStrategy(BeginHealWindup, () => GetClampedDuration(HealerStats.HealWindupDuration))));
+            seq.AddChild(new LeafNode("HealAction", new TimedActionStrategy(BeginHealing, () => GetClampedDuration(HealerStats.HealingDuration), OnHealingTick)));
+            seq.AddChild(new LeafNode("HealRecover", new TimedActionStrategy(BeginHealRecover, () => GetClampedDuration(HealerStats.HealRecoverDuration))));
             seq.AddChild(new LeafNode("EndHeal", new ActionNode(EndHealing)));
             return seq;
         }
@@ -107,15 +142,13 @@ namespace World
             seq.AddChild(new LeafNode("CanThrow", new ConditionNode(() => 
                 Time.time >= _throwCooldownEndTime && IsPlayerInThrowingRange())));
             
-            seq.AddChild(new LeafNode("ThrowAction", new TimedActionStrategy(() => 
-            {
-                SetState(AIState.Throwing);
-                _agent.isStopped = true;
-            }, () => HealerStats.ThrowingDuration)));
-            
+            seq.AddChild(new LeafNode("ThrowWindup", new TimedActionStrategy(BeginThrowWindup, () => GetClampedDuration(HealerStats.ThrowWindupDuration))));
+            seq.AddChild(new LeafNode("ThrowAction", new TimedActionStrategy(BeginThrow, () => GetClampedDuration(HealerStats.ThrowDuration))));
             seq.AddChild(new LeafNode("EndThrow", new ActionNode(EndThrowing)));
             return seq;
         }
+        
+        private float GetClampedDuration(float baseDuration) => Mathf.Max(0.01f, baseDuration * EffectiveAttackSpeed);
 
         private void DoChase()
         {
@@ -157,21 +190,26 @@ namespace World
                 }
             }
         }
+        
+        private void BeginHealWindup()
+        {
+            SetState(AIState.Healing);
+            _agent.isStopped = true;
+            OnHealWindupStarted?.Invoke(GetClampedDuration(HealerStats.HealWindupDuration));
+        }
 
         private void BeginHealing()
         {
-            SetState(AIState.Healing);
             _healTimer = 0f;
             _activeHealTargets = GetValidHealTargets();
+            
+            OnHealingStarted?.Invoke(GetClampedDuration(HealerStats.HealingDuration));
 
             if (HealerStats.HealBeamPrefab != null)
             {
                 foreach (var target in _activeHealTargets)
                 {
-                    var beam = Helpers.ProjFactory.Spawn(
-                        HealerStats.HealBeamPrefab, 
-                        transform.position, 
-                        Quaternion.identity);
+                    var beam = Helpers.ProjFactory.Spawn(HealerStats.HealBeamPrefab, transform.position, Quaternion.identity);
                     _activeHealBeams.Add(beam);
                 }
             }
@@ -235,11 +273,70 @@ namespace World
             }
         }
 
+        private void BeginHealRecover()
+        {
+            ClearHealBeams();
+            StopHealAudio();
+            OnHealRecoverStarted?.Invoke(GetClampedDuration(HealerStats.HealRecoverDuration));
+        }
+
         private void EndHealing()
         {
             _healCooldownEndTime = Time.time + HealerStats.HealingCooldown;
-            ClearHealBeams();
-            StopHealAudio();
+            _agent.isStopped = false;
+        }
+        
+        private void BeginThrowWindup()
+        {
+            SetState(AIState.Throwing);
+            _agent.isStopped = true;
+            OnThrowWindupStarted?.Invoke(GetClampedDuration(HealerStats.ThrowWindupDuration));
+        }
+
+        private void BeginThrow()
+        {
+            float duration = GetClampedDuration(HealerStats.ThrowDuration);
+            _isPendingThrow = true;
+            _spawnDelayTimer = duration * HealerStats.BottleReleaseFraction;
+            
+            OnThrowStarted?.Invoke(duration);
+        }
+
+        private void ExecuteThrow()
+        {
+            Transform player = GetPlayer();
+            if (player != null && HealerStats.BottlePrefab != null)
+            {
+                Vector3 spawnPos = transform.position + Vector3.up * 1f;
+                Vector3 dir = (player.position - spawnPos).normalized;
+                
+                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, spawnPos, HealerStats.BottlePrefab.transform.rotation);
+                
+                bottle.InitEnemyBottle(
+                    HealerStats.BottlePrefab, 
+                    dir, 
+                    HealerStats.BottleThrowSpeed, 
+                    Mathf.RoundToInt(EffectiveAttackDamage * 0.5f), 
+                    gameObject, 
+                    player.position
+                );
+            }
+            
+            if (HealerStats.BottleThrowSound != null)
+            {
+                EventBus.Publish(new AudioPlayRequest
+                {
+                    Event = HealerStats.BottleThrowSound,
+                    WorldPosition = transform.position,
+                });
+            }
+        }
+
+        private void EndThrowing()
+        {
+            _agent.isStopped = false;
+            _isPendingThrow = false;
+            _throwCooldownEndTime = Time.time + HealerStats.ThrowingCooldown;
         }
 
         private void ClearHealBeams()
@@ -312,38 +409,6 @@ namespace World
         {
             Transform p = GetPlayer();
             return p != null && Vector3.Distance(transform.position, p.position) <= HealerStats.ThrowingRange;
-        }
-
-        private void EndThrowing()
-        {
-            Transform player = GetPlayer();
-            if (player != null && HealerStats.BottlePrefab != null)
-            {
-                Vector3 spawnPos = transform.position + Vector3.up * 1f;
-                Vector3 dir = (player.position - spawnPos).normalized;
-                
-                var bottle = Helpers.ProjFactory.Spawn<BottleProjectile>(HealerStats.BottlePrefab, spawnPos, HealerStats.BottlePrefab.transform.rotation);
-                
-                bottle.InitEnemyBottle(
-                    HealerStats.BottlePrefab, 
-                    dir, 
-                    HealerStats.BottleThrowSpeed, 
-                    Mathf.RoundToInt(EffectiveAttackDamage * 0.5f), 
-                    gameObject, 
-                    player.position
-                );
-            }
-            
-            if (HealerStats.BottleThrowSound != null)
-            {
-                EventBus.Publish(new AudioPlayRequest
-                {
-                    Event = HealerStats.BottleThrowSound,
-                    WorldPosition = transform.position,
-                });
-            }
-            
-            _throwCooldownEndTime = Time.time + HealerStats.ThrowingCooldown;
         }
     }
 }
