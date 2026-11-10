@@ -12,7 +12,7 @@ namespace World
 {
     [RequireComponent(typeof(BlackboardController))]
     [RequireComponent(typeof(EnemyHealth))]
-    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly
+    public class EnemyController : MonoBehaviour, IEnemyUpdate, IPoolable, IAlly, IFastTickable
     {
         #region Parameters
         public float interval { get; set; }
@@ -23,6 +23,7 @@ namespace World
         public Transform Transform => transform;
         public Blackboard Blackboard => _blackboard;
         public Vector3 OcclusionPosition => transform.position;
+        public bool NeedsFastTick => _aiBrain != null && _aiBrain.NeedsFastTick;
         #endregion
 
         #region Components
@@ -69,7 +70,6 @@ namespace World
                 _components.Add(deathVfx);
             }
             
-            _aiBrain = GetComponent<AIBrain>();
             if (_aiBrain == null)
             {
                 Debug.LogError($"{gameObject.name}: EnemyController requires a concrete AIBrain (e.g., MeleeAIBrain, HealerAIBrain) to be attached to this GameObject. Please add one!");
@@ -135,8 +135,11 @@ namespace World
     
             BindToNavMesh(); 
     
-            _rb.velocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
+            if (_rb != null && !_rb.isKinematic)
+            {
+                _rb.velocity = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+            }
             IsBeingHealed = false;
         }
 

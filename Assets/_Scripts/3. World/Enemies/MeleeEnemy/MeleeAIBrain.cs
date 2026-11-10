@@ -2,7 +2,6 @@ using System;
 using Core;
 using Foundation;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace World
 {
@@ -13,21 +12,20 @@ namespace World
         [Header("Melee-specific")]
         [Tooltip("Assign once the weapon/rig exists — a child BoxCollider under the sword's socket.")]
         [SerializeField] private MeleeWeaponHitbox _hitbox;
+        [Tooltip("Stopping distance while chasing a swarm slot.")]
+        [SerializeField] private float _chaseStopDistance = 0.3f;
+        [Tooltip("During windup the enemy keeps closing in (slowed) but never walks closer than this to the player.")]
+        [SerializeField] private float _windupMinDistance = 1.2f;
+        [Tooltip("Swarm slots are clamped to this fraction of Attack Range, so a slot can never be outside attack range.")]
+        [SerializeField, Range(0.3f, 1f)] private float _slotMaxRangeFraction = 0.85f;
 
         private MeleeEnemyStats MeleeStats => _enemyStats as MeleeEnemyStats;
 
-        private PlayerController _playerController;
         private Vector3 _lastAttackDirection;
         private float _dashDistanceMoved;
+        private bool _isWindingUp;
         private bool _isStepping;
         private bool _isDashing;
-        
-        private NavMeshPath _chasePath;
-
-        private Vector3 _lastDestinationRequest;
-        private float _lastPathRequestTime;
-
-        private float _attackBTTickTimer;
         
         public event Action<float> OnSpawnStarted;
         public event Action<float> OnWindupStarted;
@@ -56,11 +54,9 @@ namespace World
         public override void ResetComponent()
         {
             base.ResetComponent();
+            _isWindingUp = false;
             _isStepping = false;
             _isDashing = false;
-            _lastPathRequestTime = 0f;
-            _lastDestinationRequest = Vector3.zero;
-            _attackBTTickTimer = 0f;
             
             SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
             if (_hitbox != null)
@@ -71,16 +67,15 @@ namespace World
         
         public void Tick(float dt)
         {
-            if (_agent == null || !IsState(AIState.Attack)) return;
-            
-            _attackBTTickTimer -= dt;
-            if (_attackBTTickTimer <= 0f)
-            {
-                base.Tick();
-                _attackBTTickTimer = 0.033f;
-            }
+            ApplyPerspectiveSpeed();
 
-            if (_isStepping)
+            if (_agent == null || !_agent.isActiveAndEnabled || !_agent.isOnNavMesh || !IsState(AIState.Attack)) return;
+
+            if (_isWindingUp)
+            {
+                WindupApproach(dt);
+            }
+            else if (_isStepping)
             {
                 float speed = EffectiveChaseSpeed * MeleeStats.Attack1MovementSpeedMultiplier;
                 _agent.Move(_lastAttackDirection * speed * dt);
@@ -92,6 +87,21 @@ namespace World
                 _agent.Move(_lastAttackDirection * step);
                 _dashDistanceMoved += step;
             }
+        }
+
+        private void WindupApproach(float dt)
+        {
+            Transform player = GetPlayer();
+            if (player == null) return;
+
+            Vector3 toPlayer = player.position - transform.position;
+            toPlayer.y = 0f;
+            float distance = toPlayer.magnitude;
+            if (distance <= _windupMinDistance) return;
+
+            float speed = EffectiveChaseSpeed * (1f - Mathf.Clamp01(MeleeStats.WindupSlowPercentage));
+            float step = Mathf.Min(speed * dt, distance - _windupMinDistance);
+            _agent.Move(toPlayer / distance * step);
         }
 
         protected override BehaviorTree BuildTree()
@@ -131,52 +141,19 @@ namespace World
             Transform player = GetPlayer();
             if (player == null || _agent == null) return;
 
-            if (_playerController == null) _playerController = player.GetComponentInParent<PlayerController>();
+            ApplyChaseSpeed();
 
-            _agent.isStopped = false;
-            _agent.speed = EffectiveChaseSpeed;
-
-            Vector3 targetPos = player.position;
-
+            Vector3 target = player.position;
             if (IsInLos())
             {
-                float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-                float predictionTime = Mathf.Clamp(distanceToPlayer / EffectiveChaseSpeed, 0f, MeleeStats.MaxPredictionTime);
-
-                Vector3 futurePos = player.position + (_playerController.LogicalVelocity * predictionTime);
-                Vector3 basePoint = Vector3.Lerp(player.position, futurePos, MeleeStats.TargetPredictionWeight);
-
-                Vector3 rawSlotOffset = SwarmManager.GetOrClaimSlot(gameObject.GetInstanceID()) * MeleeStats.FormationRadius;
-                rawSlotOffset.z *= Helpers.PlayerStats.VerticalSpeedMultiplier; 
-
-                targetPos = basePoint + rawSlotOffset;
+                target = GetPursuitPoint(player,
+                    MeleeStats.TargetPredictionWeight,
+                    MeleeStats.MaxPredictionTime,
+                    MeleeStats.FormationRadius,
+                    _enemyStats.AttackRange * _slotMaxRangeFraction);
             }
 
-            if (_agent.pathPending) return;
-
-            if (Time.time - _lastPathRequestTime < 0.5f && Vector3.SqrMagnitude(_lastDestinationRequest - targetPos) < 1.0f)
-            {
-                return;
-            }
-
-            _lastPathRequestTime = Time.time;
-            _lastDestinationRequest = targetPos;
-
-            if (IsInLos())
-            {
-                _chasePath ??= new NavMeshPath();
-                if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 1.5f, NavMesh.AllAreas))
-                {
-                    _agent.CalculatePath(hit.position, _chasePath);
-                    if (_chasePath.status == NavMeshPathStatus.PathComplete)
-                    {
-                        _agent.SetPath(_chasePath);
-                        return;
-                    }
-                }
-            }
-
-            _agent.SetDestination(player.position);
+            MoveTo(target, _chaseStopDistance);
         }
 
         private Node BuildAttackSequence()
@@ -215,42 +192,21 @@ namespace World
             Transform player = GetPlayer();
             if (player == null || !IsInLos()) return false;
 
-            if (IsInStableDistance(player)) return true;
-
-            if (IsState(AIState.Chase) && _agent != null)
-            {
-                if (!_agent.pathPending)
-                {
-                    if (_agent.remainingDistance <= Mathf.Max(_agent.stoppingDistance, 0.5f))
-                    {
-                        return true;
-                    }
-                    
-                    if (_agent.pathStatus == NavMeshPathStatus.PathPartial && _agent.remainingDistance <= 1.0f)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return IsInStableDistance(player);
         }
 
         private void BeginWindup()
         {
             SetState(AIState.Attack);
 
-            _attackBTTickTimer = 0f;
             _agent.isStopped = true;
             if (_agent.hasPath)
             {
                 _agent.ResetPath();
             }
 
-            Transform player = GetPlayer();
-            _lastAttackDirection = player != null
-                ? (player.position - transform.position).normalized
-                : transform.forward;
+            _isWindingUp = true;
+            _lastAttackDirection = FlatDirectionToPlayer(transform.forward);
                 
             OnWindupStarted?.Invoke(MeleeStats.WindupDuration);
         }
@@ -274,6 +230,7 @@ namespace World
 
         private void BeginSwing(int attackIndex)
         {
+            _isWindingUp = false;
             RedirectTowardPlayer();
             
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack1DamageMultiplier);
@@ -298,11 +255,14 @@ namespace World
         
         private void BeginSwing3Dash()
         {
+            _isWindingUp = false;
             RedirectTowardPlayer();
             _dashDistanceMoved = 0f;
             
             int damage = Mathf.RoundToInt(EffectiveAttackDamage * MeleeStats.Attack3DamageMultiplier);
-            Vector3 size = MeleeStats.Attack1HitboxSize * (1f + MeleeStats.Attack3HitboxSizeMultiplier);
+
+            Vector3 baseSize = MeleeStats.Attack1HitboxSize;
+            Vector3 size = new Vector3(baseSize.x, baseSize.y, baseSize.z * (1f + MeleeStats.Attack3HitboxSizeMultiplier));
             float duration = GetAttack3Duration();
             float sweepAngle = 140f;
             
@@ -327,6 +287,7 @@ namespace World
             SetState(AIState.Attack);
             _agent.isStopped = true;
             
+            _isWindingUp = false;
             _isStepping = false;
             _isDashing = false;
             
@@ -337,7 +298,7 @@ namespace World
         {
             Transform player = GetPlayer();
             if (player == null) return;
-            Vector3 toPlayer = (player.position - transform.position).normalized;
+            Vector3 toPlayer = FlatDirectionToPlayer(_lastAttackDirection);
             float maxRadians = MeleeStats.MaxRedirectAngle * Mathf.Deg2Rad;
             _lastAttackDirection = Vector3.RotateTowards(_lastAttackDirection, toPlayer, maxRadians, 0f).normalized;
         }

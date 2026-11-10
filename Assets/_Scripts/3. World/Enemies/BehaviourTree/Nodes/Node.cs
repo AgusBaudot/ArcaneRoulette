@@ -40,6 +40,7 @@ namespace World
             }
         }
     }
+    
     public class BehaviorTree : Node
     {
         public BehaviorTree(string name) : base(name) { }
@@ -52,27 +53,32 @@ namespace World
             return _children[0].Process();
         }
     }
+    
     public class LeafNode : Node
     {
         readonly IStrategy strategy;
+        
         public LeafNode(string name, IStrategy strategy, int priority = 0) : base(name, priority)
         {
             this.strategy = strategy;
         }
+        
         public override NodeState Process() => strategy.Process();
         public override void Reset() => strategy.Reset();
     }
+    
     public class ConditionNode : IStrategy
     {
         readonly Func<bool> predicate;
+        
         public ConditionNode(Func<bool> predicate)
         {
             this.predicate = predicate;
         }
+        
         public Node.NodeState Process() => predicate() ? Node.NodeState.Success : Node.NodeState.Failure;
-
-        //public void Reset() { } anulada por la interfaz
     }
+    
     public class ActionNode : IStrategy
     {
         readonly Action doSomething;
@@ -88,6 +94,7 @@ namespace World
             return Node.NodeState.Success;
         }
     }
+    
     /// <summary>
     /// Runs an optional one-time start callback, an optional per-tick callback (fed
     /// the real elapsed seconds since its own last invocation), and reports Running
@@ -96,10 +103,8 @@ namespace World
     /// ConditionNode never does anything — neither fits a windup, a swing, or a dash.
     ///
     /// Uses Time.time (absolute) rather than accumulating Time.deltaTime across
-    /// Process() calls: this tree isn't ticked every frame — CustomUpdateEnemyManager
-    /// staggers enemies to ~0.1-0.2s intervals — so Time.deltaTime (the last
-    /// frame's duration alone) badly undercounts how much time actually passed
-    /// between two Process() calls on the same node.
+    /// Process() calls: this tree isn't necessarily ticked every frame, so
+    /// Time.deltaTime would undercount how much time passed between two Process() calls.
     /// </summary>
     public class TimedActionStrategy : IStrategy
     {
@@ -143,6 +148,7 @@ namespace World
             _started = false;
         }
     }
+    
     public class SequenceNode : Node
     {
         public SequenceNode(string name, int priority = 0) : base(name, priority) { }
@@ -173,13 +179,13 @@ namespace World
             return NodeState.Success;
         }
     }
+    
     public class SelectorNode : Node
     {
         public SelectorNode(string name, int priority = 0) : base(name, priority) { }
 
         public override NodeState Process()
         {
-            //Debug.Log("Hijo Actual=" + _children[_currentChild]._name);
             if (_currentChild < _children.Count)
             {
                 switch (_children[_currentChild].Process())
@@ -199,6 +205,7 @@ namespace World
             return NodeState.Failure;
         }
     }
+    
     public class RepeatNode : Node
     {
         readonly int times;
@@ -246,10 +253,21 @@ namespace World
             currentCount = 0;
         }
     }
+
+    /// <summary>
+    /// Evaluates children from highest to lowest priority and returns the first
+    /// non-Failure result.
+    /// FIX: when a higher-priority child takes over while a lower-priority child was
+    /// mid-run (Running), that lower child is now Reset. Before, it kept its
+    /// _currentChild/_started state and later "completed" instantly with stale timers,
+    /// skipping its own condition node. A child that finishes or fails on its own is
+    /// never reset by the selector (so a spawn gate can't replay).
+    /// </summary>
     public class PrioritySelectorNode : Node
     {
         List<Node> sortedChildren;
         List<Node> SortedChildren => sortedChildren ??= SortChildren();
+        private Node _active; // child that returned Running on the previous Process()
 
         protected virtual List<Node> SortChildren() => _children.OrderByDescending(child => child._priority).ToList();
 
@@ -259,31 +277,46 @@ namespace World
         {
             base.Reset();
             sortedChildren = null;
+            _active = null;
         }
 
         public override NodeState Process()
         {
-            foreach (var child in SortedChildren)
+            List<Node> children = SortedChildren;
+            for (int i = 0; i < children.Count; i++)
             {
-                switch (child.Process())
+                Node child = children[i];
+                NodeState result = child.Process();
+
+                if (child == _active && result != NodeState.Running)
+                    _active = null;
+
+                if (result == NodeState.Failure)
+                    continue;
+
+                // This child won the tick. Anything lower that was mid-run has been preempted.
+                if (_active != null && _active != child)
                 {
-                    case NodeState.Running:
-                        return NodeState.Running;
-                    case NodeState.Success:
-                        return NodeState.Success;
-                    default:
-                        continue;
+                    _active.Reset();
+                    _active = null;
                 }
+
+                if (result == NodeState.Running)
+                    _active = child;
+
+                return result;
             }
             return NodeState.Failure;
         }
     }
+    
     public class RandomSelectorNode : PrioritySelectorNode
     {
         protected override List<Node> SortChildren() => _children.Shuffle();
 
         public RandomSelectorNode(string name) : base(name) { }
     }
+    
     public static class ListExtensions
     {
         //For random SelectorNode
@@ -303,6 +336,7 @@ namespace World
             return shuffled;
         }
     }
+    
     public class InverterNode : Node
     {
         public InverterNode(string name) : base(name) { }
@@ -320,6 +354,7 @@ namespace World
             }
         }
     }
+    
     public class UntilFailNode : Node
     {
         //Until Success
@@ -335,6 +370,7 @@ namespace World
             return NodeState.Running;
         }
     }
+    
     public class CooldownDecorator : Node
     {
         private readonly Node _child;
@@ -382,8 +418,6 @@ namespace World
 
         public Node.NodeState Process()
         {
-            // Once the gate is passed, permanently fail so the Priority Selector 
-            // instantly falls through to evaluating Combat and Chase in the same tick.
             if (_isComplete)
             {
                 return Node.NodeState.Failure;
@@ -396,24 +430,19 @@ namespace World
                 _onStart?.Invoke();
             }
 
-            // Check if the duration has elapsed (using absolute time, safe for staggered updates)
             if (Time.time - _startTime >= Mathf.Max(0.0001f, _getDuration()))
             {
                 _isComplete = true;
                 return Node.NodeState.Failure;
             }
 
-            // Still gating
             return Node.NodeState.Running;
         }
 
         public void Reset()
         {
-            // Called by AIBrain.ResetComponent() -> _tree.Reset() when the enemy 
-            // is despawned, readying the gate for the next pool spawn.
             _started = false;
             _isComplete = false;
         }
     }
 }
-

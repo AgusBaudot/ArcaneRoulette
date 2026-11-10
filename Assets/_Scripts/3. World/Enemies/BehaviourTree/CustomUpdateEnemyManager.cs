@@ -4,10 +4,19 @@ using UnityEngine;
 
 namespace World 
 {
+    /// <summary>Implemented by enemies that must be ticked every frame while mid-action (see AIBrain.NeedsFastTick).</summary>
+    public interface IFastTickable
+    {
+        bool NeedsFastTick { get; }
+    }
+
     public class CustomUpdateEnemyManager: MonoBehaviour, IUpdatable
     {
         public int UpdatePriority => Foundation.UpdatePriority.AI;
         public static CustomUpdateEnemyManager Instance { get; private set; }
+
+        [Tooltip("Random per-enemy decision interval (seconds) while idle/chasing. Enemies mid-action tick every frame.")]
+        [SerializeField] private Vector2 _intervalRange = new Vector2(0.05f, 0.1f);
 
         private List<IEnemyUpdate> _enemyUpdatables = new List<IEnemyUpdate>();
 
@@ -15,6 +24,7 @@ namespace World
         {
             Instance = this;
         }
+        
         // ---- Register & UnRegister from UpdateManager ----
         public void Start()
         {
@@ -27,6 +37,7 @@ namespace World
                 Debug.LogError($"<color=red>FATAL ERROR:</color> {gameObject.name} failed to register to UpdateManager!!!");
             }
         }
+        
         public void OnDisable()
         {
             UpdateManager.Instance?.Unregister(this);
@@ -37,11 +48,11 @@ namespace World
         {
             if (_enemyUpdatables.Contains(enemy)) 
                 return;
-            //Esto lo puedo cambiar por un parametro que (si el enemigo es mas importante) actualice mas rapido o mas lento segun el intervalo.
-            enemy.interval = Random.Range(0.1f, 0.2f);
+            enemy.interval = Random.Range(_intervalRange.x, _intervalRange.y);
             enemy.timer = Random.Range(0f, enemy.interval);
             _enemyUpdatables.Add(enemy);
         }
+        
         public void Unregister(IEnemyUpdate enemy)
         {
             _enemyUpdatables.Remove(enemy);
@@ -52,21 +63,28 @@ namespace World
         {
             TickEnemies(dt);
         }
+
         public void TickEnemies(float dt)
         {
-            for (int i = 0; i <_enemyUpdatables.Count; i++) 
+            for (int i = _enemyUpdatables.Count - 1; i >= 0; i--) 
             {
-                if (_enemyUpdatables[i] == null) continue;
+                if (i >= _enemyUpdatables.Count) continue;
+                IEnemyUpdate enemy = _enemyUpdatables[i];
+                if (enemy == null) continue;
 
                 try
                 {
-                    _enemyUpdatables[i].timer += dt;
+                    IFastTickable fast = enemy as IFastTickable;
+                    bool wantsFast = fast != null && fast.NeedsFastTick;
 
-                    if (_enemyUpdatables[i].timer >= _enemyUpdatables[i].interval)
-                    {
-                        _enemyUpdatables[i].timer = 0f;
-                        _enemyUpdatables[i].Tick();
-                    }
+                    enemy.timer += dt;
+                    if (!wantsFast && enemy.timer < enemy.interval) continue;
+
+                    enemy.timer = 0f;
+                    enemy.Tick();
+
+                    if (wantsFast && !fast.NeedsFastTick)
+                        enemy.timer = enemy.interval;
                 }
                 catch (System.Exception e)
                 {

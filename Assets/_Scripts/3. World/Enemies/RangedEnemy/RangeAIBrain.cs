@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using Core;
 using Foundation;
 using UnityEngine;
+using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
 namespace World
@@ -13,9 +15,15 @@ namespace World
         [Header("Range Specific")]
         [SerializeField] private Transform _firePoint;
         [SerializeField] private Collider _hurtBox;
+
+        [Header("Chase (uses the Melee pursuit logic, per FDD)")]
+        [SerializeField] private PursuitSettings _pursuit = new PursuitSettings();
+
+        [Header("Teleport")]
+        [Tooltip("Chance (0-1) that the destination is picked among the farther half of the zones.")]
+        [SerializeField, Range(0f, 1f)] private float _farZoneWeight = 0.8f;
         
         private RangeEnemyStats RangeStats => _enemyStats as RangeEnemyStats;
-        private PlayerController _playerController;
         private EnemyHealth _health;
 
         private bool _isUncovering = false;
@@ -25,10 +33,17 @@ namespace World
         private Vector3 _targetPos2;
         private Vector3 _targetPos3;
         private int _playerProjectileLayerMask;
+        private int _enemyLayerMask;
 
         // --- Deferred Firing State ---
         private int _pendingFireIndex = -1;
         private float _spawnDelayTimer = 0f;
+
+        // --- Teleport zone reservation (two enemies must not arrive in the same zone) ---
+        private static readonly HashSet<TeleportZone> ReservedZones = new HashSet<TeleportZone>();
+        private readonly List<TeleportZone> _zoneBuffer = new List<TeleportZone>();
+        private TeleportZone _reservedZone;
+        private float _reservationTimer;
 
         private bool IsCommitted => _isAttacking || _isBlocking || _isTeleporting;
 
@@ -49,11 +64,15 @@ namespace World
             }
         }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics() => ReservedZones.Clear();
+
         protected override void Awake()
         {
             base.Awake();
             _health = GetComponent<EnemyHealth>();
             _playerProjectileLayerMask = LayerMask.GetMask("PlayerProjectile");
+            _enemyLayerMask = LayerMask.GetMask("Enemy");
         }
 
         private void OnEnable()
@@ -64,6 +83,7 @@ namespace World
         private void OnDisable()
         {
             UpdateManager.Instance?.Unregister(this);
+            ReleaseReservedZone();
         }
 
         public override void ResetComponent()
@@ -74,6 +94,7 @@ namespace World
             _isBlocking = false;
             _isTeleporting = false;
             _pendingFireIndex = -1;
+            ReleaseReservedZone();
             
             if (_health != null) _health.DamageMitigationMultiplier = 1.0f;
         }
@@ -81,6 +102,14 @@ namespace World
         // Dedicated frame-perfect tick to handle exact visual sync
         public void Tick(float dt)
         {
+            ApplyPerspectiveSpeed();
+
+            if (_reservedZone != null)
+            {
+                _reservationTimer -= dt;
+                if (_reservationTimer <= 0f) ReleaseReservedZone();
+            }
+
             if (_pendingFireIndex >= 0)
             {
                 _spawnDelayTimer -= dt;
@@ -109,7 +138,7 @@ namespace World
 
             //Teleport
             var teleportSeq = new SequenceNode("Teleport", priority: 30);
-            teleportSeq.AddChild(new LeafNode("CanTeleport", new ConditionNode(() => IsPlayerInSafeRange() && !IsCommitted)));
+            teleportSeq.AddChild(new LeafNode("CanTeleport", new ConditionNode(() => !IsCommitted && IsPlayerInSafeRange())));
             teleportSeq.AddChild(new LeafNode("TeleportInAnim", new TimedActionStrategy(BeginTeleportIn, () => RangeStats.TeleportAnimDuration)));
             teleportSeq.AddChild(new LeafNode("ExecuteTeleport", new ActionNode(ExecuteTeleport)));
             teleportSeq.AddChild(new LeafNode("TeleportOutAnim", new TimedActionStrategy(BeginTeleportOut, () => RangeStats.TeleportOutDuration)));
@@ -117,7 +146,7 @@ namespace World
 
             //Block
             var blockSeq = new SequenceNode("Block", priority: 20);
-            blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => AreProjectilesInSafeRange() && !IsCommitted)));
+            blockSeq.AddChild(new LeafNode("CanBlock", new ConditionNode(() => !IsCommitted && AreProjectilesInSafeRange())));
             blockSeq.AddChild(new LeafNode("Cover", new TimedActionStrategy(BeginCover, () => RangeStats.BlockCoverDuration)));
             blockSeq.AddChild(new LeafNode("HoldBlock", new BlockHoldStrategy(this, () => RangeStats.BlockTimeout, RangeStats.BlockPercentage)));
             blockSeq.AddChild(new LeafNode("Uncover", new TimedActionStrategy(BeginUncover, () => RangeStats.BlockUncoverDuration)));
@@ -230,44 +259,83 @@ namespace World
             Vector3 playerPos = player != null ? player.position : transform.position;
             Vector3 oldPos = transform.position;
 
-            Array.Sort(zones, (a, b) => 
+            ReleaseReservedZone();
+
+            _zoneBuffer.Clear();
+            _zoneBuffer.AddRange(zones);
+            _zoneBuffer.Sort((a, b) => 
                 Vector3.Distance(b.transform.position, playerPos).CompareTo(Vector3.Distance(a.transform.position, playerPos)));
 
-            float distanceWeight = 0.8f;
+            int count = _zoneBuffer.Count;
             int startIndex;
-            if (Random.value <= distanceWeight && zones.Length > 1)
+            if (Random.value <= _farZoneWeight && count > 1)
             {
-                int maxIndex = Mathf.Max(1, zones.Length / 2);
+                int maxIndex = Mathf.Max(1, count / 2);
                 startIndex = Random.Range(0, maxIndex);
             }
             else
             {
-                startIndex = Random.Range(0, zones.Length);
+                startIndex = Random.Range(0, count);
             }
 
-            for (int i = 0; i < zones.Length; i++)
+            for (int i = 0; i < count; i++)
             {
-                int checkIndex = (startIndex + i) % zones.Length;
-                TeleportZone zone = zones[checkIndex];
+                int checkIndex = (startIndex + i) % count;
+                TeleportZone zone = _zoneBuffer[checkIndex];
 
-                if (!Physics.CheckBox(zone.transform.position, zone.Collider.size / 2f, zone.transform.rotation, LayerMask.GetMask("Enemy")))
+                if (ReservedZones.Contains(zone)) continue;
+                if (!IsZoneOccupied(zone))
                 {
-                    WarpAndPlaySounds(oldPos, zone.transform.position);
+                    ReserveZone(zone);
+                    WarpAndPlaySounds(oldPos, GetZonePoint(zone));
                     return;
                 }
             }
-            WarpAndPlaySounds(oldPos, zones[0].transform.position);
+
+            TeleportZone fallback = _zoneBuffer[0];
+            ReserveZone(fallback);
+            WarpAndPlaySounds(oldPos, GetZonePoint(fallback));
+        }
+
+        private bool IsZoneOccupied(TeleportZone zone)
+        {
+            BoxCollider box = zone.Collider;
+            Vector3 half = Vector3.Scale(box.size, zone.transform.lossyScale) * 0.5f;
+            half = new Vector3(Mathf.Abs(half.x), Mathf.Abs(half.y), Mathf.Abs(half.z));
+            return Physics.CheckBox(zone.transform.TransformPoint(box.center), half, zone.transform.rotation, _enemyLayerMask);
+        }
+
+        private static Vector3 GetZonePoint(TeleportZone zone) =>
+            zone.transform.TransformPoint(zone.Collider.center);
+
+        private void ReserveZone(TeleportZone zone)
+        {
+            _reservedZone = zone;
+            _reservationTimer = RangeStats.TeleportOutDuration + 0.25f;
+            ReservedZones.Add(zone);
+        }
+
+        private void ReleaseReservedZone()
+        {
+            if (_reservedZone != null)
+            {
+                ReservedZones.Remove(_reservedZone);
+                _reservedZone = null;
+            }
         }
 
         private void WarpAndPlaySounds(Vector3 oldPos, Vector3 newPos)
         {
             if (RangeStats.TeleportDisappearSound != null)
                 EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportDisappearSound, WorldPosition = oldPos });
-                
-            _agent.Warp(newPos);
+
+            Vector3 destination = NavMesh.SamplePosition(newPos, out NavMeshHit hit, 3f, NavMesh.AllAreas)
+                ? hit.position
+                : newPos;
+            _agent.Warp(destination);
             
             if (RangeStats.TeleportAppearSound != null)
-                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportAppearSound, WorldPosition = newPos });
+                EventBus.Publish(new AudioPlayRequest { Event = RangeStats.TeleportAppearSound, WorldPosition = destination });
         }
 
         private void BeginTeleportOut()
@@ -283,7 +351,6 @@ namespace World
             _isAttacking = true;
             SetState(AIState.Attack);
             _agent.isStopped = true;
-            if (_playerController == null) _playerController = GetPlayer()?.GetComponentInParent<PlayerController>();
             
             OnWindupStarted?.Invoke(0, GetClampedWindup(RangeStats.Attack1Windup));
         }
@@ -324,13 +391,13 @@ namespace World
             OnFireStarted?.Invoke(3, duration);
         }
 
-        // Actual instantiation and prediction math moved here so it aims precisely at the release frame
         private void ExecuteFire(int index)
         {
             Transform player = GetPlayer();
             if (player == null) return;
 
-            if (_playerController == null) _playerController = player.GetComponentInParent<PlayerController>();
+            PlayerController pc = GetPlayerController();
+            Vector3 playerVelocity = pc != null ? pc.LogicalVelocity : Vector3.zero;
 
             if (index == 0) // Fire 1
             {
@@ -339,13 +406,13 @@ namespace World
             }
             else if (index == 1) // Fire 2
             {
-                _targetPos2 = player.position + (_playerController.LogicalVelocity * RangeStats.PredictionTime2);
+                _targetPos2 = player.position + (playerVelocity * RangeStats.PredictionTime2);
                 Vector3 dir = (_targetPos2 - _firePoint.position).normalized;
                 SpawnNormalProjectile(dir);
             }
             else if (index == 2) // Fire 3
             {
-                _targetPos3 = player.position + (_playerController.LogicalVelocity * RangeStats.PredictionTime3);
+                _targetPos3 = player.position + (playerVelocity * RangeStats.PredictionTime3);
                 Vector3 dir = (_targetPos3 - _firePoint.position).normalized;
                 SpawnNormalProjectile(dir);
             }
@@ -391,9 +458,21 @@ namespace World
             Transform player = GetPlayer();
             if (player == null || _agent == null) return;
 
-            _agent.isStopped = false;
-            _agent.speed = EffectiveChaseSpeed;
-            _agent.SetDestination(player.position);
+            ApplyChaseSpeed();
+
+            bool los = IsInLos();
+            float holdRange = Mathf.Max(0.5f, _enemyStats.AttackRange - 1f);
+            if (los && FlatDistanceTo(player) <= holdRange)
+            {
+                StopAgent();
+                return;
+            }
+
+            Vector3 target = los
+                ? GetPursuitPoint(player, _pursuit.PredictionWeight, _pursuit.MaxPredictionTime, 0f, 0f)
+                : player.position;
+
+            MoveTo(target, 0.3f);
         }
     }
 

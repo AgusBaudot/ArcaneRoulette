@@ -24,11 +24,13 @@ namespace World
         public Vector3 CurrentAttackDirection => _lastAttackDirection;
         
         private bool _isCharging;
+        private bool _isChargeWindingUp;
         private bool _isThrusting;
         private bool _isStunned;
         private bool _hasSpawned;
         
         private float _chargeCooldownTimer;
+        private float _chargeWindupRemaining;
         private float _currentStunDuration;
         private float _chargeStuckTimer;
         private Vector3 _lastAttackDirection;
@@ -36,13 +38,48 @@ namespace World
         [SerializeField] private BruteThrustHitbox _thrustHitbox;
         [SerializeField] private BruteChargeHitbox _chargeHitbox;
         [SerializeField] private ElementType _bruteElement;
-        
+
+        [Header("Chase (uses the Melee pursuit logic, per FDD)")]
+        [SerializeField] private PursuitSettings _pursuit = new PursuitSettings();
+        [Tooltip("Swarm slots are clamped to this fraction of the AoE range so a slot is always inside thrust range.")]
+        [SerializeField, Range(0.3f, 1f)] private float _slotMaxRangeFraction = 0.8f;
+
+        [Header("Charge windup")]
+        [Tooltip("The charge direction follows the player during the windup and locks this many seconds before the charge. >= windup duration = lock at windup start (old behaviour).")]
+        [SerializeField] private float _chargeLockTime = 0.35f;
+        [SerializeField] private float _chargeTrackTurnSpeed = 360f;
+
+        [Header("Defense")]
+        [Tooltip("If no Defense Target was assigned with SetDefenseTarget, protect the nearest living Healer.")]
+        [SerializeField] private bool _autoAssignDefenseTarget = true;
+        [Tooltip("Within this distance of the player-Healer line the Brute counts as 'on the line' and advances on the player.")]
+        [SerializeField] private float _guardLineTolerance = 1.5f;
+        [Tooltip("Once on the line, it only goes back to guarding after drifting this far off it.")]
+        [SerializeField] private float _guardLineLeaveTolerance = 3.5f;
+
         private EnemyController _defenseTarget;
+        private EnemyHealth _defenseHealth;
+        private bool _defenseTargetPinned;
+        private bool _isOnGuardLine;
+        private float _nextDefenseSearchTime;
 
         private void OnEnable() => UpdateManager.Instance.Register(this);
-        private void OnDisable() => UpdateManager.Instance?.Unregister(this);
+        private void OnDisable()
+        {
+            UpdateManager.Instance?.Unregister(this);
+            SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
+        }
 
         private float GetClampedDuration(float baseDuration) => Mathf.Max(0.01f, baseDuration * EffectiveAttackSpeed);
+
+        /// <summary>Explicitly assign the Healer this Brute protects (e.g. from the room/wave spawner). Pass null to clear.</summary>
+        public void SetDefenseTarget(EnemyController target)
+        {
+            _defenseTarget = target;
+            _defenseHealth = target != null ? target.GetComponent<EnemyHealth>() : null;
+            _defenseTargetPinned = target != null;
+            _isOnGuardLine = false;
+        }
 
         protected override BehaviorTree BuildTree()
         {
@@ -140,16 +177,15 @@ namespace World
         private void BeginStunLoop()
         {
             SetState(AIState.Stunned);
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            _isChargeWindingUp = false;
+            StopAgent();
             
-            var health = GetComponent<EnemyHealth>();
-            if (health != null) health.DamageMitigationMultiplier = 1.1f;
+            if (_enemyHealth != null) _enemyHealth.DamageMitigationMultiplier = 1.1f;
         }
 
         private void BeginStunRecover()
         {
-            var health = GetComponent<EnemyHealth>();
-            if (health != null) health.DamageMitigationMultiplier = 1.0f;
+            if (_enemyHealth != null) _enemyHealth.DamageMitigationMultiplier = 1.0f;
         }
 
         private void EndStun() => _isStunned = false;
@@ -157,7 +193,8 @@ namespace World
         private void BeginThrustWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            _isChargeWindingUp = false;
+            StopAgent();
             RedirectTowardPlayer();
             _thrustHitbox.ShowTelegraph(BruteStats, _lastAttackDirection);
         }
@@ -165,45 +202,125 @@ namespace World
         private void BeginChargeWindup()
         {
             SetState(AIState.Attack);
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            StopAgent();
             RedirectTowardPlayer();
+
+            _chargeWindupRemaining = GetClampedDuration(BruteStats.ChargeWindupDuration);
+            _isChargeWindingUp = true;
         }
 
         private void RedirectTowardPlayer()
         {
-            Transform player = GetPlayer();
-            if (player != null)
-            {
-                Vector3 toPlayer = (player.position - transform.position).normalized;
-                toPlayer.y = 0;
-                if (toPlayer != Vector3.zero) _lastAttackDirection = toPlayer;
-            }
+            _lastAttackDirection = FlatDirectionToPlayer(_lastAttackDirection == Vector3.zero ? transform.forward : _lastAttackDirection);
         }
 
+        private void TrackPlayerDuringChargeWindup(float dt)
+        {
+            Vector3 toPlayer = FlatDirectionToPlayer(_lastAttackDirection);
+            float maxRadians = _chargeTrackTurnSpeed * Mathf.Deg2Rad * dt;
+            _lastAttackDirection = Vector3.RotateTowards(_lastAttackDirection, toPlayer, maxRadians, 0f).normalized;
+        }
+
+        // ---------------- Chase / Defend ----------------
         private void HandleChaseAndDefend()
         {
             SetState(AIState.Chase);
             Transform player = GetPlayer();
             if (player == null || _agent == null || !_agent.isOnNavMesh) return;
 
-            _agent.isStopped = false;
-            _agent.speed = EffectiveChaseSpeed;
+            ApplyChaseSpeed();
+            UpdateDefenseTarget();
 
-            Vector3 targetPos = player.position;
             if (_defenseTarget != null)
             {
-                var targetHealth = _defenseTarget.GetComponent<EnemyHealth>();
-                if (targetHealth != null && targetHealth.CurrentHp > 0f)
+                Vector3 healerPos = _defenseTarget.transform.position;
+                float distToLine = DistanceToSegmentXZ(transform.position, player.position, healerPos);
+
+                if (_isOnGuardLine)
                 {
-                    targetPos = Vector3.Lerp(player.position, _defenseTarget.transform.position, BruteStats.DefenseTargetLineRatio);
+                    if (distToLine > _guardLineLeaveTolerance) _isOnGuardLine = false;
+                }
+                else if (distToLine <= _guardLineTolerance)
+                {
+                    _isOnGuardLine = true;
+                }
+
+                if (!_isOnGuardLine)
+                {
+                    Vector3 guardPoint = Vector3.Lerp(player.position, healerPos, BruteStats.DefenseTargetLineRatio);
+                    MoveTo(guardPoint, 0.3f);
+                    return;
                 }
             }
-            _agent.SetDestination(targetPos);
+
+            Vector3 target = player.position;
+            if (IsInLos())
+            {
+                target = GetPursuitPoint(player,
+                    _pursuit.PredictionWeight,
+                    _pursuit.MaxPredictionTime,
+                    _pursuit.FormationRadius,
+                    BruteStats.AoEAttackRange * _slotMaxRangeFraction);
+            }
+            MoveTo(target, 0.3f);
         }
 
+        private void UpdateDefenseTarget()
+        {
+            bool alive = _defenseTarget != null && _defenseTarget.isActiveAndEnabled
+                         && _defenseHealth != null && _defenseHealth.CurrentHp > 0f;
+            if (alive) return;
+
+            _defenseTarget = null;
+            _defenseHealth = null;
+            _defenseTargetPinned = false;
+            _isOnGuardLine = false;
+
+            if (!_autoAssignDefenseTarget || Time.time < _nextDefenseSearchTime) return;
+            _nextDefenseSearchTime = Time.time + 0.5f;
+
+            var healers = HealerAIBrain.Active;
+            float bestSqr = float.MaxValue;
+            for (int i = 0; i < healers.Count; i++)
+            {
+                HealerAIBrain healer = healers[i];
+                if (healer == null || !healer.isActiveAndEnabled || healer.Controller == null) continue;
+                EnemyHealth hp = healer.Health;
+                if (hp == null || hp.CurrentHp <= 0f) continue;
+
+                float sqr = (healer.transform.position - transform.position).sqrMagnitude;
+                if (sqr < bestSqr)
+                {
+                    bestSqr = sqr;
+                    _defenseTarget = healer.Controller;
+                    _defenseHealth = hp;
+                }
+            }
+        }
+
+        private static float DistanceToSegmentXZ(Vector3 p, Vector3 a, Vector3 b)
+        {
+            Vector2 pp = new Vector2(p.x, p.z);
+            Vector2 aa = new Vector2(a.x, a.z);
+            Vector2 ab = new Vector2(b.x, b.z) - aa;
+            float lenSqr = ab.sqrMagnitude;
+            float t = lenSqr > 0.0001f ? Mathf.Clamp01(Vector2.Dot(pp - aa, ab) / lenSqr) : 0f;
+            return Vector2.Distance(pp, aa + ab * t);
+        }
+
+        // ---------------- Per-frame ----------------
         public void Tick(float dt)
         {
+            ApplyPerspectiveSpeed();
+
             if (_chargeCooldownTimer > 0) _chargeCooldownTimer -= dt;
+
+            if (_isChargeWindingUp)
+            {
+                _chargeWindupRemaining -= dt;
+                if (_chargeWindupRemaining > _chargeLockTime)
+                    TrackPlayerDuringChargeWindup(dt);
+            }
 
             if (_isCharging && _agent != null && _agent.isOnNavMesh)
             {
@@ -229,6 +346,7 @@ namespace World
 
         private void StartCharge()
         {
+            _isChargeWindingUp = false;
             _isCharging = true;
             _chargeStuckTimer = 0f;
             
@@ -266,6 +384,7 @@ namespace World
         private void OnChargeInterrupted(float stunDuration)
         {
             _isCharging = false;
+            _isChargeWindingUp = false;
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
 
             if (BruteStats.ChargeCrashVFX != null)
@@ -285,7 +404,7 @@ namespace World
         private void EndCharge()
         {
             _isCharging = false;
-            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = true;
+            StopAgent();
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
             _chargeCooldownTimer = BruteStats.ChargeCooldown;
         }
@@ -294,11 +413,16 @@ namespace World
         {
             base.ResetComponent();
             _isCharging = false;
+            _isChargeWindingUp = false;
             _isThrusting = false;
             _isStunned = false;
             _hasSpawned = false; 
             _chargeCooldownTimer = 0f;
+            _isOnGuardLine = false;
+            _nextDefenseSearchTime = 0f;
+            if (!_defenseTargetPinned) { _defenseTarget = null; _defenseHealth = null; }
             
+            SwarmManager.ReleaseSlot(gameObject.GetInstanceID());
             if (_chargeHitbox != null) _chargeHitbox.Deactivate();
             if (_thrustHitbox != null) _thrustHitbox.Deactivate();
         }
