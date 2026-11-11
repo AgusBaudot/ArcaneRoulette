@@ -38,6 +38,9 @@ namespace UI
 
         [SerializeField] private Ease _animEase = Ease.OutCubic;
 
+        [Header("VFX")] [SerializeField] 
+        private GameObject _runeEquipVfxPrefab;
+
         private TooltipSystem _tooltip => TooltipSystem.Instance;
 
 
@@ -190,12 +193,6 @@ namespace UI
 
         // ── Carousel layout ───────────────────────────────────────────────────
 
-        /// <summary>
-        /// Repositions and rescales all three panels instantly.
-        /// Center panel: full size, interactable.
-        /// Left back: offset left, scaled down, not interactable.
-        /// Right back: offset right, scaled down, not interactable.
-        /// </summary>
         private void ApplyCarouselLayout()
         {
             int count = _slotPanels.Length;
@@ -529,6 +526,29 @@ namespace UI
 
                 targetCanvasGroup.alpha = 1f;
                 targetCanvasGroup.blocksRaycasts = true;
+
+                if (_runeEquipVfxPrefab != null)
+                {
+                    GameObject vfx = Instantiate(_runeEquipVfxPrefab, this.transform);
+                    vfx.transform.position = targetRect.position;
+                    vfx.transform.localScale = Vector3.one;
+                    vfx.transform.SetAsLastSibling();
+
+                    float lifetime = 2f; // fallback
+                    foreach (var system in vfx.GetComponentsInChildren<ParticleSystem>(true))
+                    {
+                        var main = system.main;
+                        main.useUnscaledTime = true;
+
+                        float systemLifetime = main.duration + main.startLifetime.constantMax;
+                        lifetime = Mathf.Max(lifetime == 2f ? 0f : lifetime, systemLifetime);
+                    }
+
+                    DOVirtual.DelayedCall(lifetime, () =>
+                    {
+                        if (vfx != null) Destroy(vfx);
+                    });
+                }
 
                 if (Time.unscaledTime - _lastHitTime > 0.5f)
                 {
