@@ -10,7 +10,7 @@ namespace World
     {
         public int UpdatePriority => Foundation.UpdatePriority.AI;
 
-        /// <summary>Living Healers in the scene (used by Brutes to pick a Defense Target).</summary>
+        /// <summary>Enabled Healers in the scene (Brutes use it to pick a Defense Target).</summary>
         public static readonly List<HealerAIBrain> Active = new List<HealerAIBrain>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -25,22 +25,31 @@ namespace World
         [Header("Healer Movement")]
         [Tooltip("Melee-style prediction used when approaching the player and when computing where to flee from.")]
         [SerializeField] private PursuitSettings _pursuit = new PursuitSettings();
-        [Tooltip("While healing it meanders behind the ally: max swing angle (degrees) and speed.")]
+        [Tooltip("While healing it meanders behind its target: max swing angle (degrees) and speed.")]
         [SerializeField] private float _healSwayAngle = 35f;
         [SerializeField] private float _healSwaySpeed = 0.9f;
 
+        [Header("Healing (default action)")]
+        [Tooltip("Max allies healed at once. Each one stays locked until fully healed or dead. 1 = strictly one target.")]
+        [SerializeField, Range(1, 3)] private int _maxHealTargets = 2;
+        [Tooltip("true: the player entering the safe range cuts a heal in progress (the lock is kept). false: escaping only starts when not healing.")]
+        [SerializeField] private bool _escapeInterruptsHeal = true;
+        [Tooltip("Once escaping, keep fleeing until the player is this much farther than the Healing Range.")]
+        [SerializeField] private float _escapeExitMargin = 1.5f;
+
         private HealerEnemyStats HealerStats => _enemyStats as HealerEnemyStats;
 
-        private float _healCooldownEndTime;
         private float _throwCooldownEndTime;
         private float _healTimer;
+        private float _nextRefillTime;
         private bool _isHealingLoop;
-        private bool _abortHealing;
-        private Node _healSequence;
-        private List<EnemyHealth> _activeHealTargets = new List<EnemyHealth>();
-        private List<EnemyHealth> _scratchTargets = new List<EnemyHealth>();
-        private List<PooledLineVFX> _activeHealBeams = new List<PooledLineVFX>();
-        
+        private bool _healingFinished;
+        private bool _isEscaping;
+
+        private readonly List<EnemyHealth> _lockedTargets = new List<EnemyHealth>();
+        private readonly List<EnemyHealth> _scratchTargets = new List<EnemyHealth>();
+        private readonly List<PooledLineVFX> _activeHealBeams = new List<PooledLineVFX>();
+
         private AudioHandle _healAudioHandle;
 
         private bool _isPendingThrow = false;
@@ -56,9 +65,9 @@ namespace World
         {
             get
             {
-                if (IsState(AIState.Healing) && _activeHealTargets.Count > 0 && _activeHealTargets[0] != null)
+                if (IsState(AIState.Healing) && _lockedTargets.Count > 0 && _lockedTargets[0] != null)
                 {
-                    return (_activeHealTargets[0].transform.position - transform.position).normalized;
+                    return (_lockedTargets[0].transform.position - transform.position).normalized;
                 }
                 Transform player = GetPlayer();
                 return player != null ? (player.position - transform.position).normalized : transform.forward;
@@ -85,13 +94,14 @@ namespace World
 
         public override void ResetComponent()
         {
-            base.ResetComponent();
-            _healCooldownEndTime = 0f;
-            _throwCooldownEndTime = 0f;
-            _activeHealTargets.Clear();
-            _isPendingThrow = false;
             _isHealingLoop = false;
-            _abortHealing = false;
+
+            base.ResetComponent();
+            _throwCooldownEndTime = 0f;
+            _lockedTargets.Clear();
+            _isPendingThrow = false;
+            _healingFinished = false;
+            _isEscaping = false;
             ClearHealBeams();
             StopHealAudio();
         }
@@ -99,12 +109,6 @@ namespace World
         public void Tick(float dt)
         {
             ApplyPerspectiveSpeed();
-
-            if (_abortHealing)
-            {
-                _abortHealing = false;
-                FinishHealingEarly();
-            }
 
             if (_isPendingThrow)
             {
@@ -127,26 +131,147 @@ namespace World
                 return;
             }
 
-            for (int i = 0; i < _activeHealTargets.Count; i++)
+            if (!_isHealingLoop || _healingFinished) return;
+
+            TickHealing(dt);
+            if (_healingFinished) return;
+
+            UpdateBeamPositions();
+            MoveWhileHealing();
+        }
+
+        // ---------------- Tree ----------------
+        protected override BehaviorTree BuildTree()
+        {
+            var tree = new BehaviorTree("Healer");
+            if (HealerStats == null) return tree;
+
+            var root = new PrioritySelectorNode("Healer Root");
+
+            root.AddChild(new LeafNode("Spawning",
+                new OneShotGateStrategy(() => SetState(AIState.Spawning), () => HealerStats.SpawnDuration), priority: 50));
+
+            root.AddChild(BuildThrowingSequence());                                                              // 40
+            root.AddChild(new LeafNode("ApproachForThrow", new ConditionNode(TryApproachForThrow), priority: 35));
+            root.AddChild(new LeafNode("Escape", new ConditionNode(TryEscape), priority: 30));
+            root.AddChild(BuildHealingSequence());                                                               // 20
+            root.AddChild(new LeafNode("FindTarget", new ActionNode(DoFindTarget), priority: 0));
+
+            tree.AddChild(root);
+            return tree;
+        }
+
+        private Node BuildThrowingSequence()
+        {
+            var seq = new SequenceNode("ThrowingSequence", priority: 40);
+            seq.AddChild(new LeafNode("CanThrow", new ConditionNode(() => 
+                Time.time >= _throwCooldownEndTime && IsPlayerInThrowingRange())));
+            
+            seq.AddChild(new LeafNode("ThrowWindup", new TimedActionStrategy(BeginThrowWindup, () => GetClampedDuration(HealerStats.ThrowWindupDuration))));
+            seq.AddChild(new LeafNode("ThrowAction", new TimedActionStrategy(BeginThrow, () => GetClampedDuration(HealerStats.ThrowDuration))));
+            seq.AddChild(new LeafNode("EndThrow", new ActionNode(EndThrowing)));
+            return seq;
+        }
+
+        private Node BuildHealingSequence()
+        {
+            var seq = new SequenceNode("HealingSequence", priority: 20);
+            seq.AddChild(new LeafNode("CanHeal", new ConditionNode(HasHealTarget)));
+            seq.AddChild(new LeafNode("HealWindup", new TimedActionStrategy(BeginHealWindup, () => GetClampedDuration(HealerStats.HealWindupDuration))));
+            seq.AddChild(new LeafNode("HealAction", new HealUntilDoneStrategy(this)));
+            seq.AddChild(new LeafNode("HealRecover", new TimedActionStrategy(BeginHealRecover, () => GetClampedDuration(HealerStats.HealRecoverDuration))));
+            seq.AddChild(new LeafNode("EndHeal", new ActionNode(EndHealing)));
+            return seq;
+        }
+
+        private sealed class HealUntilDoneStrategy : IStrategy
+        {
+            private readonly HealerAIBrain _brain;
+            private bool _started;
+
+            public HealUntilDoneStrategy(HealerAIBrain brain) { _brain = brain; }
+
+            public Node.NodeState Process()
             {
-                if (_activeHealTargets[i] != null && i < _activeHealBeams.Count && _activeHealBeams[i] != null)
+                if (!_started)
                 {
-                    if (_activeHealBeams[i].TryGetComponent<LineRenderer>(out var lr))
-                    {
-                        lr.SetPosition(0, transform.position + Vector3.up * 2f);
-                        lr.SetPosition(1, _activeHealTargets[i].transform.position + Vector3.up * 2f);
-                    }
+                    _started = true;
+                    _brain.BeginHealing();
                 }
+                return _brain._healingFinished ? Node.NodeState.Success : Node.NodeState.Running;
             }
 
-            MoveWhileHealing();
+            public void Reset()
+            {
+                _started = false;
+                _brain.OnHealSequenceReset();
+            }
+        }
+
+        private float GetClampedDuration(float baseDuration) => Mathf.Max(0.01f, baseDuration * EffectiveAttackSpeed);
+
+        private Vector3 PredictedPlayerPoint(Transform player) =>
+            GetPursuitPoint(player, _pursuit.PredictionWeight, _pursuit.MaxPredictionTime, 0f, 0f);
+
+        // ---------------- Movement leaves ----------------
+        
+        private bool TryApproachForThrow()
+        {
+            if (Time.time < _throwCooldownEndTime) return false;
+
+            Transform player = GetPlayer();
+            if (player == null || _agent == null) return false;
+
+            SetState(AIState.Chase);
+            ApplyChaseSpeed();
+            MoveTo(PredictedPlayerPoint(player), Mathf.Max(0.5f, _enemyStats.AttackRange - 1f));
+            return true;
+        }
+
+        private bool TryEscape()
+        {
+            Transform player = GetPlayer();
+            if (player == null || _agent == null) { _isEscaping = false; return false; }
+            if (!_escapeInterruptsHeal && IsState(AIState.Healing)) { _isEscaping = false; return false; }
+
+            float enter = HealerStats.HealingRange;
+            float exit = enter + _escapeExitMargin;
+            float distance = FlatDistanceTo(player);
+            if (distance >= (_isEscaping ? exit : enter)) { _isEscaping = false; return false; }
+
+            if (!TryGetFleePoint(PredictedPlayerPoint(player), enter + 2f, out Vector3 flee)
+                || (flee - transform.position).sqrMagnitude < 1f)
+            {
+                _isEscaping = false;
+                return false;
+            }
+
+            _isEscaping = true;
+            SetState(AIState.Chase);
+            ApplyChaseSpeed();
+            MoveTo(flee, 0.3f);
+            return true;
+        }
+
+        private void DoFindTarget()
+        {
+            SetState(AIState.Chase);
+            if (_agent == null) return;
+
+            ApplyChaseSpeed();
+
+            EnemyHealth ally = FindLowestHpAllyGlobal();
+            if (ally != null)
+                MoveTo(ally.transform.position, Mathf.Max(0.5f, HealerStats.HealingRange - 2f));
+            else
+                StopAgent();
         }
 
         private void MoveWhileHealing()
         {
-            if (!_isHealingLoop || _activeHealTargets.Count == 0) return;
+            if (_lockedTargets.Count == 0) return;
 
-            EnemyHealth ally = _activeHealTargets[0];
+            EnemyHealth ally = _lockedTargets[0];
             if (ally == null) return;
 
             Transform player = GetPlayer();
@@ -163,95 +288,14 @@ namespace World
             MoveTo(ideal, 0.2f);
         }
 
-        protected override BehaviorTree BuildTree()
+        // ---------------- Healing ----------------
+        private bool HasHealTarget()
         {
-            var tree = new BehaviorTree("Healer");
-            if (HealerStats == null) return tree;
-
-            var root = new PrioritySelectorNode("Healer Root");
-
-            root.AddChild(new LeafNode("Spawning",
-                new OneShotGateStrategy(() => SetState(AIState.Spawning), () => HealerStats.SpawnDuration), priority: 50));
-
-            _healSequence = BuildHealingSequence();
-            root.AddChild(_healSequence);
-            root.AddChild(BuildThrowingSequence());
-            root.AddChild(new LeafNode("Chase", new ActionNode(DoChase), priority: 0));
-
-            tree.AddChild(root);
-            return tree;
+            PruneLocked();
+            if (_lockedTargets.Count > 0) return true;
+            return CollectHurtAllies(_scratchTargets, HealerStats.HealingRange, 1, null) > 0;
         }
 
-        private Node BuildHealingSequence()
-        {
-            var seq = new SequenceNode("HealingSequence", priority: 40);
-            seq.AddChild(new LeafNode("CanHeal", new ConditionNode(() => 
-                Time.time >= _healCooldownEndTime && HasHealTarget())));
-            
-            seq.AddChild(new LeafNode("HealWindup", new TimedActionStrategy(BeginHealWindup, () => GetClampedDuration(HealerStats.HealWindupDuration))));
-            seq.AddChild(new LeafNode("HealAction", new TimedActionStrategy(BeginHealing, () => GetClampedDuration(HealerStats.HealingDuration), OnHealingTick)));
-            seq.AddChild(new LeafNode("HealRecover", new TimedActionStrategy(BeginHealRecover, () => GetClampedDuration(HealerStats.HealRecoverDuration))));
-            seq.AddChild(new LeafNode("EndHeal", new ActionNode(EndHealing)));
-            return seq;
-        }
-
-        private Node BuildThrowingSequence()
-        {
-            var seq = new SequenceNode("ThrowingSequence", priority: 30);
-            seq.AddChild(new LeafNode("CanThrow", new ConditionNode(() => 
-                Time.time >= _throwCooldownEndTime && IsPlayerInThrowingRange())));
-            
-            seq.AddChild(new LeafNode("ThrowWindup", new TimedActionStrategy(BeginThrowWindup, () => GetClampedDuration(HealerStats.ThrowWindupDuration))));
-            seq.AddChild(new LeafNode("ThrowAction", new TimedActionStrategy(BeginThrow, () => GetClampedDuration(HealerStats.ThrowDuration))));
-            seq.AddChild(new LeafNode("EndThrow", new ActionNode(EndThrowing)));
-            return seq;
-        }
-        
-        private float GetClampedDuration(float baseDuration) => Mathf.Max(0.01f, baseDuration * EffectiveAttackSpeed);
-
-        private Vector3 PredictedPlayerPoint(Transform player) =>
-            GetPursuitPoint(player, _pursuit.PredictionWeight, _pursuit.MaxPredictionTime, 0f, 0f);
-
-        private void DoChase()
-        {
-            SetState(AIState.Chase);
-            if (_agent == null) return;
-
-            Transform player = GetPlayer();
-            if (player == null) return;
-
-            ApplyChaseSpeed();
-
-            bool isHealReady = Time.time >= _healCooldownEndTime;
-            bool isThrowReady = Time.time >= _throwCooldownEndTime;
-            float approachStop = Mathf.Max(0.5f, _enemyStats.AttackRange - 1f);
-
-            if (isThrowReady && !isHealReady)
-            {
-                MoveTo(PredictedPlayerPoint(player), approachStop);
-            }
-            else if (isHealReady)
-            {
-                EnemyHealth lowestHpAlly = FindLowestHpAllyGlobal();
-                if (lowestHpAlly != null)
-                    MoveTo(lowestHpAlly.transform.position, Mathf.Max(0.5f, HealerStats.HealingRange - 2f));
-                else
-                    MoveTo(PredictedPlayerPoint(player), approachStop);
-            }
-            else
-            {
-                if (FlatDistanceTo(player) < HealerStats.HealingRange)
-                {
-                    if (TryGetFleePoint(PredictedPlayerPoint(player), HealerStats.HealingRange + 2f, out Vector3 fleePos))
-                        MoveTo(fleePos, 0.3f);
-                }
-                else
-                {
-                    StopAgent();
-                }
-            }
-        }
-        
         private void BeginHealWindup()
         {
             SetState(AIState.Healing);
@@ -263,13 +307,24 @@ namespace World
         private void BeginHealing()
         {
             _healTimer = 0f;
-            CollectHurtAllies(_activeHealTargets, HealerStats.HealingRange, 2);
+            _healingFinished = false;
+            _nextRefillTime = 0f;
+
+            PruneLocked();
+            RefillLocked();
+
             _isHealingLoop = true;
             if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
-            
+
             OnHealingStarted?.Invoke(GetClampedDuration(HealerStats.HealingDuration));
 
-            SpawnBeamsForTargets();
+            if (_lockedTargets.Count == 0)
+            {
+                _healingFinished = true;
+                return;
+            }
+
+            for (int i = 0; i < _lockedTargets.Count; i++) SpawnBeam();
 
             if (HealerStats.HealBeamLoopSound != null)
             {
@@ -282,60 +337,95 @@ namespace World
             }
         }
 
-        private void SpawnBeamsForTargets()
+        private void TickHealing(float dt)
+        {
+            PruneLocked();
+
+            if (_lockedTargets.Count < _maxHealTargets && (_lockedTargets.Count == 0 || Time.time >= _nextRefillTime))
+            {
+                _nextRefillTime = Time.time + 0.25f;
+                RefillLocked();
+            }
+
+            if (_lockedTargets.Count == 0)
+            {
+                _healingFinished = true;
+                return;
+            }
+
+            _healTimer += dt;
+            if (_healTimer >= 2f)
+            {
+                _healTimer -= 2f;
+                float healAmount = EffectiveAttackDamage / 3f;
+                for (int i = 0; i < _lockedTargets.Count; i++)
+                    _lockedTargets[i].Heal(healAmount);
+            }
+        }
+
+        // Locked-target upkeep -------------------------------------------------
+        private bool IsLockValid(EnemyHealth t) =>
+            t != null && t.isActiveAndEnabled && t.CurrentHp > 0f && t.CurrentHp < t.MaxHp;
+
+        private void PruneLocked()
+        {
+            for (int i = _lockedTargets.Count - 1; i >= 0; i--)
+            {
+                if (!IsLockValid(_lockedTargets[i])) RemoveLockedAt(i);
+            }
+        }
+
+        private void RemoveLockedAt(int index)
+        {
+            _lockedTargets.RemoveAt(index);
+            if (index < _activeHealBeams.Count)
+            {
+                if (_activeHealBeams[index] != null) Helpers.ProjFactory.Despawn(_activeHealBeams[index].gameObject);
+                _activeHealBeams.RemoveAt(index);
+            }
+        }
+
+        private void RefillLocked()
+        {
+            int needed = _maxHealTargets - _lockedTargets.Count;
+            if (needed <= 0) return;
+
+            CollectHurtAllies(_scratchTargets, HealerStats.HealingRange, needed, _lockedTargets);
+            for (int i = 0; i < _scratchTargets.Count; i++)
+            {
+                _lockedTargets.Add(_scratchTargets[i]);
+                if (_isHealingLoop) SpawnBeam();
+            }
+        }
+
+        private void SpawnBeam()
         {
             if (HealerStats.HealBeamPrefab == null) return;
-            for (int i = 0; i < _activeHealTargets.Count; i++)
+            var beam = Helpers.ProjFactory.Spawn(HealerStats.HealBeamPrefab, transform.position, Quaternion.identity);
+            _activeHealBeams.Add(beam);
+        }
+
+        private void UpdateBeamPositions()
+        {
+            for (int i = 0; i < _lockedTargets.Count && i < _activeHealBeams.Count; i++)
             {
-                var beam = Helpers.ProjFactory.Spawn(HealerStats.HealBeamPrefab, transform.position, Quaternion.identity);
-                _activeHealBeams.Add(beam);
+                if (_lockedTargets[i] == null || _activeHealBeams[i] == null) continue;
+                if (_activeHealBeams[i].TryGetComponent<LineRenderer>(out var lr))
+                {
+                    lr.SetPosition(0, transform.position + Vector3.up * 2f);
+                    lr.SetPosition(1, _lockedTargets[i].transform.position + Vector3.up * 2f);
+                }
             }
         }
 
-        private void OnHealingTick(float dt)
+        private void OnHealSequenceReset()
         {
-            _healTimer += dt;
-            if (_healTimer < 2f) return;
-            _healTimer -= 2f;
+            if (!_isHealingLoop) return;
 
-            float healAmount = EffectiveAttackDamage / 3f;
-            
-            for (int i = _activeHealTargets.Count - 1; i >= 0; i--)
-            {
-                if (_activeHealTargets[i] == null || _activeHealTargets[i].CurrentHp <= 0f)
-                {
-                    _activeHealTargets.RemoveAt(i);
-                    if (i < _activeHealBeams.Count)
-                    {
-                        if (_activeHealBeams[i] != null) Helpers.ProjFactory.Despawn(_activeHealBeams[i].gameObject);
-                        _activeHealBeams.RemoveAt(i);
-                    }
-                }
-            }
-            
-            if (_activeHealTargets.Count == 0)
-            {
-                if (CollectHurtAllies(_activeHealTargets, HealerStats.HealingRange, 2) == 0)
-                {
-                    _abortHealing = true;
-                    return;
-                }
-                SpawnBeamsForTargets();
-            }
-
-            for (int i = 0; i < _activeHealTargets.Count; i++)
-            {
-                _activeHealTargets[i].Heal(healAmount);
-            }
-        }
-
-        private void FinishHealingEarly()
-        {
             _isHealingLoop = false;
             ClearHealBeams();
             StopHealAudio();
-            _healCooldownEndTime = Time.time + HealerStats.HealingCooldown;
-            _healSequence?.Reset();
+            OnHealRecoverStarted?.Invoke(GetClampedDuration(HealerStats.HealRecoverDuration));
         }
 
         private void BeginHealRecover()
@@ -349,10 +439,32 @@ namespace World
 
         private void EndHealing()
         {
-            _healCooldownEndTime = Time.time + HealerStats.HealingCooldown;
             if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh) _agent.isStopped = false;
         }
+
+        private void ClearHealBeams()
+        {
+            foreach (var beam in _activeHealBeams)
+            {
+                if (beam != null) Helpers.ProjFactory.Despawn(beam.gameObject);
+            }
+            _activeHealBeams.Clear();
+        }
         
+        private void StopHealAudio()
+        {
+            if (_healAudioHandle != null)
+            {
+                EventBus.Publish(new AudioStopRequest
+                {
+                    Handle = _healAudioHandle,
+                    FadeOut = true,
+                });
+                _healAudioHandle = null;
+            }
+        }
+
+        // ---------------- Throwing ----------------
         private void BeginThrowWindup()
         {
             SetState(AIState.Throwing);
@@ -406,28 +518,6 @@ namespace World
             _throwCooldownEndTime = Time.time + HealerStats.ThrowingCooldown;
         }
 
-        private void ClearHealBeams()
-        {
-            foreach (var beam in _activeHealBeams)
-            {
-                if (beam != null) Helpers.ProjFactory.Despawn(beam.gameObject);
-            }
-            _activeHealBeams.Clear();
-        }
-        
-        private void StopHealAudio()
-        {
-            if (_healAudioHandle != null)
-            {
-                EventBus.Publish(new AudioStopRequest
-                {
-                    Handle = _healAudioHandle,
-                    FadeOut = true,
-                });
-                _healAudioHandle = null;
-            }
-        }
-
         // ---------------- Ally queries (allocation-free) ----------------
         private bool IsHealableAlly(EnemyHealth health)
         {
@@ -437,7 +527,7 @@ namespace World
             return true;
         }
 
-        private int CollectHurtAllies(List<EnemyHealth> output, float radius, int maxCount)
+        private int CollectHurtAllies(List<EnemyHealth> output, float radius, int maxCount, List<EnemyHealth> exclude)
         {
             output.Clear();
             int count = Physics.OverlapSphereNonAlloc(transform.position, radius, OverlapBuffer, HealerStats.HitLayer);
@@ -445,6 +535,7 @@ namespace World
             {
                 EnemyHealth health = OverlapBuffer[i].GetComponentInParent<EnemyHealth>();
                 if (!IsHealableAlly(health) || output.Contains(health)) continue;
+                if (exclude != null && exclude.Contains(health)) continue;
                 output.Add(health);
             }
 
@@ -452,8 +543,6 @@ namespace World
             if (output.Count > maxCount) output.RemoveRange(maxCount, output.Count - maxCount);
             return output.Count;
         }
-
-        private bool HasHealTarget() => CollectHurtAllies(_scratchTargets, HealerStats.HealingRange, 1) > 0;
 
         private EnemyHealth FindLowestHpAllyGlobal()
         {
