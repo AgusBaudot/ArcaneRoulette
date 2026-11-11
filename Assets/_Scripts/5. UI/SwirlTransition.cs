@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    [RequireComponent(typeof(Image))]
+    [RequireComponent(typeof(RawImage))]
     public sealed class SwirlTransition : MonoBehaviour
     {
         private static readonly int ProgressId = Shader.PropertyToID("_Progress");
@@ -12,14 +12,14 @@ namespace UI
         [SerializeField] private Ease _closeEase = Ease.InCubic;
         [SerializeField] private Ease _openEase = Ease.OutCubic;
 
-        private Image _image;
+        private RawImage _image;
         private Material _material;
         private Tween _tween;
         private float _progress;
 
         private void Awake()
         {
-            _image = GetComponent<Image>();
+            _image = GetComponent<RawImage>();
             _material = new Material(_image.material);
             _image.material = _material;
 

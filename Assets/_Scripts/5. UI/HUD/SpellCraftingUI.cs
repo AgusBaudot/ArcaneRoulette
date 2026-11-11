@@ -534,17 +534,17 @@ namespace UI
                     vfx.transform.localScale = Vector3.one;
                     vfx.transform.SetAsLastSibling();
 
-                    float lifetime = 2f; // fallback
+                    float lifetime = 1.2f; // fallback
                     foreach (var system in vfx.GetComponentsInChildren<ParticleSystem>(true))
                     {
                         var main = system.main;
                         main.useUnscaledTime = true;
 
                         float systemLifetime = main.duration + main.startLifetime.constantMax;
-                        lifetime = Mathf.Max(lifetime == 2f ? 0f : lifetime, systemLifetime);
+                        lifetime = 1.2f;
                     }
 
-                    DOVirtual.DelayedCall(lifetime, () =>
+                    DOVirtual.DelayedCall(1.2f, () =>
                     {
                         if (vfx != null) Destroy(vfx);
                     });

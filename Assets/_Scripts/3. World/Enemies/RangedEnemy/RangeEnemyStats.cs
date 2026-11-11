@@ -40,7 +40,7 @@ namespace World
         public float BlockUncoverDuration = 1f;
         public float BlockTimeout = 3f;
         public float TeleportAnimDuration = 4f;
-        [Tooltip("1.0 = no blockage at all, 0.0 = 100% blockage (no damage received)"), Range(0, 10)]
+        [Tooltip("1.0 = no blockage at all, 0.0 = 100% blockage (no damage received)"), Range(0, 1)]
         public float BlockPercentage = 0.0f;
         
         [Header("Animation Durations")]
