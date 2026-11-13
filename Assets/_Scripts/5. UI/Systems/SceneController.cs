@@ -23,7 +23,6 @@ namespace UI
         private CanvasGroup _canvasGroup;
         private bool _isTransitioning;
 
-        // Survives the scene load: set by a swirl-close, consumed by the next scene's Start.
         private static bool _openWithSwirl;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -31,8 +30,6 @@ namespace UI
         {
             _openWithSwirl = false;
         }
-
-        // ── Unity ────────────────────────────────────────────────────────────
 
         private void Awake()
         {
@@ -61,7 +58,6 @@ namespace UI
 
             if (useSwirl)
             {
-                // Arrived through a portal: hide the black cover, start fully swirled, unwind.
                 _canvasGroup.alpha = 0f;
                 _canvasGroup.blocksRaycasts = false;
 
@@ -74,8 +70,6 @@ namespace UI
                 .SetUpdate(true)
                 .OnComplete(() => _canvasGroup.blocksRaycasts = false);
         }
-
-        // ── Triggers ─────────────────────────────────────────────────────────
 
         private void HandleFloorCleared(FloorClearedEvent evt)
         {
@@ -95,10 +89,8 @@ namespace UI
             Sequence deathSequence = DOTween.Sequence();
             deathSequence.SetUpdate(true);
             
-            // Wait the 2 seconds first without blocking the screen
             deathSequence.AppendInterval(_delayBeforeDeathFade);
             
-            // Apply the raycast block EXACTLY when the fade begins, matching the tutorial's coroutine order
             deathSequence.AppendCallback(() => _canvasGroup.blocksRaycasts = true);
             deathSequence.Append(_canvasGroup.DOFade(1f, _sceneFadeDuration));
             
@@ -115,8 +107,6 @@ namespace UI
 
             CloseThen(() => EventBus.Publish(new FloorTransitionRequestEvent(sceneName)));
         }
-
-        // ── Transition ───────────────────────────────────────────────────────
 
         /// <summary>
         /// Covers the screen (swirl if assigned, black fade otherwise), then runs onClosed.

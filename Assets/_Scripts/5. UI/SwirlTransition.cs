@@ -24,7 +24,7 @@ namespace UI
             _image.material = _material;
 
             if (!_material.HasProperty(ProgressId))
-                Debug.LogError("[SwirlTransition] Assigned material doesn't use the UI/SpiralWipe shader.", this);
+                Debug.LogError("[SwirlTransition] Assigned material doesn't use the UI/VortexWipe shader.", this);
 
             SetProgress(0f);
         }
