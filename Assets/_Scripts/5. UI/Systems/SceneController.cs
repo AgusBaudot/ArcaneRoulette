@@ -92,13 +92,16 @@ namespace UI
             if (_isTransitioning) return;
             _isTransitioning = true;
 
-            _canvasGroup.blocksRaycasts = true; 
-
             Sequence deathSequence = DOTween.Sequence();
             deathSequence.SetUpdate(true);
             
+            // Wait the 2 seconds first without blocking the screen
             deathSequence.AppendInterval(_delayBeforeDeathFade);
+            
+            // Apply the raycast block EXACTLY when the fade begins, matching the tutorial's coroutine order
+            deathSequence.AppendCallback(() => _canvasGroup.blocksRaycasts = true);
             deathSequence.Append(_canvasGroup.DOFade(1f, _sceneFadeDuration));
+            
             deathSequence.OnComplete(() => 
             {
                 EventBus.Publish(new EndRunRequestEvent(_mainMenuSceneName));
