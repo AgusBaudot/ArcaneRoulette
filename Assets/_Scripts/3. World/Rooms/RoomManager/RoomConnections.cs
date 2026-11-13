@@ -19,6 +19,12 @@ namespace World
         [SerializeField] private GameObject _leftDoor;
         [SerializeField] private GameObject _rightDoor;
 
+        [Header("Lights")]
+        [SerializeField] private GameObject _bottomLight;
+        [SerializeField] private GameObject _upLight;
+        [SerializeField] private GameObject _leftLight;
+        [SerializeField] private GameObject _rightLight;
+
         [Header("PlayerSpawn")]
         [SerializeField] private float _offsetSpawn = 1f;
 
@@ -61,21 +67,25 @@ namespace World
             {
                 SetDoorState(_bottomDoor, LockHash, true);
                 if (_bottom != null) _bottom.gameObject.SetActive(false); // Kill the trigger
+                if (_bottomLight != null) _bottomLight.SetActive(false);
             }
             if (!_allDoorsInfo.Up.UnlockOnClear) 
             {
                 SetDoorState(_upDoor, LockHash, true);
                 if (_up != null) _up.gameObject.SetActive(false); // Kill the trigger
+                if (_upLight != null) _upLight.SetActive(false);
             }
             if (!_allDoorsInfo.Left.UnlockOnClear) 
             {
                 SetDoorState(_leftDoor, LockHash, true);
                 if (_left != null) _left.gameObject.SetActive(false); // Kill the trigger
+                if (_leftLight != null) _leftLight.SetActive(false);
             }
             if (!_allDoorsInfo.Right.UnlockOnClear) 
             {
                 SetDoorState(_rightDoor, LockHash, true);
                 if (_right != null) _right.gameObject.SetActive(false); // Kill the trigger
+                if (_rightLight != null) _rightLight.SetActive(false);
             }
         }
 
