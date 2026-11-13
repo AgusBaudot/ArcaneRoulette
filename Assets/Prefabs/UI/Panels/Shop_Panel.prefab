@@ -538,7 +538,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3231271921071281831}
+  - {fileID: 1551725493122738938}
   m_Father: {fileID: 3789727407807019485}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -25}
   m_AnchorMin: {x: 0, y: 0}
@@ -568,7 +568,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -598,7 +598,7 @@ GameObject:
   - component: {fileID: 7133443019311882338}
   - component: {fileID: 8994827314036744969}
   m_Layer: 5
-  m_Name: Button
+  m_Name: BackButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -615,14 +615,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1551725493122738938}
-  m_Father: {fileID: 2971474468016920567}
+  m_Children: []
+  m_Father: {fileID: 3789727407807019485}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -40, y: 75}
-  m_SizeDelta: {x: 180, y: 50}
+  m_AnchoredPosition: {x: -725, y: -60}
+  m_SizeDelta: {x: 200, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8642126031343708573
 CanvasRenderer:
@@ -718,6 +717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11a9172c97d94dcf8b5562456271a2f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _visualRoot: {fileID: 2971474468016920567}
   _clickDuration: 0.4
   _clickEase: 21
   _hoverDuration: 0.15
@@ -1247,6 +1247,7 @@ RectTransform:
   - {fileID: 2938317932899747988}
   - {fileID: 2971474468016920567}
   - {fileID: 7990792051336132400}
+  - {fileID: 3231271921071281831}
   m_Father: {fileID: 7313715921881520270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1373,11 +1374,11 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3231271921071281831}
+  m_Father: {fileID: 2971474468016920567}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.9999657, y: 3.9999542}
+  m_AnchoredPosition: {x: -38.00003, y: 78.9999}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3011412399528965150
@@ -1402,7 +1403,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
