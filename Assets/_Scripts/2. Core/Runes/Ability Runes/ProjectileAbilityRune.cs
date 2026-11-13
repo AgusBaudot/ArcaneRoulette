@@ -12,7 +12,12 @@ namespace Core
         [SerializeField] private float _projectileSpeed = 18f;
         [SerializeField] private float _windupDuration = 0.08f;
         [SerializeField] private float _cooldownDuration = 0.4f; // 1f / fireRate
+        
+        [Header("Spawn Position")]
+        [Tooltip("Name of the child GameObject to spawn projectiles from. If empty or not found, falls back to Offset.")]
+        [SerializeField] private string _spawnPointName = "ProjectileSpawnPoint";
         [SerializeField] private float _offset = 2f;
+        
         [Header("Audio")]
         [SerializeField] private AudioEventSO _defaultCastSound;
         [SerializeField] private ElementalSound[] _elementalSounds;
@@ -65,11 +70,26 @@ namespace Core
                 return;
             }
 
-            Vector3 dir = hit.point - ctx.Runner.transform.position;
+            Vector3 spawnPos = ctx.Runner.transform.position;
+            bool usedSpawnPoint = false;
+
+            if (!string.IsNullOrEmpty(_spawnPointName))
+            {
+                Transform spawnPoint = FindChildRecursive(ctx.Runner.transform, _spawnPointName);
+                if (spawnPoint != null)
+                {
+                    spawnPos = spawnPoint.position;
+                    usedSpawnPoint = true;
+                }
+                else
+                {
+                    Debug.LogWarning($"{nameof(ProjectileAbilityRune)}: Could not find spawn point '{_spawnPointName}' on {ctx.Runner.name}. Falling back to offset.");
+                }
+            }
+
+            Vector3 dir = hit.point - spawnPos;
             dir.y = 0f;
             dir.Normalize();
-            
-            EventBus.Publish(new PlayerFiredEvent(dir));
             
             if (dir == Vector3.zero)
             {
@@ -77,7 +97,12 @@ namespace Core
                 return;
             }
 
-            Vector3 spawnPos = ctx.Runner.transform.position + dir * _offset;
+            if (!usedSpawnPoint)
+            {
+                spawnPos = ctx.Runner.transform.position + dir * _offset;
+            }
+            
+            EventBus.Publish(new PlayerFiredEvent(dir));
             
             float baseDamage = ctx.Stats != null ? ctx.Stats.AttackDamage : 2f;
             int finalDamage = Mathf.Max(1, Mathf.RoundToInt(baseDamage));
@@ -96,10 +121,10 @@ namespace Core
             go.ApplyVisualScale(args.SizeMultiplier);
 
             if (args.HomingCount > 0)
-                SpawnHomingProjectiles(ctx, dir, args.HomingCount);
+                SpawnHomingProjectiles(ctx, spawnPos, dir, args.HomingCount);
         }
 
-        private void SpawnHomingProjectiles(SpellContext ctx, Vector3 dir, int count)
+        private void SpawnHomingProjectiles(SpellContext ctx, Vector3 spawnPos, Vector3 dir, int count)
         {
             if (ctx.Source is not SpellInstance si) return;
 
@@ -110,13 +135,28 @@ namespace Core
 
                 homing.SpawnHomingProjectiles(
                     count,
-                    ctx.Runner.transform.position,
+                    spawnPos,
                     dir,
                     ctx.Source.SpellElement,
                     ctx.Runner);
                 
                 break;
             }
+        }
+
+        private Transform FindChildRecursive(Transform parent, string targetName)
+        {
+            if (parent.name == targetName) 
+                return parent;
+                
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform found = FindChildRecursive(parent.GetChild(i), targetName);
+                if (found != null) 
+                    return found;
+            }
+            
+            return null;
         }
 
         //Hold lifecycle - never called, Projectile is not a hold ability
