@@ -27,10 +27,10 @@ namespace UI
         [Header("Filter Tabs")] [SerializeField]
         private Button _btnFilterAll;
 
-        [SerializeField] private Button _btnFilterAbility;
-        [SerializeField] private Button _btnFilterElement;
-        [SerializeField] private Button _btnFilterCast;
-        [SerializeField] private Button _btnFilterOnHit;
+        // [SerializeField] private Button _btnFilterAbility;
+        // [SerializeField] private Button _btnFilterElement;
+        // [SerializeField] private Button _btnFilterCast;
+        // [SerializeField] private Button _btnFilterOnHit;
         [SerializeField] private RuneFilterTab[] _filterTabs;
 
         [Header("Carousel Animation")] [SerializeField]

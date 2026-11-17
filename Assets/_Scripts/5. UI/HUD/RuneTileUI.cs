@@ -16,6 +16,7 @@ namespace UI
         [SerializeField] private RectTransform _visualRoot;
 
         [Header("UI Elements")]
+        [SerializeField] private Image _inventoryBackground;
         [SerializeField] private Image _icon;
         [SerializeField] private Image _glowImage;
         [SerializeField] private TextMeshProUGUI _countText;
@@ -40,6 +41,11 @@ namespace UI
             {
                 _originalPosition = _visualRoot.anchoredPosition;
                 _originalScale = _visualRoot.localScale;
+            }
+
+            if (_inventoryBackground != null)
+            {
+                _inventoryBackground.color = new Color(1f, 1f, 1f, 0f);
             }
         }
 
@@ -95,6 +101,28 @@ namespace UI
             TooltipSystem.Instance?.Hide();
         }
 
+        private void OnDisable()
+        {
+            if (_visualRoot != null)
+            {
+                _visualRoot.DOKill();
+                _visualRoot.localScale = _originalScale;
+                _visualRoot.anchoredPosition = _originalPosition;
+            }
+            
+            if (_currentRune != null && _icon != null)
+            {
+                _icon.sprite = _currentRune.Icon;
+            }
+            
+            if (_glowImage != null)
+            {
+                _glowImage.enabled = false;
+            }
+            
+            TooltipSystem.Instance?.Hide();
+        }
+
         public void Refresh(RuneDefinitionSO rune, bool highlighted)
         {
             if (_currentRune != null && rune == null) TooltipSystem.Instance?.Hide();
@@ -123,8 +151,16 @@ namespace UI
             if (_countText != null) _countText.enabled = false;
 
             if (_highlight != null) _highlight.SetActive(highlighted);
-            
+                
             if (_button != null) _button.interactable = true;
+        }
+
+        public void EnableInventoryBackground()
+        {
+            if (_inventoryBackground != null)
+            {
+                _inventoryBackground.color = Color.white;
+            }
         }
     }
 }

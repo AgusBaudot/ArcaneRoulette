@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Foundation;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using Foundation;
 
 namespace UI
 {
@@ -16,10 +15,16 @@ namespace UI
     {
         [SerializeField] private Transform _gridParent;
         [SerializeField] private GameObject _runeTilePrefab;
+        [SerializeField] private GameObject _emptySlotPrefab;
 
         private readonly List<(RuneDefinitionSO rune, RuneTileUI tile)> _tiles = new();
+        private readonly List<GameObject> _emptySlots = new();
+        
         private SpellCraftingUI _owner;
         private RuneFilter _currentFilter;
+
+        private const int COLUMNS = 4;
+        private const int MIN_SLOTS = 20;
 
         public void Init(SpellCraftingUI owner)
         {
@@ -56,7 +61,6 @@ namespace UI
                 return nameCompare != 0 ? nameCompare : a.GetInstanceID().CompareTo(b.GetInstanceID());
             });
 
-            // 3. Build in precise order
             foreach (var rune in sortedRunes)
             {
                 int availableCount = availableCountProvider?.Invoke(rune) ?? GameStateManager.RunState.AvailableCount(rune);
@@ -66,6 +70,7 @@ namespace UI
                 }
             }
 
+            AdjustPadding();
             RefreshHighlights(null);
         }
 
@@ -81,7 +86,6 @@ namespace UI
                     return;
                 
                 _tiles[i].tile.Refresh(_tiles[i].rune, shouldHighlight(i));
-
                 _tiles[i].tile.GetComponent<Button>().interactable = true;
             }
         }
@@ -89,9 +93,7 @@ namespace UI
         /// <summary>
         /// Removes exactly one tile for the given rune type.
         /// Called by SpellCraftingUI after a successful assign.
-        /// GridLayoutGroup reflowing handles the visual gap automatically.
         /// </summary>
-        /// <param name="rune"></param>
         public void RemoveOneTile(RuneDefinitionSO rune)
         {
             for (int i = 0; i < _tiles.Count; i++)
@@ -100,6 +102,7 @@ namespace UI
                 {
                     Destroy(_tiles[i].tile.gameObject);
                     _tiles.RemoveAt(i);
+                    AdjustPadding();
                     return;
                 }
             }
@@ -109,7 +112,6 @@ namespace UI
         /// Adds exactly one tile for the given rune type.
         /// Called when a rune is cleared from a slot.
         /// </summary>
-        /// <param name="rune"></param>
         public void AddOneTile(RuneDefinitionSO rune)
         {
             if (!MatchesCurrentFilter(rune))
@@ -143,23 +145,18 @@ namespace UI
             }
 
             var newTile = BuildTile(rune);
-            
             newTile.transform.SetSiblingIndex(insertIndex);
-            
             _tiles.Insert(insertIndex, (rune, newTile));
+            
+            AdjustPadding();
         }
 
         /// <summary>
-        /// Forces an immediate layout rebuild and returns the exact screen rect of the requested rune tile.
+        /// Forces an immediate canvas update and returns the exact screen rect of the requested rune tile.
         /// </summary>
-        /// <param name="rune"></param>
-        /// <returns></returns>
         public RectTransform GetTileRect(RuneDefinitionSO rune)
         {
-            if (_gridParent != null)
-            {
-                LayoutRebuilder.ForceRebuildLayoutImmediate(_gridParent.GetComponent<RectTransform>());
-            }
+            Canvas.ForceUpdateCanvases();
 
             foreach (var entry in _tiles)
             {
@@ -169,23 +166,38 @@ namespace UI
             return null;
         }
 
+        private void AdjustPadding()
+        {
+            int currentRuneCount = _tiles.Count;
+            int targetTotalSlots = Mathf.Max(MIN_SLOTS, Mathf.CeilToInt(currentRuneCount / (float)COLUMNS) * COLUMNS);
+            int requiredEmptySlots = targetTotalSlots - currentRuneCount;
+
+            while (_emptySlots.Count < requiredEmptySlots)
+            {
+                var empty = Instantiate(_emptySlotPrefab, _gridParent);
+                _emptySlots.Add(empty);
+            }
+
+            while (_emptySlots.Count > requiredEmptySlots)
+            {
+                var empty = _emptySlots[^1];
+                _emptySlots.RemoveAt(_emptySlots.Count - 1);
+                Destroy(empty.gameObject);
+            }
+            
+            foreach (var empty in _emptySlots)
+            {
+                empty.transform.SetAsLastSibling();
+            }
+        }
+
         private bool MatchesCurrentFilter(RuneDefinitionSO rune)
         {
-            if (_currentFilter == RuneFilter.All)
-                return true;
-
-            if (_currentFilter == RuneFilter.Ability && rune is AbilityRuneSO)
-                return true;
-
-            if (_currentFilter == RuneFilter.Element && rune is ElementRuneSO)
-                return true;
-
-            if (_currentFilter == RuneFilter.Cast && rune is CastRuneSO)
-                return true;
-
-            if (_currentFilter == RuneFilter.OnHit && rune is OnHitRuneSO)
-                return true;
-
+            if (_currentFilter == RuneFilter.All) return true;
+            if (_currentFilter == RuneFilter.Ability && rune is AbilityRuneSO) return true;
+            if (_currentFilter == RuneFilter.Element && rune is ElementRuneSO) return true;
+            if (_currentFilter == RuneFilter.Cast && rune is CastRuneSO) return true;
+            if (_currentFilter == RuneFilter.OnHit && rune is OnHitRuneSO) return true;
             return false;
         }
 
@@ -205,7 +217,9 @@ namespace UI
                 int currentIndex = _tiles.FindIndex(t => t.tile == tile);
                 _owner.OnInventoryTileClicked(rune, currentIndex, buttonType, rectTransform);
             });
-            
+    
+            tile.EnableInventoryBackground(); 
+    
             tile.Refresh(rune, false);
             return tile;
         }
