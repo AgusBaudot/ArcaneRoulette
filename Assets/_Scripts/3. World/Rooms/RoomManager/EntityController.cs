@@ -21,7 +21,8 @@ namespace World
         [SerializeField] private float _interWaveDelay = 1.0f;
         [SerializeField] private GameObject _dangerImage;
         [SerializeField] private GameObject _effect;
-        [SerializeField] private float _warningDuration;
+        [SerializeField] private float _warningDuration; 
+        [SerializeField] private float _spawnAfterIndicatorDelay = 1.55f; 
         
         [Header("Hazards")]
         [SerializeField] MonoBehaviour[] hazards; 
@@ -154,8 +155,9 @@ namespace World
             GameObject indicator = Instantiate(_dangerImage, new Vector3(spawnPos.x, _dangerImage.transform.position.y, spawnPos.z), Quaternion.Euler(new Vector3(30, 0, 0)));
 
             SetupIndicatorLifetime(indicator);
+            Destroy(indicator, _warningDuration);
             
-            yield return CoroutineUtils.GetWait(_warningDuration);
+            yield return CoroutineUtils.GetWait(_spawnAfterIndicatorDelay);
 
             if (_effect != null)
             {
@@ -176,11 +178,6 @@ namespace World
                 Debug.LogError($"[EntityController] Pool failed to spawn: {type}!");
                 _enemiesAlive--;
                 CheckRoomClear();
-            }
-
-            if (indicator != null)
-            {
-                Destroy(indicator);
             }
         }
 
@@ -219,7 +216,6 @@ namespace World
             {
                 int batchSize = Mathf.Max(1, Mathf.Min(_spawnAtSameTime, enemiesToSpawn.Count - spawnedSoFar));
                 List<Vector3> batchPositions = new List<Vector3>();
-                List<GameObject> batchIndicators = new List<GameObject>();
 
                 for (int i = 0; i < batchSize; i++)
                 {
@@ -230,10 +226,10 @@ namespace World
                     GameObject indicator = Instantiate(_dangerImage, spawn, Quaternion.Euler(new Vector3(30, 0, 0)));
                     
                     SetupIndicatorLifetime(indicator);
-                    batchIndicators.Add(indicator);
+                    Destroy(indicator, _warningDuration);
                 }
                 
-                yield return CoroutineUtils.GetWait(_warningDuration);
+                yield return CoroutineUtils.GetWait(_spawnAfterIndicatorDelay);
 
                 for (int i = 0; i < batchSize; i++)
                 {
@@ -257,11 +253,6 @@ namespace World
                     {
                         Debug.LogError($"[EntityController] Pool failed to spawn: {type}!");
                         _enemiesAlive--;
-                    }
-
-                    if (batchIndicators[i] != null)
-                    {
-                        Destroy(batchIndicators[i].gameObject);
                     }
                 }
 
