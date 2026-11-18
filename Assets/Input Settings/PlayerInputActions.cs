@@ -107,6 +107,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ExpandMap"",
+                    ""type"": ""Button"",
+                    ""id"": ""b4fe1864-1d87-48db-adae-6ee23b763b1e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -316,6 +325,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Console"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e39da1a3-59f0-4026-b0c1-18b4bf9cb1a0"",
+                    ""path"": ""<Keyboard>/m"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ExpandMap"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -538,6 +558,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_PauseGame = m_Player.FindAction("Pause Game", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_Console = m_Player.FindAction("Console", throwIfNotFound: true);
+        m_Player_ExpandMap = m_Player.FindAction("ExpandMap", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_CloseMenu = m_UI.FindAction("CloseMenu", throwIfNotFound: true);
@@ -617,6 +638,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_PauseGame;
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_Console;
+    private readonly InputAction m_Player_ExpandMap;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -630,6 +652,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         public InputAction @PauseGame => m_Wrapper.m_Player_PauseGame;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputAction @Console => m_Wrapper.m_Player_Console;
+        public InputAction @ExpandMap => m_Wrapper.m_Player_ExpandMap;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -666,6 +689,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Console.started += instance.OnConsole;
             @Console.performed += instance.OnConsole;
             @Console.canceled += instance.OnConsole;
+            @ExpandMap.started += instance.OnExpandMap;
+            @ExpandMap.performed += instance.OnExpandMap;
+            @ExpandMap.canceled += instance.OnExpandMap;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -697,6 +723,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Console.started -= instance.OnConsole;
             @Console.performed -= instance.OnConsole;
             @Console.canceled -= instance.OnConsole;
+            @ExpandMap.started -= instance.OnExpandMap;
+            @ExpandMap.performed -= instance.OnExpandMap;
+            @ExpandMap.canceled -= instance.OnExpandMap;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -819,6 +848,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         void OnPauseGame(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
         void OnConsole(InputAction.CallbackContext context);
+        void OnExpandMap(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

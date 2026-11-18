@@ -26,6 +26,8 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     public event Action OnPausePressed;
     public event Action OnInteractPressed;
     public event Action OnConsolePressed;
+    public event Action OnExpandMapStarted;
+    public event Action OnExpandMapCanceled;
 
     #endregion
     
@@ -138,6 +140,15 @@ public class InputReader : ScriptableObject, PlayerInputActions.IPlayerActions, 
     {
         if (context.phase == InputActionPhase.Performed)
             OnConsolePressed?.Invoke();
+    }
+
+    public void OnExpandMap(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Started)
+            OnExpandMapStarted?.Invoke();
+
+        if (context.phase == InputActionPhase.Canceled)
+            OnExpandMapCanceled?.Invoke();
     }
     #endregion
     

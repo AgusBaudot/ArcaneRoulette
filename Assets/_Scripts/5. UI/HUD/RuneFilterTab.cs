@@ -28,6 +28,8 @@ namespace UI
         private Vector2 _originalPosition;
         private Vector3 _originalScale;
         private bool _isActive;
+        
+        // private Canvas _visualCanvas;
 
         public RuneFilter FilterType => _filterType;
 
@@ -37,6 +39,15 @@ namespace UI
             {
                 _originalPosition = _visualRoot.anchoredPosition;
                 _originalScale = _visualRoot.localScale;
+                
+                // _visualCanvas = _visualRoot.GetComponent<Canvas>();
+                // if (_visualCanvas == null)
+                // {
+                //     _visualCanvas = _visualRoot.gameObject.AddComponent<Canvas>();
+                // }
+                
+                // _visualCanvas.overrideSorting = true;
+                // _visualCanvas.sortingOrder = 10;
             }
         }
 
@@ -51,6 +62,11 @@ namespace UI
         public void SetActiveState(bool isActive)
         {
             _isActive = isActive;
+            
+            // if (_visualCanvas != null)
+            // {
+            //     _visualCanvas.sortingOrder = _isActive ? 11 : 10;
+            // }
             
             if (_visualRoot != null)
             {
