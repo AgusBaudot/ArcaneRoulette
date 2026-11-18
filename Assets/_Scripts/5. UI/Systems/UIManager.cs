@@ -131,6 +131,8 @@ namespace UI
 
         private void HandleCancelInput()
         {
+            if (_currentActivePanel == _lootSelectionInstance) return;
+
             if (_currentActivePanel != null)
             {
                 CloseCurrentPanel();

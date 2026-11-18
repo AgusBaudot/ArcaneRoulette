@@ -81,7 +81,7 @@ namespace Foundation
         {
             MaxHp = maxHp;
             CurrentHp = maxHp;
-            Currency = 50;
+            Currency = 0;
         }
 
         // ── HP ───────────────────────────────────────────────────────────────

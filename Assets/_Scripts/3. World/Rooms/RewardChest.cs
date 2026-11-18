@@ -62,6 +62,7 @@ namespace World
             EventBus.Subscribe<RoomRewardResolvedEvent>(HandleRewardResolved);
 
             Vector3 groundPosition = transform.position;
+            groundPosition.y = 0f;
             transform.position = groundPosition + (Vector3.up * _dropHeight);
 
             transform.localScale = Vector3.zero;

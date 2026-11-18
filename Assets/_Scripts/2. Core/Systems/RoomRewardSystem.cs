@@ -8,44 +8,42 @@ namespace Core
     {
         [Header("References")]
         [SerializeField] private RewardChest _chestPrefab;
-        
-        [Header("Economy Tuning")]
-        [SerializeField] private int _pickupReward = 1;
-        [SerializeField] private int _standardRoomReward = 10;
-        [SerializeField] private int _bossRoomReward = 50;
-        [SerializeField] private AudioEventSO _currencyEarnedSound;
 
         private RewardChest _chest;
+        private int _chestRoomIndex = -1;
 
         private void OnEnable()
         {
-            EventBus.Subscribe<LootChestOpenedEvent>(HandleChestOpen);
             EventBus.Subscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Subscribe<PlayerEnteredRoomEvent>(HandlePlayerEnteredRoom);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<LootChestOpenedEvent>(HandleChestOpen);
             EventBus.Unsubscribe<RoomClearEvent>(HandleRoomClear);
+            EventBus.Unsubscribe<PlayerEnteredRoomEvent>(HandlePlayerEnteredRoom);
         }
 
         private void HandleRoomClear(RoomClearEvent evt)
         {
+            if (_chest != null)
+            {
+                Destroy(_chest.gameObject);
+                _chest = null;
+            }
+
+            _chestRoomIndex = evt.Index;
             _chest = Instantiate(_chestPrefab, evt.Position + Vector3.up * 0.5f, _chestPrefab.transform.rotation);
         }
 
-        private void HandleChestOpen(LootChestOpenedEvent evt)
+        private void HandlePlayerEnteredRoom(PlayerEnteredRoomEvent evt)
         {
-            GameStateManager.RunState.AddCurrency(10);
-
-            if (_currencyEarnedSound != null)
+            if (_chest != null && evt.Index != _chestRoomIndex)
             {
-                EventBus.Publish(new AudioPlayRequest { Event = _currencyEarnedSound });
+                Destroy(_chest.gameObject);
+                _chest = null;
+                _chestRoomIndex = -1;
             }
-            
-            //TODO: Animation of opening.
-            Destroy(_chest.gameObject, 1f);
-            //TODO: How does the chest disappear?
         }
     }
 }
