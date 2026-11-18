@@ -10,19 +10,22 @@ namespace World
     public abstract class RestingStatue : MonoBehaviour
     {
         public event Action<RestingStatue> OnStatueInteracted;
-        
+
+        private static readonly int FadePropertyId = Shader.PropertyToID("_Fade");
+
         [Header("Settings")]
         [SerializeField] private GameObject _activeVFX;
         [SerializeField] private GameObject _interactionPrompt;
         [SerializeField] private Collider _collider;
         [SerializeField] private float _interactionRadius = 2.5f;
         [SerializeField] private float _promptFadeDuration = 0.2f;
+        [SerializeField] private float _vfxFadeDuration = 0.5f;
 
         [Header("Visuals & Destruction")]
         [SerializeField] private GameObject _intactModel;
         [SerializeField] private GameObject _fracturedModel;
         [SerializeField] private ExplodingObject _explosionController;
-        
+
         [Header("Audio")]
         [SerializeField] private AudioEventSO _interactSound;
 
@@ -33,17 +36,21 @@ namespace World
         private Image _promptSprite;
         private Tween _promptTween;
 
+        private Renderer[] _vfxRenderers;
+        private MaterialPropertyBlock _vfxPropBlock;
+        private Tween _vfxTween;
+
         private void Awake()
         {
             var col = GetComponent<SphereCollider>();
             col.isTrigger = true;
             col.radius = _interactionRadius;
-            
+
             if (_interactionPrompt != null)
             {
                 _promptSprite = _interactionPrompt.GetComponentInChildren<Image>();
                 _interactionPrompt.SetActive(false);
-                
+
                 if (_promptSprite != null)
                 {
                     var color = _promptSprite.color;
@@ -51,7 +58,13 @@ namespace World
                     _promptSprite.color = color;
                 }
             }
-            
+
+            if (_activeVFX != null)
+            {
+                _vfxRenderers = _activeVFX.GetComponentsInChildren<Renderer>(true);
+                _vfxPropBlock = new MaterialPropertyBlock();
+            }
+
             if (_intactModel != null) _intactModel.SetActive(true);
             if (_fracturedModel != null) _fracturedModel.SetActive(false);
         }
@@ -62,15 +75,16 @@ namespace World
             {
                 Helpers.Input.OnInteractPressed -= HandleInteractPressed;
             }
-            
+
             _promptTween?.Kill();
+            _vfxTween?.Kill();
         }
 
         private void OnTriggerEnter(Collider other)
         {
             if (!_isActive || _playerInside)
                 return;
-            
+
             var playerController = other.GetComponentInParent<PlayerController>();
             if (playerController != null)
             {
@@ -78,7 +92,7 @@ namespace World
                 _cachedPlayer = playerController.gameObject;
 
                 ShowPrompt();
-                
+
                 Helpers.Input.OnInteractPressed += HandleInteractPressed;
             }
         }
@@ -87,7 +101,7 @@ namespace World
         {
             if (!_isActive || !_playerInside)
                 return;
-            
+
             var playerController = other.GetComponentInParent<PlayerController>();
             if (playerController != null && playerController.gameObject == _cachedPlayer)
             {
@@ -124,11 +138,7 @@ namespace World
             _playerInside = false;
             _collider.enabled = false;
 
-            if (_activeVFX != null)
-            {
-                _activeVFX.SetActive(false);
-            }
-
+            FadeOutActiveVFX();
             HidePrompt();
 
             if (Helpers.Input != null)
@@ -136,11 +146,11 @@ namespace World
                 Helpers.Input.OnInteractPressed -= HandleInteractPressed;
             }
         }
-        
+
         public void Crumble()
         {
             Deactivate();
-            
+
             if (_intactModel != null) _intactModel.SetActive(false);
             if (_fracturedModel != null && _explosionController != null)
             {
@@ -149,10 +159,53 @@ namespace World
             }
         }
 
+        private void FadeOutActiveVFX()
+        {
+            if (_activeVFX == null) return;
+
+            if (_vfxRenderers == null || _vfxRenderers.Length == 0 || _vfxFadeDuration <= 0f)
+            {
+                _activeVFX.SetActive(false);
+                return;
+            }
+
+            float currentFade = 1f;
+            var firstMat = _vfxRenderers[0].sharedMaterial;
+            if (firstMat != null && firstMat.HasProperty(FadePropertyId))
+            {
+                currentFade = firstMat.GetFloat(FadePropertyId);
+            }
+
+            _vfxTween?.Kill();
+            _vfxTween = DOTween.To(
+                    () => currentFade,
+                    value =>
+                    {
+                        currentFade = value;
+                        ApplyVFXFade(value);
+                    },
+                    0f,
+                    _vfxFadeDuration)
+                .OnComplete(() => _activeVFX.SetActive(false));
+        }
+
+        private void ApplyVFXFade(float value)
+        {
+            for (int i = 0; i < _vfxRenderers.Length; i++)
+            {
+                var r = _vfxRenderers[i];
+                if (r == null) continue;
+
+                r.GetPropertyBlock(_vfxPropBlock);
+                _vfxPropBlock.SetFloat(FadePropertyId, value);
+                r.SetPropertyBlock(_vfxPropBlock);
+            }
+        }
+
         private void ShowPrompt()
         {
             if (_interactionPrompt == null || _promptSprite == null) return;
-            
+
             _interactionPrompt.SetActive(true);
             _promptTween?.Kill();
             _promptTween = _promptSprite.DOFade(1f, _promptFadeDuration);
@@ -166,7 +219,7 @@ namespace World
             _promptTween = _promptSprite.DOFade(0f, _promptFadeDuration)
                 .OnComplete(() => _interactionPrompt.SetActive(false));
         }
-        
+
         protected abstract void ApplyReward(GameObject player);
     }
 }
