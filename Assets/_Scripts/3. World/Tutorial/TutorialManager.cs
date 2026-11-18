@@ -4,6 +4,7 @@ using Core;
 using Foundation;
 using TMPro;
 using DG.Tweening;
+using UI;
 
 namespace World
 {
@@ -14,6 +15,9 @@ namespace World
         [Header("Screen Fader")]
         [SerializeField] private CanvasGroup _faderGroup;
         [SerializeField] private float _screenFadeDuration = 0.5f;
+        
+        [Header("Screen Vignette")]
+        [SerializeField] private TutorialFocusVignette _tutorialFocusVignette;
 
         [Header("UI Feedback Panel")]
         [SerializeField] private CanvasGroup _feedbackPanel;
@@ -276,7 +280,11 @@ namespace World
             if (_currentStep == 3 || _currentStep == 4 || _currentStep == 5) 
             {
                 if (HasProjectileEquipped()) SetStep(5, "Close the Spell Crafting Interface to return to the game.");
-                else SetStep(4, "Click the Projectile Rune in your inventory to equip it.");
+                else
+                {
+                    SetStep(4, "Click the Projectile Rune in your inventory to equip it.");
+                    StartCoroutine(WaitAndFocusRuneRoutine());
+                }
             }
             else if (_currentStep == 8 || _currentStep == 9)
             {
@@ -290,8 +298,31 @@ namespace World
             }
         }
 
+        private IEnumerator WaitAndFocusRuneRoutine()
+        {
+            // Give the UI up to 5 frames to initialize and populate its layout groups
+            RuneTileUI targetTile = null;
+            for (int i = 0; i < 5; i++)
+            {
+                yield return null; 
+                var inventoryPanel = FindObjectOfType<RuneInventoryPanel>();
+                if (inventoryPanel != null)
+                {
+                    targetTile = inventoryPanel.GetComponentInChildren<RuneTileUI>();
+                    if (targetTile != null) break;
+                }
+            }
+
+            if (targetTile != null)
+            {
+                _tutorialFocusVignette.FocusOn(targetTile.GetComponent<RectTransform>());
+            }
+        }
+
         private void OnSpellEquipped(SpellEquippedEvent evt)
         {
+            _tutorialFocusVignette.Hide();
+
             if ((_currentStep == 3 || _currentStep == 4) && HasProjectileEquipped()) 
                 SetStep(5, "Close the Spell Crafting Interface to return to the game.");
             
@@ -304,6 +335,8 @@ namespace World
 
         private void OnCraftingClosed(SpellCraftingClosedEvent _)
         {
+            _tutorialFocusVignette.Hide();
+
             if (_currentStep == 3 || _currentStep == 4 || _currentStep == 5) 
             {
                 if (HasProjectileEquipped())
